@@ -1,0 +1,7 @@
+(executable
+ (libraries httpaf httpaf-lwt-unix base stdio lwt lwt.unix)
+ (name server))
+
+(env
+  (dev
+    (flags (:standard -warn-error -A))))
