@@ -1,0 +1,179 @@
+type author = {
+  name: string;
+  email: string;
+  ?username: string option;
+}
+
+type files_list = string option list;
+
+type commit = {
+  id: string;
+  tree_id: string;
+  distinct: bool;
+  message: string;
+  timestamp: string;
+  url: string;
+  author:  author;
+  commiter: author;
+  added: files_list;
+  removed: files_list;
+  modified: files_list;
+} <ocaml field_prefix="commit_">
+
+type organization = {
+  name: string option;
+  email: string option;
+  login: string;
+  id: string;
+  node_id: string;
+  avatar_url: string;
+  gravatar_id: string option;
+  url: string;
+  html_url: string option;
+  followers_url: string option;
+  following_url: string option;
+  gists_url: string option;
+  starred_url: string option;
+  subscriptions_url: string option;
+  organizations_url: string option;
+  repos_url: string;
+  events_url: string;
+  received_events_url: string option;
+  org_type <json name="type">: string option;
+  hooks_url: string option;
+  issues_url: string option;
+  members_url: string option;
+  public_members_url: string option;
+  description: string option;
+  site_admin: bool;
+} <ocaml field_prefix="organization_">
+
+type enterprise = {
+  id: int;
+  slug: string;
+  name: string;
+  node_id: string;
+  avatar_url: string;
+  description: string option;
+  website_url: string option;
+  html_url: string;
+  created_at: string;
+  updated_at: string;
+} <ocaml field_prefix="enterprise_">
+
+type user = {
+  login: string;
+  id: int;
+  node_id: string;
+  avatar_url: string;
+  gravatar_id: string;
+  url: string;
+  html_url: string;
+  followers_url: string;
+  following_url: string;
+  gists_url: string;
+  starred_url: string;
+  subscriptions_url: string;
+  organizations_url: string;
+  repos_url: string;
+  events_url: string;
+  received_events_url: string;
+  type: string;
+  site_admin: bool;
+} <ocaml field_prefix="user_">
+
+type repository = {
+  id: int;
+  node_id: string;
+  name: string;
+  full_name: string;
+  private: bool;
+  owner: organization;
+  html_url: string;
+  description: string;
+  fork: bool;
+  url: string;
+  forks_url: string;
+  keys_url: string;
+  collaborators_url: string;
+  teams_url: string;
+  hooks_url: string;
+  issue_events_url: string;
+  events_url: string;
+  assignees_url: string;
+  branches_url: string;
+  tags_url: string;
+  blobs_url: string;
+  git_tags_url: string;
+  git_refs_url: string;
+  trees_url: string;
+  statuses_url: string;
+  languages_url: string;
+  stargazers_url: string;
+  contributors_url: string;
+  subscribers_url: string;
+  subscription_url: string;
+  commits_url: string;
+  git_commits_url: string;
+  comments_url: string;
+  issue_comment_url: string;
+  contents_url: string;
+  compare_url: string;
+  merges_url: string;
+  archive_url: string;
+  downloads_url: string;
+  issues_url: string;
+  pulls_url: string;
+  milestones_url: string;
+  notifications_url: string;
+  labels_url: string;
+  releases_url: string;
+  deployments_url: string;
+  created_at: int;
+  updated_at: string;
+  pushed_at: int;
+  git_url: string;
+  ssh_url: string;
+  clone_url: string;
+  svn_url: string;
+  homepage: string option;
+  size: int;
+  stargazers_count: int;
+  watchers_count: int;
+  language: string;
+  has_issues: bool;
+  has_projects: bool;
+  has_downloads: bool;
+  has_wiki: bool;
+  has_pages: bool;
+  forks_count: int;
+  mirror_url: string option;
+  archived: bool;
+  disabled: bool;
+  open_issues_count: int;
+  license: bool option;
+  forks: int;
+  open_issues: int;
+  watchers: int;
+  default_branch: string;
+  stargazers: int;
+  master_branch: string;
+  pusher: author;
+  organization: organization;
+  enterprise: enterprise;
+  sender: user;
+
+} <ocaml field_prefix="repository_">
+
+type commit_pushed_notification = {
+ ref: string;
+ before: string;
+ after: string;
+ created: bool;
+ deleted: bool;
+ forced: bool;
+ base_ref: string option;
+ compare: string;
+ commits: commit list;
+ head_commit: commit;
+}
