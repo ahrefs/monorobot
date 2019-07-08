@@ -1,0 +1,42 @@
+type author = {
+  name: string;
+  email: string;
+  ?username: string option;
+}
+
+type commit = {
+  id: string;
+  message: string;
+  timestamp: string;
+  url: string;
+  author:  author;
+  committer: author;
+} <ocaml field_prefix="commit_">
+
+type user = {
+  login: string;
+  id: int;
+} <ocaml field_prefix="user_">
+
+type commit_pushed_notification = {
+ ref: string;
+ after: string;
+ commits: commit list;
+ head_commit: commit;
+ pusher: author;
+ sender: user;
+}
+
+type pull_request = { 
+  id: int;
+  body: string;
+  title: string;
+  url: string;
+} <ocaml field_prefix="pull_request_">
+
+type pr_notification = {
+  action: string;
+  number: int;
+  sender: user;
+  pull_request: pull_request;
+}

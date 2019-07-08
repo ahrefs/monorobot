@@ -1,6 +1,9 @@
-(executable
- (libraries httpaf httpaf-lwt-unix base stdio lwt lwt.unix)
- (name server))
+(executables
+ (libraries atdgen yojson biniou httpaf httpaf-lwt-unix base stdio lwt
+   lwt.unix)
+ (names server test))
+
+(include_subdirs unqualified)
 
 (env
  (dev
