@@ -40,3 +40,14 @@ type pr_notification = {
   sender: user;
   pull_request: pull_request;
 }
+
+type branch = {
+  name: string;
+}
+
+type ci_build_notification = {
+  commit: commit;
+  state: string;
+  target_url: string;
+  branches: branch list;
+}

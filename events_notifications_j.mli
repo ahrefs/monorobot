@@ -44,6 +44,15 @@ type commit_pushed_notification = Events_notifications_t.commit_pushed_notificat
   sender : user;
 }
 
+type branch = Events_notifications_t.branch = { name : string }
+
+type ci_build_notification = Events_notifications_t.ci_build_notification = {
+  commit : commit;
+  state : string;
+  target_url : string;
+  branches : branch list;
+}
+
 (** Output a JSON value of type {!user}. *)
 val write_user : Bi_outbuf.t -> user -> unit
 
@@ -139,3 +148,35 @@ val read_commit_pushed_notification : Yojson.Safe.lexer_state -> Lexing.lexbuf -
 
 (** Deserialize JSON data of type {!commit_pushed_notification}. *)
 val commit_pushed_notification_of_string : string -> commit_pushed_notification
+
+(** Output a JSON value of type {!branch}. *)
+val write_branch : Bi_outbuf.t -> branch -> unit
+
+(** Serialize a value of type {!branch}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+val string_of_branch : ?len:int -> branch -> string
+
+(** Input JSON data of type {!branch}. *)
+val read_branch : Yojson.Safe.lexer_state -> Lexing.lexbuf -> branch
+
+(** Deserialize JSON data of type {!branch}. *)
+val branch_of_string : string -> branch
+
+(** Output a JSON value of type {!ci_build_notification}. *)
+val write_ci_build_notification : Bi_outbuf.t -> ci_build_notification -> unit
+
+(** Serialize a value of type {!ci_build_notification}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+val string_of_ci_build_notification : ?len:int -> ci_build_notification -> string
+
+(** Input JSON data of type {!ci_build_notification}. *)
+val read_ci_build_notification : Yojson.Safe.lexer_state -> Lexing.lexbuf -> ci_build_notification
+
+(** Deserialize JSON data of type {!ci_build_notification}. *)
+val ci_build_notification_of_string : string -> ci_build_notification

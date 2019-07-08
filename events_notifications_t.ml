@@ -43,3 +43,12 @@ type commit_pushed_notification = {
   pusher : author;
   sender : user;
 }
+
+type branch = { name : string }
+
+type ci_build_notification = {
+  commit : commit;
+  state : string;
+  target_url : string;
+  branches : branch list;
+}

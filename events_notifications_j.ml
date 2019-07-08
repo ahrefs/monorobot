@@ -44,6 +44,15 @@ type commit_pushed_notification = Events_notifications_t.commit_pushed_notificat
   sender : user;
 }
 
+type branch = Events_notifications_t.branch = { name : string }
+
+type ci_build_notification = Events_notifications_t.ci_build_notification = {
+  commit : commit;
+  state : string;
+  target_url : string;
+  branches : branch list;
+}
+
 let write_user : _ -> user -> _ =
  fun ob x ->
   Bi_outbuf.add_char ob '{';
@@ -1126,3 +1135,270 @@ let read_commit_pushed_notification p lb =
 
 let commit_pushed_notification_of_string s =
   read_commit_pushed_notification (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+
+let write_branch : _ -> branch -> _ =
+ fun ob x ->
+  Bi_outbuf.add_char ob '{';
+  let is_first = ref true in
+  if !is_first then is_first := false else Bi_outbuf.add_char ob ',';
+  Bi_outbuf.add_string ob "\"name\":";
+  Yojson.Safe.write_string ob x.name;
+  Bi_outbuf.add_char ob '}'
+
+let string_of_branch ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_branch ob x;
+  Bi_outbuf.contents ob
+
+let read_branch p lb =
+  Yojson.Safe.read_space p lb;
+  Yojson.Safe.read_lcurl p lb;
+  let field_name = ref (Obj.magic (Sys.opaque_identity 0.0)) in
+  let bits0 = ref 0 in
+  try
+    Yojson.Safe.read_space p lb;
+    Yojson.Safe.read_object_end lb;
+    Yojson.Safe.read_space p lb;
+    let f s pos len =
+      if pos < 0 || len < 0 || pos + len > String.length s then
+        invalid_arg "out-of-bounds substring position or length";
+      if
+        len = 4
+        && String.unsafe_get s pos = 'n'
+        && String.unsafe_get s (pos + 1) = 'a'
+        && String.unsafe_get s (pos + 2) = 'm'
+        && String.unsafe_get s (pos + 3) = 'e'
+      then 0
+      else -1
+    in
+    let i = Yojson.Safe.map_ident p f lb in
+    Atdgen_runtime.Oj_run.read_until_field_value p lb;
+    ( match i with
+    | 0 ->
+      field_name := Atdgen_runtime.Oj_run.read_string p lb;
+      bits0 := !bits0 lor 0x1
+    | _ -> Yojson.Safe.skip_json p lb );
+    while true do
+      Yojson.Safe.read_space p lb;
+      Yojson.Safe.read_object_sep p lb;
+      Yojson.Safe.read_space p lb;
+      let f s pos len =
+        if pos < 0 || len < 0 || pos + len > String.length s then
+          invalid_arg "out-of-bounds substring position or length";
+        if
+          len = 4
+          && String.unsafe_get s pos = 'n'
+          && String.unsafe_get s (pos + 1) = 'a'
+          && String.unsafe_get s (pos + 2) = 'm'
+          && String.unsafe_get s (pos + 3) = 'e'
+        then 0
+        else -1
+      in
+      let i = Yojson.Safe.map_ident p f lb in
+      Atdgen_runtime.Oj_run.read_until_field_value p lb;
+      match i with
+      | 0 ->
+        field_name := Atdgen_runtime.Oj_run.read_string p lb;
+        bits0 := !bits0 lor 0x1
+      | _ -> Yojson.Safe.skip_json p lb
+    done;
+    assert false
+  with Yojson.End_of_object ->
+    if !bits0 <> 0x1 then Atdgen_runtime.Oj_run.missing_fields p [| !bits0 |] [| "name" |];
+    ({ name = !field_name } : branch)
+
+let branch_of_string s = read_branch (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+
+let write__3 = Atdgen_runtime.Oj_run.write_list write_branch
+
+let string_of__3 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__3 ob x;
+  Bi_outbuf.contents ob
+
+let read__3 = Atdgen_runtime.Oj_run.read_list read_branch
+
+let _3_of_string s = read__3 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+
+let write_ci_build_notification : _ -> ci_build_notification -> _ =
+ fun ob x ->
+  Bi_outbuf.add_char ob '{';
+  let is_first = ref true in
+  if !is_first then is_first := false else Bi_outbuf.add_char ob ',';
+  Bi_outbuf.add_string ob "\"commit\":";
+  write_commit ob x.commit;
+  if !is_first then is_first := false else Bi_outbuf.add_char ob ',';
+  Bi_outbuf.add_string ob "\"state\":";
+  Yojson.Safe.write_string ob x.state;
+  if !is_first then is_first := false else Bi_outbuf.add_char ob ',';
+  Bi_outbuf.add_string ob "\"target_url\":";
+  Yojson.Safe.write_string ob x.target_url;
+  if !is_first then is_first := false else Bi_outbuf.add_char ob ',';
+  Bi_outbuf.add_string ob "\"branches\":";
+  write__3 ob x.branches;
+  Bi_outbuf.add_char ob '}'
+
+let string_of_ci_build_notification ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_ci_build_notification ob x;
+  Bi_outbuf.contents ob
+
+let read_ci_build_notification p lb =
+  Yojson.Safe.read_space p lb;
+  Yojson.Safe.read_lcurl p lb;
+  let field_commit = ref (Obj.magic (Sys.opaque_identity 0.0)) in
+  let field_state = ref (Obj.magic (Sys.opaque_identity 0.0)) in
+  let field_target_url = ref (Obj.magic (Sys.opaque_identity 0.0)) in
+  let field_branches = ref (Obj.magic (Sys.opaque_identity 0.0)) in
+  let bits0 = ref 0 in
+  try
+    Yojson.Safe.read_space p lb;
+    Yojson.Safe.read_object_end lb;
+    Yojson.Safe.read_space p lb;
+    let f s pos len =
+      if pos < 0 || len < 0 || pos + len > String.length s then
+        invalid_arg "out-of-bounds substring position or length";
+      match len with
+      | 5 ->
+        if
+          String.unsafe_get s pos = 's'
+          && String.unsafe_get s (pos + 1) = 't'
+          && String.unsafe_get s (pos + 2) = 'a'
+          && String.unsafe_get s (pos + 3) = 't'
+          && String.unsafe_get s (pos + 4) = 'e'
+        then 1
+        else -1
+      | 6 ->
+        if
+          String.unsafe_get s pos = 'c'
+          && String.unsafe_get s (pos + 1) = 'o'
+          && String.unsafe_get s (pos + 2) = 'm'
+          && String.unsafe_get s (pos + 3) = 'm'
+          && String.unsafe_get s (pos + 4) = 'i'
+          && String.unsafe_get s (pos + 5) = 't'
+        then 0
+        else -1
+      | 8 ->
+        if
+          String.unsafe_get s pos = 'b'
+          && String.unsafe_get s (pos + 1) = 'r'
+          && String.unsafe_get s (pos + 2) = 'a'
+          && String.unsafe_get s (pos + 3) = 'n'
+          && String.unsafe_get s (pos + 4) = 'c'
+          && String.unsafe_get s (pos + 5) = 'h'
+          && String.unsafe_get s (pos + 6) = 'e'
+          && String.unsafe_get s (pos + 7) = 's'
+        then 3
+        else -1
+      | 10 ->
+        if
+          String.unsafe_get s pos = 't'
+          && String.unsafe_get s (pos + 1) = 'a'
+          && String.unsafe_get s (pos + 2) = 'r'
+          && String.unsafe_get s (pos + 3) = 'g'
+          && String.unsafe_get s (pos + 4) = 'e'
+          && String.unsafe_get s (pos + 5) = 't'
+          && String.unsafe_get s (pos + 6) = '_'
+          && String.unsafe_get s (pos + 7) = 'u'
+          && String.unsafe_get s (pos + 8) = 'r'
+          && String.unsafe_get s (pos + 9) = 'l'
+        then 2
+        else -1
+      | _ -> -1
+    in
+    let i = Yojson.Safe.map_ident p f lb in
+    Atdgen_runtime.Oj_run.read_until_field_value p lb;
+    ( match i with
+    | 0 ->
+      field_commit := read_commit p lb;
+      bits0 := !bits0 lor 0x1
+    | 1 ->
+      field_state := Atdgen_runtime.Oj_run.read_string p lb;
+      bits0 := !bits0 lor 0x2
+    | 2 ->
+      field_target_url := Atdgen_runtime.Oj_run.read_string p lb;
+      bits0 := !bits0 lor 0x4
+    | 3 ->
+      field_branches := read__3 p lb;
+      bits0 := !bits0 lor 0x8
+    | _ -> Yojson.Safe.skip_json p lb );
+    while true do
+      Yojson.Safe.read_space p lb;
+      Yojson.Safe.read_object_sep p lb;
+      Yojson.Safe.read_space p lb;
+      let f s pos len =
+        if pos < 0 || len < 0 || pos + len > String.length s then
+          invalid_arg "out-of-bounds substring position or length";
+        match len with
+        | 5 ->
+          if
+            String.unsafe_get s pos = 's'
+            && String.unsafe_get s (pos + 1) = 't'
+            && String.unsafe_get s (pos + 2) = 'a'
+            && String.unsafe_get s (pos + 3) = 't'
+            && String.unsafe_get s (pos + 4) = 'e'
+          then 1
+          else -1
+        | 6 ->
+          if
+            String.unsafe_get s pos = 'c'
+            && String.unsafe_get s (pos + 1) = 'o'
+            && String.unsafe_get s (pos + 2) = 'm'
+            && String.unsafe_get s (pos + 3) = 'm'
+            && String.unsafe_get s (pos + 4) = 'i'
+            && String.unsafe_get s (pos + 5) = 't'
+          then 0
+          else -1
+        | 8 ->
+          if
+            String.unsafe_get s pos = 'b'
+            && String.unsafe_get s (pos + 1) = 'r'
+            && String.unsafe_get s (pos + 2) = 'a'
+            && String.unsafe_get s (pos + 3) = 'n'
+            && String.unsafe_get s (pos + 4) = 'c'
+            && String.unsafe_get s (pos + 5) = 'h'
+            && String.unsafe_get s (pos + 6) = 'e'
+            && String.unsafe_get s (pos + 7) = 's'
+          then 3
+          else -1
+        | 10 ->
+          if
+            String.unsafe_get s pos = 't'
+            && String.unsafe_get s (pos + 1) = 'a'
+            && String.unsafe_get s (pos + 2) = 'r'
+            && String.unsafe_get s (pos + 3) = 'g'
+            && String.unsafe_get s (pos + 4) = 'e'
+            && String.unsafe_get s (pos + 5) = 't'
+            && String.unsafe_get s (pos + 6) = '_'
+            && String.unsafe_get s (pos + 7) = 'u'
+            && String.unsafe_get s (pos + 8) = 'r'
+            && String.unsafe_get s (pos + 9) = 'l'
+          then 2
+          else -1
+        | _ -> -1
+      in
+      let i = Yojson.Safe.map_ident p f lb in
+      Atdgen_runtime.Oj_run.read_until_field_value p lb;
+      match i with
+      | 0 ->
+        field_commit := read_commit p lb;
+        bits0 := !bits0 lor 0x1
+      | 1 ->
+        field_state := Atdgen_runtime.Oj_run.read_string p lb;
+        bits0 := !bits0 lor 0x2
+      | 2 ->
+        field_target_url := Atdgen_runtime.Oj_run.read_string p lb;
+        bits0 := !bits0 lor 0x4
+      | 3 ->
+        field_branches := read__3 p lb;
+        bits0 := !bits0 lor 0x8
+      | _ -> Yojson.Safe.skip_json p lb
+    done;
+    assert false
+  with Yojson.End_of_object ->
+    if !bits0 <> 0xf then
+      Atdgen_runtime.Oj_run.missing_fields p [| !bits0 |] [| "commit"; "state"; "target_url"; "branches" |];
+    ( { commit = !field_commit; state = !field_state; target_url = !field_target_url; branches = !field_branches }
+      : ci_build_notification )
+
+let ci_build_notification_of_string s = read_ci_build_notification (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
