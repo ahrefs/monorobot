@@ -13,12 +13,12 @@ let request_handler (_ : Unix.sockaddr) (reqd : Reqd.t) =
           let response_code =
             ref
               ( match Request_validation.validate_github_payload_headers headers with
-                | Ok github_event ->
-                  payload_event := github_event;
-                  `OK
-                | Error (response_status, msg) ->
-                  error_message := Some msg;
-                  response_status )
+              | Ok github_event ->
+                payload_event := github_event;
+                `OK
+              | Error (response_status, msg) ->
+                error_message := Some msg;
+                response_status )
           in
           (* Still not parsing the body payload *)
           (* let body_payload = "" in

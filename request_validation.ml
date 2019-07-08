@@ -16,9 +16,9 @@ let validate_github_payload_headers (headers : Headers.t) =
     let is_allowed_event =
       List.exists
         (fun allowed_event ->
-           match github_event with
-           | Some event -> String.equal event allowed_event
-           | None -> false)
+          match github_event with
+          | Some event -> String.equal event allowed_event
+          | None -> false)
         allowed_event_notifications
     in
     (* Check if the event and the headers values are allowed *)
@@ -38,12 +38,12 @@ let validate_payload_actions event_type payload =
   | Pull_request ->
     let pull_request = Events_notifications_j.pr_notification_of_string payload in
     ( match pull_request.action with
-      | "review_requested" -> Ok Pull_request
-      | _ -> Error (`Bad_request, "Pull request notification with wrong action") )
+    | "review_requested" -> Ok Pull_request
+    | _ -> Error (`Bad_request, "Pull request notification with wrong action") )
   | Check_suite ->
     let ci_notification = Events_notifications_j.ci_build_notification_of_string payload in
     ( match ci_notification.state with
-      | "success" -> Ok Check_suite
-      | "failure" -> Ok Check_suite
-      | _ -> Error (`Bad_request, "CI Build Status: do we care about other statuses?") )
+    | "success" -> Ok Check_suite
+    | "failure" -> Ok Check_suite
+    | _ -> Error (`Bad_request, "CI Build Status: do we care about other statuses?") )
   | _ -> Error (`Bad_request, "Impossible state?")
