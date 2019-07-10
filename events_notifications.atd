@@ -1,0 +1,58 @@
+type author = {
+  name: string;
+  email: string;
+  ?username: string nullable;
+}
+
+type commit = {
+  id: string;
+  message: string;
+  timestamp: string;
+  url: string;
+  author:  author;
+  committer: author;
+}
+
+type user = {
+  login: string;
+  id: int;
+}
+
+type commit_pushed_notification = {
+ ref: string;
+ after: string;
+ commits: commit list;
+ head_commit: commit;
+ pusher: author;
+ sender: user;
+}
+
+type pull_request = { 
+  id: int;
+  body: string;
+  title: string;
+  url: string;
+}
+
+type pr_action = [
+  Success <json name="success">
+  | Failure <json name="failure">
+]
+
+type pr_notification = {
+  action: pr_action;
+  number: int;
+  sender: user;
+  pull_request: pull_request;
+}
+
+type branch = {
+  name: string;
+}
+
+type ci_build_notification = {
+  commit: commit;
+  state: string;
+  target_url: string;
+  branches: branch list;
+}
