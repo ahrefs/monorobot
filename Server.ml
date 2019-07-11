@@ -2,8 +2,8 @@ open Base
 open Lwt.Infix
 module Arg = Caml.Arg
 open Httpaf_lwt_unix
-open RequestHandler
-open ErrorHandler
+open Request_handler
+open Error_handler
 
 let main port =
   let listen_address = Unix.(ADDR_INET (inet_addr_loopback, port)) in
