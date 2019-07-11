@@ -34,22 +34,26 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
       read_body (Reqd.request_body reqd)
       >|= (fun body ->
             let open Github_notifications_handler in
-            let github_event = validate_request_headers headers in
-            match github_event with
-            | Ok event_name ->
-              Reqd.try_with reqd (fun () ->
-                  (* here we will map the payloads to the right notification creation function *)
-                  let created_notification =
-                    match parse_notification_payload body event_name with
-                    | Push push_commit_notification -> push_commit_notification.ref
-                    | Pull_request pr_notification -> Int.to_string pr_notification.number
-                    | CI_run ci_run_notification -> ci_run_notification.target_url
-                  in
-                  Stdio.print_endline created_notification;
-                  send_response reqd "" `OK)
-              |> ignore
+            let github_event = validate_request_event_headers headers in
+            let parsed_payload =
+              try parse_notification_payload body github_event
+              with exn ->
+                ( match Headers.get headers "X-Github-Event" with
+                | Some event -> Error (Printf.sprintf "While parsing the %s payload: %s" event (Exn.to_string exn))
+                | None -> Error (Printf.sprintf "While parsing the payload: %s" (Exn.to_string exn)) )
+            in
+            match parsed_payload with
+            | Ok payload ->
+              let notification_detail =
+                match payload with
+                | Push push_commit_notification -> push_commit_notification.ref
+                | Pull_request pr_notification -> Int.to_string pr_notification.number
+                | CI_run ci_run_notification -> ci_run_notification.target_url
+              in
+              Stdio.print_endline notification_detail;
+              send_response reqd "" `OK
             | Error error_message ->
-              Stdio.printf "Github notification bad request: %s\n" error_message;
+              Stdio.print_endline (Printf.sprintf "Github notification bad request: %s" error_message);
               send_response reqd "" `Bad_request)
       |> ignore
     | _ -> send_response reqd "" `Not_found )
