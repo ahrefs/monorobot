@@ -38,25 +38,13 @@ let parse_notification_payload body event_name =
   | Error _ -> Error "Invalid event type"
 
 let validate_request_event_headers headers =
-  (* Ensure env vars *)
+  (* Ensure env vars before anything else *)
   let () = List.iter ~f:ensure_env [ "SHA1_SIG"; "GITHUB_AGENT" ] in
   let github_event = extract_header validate_notification_type headers "X-GitHub-Event" in
   let validate_github_request_signature = validate_header_env_var Configuration.Env.github_sha1_signature in
   let validate_github_user_agent = validate_header_env_var Configuration.Env.github_user_agent in
   let notification_signature = extract_header validate_github_request_signature headers "X-Hub-Signature" in
   let user_agent = extract_header validate_github_user_agent headers "User-agent" in
-  (* Temos de garantir que o tipo de request event bate certo com o payload *)
   match notification_signature, user_agent, github_event with
   | Ok _, Ok _, Ok _ -> github_event
   | _, _, _ -> Error "Headers validation failed"
-
-(* validar as headers 👆
-   // garantir vars ambiente
-   let () = List.iter ensure_env ["SHA1_SIG"; "GITHUB_AGENT"] 
-
-   // garantir que existem
-   List.for_all ~f:is_some [user_agent; github_event; ...]
-
-   // ?function to extract check the presence of an env variable.?
-   Option.value_map ~default:Github_events.No_event ~f:Github_events.from_string github_event
-*)
