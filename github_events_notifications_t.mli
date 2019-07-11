@@ -56,7 +56,7 @@ type commit = {
   timestamp : string;
   url : string;
   author : author;
-  committer : user;
+  committer : author;
 }
 
 type commit_pushed_notification = {

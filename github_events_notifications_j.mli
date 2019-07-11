@@ -42,7 +42,7 @@ type commit = Github_events_notifications_t.commit = {
   timestamp : string;
   url : string;
   author : author;
-  committer : user;
+  committer : author;
 }
 
 type commit_pushed_notification = Github_events_notifications_t.commit_pushed_notification = {

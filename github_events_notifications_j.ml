@@ -42,7 +42,7 @@ type commit = Github_events_notifications_t.commit = {
   timestamp : string;
   url : string;
   author : author;
-  committer : user;
+  committer : author;
 }
 
 type commit_pushed_notification = Github_events_notifications_t.commit_pushed_notification = {
@@ -935,7 +935,7 @@ let write_commit : _ -> commit -> _ =
   write_author ob x.author;
   if !is_first then is_first := false else Bi_outbuf.add_char ob ',';
   Bi_outbuf.add_string ob "\"committer\":";
-  write_user ob x.committer;
+  write_author ob x.committer;
   Bi_outbuf.add_char ob '}'
 
 let string_of_commit ?(len = 1024) x =
@@ -1035,7 +1035,7 @@ let read_commit p lb =
       field_author := read_author p lb;
       bits0 := !bits0 lor 0x10
     | 5 ->
-      field_committer := read_user p lb;
+      field_committer := read_author p lb;
       bits0 := !bits0 lor 0x20
     | _ -> Yojson.Safe.skip_json p lb );
     while true do
@@ -1121,7 +1121,7 @@ let read_commit p lb =
         field_author := read_author p lb;
         bits0 := !bits0 lor 0x10
       | 5 ->
-        field_committer := read_user p lb;
+        field_committer := read_author p lb;
         bits0 := !bits0 lor 0x20
       | _ -> Yojson.Safe.skip_json p lb
     done;
