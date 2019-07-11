@@ -1,54 +1,72 @@
-(* Auto-generated from "events_notifications.atd" *)
+(* Auto-generated from "github_events_notifications.atd" *)
 [@@@ocaml.warning "-27-32-35-39"]
 
-type user = Events_notifications_t.user = {
-  user_login (*atd login *) : string;
-  user_id (*atd id *) : int;
+type user = Github_events_notifications_t.user = {
+  login : string;
+  id : int;
 }
 
-type pull_request = Events_notifications_t.pull_request = {
-  pull_request_id (*atd id *) : int;
-  pull_request_body (*atd body *) : string;
-  pull_request_title (*atd title *) : string;
-  pull_request_url (*atd url *) : string;
+type pull_request = Github_events_notifications_t.pull_request = {
+  id : int;
+  body : string;
+  title : string;
+  url : string;
 }
 
-type pr_notification = Events_notifications_t.pr_notification = {
-  action : string;
+type pr_action = Github_events_notifications_t.pr_action
+
+type pr_notification = Github_events_notifications_t.pr_notification = {
+  action : pr_action;
   number : int;
   sender : user;
   pull_request : pull_request;
 }
 
-type author = Events_notifications_t.author = {
+type author = Github_events_notifications_t.author = {
   name : string;
   email : string;
   username : string option;
 }
 
-type commit = Events_notifications_t.commit = {
-  commit_id (*atd id *) : string;
-  commit_message (*atd message *) : string;
-  commit_timestamp (*atd timestamp *) : string;
-  commit_url (*atd url *) : string;
-  commit_author (*atd author *) : author;
-  commit_committer (*atd committer *) : author;
+type inner_commit = Github_events_notifications_t.inner_commit = {
+  author : author;
+  committer : author;
+  message : string;
 }
 
-type commit_pushed_notification = Events_notifications_t.commit_pushed_notification = {
+type commit_hash = Github_events_notifications_t.commit_hash
+
+type commit = Github_events_notifications_t.commit = {
+  id : commit_hash;
+  message : string;
+  timestamp : string;
+  url : string;
+  author : author;
+  committer : user;
+}
+
+type commit_pushed_notification = Github_events_notifications_t.commit_pushed_notification = {
   ref : string;
-  after : string;
+  after : commit_hash;
   commits : commit list;
   head_commit : commit;
   pusher : author;
   sender : user;
 }
 
-type branch = Events_notifications_t.branch = { name : string }
+type ci_commit = Github_events_notifications_t.ci_commit = {
+  sha : commit_hash;
+  commit : inner_commit;
+  url (*atd html_url *) : string;
+}
 
-type ci_build_notification = Events_notifications_t.ci_build_notification = {
-  commit : commit;
-  state : string;
+type ci_build_state = Github_events_notifications_t.ci_build_state
+
+type branch = Github_events_notifications_t.branch = { name : string }
+
+type ci_build_notification = Github_events_notifications_t.ci_build_notification = {
+  commit : ci_commit;
+  state : ci_build_state;
   target_url : string;
   branches : branch list;
 }
@@ -85,6 +103,22 @@ val read_pull_request : Yojson.Safe.lexer_state -> Lexing.lexbuf -> pull_request
 (** Deserialize JSON data of type {!pull_request}. *)
 val pull_request_of_string : string -> pull_request
 
+(** Output a JSON value of type {!pr_action}. *)
+val write_pr_action : Bi_outbuf.t -> pr_action -> unit
+
+(** Serialize a value of type {!pr_action}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+val string_of_pr_action : ?len:int -> pr_action -> string
+
+(** Input JSON data of type {!pr_action}. *)
+val read_pr_action : Yojson.Safe.lexer_state -> Lexing.lexbuf -> pr_action
+
+(** Deserialize JSON data of type {!pr_action}. *)
+val pr_action_of_string : string -> pr_action
+
 (** Output a JSON value of type {!pr_notification}. *)
 val write_pr_notification : Bi_outbuf.t -> pr_notification -> unit
 
@@ -117,6 +151,38 @@ val read_author : Yojson.Safe.lexer_state -> Lexing.lexbuf -> author
 (** Deserialize JSON data of type {!author}. *)
 val author_of_string : string -> author
 
+(** Output a JSON value of type {!inner_commit}. *)
+val write_inner_commit : Bi_outbuf.t -> inner_commit -> unit
+
+(** Serialize a value of type {!inner_commit}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+val string_of_inner_commit : ?len:int -> inner_commit -> string
+
+(** Input JSON data of type {!inner_commit}. *)
+val read_inner_commit : Yojson.Safe.lexer_state -> Lexing.lexbuf -> inner_commit
+
+(** Deserialize JSON data of type {!inner_commit}. *)
+val inner_commit_of_string : string -> inner_commit
+
+(** Output a JSON value of type {!commit_hash}. *)
+val write_commit_hash : Bi_outbuf.t -> commit_hash -> unit
+
+(** Serialize a value of type {!commit_hash}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+val string_of_commit_hash : ?len:int -> commit_hash -> string
+
+(** Input JSON data of type {!commit_hash}. *)
+val read_commit_hash : Yojson.Safe.lexer_state -> Lexing.lexbuf -> commit_hash
+
+(** Deserialize JSON data of type {!commit_hash}. *)
+val commit_hash_of_string : string -> commit_hash
+
 (** Output a JSON value of type {!commit}. *)
 val write_commit : Bi_outbuf.t -> commit -> unit
 
@@ -148,6 +214,38 @@ val read_commit_pushed_notification : Yojson.Safe.lexer_state -> Lexing.lexbuf -
 
 (** Deserialize JSON data of type {!commit_pushed_notification}. *)
 val commit_pushed_notification_of_string : string -> commit_pushed_notification
+
+(** Output a JSON value of type {!ci_commit}. *)
+val write_ci_commit : Bi_outbuf.t -> ci_commit -> unit
+
+(** Serialize a value of type {!ci_commit}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+val string_of_ci_commit : ?len:int -> ci_commit -> string
+
+(** Input JSON data of type {!ci_commit}. *)
+val read_ci_commit : Yojson.Safe.lexer_state -> Lexing.lexbuf -> ci_commit
+
+(** Deserialize JSON data of type {!ci_commit}. *)
+val ci_commit_of_string : string -> ci_commit
+
+(** Output a JSON value of type {!ci_build_state}. *)
+val write_ci_build_state : Bi_outbuf.t -> ci_build_state -> unit
+
+(** Serialize a value of type {!ci_build_state}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+val string_of_ci_build_state : ?len:int -> ci_build_state -> string
+
+(** Input JSON data of type {!ci_build_state}. *)
+val read_ci_build_state : Yojson.Safe.lexer_state -> Lexing.lexbuf -> ci_build_state
+
+(** Deserialize JSON data of type {!ci_build_state}. *)
+val ci_build_state_of_string : string -> ci_build_state
 
 (** Output a JSON value of type {!branch}. *)
 val write_branch : Bi_outbuf.t -> branch -> unit
