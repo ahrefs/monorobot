@@ -1,7 +1,6 @@
 type author = {
   name: string;
   email: string;
-  ?username: string nullable;
 }
 
 type commit_hash = string wrap <ocaml t="Sha1.t" wrap="Sha1.string" unwrap="Sha1.to_hex">
@@ -50,7 +49,7 @@ type pr_action = [
   | Locked <json name="locked">
   | Unlocked <json name="unlocked">
   | Reopened <json name="reopened">
-]
+] <ocaml repr="classic">
 
 type pr_notification = {
   action: pr_action;
@@ -65,12 +64,12 @@ type branch = {
 
 type ci_build_state = [
   Success <json name="success">
-  | Failure <json name="failure">
+  | Failed <json name="failure">
   | Neutral <json name="neutral">
   | Cancelled <json name="cancelled">
   | Timed_out <json name="timed_out">
   | Action_required <json name="action_required">
-]
+] <ocaml repr="classic">
 
 type inner_commit = {
   author: author;

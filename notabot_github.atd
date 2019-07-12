@@ -1,0 +1,44 @@
+type commit_hash = string wrap <ocaml t="Sha1.t" wrap="Sha1.string" unwrap="Sha1.to_hex">
+
+type author = {
+  name: string;
+  email: string;
+}
+
+type user = {
+  login: string;
+  id: int;
+}
+
+type commit_pushed = {
+  author: author;
+  hash: commit_hash;
+  commit_message: string;
+  link: string;
+}
+
+type commit = {
+  sha: commit_hash;
+  message: string;
+  url: string;
+  author:  author;
+}
+
+type success_status = [
+  Success <json name="success">
+  | Failed <json name="failure">
+] <ocaml repr="classic">
+
+type ci_build_status_changed = {
+  commit: commit;
+  build_status: success_status;
+  branch: string;
+  link: string;
+}
+
+type pr_review_requested = {
+  author: string;
+  title: string;
+  description: string;
+  link: string;
+}
