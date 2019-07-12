@@ -25,6 +25,10 @@ let send_response reqd response_body status =
   let headers = Headers.of_list [ "Content-Length", Int.to_string (String.length response_body) ] in
   Reqd.respond_with_string reqd (Response.create ~headers status) response_body
 
+let reply_with_bad_request reqd error_message =
+  Stdio.print_endline (Printf.sprintf "Github notification bad request: %s" error_message);
+  send_response reqd "" `Bad_request
+
 let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
   let { Request.meth; target; headers; _ } = Reqd.request reqd in
   match meth with
@@ -46,17 +50,14 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
             in
             match parsed_payload with
             | Ok payload ->
-              let notification_detail =
-                match payload with
-                | Push push_commit_notification -> push_commit_notification.ref
-                | Pull_request pr_notification -> Int.to_string pr_notification.number
-                | CI_run ci_run_notification -> ci_run_notification.target_url
-              in
-              Stdio.print_endline notification_detail;
-              send_response reqd "" `OK
-            | Error error_message ->
-              Stdio.print_endline (Printf.sprintf "Github notification bad request: %s" error_message);
-              send_response reqd "" `Bad_request)
+              let notification = Notabot.Github.Console.generate_notification payload in
+              let serialized_notification = Result.map ~f:Notabot.Github.Console.serialize_notification notification in
+              ( match serialized_notification with
+              | Ok serialized_notification' ->
+                Stdio.print_endline serialized_notification';
+                send_response reqd "" `OK
+              | Error error_message -> reply_with_bad_request reqd error_message )
+            | Error error_message -> reply_with_bad_request reqd error_message)
       |> ignore
     | _ -> send_response reqd "" `Not_found )
   | meth ->
