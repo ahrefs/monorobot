@@ -1,0 +1,92 @@
+type author = {
+  name: string;
+  email: string;
+  ?username: string nullable;
+}
+
+type commit_hash = string wrap <ocaml t="Sha1.t" wrap="Sha1.string" unwrap="Sha1.to_hex">
+
+type commit = {
+  id: commit_hash;
+  message: string;
+  timestamp: string;
+  url: string;
+  author:  author;
+  committer: user;
+}
+
+type user = {
+  login: string;
+  id: int;
+}
+
+type commit_pushed_notification = {
+ ref: string;
+ after: commit_hash;
+ commits: commit list;
+ head_commit: commit;
+ pusher: author;
+ sender: user;
+}
+
+type pull_request = { 
+  id: int;
+  body: string;
+  title: string;
+  url: string;
+}
+
+type pr_action = [
+  Assigned <json name="assigned">
+  | Unassigned <json name="unassigned">
+  | Review_requested <json name="review_requested">
+  | Review_request_removed <json name="review_request_removed">
+  | Labeled <json name="labeled">
+  | Unlabeled <json name="unlabeled">
+  | Opened <json name="opened">
+  | Edited <json name="edited">
+  | Closed <json name="closed">
+  | Ready_for_review <json name="ready_for_review">
+  | Locked <json name="locked">
+  | Unlocked <json name="unlocked">
+  | Reopened <json name="reopened">
+]
+
+type pr_notification = {
+  action: pr_action;
+  number: int;
+  sender: user;
+  pull_request: pull_request;
+}
+
+type branch = {
+  name: string;
+}
+
+type ci_build_state = [
+  Success <json name="success">
+  | Failure <json name="failure">
+  | Neutral <json name="neutral">
+  | Cancelled <json name="cancelled">
+  | Timed_out <json name="timed_out">
+  | Action_required <json name="action_required">
+]
+
+type inner_commit = {
+  author: author;
+  committer: author;
+  message: string;
+}
+
+type ci_commit = {
+  sha: commit_hash;
+  commit: inner_commit; 
+  html_url <ocaml name="url"> : string;
+}
+
+type ci_build_notification = {
+  commit: ci_commit;
+  state: ci_build_state;
+  target_url: string;
+  branches: branch list;
+}
