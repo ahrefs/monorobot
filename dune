@@ -7,6 +7,10 @@
   (flags
    (:standard -warn-error -A))))
 
+(alias
+(name default)
+(deps server.exe))
+
 (rule
  (targets github_events_notifications_t.ml github_events_notifications_t.mli)
  (deps github_events_notifications.atd)
