@@ -37,9 +37,12 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
             let parsed_payload =
               try parse_notification_payload body (validate_request_event_headers headers)
               with exn ->
-                ( match Headers.get headers "X-Github-Event" with
-                | Some event -> Error (Printf.sprintf "While parsing the %s payload: %s" event (Exn.to_string exn))
-                | None -> Error (Printf.sprintf "While parsing the payload: %s" (Exn.to_string exn)) )
+                Error
+                  (Printf.sprintf "Error while parsing %s payload: %s"
+                     ( match Headers.get headers "X-Github-Event" with
+                     | Some event -> event
+                     | None -> "" )
+                     (Exn.to_string exn))
             in
             match parsed_payload with
             | Ok payload ->
