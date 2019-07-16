@@ -20,23 +20,11 @@ module Github = struct
       in
       Ok (Pull_request notif)
 
-    let validate_pr_notification notification =
-      let { action; _ } = notification in
-      match action with
-      | Review_requested -> Some notification
-      | _ -> None
-
     let generate_push_notification notification =
       let { pusher; after; head_commit; _ } = notification in
       let ({ message; url; _ } : Github_events_notifications_t.commit) = head_commit in
       let notif = { author = pusher; hash = after; commit_message = message; link = url } in
       Ok (Push notif)
-
-    let validate_ci_notification notification =
-      let { state; _ } = notification in
-      match state with
-      | Success | Failed -> Some notification
-      | _ -> None
 
     let generate_ci_run_notification (notification : ci_build_notification) =
       let { commit; state; branches; target_url } = notification in
@@ -48,18 +36,30 @@ module Github = struct
       in
       Ok (CI_run notif)
 
+    let is_review_requested action =
+      match action with
+      | Review_requested -> true
+      | _ -> false
+
+    let is_success_or_failed state =
+      match state with
+      | Success | Failed -> true
+      | _ -> false
+
     let generate_notification request_notification =
       let open Github_notifications_handler in
       match request_notification with
       | Push notification -> generate_push_notification notification
-      | Pull_request notification ->
-        let validated_pr_notification = validate_pr_notification notification in
-        Option.value_map validated_pr_notification ~default:(Error "Unsupported PR action")
-          ~f:generate_pull_request_notification
-      | CI_run notification ->
-        let validated_ci_run_notification = validate_ci_notification notification in
-        Option.value_map validated_ci_run_notification ~default:(Error "Unsupported CI notification")
-          ~f:generate_ci_run_notification
+      | Pull_request n when is_review_requested n.action -> generate_pull_request_notification n
+      | CI_run n when is_success_or_failed n.state -> generate_ci_run_notification n
+      | Pull_request n ->
+        Error
+          (Printf.sprintf "Unsupported pull request action: %s"
+             (Github_events_notifications_j.string_of_pr_action n.action))
+      | CI_run n ->
+        Error
+          (Printf.sprintf "Unsupported CI run state: %s"
+             (Github_events_notifications_j.string_of_ci_build_state n.state))
 
     let serialize_notification notification =
       match notification with

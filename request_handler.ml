@@ -25,12 +25,33 @@ let send_response reqd response_body status =
   let headers = Headers.of_list [ "Content-Length", Int.to_string (String.length response_body) ] in
   Reqd.respond_with_string reqd (Response.create ~headers status) response_body
 
-let reply_with_bad_request reqd error_message =
-  Stdio.print_endline (Printf.sprintf "Github notification bad request: %s" error_message);
+let log_incoming_request reqd =
+  let { Request.meth; target; _ } = Reqd.request reqd in
+  Stdio.print_endline (Printf.sprintf "Request received: %s %s." (Method.to_string meth) target)
+
+let headers_stringified_json headers =
+  let headers_list = Headers.to_list headers in
+  let headers_len = List.length headers_list in
+  let end_string len i =
+    match Int.equal (len - 1) i with
+    | true -> " }"
+    | false -> ", "
+  in
+  let stringify i acc header =
+    let name, value = header in
+    acc ^ Printf.sprintf "\"%s\": \"%s\"%s" name value (end_string headers_len i)
+  in
+  List.foldi ~init:"{ " ~f:stringify headers_list
+
+let reply_with_bad_request reqd handler failing_function error_message headers =
+  Stdio.print_endline
+    (Printf.sprintf "%s notification bad request. While running %s: %s. Headers: %s" handler failing_function
+       error_message (headers_stringified_json headers));
   send_response reqd "" `Bad_request
 
 let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
   let { Request.meth; target; headers; _ } = Reqd.request reqd in
+  log_incoming_request reqd;
   match meth with
   | `POST ->
     ( match target with
@@ -56,8 +77,10 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
               | Ok serialized_notification' ->
                 Stdio.print_endline serialized_notification';
                 send_response reqd "" `OK
-              | Error error_message -> reply_with_bad_request reqd error_message )
-            | Error error_message -> reply_with_bad_request reqd error_message)
+              | Error error_message ->
+                reply_with_bad_request reqd "Github" "serialize_notification" error_message headers )
+            | Error error_message ->
+              reply_with_bad_request reqd "Github" "parse_notification_payload" error_message headers)
       |> ignore
     | _ -> send_response reqd "" `Not_found )
   | meth ->
