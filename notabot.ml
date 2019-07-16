@@ -29,8 +29,7 @@ module Github = struct
     let generate_push_notification notification =
       let { pusher; after; head_commit; _ } = notification in
       let ({ message; url; _ } : Github_events_notifications_t.commit) = head_commit in
-      let author = Notabot_github_j.author_of_string (Github_events_notifications_j.string_of_author pusher) in
-      let notif = { author; hash = after; commit_message = message; link = url } in
+      let notif = { author = pusher; hash = after; commit_message = message; link = url } in
       Ok (Push notif)
 
     let validate_ci_notification notification =
@@ -43,19 +42,9 @@ module Github = struct
       let { commit; state; branches; target_url } = notification in
       let { commit : inner_commit; url; sha } = commit in
       let ({ author; message; _ } : inner_commit) = commit in
-      let notification_commit_sha =
-        Notabot_github_j.commit_hash_of_string (Github_events_notifications_j.string_of_commit_hash sha)
-      in
-      let notification_commit_author =
-        Notabot_github_j.author_of_string (Github_events_notifications_j.string_of_author author)
-      in
-      let notification_commit = { sha = notification_commit_sha; message; url; author = notification_commit_author } in
-      let notification_status =
-        Notabot_github_j.success_status_of_string (Github_events_notifications_j.string_of_ci_build_state state)
-      in
       let ({ name; _ } : Github_events_notifications_t.branch) = List.hd_exn branches in
       let notif : Notabot_github_t.ci_build_status_changed =
-        { commit = notification_commit; build_status = notification_status; branch = name; link = target_url }
+        { commit = { sha; message; url; author }; build_status = state; branch = name; link = target_url }
       in
       Ok (CI_run notif)
 

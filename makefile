@@ -14,6 +14,9 @@ install:
 rules:
 	dune rules
 
+format:
+	dune build @fmt --auto-promote
+
 uninstall:
 	dune uninstall
 
