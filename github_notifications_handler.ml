@@ -27,8 +27,8 @@ let validate_request_event_headers headers =
   match get_headers "X-Hub-Signature", get_headers "User-Agent", get_headers "X-GitHub-Event" with
   | Some _, Some _, Some event_type ->
     ( match event_type with
-      | "push" -> Ok Push_event
-      | "pull_request" -> Ok Pull_request_event
-      | "check_suite" -> Ok CI_run_event
-      | _ -> Error (Printf.sprintf "Unsupported github event: %s" event_type) )
+    | "push" -> Ok Push_event
+    | "pull_request" -> Ok Pull_request_event
+    | "check_suite" -> Ok CI_run_event
+    | _ -> Error (Printf.sprintf "Unsupported github event: %s" event_type) )
   | _, _, _ -> Error "Headers validation failed. Headers missing."

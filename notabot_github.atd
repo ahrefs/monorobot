@@ -1,14 +1,9 @@
-type commit_hash = string wrap <ocaml t="Sha1.t" wrap="Sha1.string" unwrap="Sha1.to_hex">
+type commit_hash <ocaml from="Github_events_notifications"> = abstract
 
-type author = {
-  name: string;
-  email: string;
-}
+type author <ocaml from="Github_events_notifications"> = abstract
 
-type user = {
-  login: string;
-  id: int;
-}
+
+type user <ocaml from="Github_events_notifications"> = abstract
 
 type commit_pushed = {
   author: author;
@@ -24,14 +19,11 @@ type commit = {
   author:  author;
 }
 
-type success_status = [
-  Success <json name="success">
-  | Failed <json name="failure">
-] <ocaml repr="classic">
+type ci_build_state <ocaml from="Github_events_notifications"> = abstract
 
 type ci_build_status_changed = {
   commit: commit;
-  build_status: success_status;
+  build_status: ci_build_state;
   branch: string;
   link: string;
 }
