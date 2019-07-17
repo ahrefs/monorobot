@@ -1,27 +1,53 @@
 # Notabot
 
-Notifications bot, currently only handling github webhook events, specifically commit pushed, pull request reviewed requested and CI build finished.
+Notifications bot server to receive notifications from webhooks and post them to slack
 
-## Instalation
+## Setting Up
 
-To run Notabot you will need to install the following dependencies:
+Install dependencies, if needed:
 
 ```sh
 opam install sha atdgen httpaf httpaf-lwt-unix base stdio lwt
 ```
 
-## Setting up
-
-You will need a webhook set up, pointing to your deployment env and port, at the `/github` route.
-
-When using the github webhooks, you will need to take notice of the request headers sent, namely `X-Hub-Signature` and `User-Agent`, which will need to be passed in as environment variables for the server to do its validation.
-
-You can test Notabot locally by using `ngrok` to generate an internet facing endpoint pointing to your local machine. More on that [here](https://developer.github.com/webhooks/configuring/).
-
-## Running
-
-To run the server do:
+Building notabot should be as easy as doing
 
 ```sh
-SHA1_SIG={your X-Hub-Signature} GITHUB_AGENT={your github webhook User-Agent header} dune exec ./server.exe
+make build
+```
+
+## Running Notabot
+
+To run, make sure that you know the `User-Agent` and `X-Hub-Signature` that github will be using on the set up webhooks.
+
+You can check those on the repo: https://github.com/ahrefs/{repo}/settings/hooks/{hookid}. (Repo > settings > webhooks > hook in question).
+
+At the end of that screen you have a `Recent deliveries` section where you can see the webhooks requests details.
+
+To test notabot run with
+
+```sh
+SHA1_SIG={a signature value you define} GITHUB_AGENT={whatever user agent you define} make start
+```
+
+Then on another tab run:
+(you will need to update the values of `SHA1_SIG` and `HITHUB_AGENT` both on the payload and the start command)
+
+```sh
+curl -X POST \
+  http://localhost:8080/github \
+  -H 'Content-Type: application/json' \
+  -H 'User-Agent: {whatever user agent you define}' \
+  -H 'X-Github-Event: pull_request' \
+  -H 'X-Hub-Signature: {a signature value you define}' \
+  -H 'cache-control: no-cache' \
+  -d @mock_payloads/pr_notification.json
+```
+
+There are more payloads which will use a different `X-Github-Event` signature:
+
+```
+pull_request => mock_payloads/pr_notification.json
+push => mock_payloads/push_notification.json
+check_suite => mock_payloads/ci_notification.json
 ```
