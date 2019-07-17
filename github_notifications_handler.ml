@@ -21,18 +21,16 @@ let parse_notification_payload body event_name =
   | Error error_message -> Error error_message
 
 let is_valid_sig_and_user_agent req_sig user_agent =
-  String.equal req_sig (Option.value_exn github_sha1_signature)
-  && String.equal user_agent (Option.value_exn github_user_agent)
+  String.equal req_sig github_sha1_signature
+  && String.equal user_agent github_user_agent
 
 let validate_request_event_headers headers =
-  (* Ensure env vars before anything else *)
-  let () = List.iter ~f:ensure_env [ "SHA1_SIG"; "GITHUB_AGENT" ] in
   let get_headers = Headers.get headers in
   match get_headers "X-Hub-Signature", get_headers "User-Agent", get_headers "X-GitHub-Event" with
   | Some req_sig, Some ua, Some event_type when is_valid_sig_and_user_agent req_sig ua ->
     ( match event_type with
-    | "push" -> Ok Push_event
-    | "pull_request" -> Ok Pull_request_event
-    | "check_suite" -> Ok CI_run_event
-    | _ -> Error (Printf.sprintf "Unsupported github event: %s" event_type) )
+      | "push" -> Ok Push_event
+      | "pull_request" -> Ok Pull_request_event
+      | "check_suite" -> Ok CI_run_event
+      | _ -> Error (Printf.sprintf "Unsupported github event: %s" event_type) )
   | _, _, _ -> Error "Headers validation failed"
