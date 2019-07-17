@@ -4,7 +4,7 @@ start:
 	dune exec ./server.exe
 
 build:
-	dune build
+	dune build @install
 
 all: build
 
