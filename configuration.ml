@@ -1,12 +1,11 @@
 exception ConfigError of string
 
 module Env = struct
-  let github_sha1_signature = Sys.getenv_opt "SHA1_SIG"
+  let github_sha1_signature = match Sys.getenv_opt "SHA1_SIG" with
+    | Some sha1_signature -> sha1_signature
+    | None -> raise (ConfigError "Missing required SHA1_SIG environment variable.")
 
-  let github_user_agent = Sys.getenv_opt "GITHUB_AGENT"
-
-  let ensure_env name =
-    match Sys.getenv_opt name with
-    | Some _ -> ()
-    | None -> raise (ConfigError (Printf.sprintf "Missing required environment variable: %s." name))
+  let github_user_agent = match Sys.getenv_opt "GITHUB_AGENT" with
+    | Some user_agent  -> user_agent
+    | None -> raise (ConfigError "Missing required GITHUB_AGENT environment variable.")
 end
