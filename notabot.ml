@@ -52,14 +52,7 @@ module Github = struct
       | Push notification -> generate_push_notification notification
       | Pull_request n when is_review_requested n.action -> generate_pull_request_notification n
       | CI_run n when is_success_or_failed n.state -> generate_ci_run_notification n
-      | Pull_request n ->
-        Error
-          (Printf.sprintf "Unsupported pull request action: %s"
-             (Github_events_notifications_j.string_of_pr_action n.action))
-      | CI_run n ->
-        Error
-          (Printf.sprintf "Unsupported CI run state: %s"
-             (Github_events_notifications_j.string_of_ci_build_state n.state))
+      | _ -> Error ()
 
     let serialize_notification notification =
       match notification with
