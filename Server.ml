@@ -3,16 +3,16 @@ open Lwt.Infix
 open Httpaf_lwt_unix
 open Request_handler
 open Error_handler
-open Configuration.Env
 module Arg = Caml.Arg
 
 let main port =
+  Lazy.force Configuration.Env.github_user_agent |> ignore;
+  Lazy.force Configuration.Env.github_sha1_signature |> ignore;
   let listen_address = Unix.(ADDR_INET (inet_addr_loopback, port)) in
   Lwt.async (fun () ->
       Lwt_io.establish_server_with_client_socket listen_address
         (Server.create_connection_handler ~request_handler ~error_handler)
       >|= fun _server ->
-      let () = List.iter ~f:ensure_env [ "SHA1_SIG"; "GITHUB_AGENT" ] in
       Stdio.printf "Notabot Started.\n\n";
       Stdio.printf "Listening on port %i.\n%!" port);
   let forever, _ = Lwt.wait () in

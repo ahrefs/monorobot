@@ -1,0 +1,36 @@
+type commit_hash <ocaml from="Github_events_notifications"> = abstract
+
+type author <ocaml from="Github_events_notifications"> = abstract
+
+
+type user <ocaml from="Github_events_notifications"> = abstract
+
+type commit_pushed = {
+  author: author;
+  hash: commit_hash;
+  commit_message: string;
+  link: string;
+}
+
+type commit = {
+  sha: commit_hash;
+  message: string;
+  url: string;
+  author:  author;
+}
+
+type ci_build_state <ocaml from="Github_events_notifications"> = abstract
+
+type ci_build_status_changed = {
+  commit: commit;
+  build_status: ci_build_state;
+  branch: string;
+  link: string;
+}
+
+type pr_review_requested = {
+  author: string;
+  title: string;
+  description: string;
+  link: string;
+}
