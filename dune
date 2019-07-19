@@ -8,8 +8,8 @@
    (:standard -warn-error -A))))
 
 (alias
-(name default)
-(deps server.exe))
+ (name default)
+ (deps server.exe))
 
 (rule
  (targets github_events_notifications_t.ml github_events_notifications_t.mli)
@@ -20,5 +20,17 @@
 (rule
  (targets github_events_notifications_j.ml github_events_notifications_j.mli)
  (deps github_events_notifications.atd)
+ (action
+  (run atdgen -j %{deps})))
+
+(rule
+ (targets notabot_github_t.ml notabot_github_t.mli)
+ (deps notabot_github.atd)
+ (action
+  (run atdgen -t %{deps})))
+
+(rule
+ (targets notabot_github_j.ml notabot_github_j.mli)
+ (deps notabot_github.atd)
  (action
   (run atdgen -j %{deps})))
