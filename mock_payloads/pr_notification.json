@@ -64,7 +64,16 @@
       }
     ],
     "requested_teams": [],
-    "labels": [],
+    "labels": [
+      {
+        "id": 0,
+        "node_id": "00000000000000000000",
+        "url": "https://api.github.com/repos/thatportugueseguy/monorepo/labels/enhancement",
+        "name": "enhancement",
+        "color": "a2eeef",
+        "default": true
+      }
+    ],
     "milestone": null,
     "commits_url": "https://api.github.com/repos/thatportugueseguy/monorepo/pulls/1/commits",
     "review_comments_url": "https://api.github.com/repos/thatportugueseguy/monorepo/pulls/1/comments",

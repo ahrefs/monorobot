@@ -27,8 +27,8 @@ module Github = struct
       Ok (Push notif)
 
     let generate_ci_run_notification (notification : ci_build_notification) =
-      let { commit; state; branches; target_url } = notification in
-      let { commit : inner_commit; url; sha } = commit in
+      let { commit; state; branches; target_url; _ } = notification in
+      let { commit : inner_commit; url; sha; _ } = commit in
       let ({ author; message; _ } : inner_commit) = commit in
       let ({ name; _ } : Github_events_notifications_t.branch) = List.hd_exn branches in
       let notif : Notabot_github_t.ci_build_status_changed =
@@ -61,5 +61,147 @@ module Github = struct
       | CI_run ci_build_status_changed -> Notabot_github_j.string_of_ci_build_status_changed ci_build_status_changed
   end
 
-  module Slack = struct (* ... *)  end
+  module Slack = struct 
+    open Github_events_notifications_t
+    open Notabot_github_t
+    open Notabot_github_j
+
+    let generate_pull_request_notification (notification : pr_notification) =
+      let { sender; pull_request; _ } = notification in
+      let { body; title; url; labels; _ } = pull_request in
+      let fields = 
+        match List.length labels with 
+        | n when n > 0 -> (
+            let labels_string = List.fold ~init:"" ~f:(fun acc label -> Printf.sprintf "%s %s," acc label.name) labels in 
+            let sub_labels_string = String.sub ~pos:0 ~len:(String.length labels_string -1) labels_string in  
+            [ { title = Some "Labels"; value = sub_labels_string; }]
+          )
+        | _ -> [] in
+      let attachments = [
+        {
+          mrkdwn_in = None;
+          fallback = Some "Pull request notification";
+          color = Some "#ccc";
+          pretext = Some (Printf.sprintf "Pull request opened by %s" sender.login);
+          author_name = Some sender.login;
+          author_link = Some sender.url;
+          author_icon = Some sender.avatar_url;
+          title = Some title; 
+          title_link = Some url;
+          text = Some body;
+          fields = Some fields;
+          image_url= None;
+          thumb_url= None;
+          ts= None;
+        }
+      ] in
+      string_of_slack_webhook_notification {
+        text = None;
+        attachments= Some attachments;
+        blocks = None;
+      }
+
+    let git_short_sha_hash hash =
+      String.sub ~pos:0 ~len: 8 (Github_events_notifications_j.string_of_commit_hash hash)
+
+    let generate_push_notification notification =
+      let { ref; sender; compare; commits; repository; _ } = notification in
+      let ref_tokens = Array.of_list @@ String.split ~on:'/' ref in
+      let commit_branch = 
+        String.concat ~sep:"/" @@ Array.to_list @@ Array.subo ~pos:2 ref_tokens in
+      let number_of_commits = List.length commits in
+      let title = 
+        Printf.sprintf "*<%s|%i new commits> pushed to `<%s|%s>`*" compare number_of_commits repository.url commit_branch in
+      let commits_text_list = List.map commits ~f:(fun { url; id; message; _ } -> 
+          Printf.sprintf "`<%s|%s>` - %s" url (git_short_sha_hash id) message
+        ) in
+
+      let fields = [
+        {
+          value = String.concat ~sep:"\n" @@ title :: commits_text_list;
+          title = None;
+        }
+      ] in
+      let attachments = [
+        {
+          mrkdwn_in = Some [ "fields" ];
+          fallback = Some "Commit pushed notification";
+          color = Some "#ccc";
+          pretext = None;
+          author_name = Some sender.login;
+          author_link = Some sender.url;
+          author_icon = Some sender.avatar_url;
+          title = None;
+          title_link = None;
+          text = None;
+          fields = Some fields;
+          image_url= None;
+          thumb_url= None;
+          ts= None;
+        }
+      ] in
+      string_of_slack_webhook_notification {
+        text = None;
+        attachments= Some attachments;
+        blocks = None;
+      }
+
+    let generate_ci_run_notification (notification : ci_build_notification) =
+      let { commit; state; target_url; description; context } = notification in
+      let { commit : inner_commit; url; sha; author } = commit in
+      let ({ message; _ } : inner_commit) = commit in
+      let title = Printf.sprintf "*<%s|CI Build on %s>*" target_url context in 
+      let status = Printf.sprintf "*Status*: %s" @@ Github_events_notifications_j.string_of_ci_build_state state in
+      let description = Printf.sprintf "*Description*: %s." description in
+      let commit_info = Printf.sprintf "*Commit*: `<%s|%s>` - %s" url (git_short_sha_hash sha) message in
+      let author_info = Printf.sprintf "*Author*: %s" author.login in
+      let fields = [
+        { 
+          title = None;
+          value = String.concat ~sep:"\n" @@ title :: status :: description :: commit_info :: author_info :: [];
+        }
+      ] in
+      let attachments = [
+        {
+          mrkdwn_in = Some [ "fields"; "text" ];
+          fallback = Some "CI run notification";
+          color = Some "#ccc";
+          pretext = None;
+          author_name = None;
+          author_link = None;
+          author_icon = None;
+          title = None;
+          title_link = None;
+          text = None;
+          fields = Some fields;
+          image_url= None;
+          thumb_url= None;
+          ts= None;
+        }
+      ] in
+      string_of_slack_webhook_notification {
+        text = None;
+        attachments= Some attachments;
+        blocks = None;
+      }
+
+    let is_review_requested action =
+      match action with
+      | Review_requested -> true
+      | _ -> false
+
+    let is_success_or_failed state =
+      match state with
+      | Success | Failed -> true
+      | _ -> false
+
+    let generate_notification request_notification =
+      let open Github_notifications_handler in
+      match request_notification with
+      | Push notification -> Ok (generate_push_notification notification)
+      | Pull_request n when is_review_requested n.action -> Ok (generate_pull_request_notification n)
+      | CI_run n when is_success_or_failed n.state -> Ok (generate_ci_run_notification n)
+      | _ -> Error ()
+
+  end
 end
