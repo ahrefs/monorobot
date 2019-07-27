@@ -1,6 +1,6 @@
 (executable
- (libraries nocrypto hex sha atdgen httpaf httpaf-lwt-unix base stdio lwt
-   lwt.unix)
+ (libraries curl curl.lwt nocrypto hex sha atdgen httpaf httpaf-lwt-unix base
+   stdio lwt lwt.unix)
  (name server))
 
 (env

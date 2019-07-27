@@ -2,7 +2,6 @@ type commit_hash <ocaml from="Github_events_notifications"> = abstract
 
 type author <ocaml from="Github_events_notifications"> = abstract
 
-
 type user <ocaml from="Github_events_notifications"> = abstract
 
 type commit_pushed = {
@@ -33,4 +32,64 @@ type pr_review_requested = {
   title: string;
   description: string;
   link: string;
+}
+
+type slack_webhook_notification_field = {
+  ?title: string nullable;
+  value: string;
+}
+
+type slack_webhook_notification_attachment = {
+  fallback: string nullable;
+  ?mrkdwn_in: string list nullable;
+  ?color: string nullable;
+  ?pretext: string nullable;
+  ?author_name: string nullable;
+  ?author_link: string nullable;
+  ?author_icon: string nullable;
+  ?title: string nullable;
+  ?title_link: string nullable;
+  ?text: string nullable;
+  ?fields: slack_webhook_notification_field list nullable;
+  ?image_url: string nullable;
+  ?thumb_url: string nullable;
+  ?ts: int nullable;
+}
+
+type notification_section_block_type = [
+  Section <json name="section">
+] <ocaml repr="classic">
+
+type notification_divider_block_type = [
+  Divider <json name="divider">
+] <ocaml repr="classic">
+
+type text_object_type = [
+  Plain_text <json name="plain_text">
+  | Markdown <json name="mrkdwn">
+] <ocaml repr="classic">
+
+type text_object = {
+  text_type <json name="type"> : text_object_type;
+  text: string;
+}
+
+type slack_webhook_notification_text_block = {
+  notification_type <json name="type"> : notification_section_block_type;
+  text: text_object;
+}
+
+type slack_webhook_notification_divider_block = {
+  notification_type <json name="type"> : notification_divider_block_type;
+}
+
+type slack_webhook_notification_block = [ 
+  Text of slack_webhook_notification_text_block
+  | Divider of slack_webhook_notification_divider_block
+] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+
+type slack_webhook_notification = {
+  ?text: string nullable;
+  ?attachments: slack_webhook_notification_attachment list nullable;
+  ?blocks: slack_webhook_notification_block list nullable;
 }
