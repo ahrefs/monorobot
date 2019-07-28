@@ -67,7 +67,7 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
               let () =
                 match generate_notification payload with
                 | Ok serialized_notification -> 
-                  let _sc, txt = Notabot.Slack.Request.post (Lazy.force Configuration.Env.slack_webhook_url) serialized_notification  in
+                  let _sc, txt = send_notification serialized_notification  in
                   (* TODO: Handle error cases *)
                   Stdio.print_endline @@ Printf.sprintf "Sent notification to Slack. Response: %s." txt
                 | Error _ -> ()
