@@ -63,10 +63,10 @@ module Github = struct
 
   module Slack = struct 
     open Github_events_notifications_t
-    open Notabot_github_t
+    (* open Notabot_github_t *)
     open Notabot_github_j
 
-    let generate_pull_request_notification (notification : pr_notification) =
+    let generate_pull_request_notification (notification) =
       let { sender; pull_request; _ } = notification in
       let { body; title; url; labels; _ } = pull_request in
       let fields = 
@@ -110,8 +110,12 @@ module Github = struct
       let commit_branch = 
         String.concat ~sep:"/" @@ Array.to_list @@ Array.subo ~pos:2 ref_tokens in
       let number_of_commits = List.length commits in
+      let commit_or_commits = 
+        match number_of_commits with 
+        | 1 -> "commit"
+        | _ -> "commits" in
       let title = 
-        Printf.sprintf "*<%s|%i new commits> pushed to `<%s|%s>`*" compare number_of_commits repository.url commit_branch in
+        Printf.sprintf "*<%s|%i new %s> pushed to `<%s|%s>`*" compare number_of_commits commit_or_commits repository.url commit_branch in
       let commits_text_list = List.map commits ~f:(fun { url; id; message; _ } -> 
           Printf.sprintf "`<%s|%s>` - %s" url (git_short_sha_hash id) message
         ) in
@@ -147,7 +151,7 @@ module Github = struct
       }
 
     let generate_ci_run_notification (notification : ci_build_notification) =
-      let { commit; state; target_url; description; context } = notification in
+      let { commit; state; target_url; description; context; _ } = notification in
       let { commit : inner_commit; url; sha; author } = commit in
       let ({ message; _ } : inner_commit) = commit in
       let title = Printf.sprintf "*<%s|CI Build on %s>*" target_url context in 
@@ -203,5 +207,20 @@ module Github = struct
       | CI_run n when is_success_or_failed n.state -> Ok (generate_ci_run_notification n)
       | _ -> Error ()
 
+  end
+end
+
+module Slack = struct 
+  module Request = struct 
+    let post ?(content_type = "application/json") url data =
+      let r,c = Configuration.Curl.init_conn url in
+      Curl.set_post c true;
+      Curl.set_httpheader c [ "Content-Type: " ^ content_type ];
+      Curl.set_postfields c data;
+      Curl.set_postfieldsize c (String.length data);
+      Curl.perform c;
+      let rc = Curl.get_responsecode c in
+      Curl.cleanup c;
+      rc, (Buffer.contents r)
   end
 end
