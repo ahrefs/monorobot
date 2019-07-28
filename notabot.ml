@@ -63,7 +63,6 @@ module Github = struct
 
   module Slack = struct 
     open Github_events_notifications_t
-    (* open Notabot_github_t *)
     open Notabot_github_j
 
     let generate_pull_request_notification (notification) =
@@ -73,6 +72,7 @@ module Github = struct
         match List.length labels with 
         | n when n > 0 -> (
             let labels_string = List.fold ~init:"" ~f:(fun acc label -> Printf.sprintf "%s %s," acc label.name) labels in 
+            (* remove trailing comma *)
             let sub_labels_string = String.sub ~pos:0 ~len:(String.length labels_string -1) labels_string in  
             [ { title = Some "Labels"; value = sub_labels_string; }]
           )
@@ -102,12 +102,13 @@ module Github = struct
       }
 
     let git_short_sha_hash hash =
-      String.sub ~pos:0 ~len: 8 (Github_events_notifications_j.string_of_commit_hash hash)
+      String.sub ~pos:0 ~len:8 (Github_events_notifications_j.string_of_commit_hash hash)
 
     let generate_push_notification notification =
       let { ref; sender; compare; commits; repository; _ } = notification in
       let ref_tokens = Array.of_list @@ String.split ~on:'/' ref in
       let commit_branch = 
+        (* take out refs/heads and get the full name of the branch *)
         String.concat ~sep:"/" @@ Array.to_list @@ Array.subo ~pos:2 ref_tokens in
       let number_of_commits = List.length commits in
       let commit_or_commits = 
@@ -116,10 +117,8 @@ module Github = struct
         | _ -> "commits" in
       let title = 
         Printf.sprintf "*<%s|%i new %s> pushed to `<%s|%s>`*" compare number_of_commits commit_or_commits repository.url commit_branch in
-      let commits_text_list = List.map commits ~f:(fun { url; id; message; _ } -> 
-          Printf.sprintf "`<%s|%s>` - %s" url (git_short_sha_hash id) message
-        ) in
-
+      let commits_text_list = List.map commits ~f:(fun { url; id; message; _ } ->
+          Printf.sprintf "`<%s|%s>` - %s" url (git_short_sha_hash id) message) in
       let fields = [
         {
           value = String.concat ~sep:"\n" @@ title :: commits_text_list;
@@ -207,13 +206,9 @@ module Github = struct
       | CI_run n when is_success_or_failed n.state -> Ok (generate_ci_run_notification n)
       | _ -> Error ()
 
-  end
-end
-
-module Slack = struct 
-  module Request = struct 
-    let post ?(content_type = "application/json") url data =
-      let r,c = Configuration.Curl.init_conn url in
+    let send_notification ?(content_type = "application/json") data =
+      let slack_url = Lazy.force Configuration.Env.slack_webhook_url in
+      let r,c = Configuration.Curl.init_conn slack_url in
       Curl.set_post c true;
       Curl.set_httpheader c [ "Content-Type: " ^ content_type ];
       Curl.set_postfields c data;
