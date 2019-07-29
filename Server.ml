@@ -6,8 +6,7 @@ open Error_handler
 module Arg = Caml.Arg
 
 let main port =
-  Lazy.force Configuration.Env.github_user_agent |> ignore;
-  Lazy.force Configuration.Env.github_sha1_signature |> ignore;
+  Lazy.force Configuration.Env.github_webhook_secret_token |> ignore;
   let listen_address = Unix.(ADDR_INET (inet_addr_loopback, port)) in
   Lwt.async (fun () ->
       Lwt_io.establish_server_with_client_socket listen_address
