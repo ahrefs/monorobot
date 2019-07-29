@@ -31,7 +31,6 @@ module Curl = struct
     Curl.set_writefunction c (writer_callback r);
     Curl.set_tcpnodelay c true;
     Curl.set_verbose c false;
-    Curl.set_post c false;
     Curl.set_url c url; 
     r,c
 
