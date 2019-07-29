@@ -67,9 +67,11 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
               let () =
                 match generate_notification payload with
                 | Ok serialized_notification -> 
-                  let _sc, txt = send_notification serialized_notification  in
-                  (* TODO: Handle error cases *)
-                  Stdio.print_endline @@ Printf.sprintf "Sent notification to Slack. Response: %s." txt
+                  send_notification serialized_notification >|= (function 
+                      | Some (sc, txt) -> 
+                        Stdio.print_endline @@ Printf.sprintf "Sent notification to Slack. Code: %i. Response: %s." sc txt
+                      | _ -> ()
+                    ) |> ignore
                 | Error _ -> ()
               in
               send_response reqd "" `OK
