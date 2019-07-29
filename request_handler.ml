@@ -50,8 +50,9 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
         read_body (Reqd.request_body reqd)
         >|= (fun body ->
             let open Github_notifications_handler in
+            let event_type = validate_request_event_headers headers body in
             let parsed_payload =
-              try parse_notification_payload body (validate_request_event_headers headers)
+              try parse_notification_payload body event_type
               with exn ->
                 Error
                   (Printf.sprintf "Error while parsing %s payload: %s"
@@ -64,9 +65,11 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
             | Ok payload ->
               let notification = Notabot.Github.Console.generate_notification payload in
               let serialized_notification = Result.map ~f:Notabot.Github.Console.serialize_notification notification in
-              let () = ( match serialized_notification with
-                  | Ok serialized_notification' -> Stdio.print_endline serialized_notification'
-                  | Error _ -> () ) in
+              let () =
+                match serialized_notification with
+                | Ok serialized_notification' -> Stdio.print_endline serialized_notification'
+                | Error _ -> ()
+              in
               send_response reqd "" `OK
             | Error error_message -> reply_with_bad_request reqd "Github" "parsing payload" error_message headers)
         |> ignore
