@@ -112,7 +112,7 @@ module Github = struct
       }
 
     let git_short_sha_hash hash =
-      String.sub ~pos:0 ~len:12 (Github_events_notifications_j.string_of_commit_hash hash)
+      String.sub ~pos:0 ~len:8 (Github_events_notifications_j.string_of_commit_hash hash)
 
     let generate_push_notification notification =
       let { ref; sender; compare; commits; repository; _ } = notification in
@@ -123,7 +123,7 @@ module Github = struct
       let title = 
         Printf.sprintf "*<%s|%i new commit%s> pushed to `<%s|%s>`*" compare (List.length commits) (match commits with [_] -> "s" | _ -> "") repository.url commit_branch in
       let commits_text_list = List.map commits ~f:(fun { url; id; message; _ } ->
-          Printf.sprintf "`<%s|%s>` - %s" url (git_short_sha_hash id) message) in
+          Printf.sprintf "`<%s|%s>` - `%s`" url (git_short_sha_hash id) message) in
       string_of_slack_webhook_notification {
         text = None;
         attachments= Some [{
@@ -166,11 +166,6 @@ module Github = struct
         blocks = None;
       }
 
-    let is_review_requested action =
-      match action with
-      | Review_requested -> true
-      | _ -> false
-
     let is_success_or_failed state =
       match state with
       | Success | Failed -> true
@@ -180,7 +175,7 @@ module Github = struct
       let open Github_notifications_handler in
       match request_notification with
       | Push notification -> Ok (generate_push_notification notification)
-      | Pull_request n when is_review_requested n.action -> Ok (generate_pull_request_notification n)
+      | Pull_request notification -> Ok (generate_pull_request_notification notification)
       | CI_run n when is_success_or_failed n.state -> Ok (generate_ci_run_notification n)
       | _ -> Error ()
 
