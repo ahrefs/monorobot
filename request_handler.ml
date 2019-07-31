@@ -63,11 +63,15 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
             in
             match parsed_payload with
             | Ok payload ->
-              let notification = Notabot.Github.Console.generate_notification payload in
-              let serialized_notification = Result.map ~f:Notabot.Github.Console.serialize_notification notification in
+              let open Notabot.Github.Slack in
               let () =
-                match serialized_notification with
-                | Ok serialized_notification' -> Stdio.print_endline serialized_notification'
+                match generate_notification payload with
+                | Ok serialized_notification -> 
+                  send_notification serialized_notification >|= (function 
+                      | Some (sc, txt) -> 
+                        Stdio.print_endline @@ Printf.sprintf "Sent notification to Slack. Code: %i. Response: %s." sc txt
+                      | _ -> ()
+                    ) |> ignore
                 | Error _ -> ()
               in
               send_response reqd "" `OK
