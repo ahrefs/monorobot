@@ -10,13 +10,13 @@ let read_body response_body =
   let rec read_fn () =
     Body.schedule_read response_body
       ~on_eof:(fun () ->
-          Body.close_reader response_body;
-          Lwt.wakeup_later notify_body_read (Buffer.contents buf))
+        Body.close_reader response_body;
+        Lwt.wakeup_later notify_body_read (Buffer.contents buf))
       ~on_read:(fun response_fragment ~off ~len ->
-          let response_fragment_bytes = Bytes.create len in
-          Lwt_bytes.blit_to_bytes response_fragment off response_fragment_bytes 0 len;
-          Buffer.add_bytes buf response_fragment_bytes;
-          read_fn ())
+        let response_fragment_bytes = Bytes.create len in
+        Lwt_bytes.blit_to_bytes response_fragment off response_fragment_bytes 0 len;
+        Buffer.add_bytes buf response_fragment_bytes;
+        read_fn ())
   in
   read_fn ();
   body_read
@@ -46,9 +46,9 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
   match meth with
   | `POST ->
     ( match target with
-      | "/github" ->
-        read_body (Reqd.request_body reqd)
-        >|= (fun body ->
+    | "/github" ->
+      read_body (Reqd.request_body reqd)
+      >|= (fun body ->
             let open Github_notifications_handler in
             let event_type = validate_request_event_headers headers body in
             let parsed_payload =
@@ -57,8 +57,8 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
                 Error
                   (Printf.sprintf "Error while parsing %s payload: %s"
                      ( match Headers.get headers "X-Github-Event" with
-                       | Some event -> event
-                       | None -> "" )
+                     | Some event -> event
+                     | None -> "" )
                      (Exn.to_string exn))
             in
             match parsed_payload with
@@ -66,18 +66,20 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
               let open Notabot.Github.Slack in
               let () =
                 match generate_notification payload with
-                | Ok serialized_notification -> 
-                  send_notification serialized_notification >|= (function 
-                      | Some (sc, txt) -> 
-                        Stdio.print_endline @@ Printf.sprintf "Sent notification to Slack. Code: %i. Response: %s." sc txt
-                      | _ -> ()
-                    ) |> ignore
+                | Ok serialized_notification ->
+                  send_notification serialized_notification
+                  >|= (function
+                        | Some (sc, txt) ->
+                          Stdio.print_endline
+                          @@ Printf.sprintf "Sent notification to Slack. Code: %i. Response: %s." sc txt
+                        | _ -> ())
+                  |> ignore
                 | Error _ -> ()
               in
               send_response reqd "" `OK
             | Error error_message -> reply_with_bad_request reqd "Github" "parsing payload" error_message headers)
-        |> ignore
-      | _ -> send_response reqd "" `Not_found )
+      |> ignore
+    | _ -> send_response reqd "" `Not_found )
   | meth ->
     let response_body = Printf.sprintf "%s is not an allowed method\n" (Method.to_string meth) in
     send_response reqd response_body `Method_not_allowed

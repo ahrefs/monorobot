@@ -1,7 +1,8 @@
 (executable
  (libraries curl curl.lwt nocrypto hex sha atdgen httpaf httpaf-lwt-unix base
-  stdio lwt lwt.unix)
-  (preprocess (pps lwt_ppx))
+   stdio lwt lwt.unix)
+ (preprocess
+  (pps lwt_ppx))
  (name server))
 
 (env
