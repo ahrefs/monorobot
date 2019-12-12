@@ -3,16 +3,7 @@
    stdio lwt lwt.unix)
  (preprocess
   (pps lwt_ppx))
- (name server))
-
-(env
- (dev
-  (flags
-   (:standard -warn-error -A))))
-
-(alias
- (name default)
- (deps server.exe))
+ (public_name notabot))
 
 (rule
  (targets github_events_notifications_t.ml github_events_notifications_t.mli)
