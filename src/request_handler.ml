@@ -1,7 +1,7 @@
+open Printf
 open Httpaf
 open Base
 open Lwt.Infix
-module Github_notifications = Github_notifications_handler
 
 let read_body response_body =
   let open Httpaf in
@@ -27,7 +27,7 @@ let send_response reqd response_body status =
 
 let log_incoming_request reqd =
   let { Request.meth; target; _ } = Reqd.request reqd in
-  Stdio.print_endline (Printf.sprintf "Request received: %s %s." (Method.to_string meth) target)
+  Stdio.print_endline (sprintf "Request received: %s %s." (Method.to_string meth) target)
 
 let headers_stringified_json headers =
   let headers_list = Headers.to_list headers in
@@ -36,7 +36,7 @@ let headers_stringified_json headers =
 
 let reply_with_bad_request reqd handler failing_function error_message headers =
   Stdio.print_endline
-    (Printf.sprintf "%s notification bad request. While %s: %s. Headers: %s" handler failing_function error_message
+    (sprintf "%s notification bad request. While %s: %s. Headers: %s" handler failing_function error_message
        (headers_stringified_json headers));
   send_response reqd "" `Bad_request
 
@@ -49,19 +49,11 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
     | "/github" ->
       read_body (Reqd.request_body reqd)
       >|= (fun body ->
-            let open Github_notifications_handler in
-            let event_type = validate_request_event_headers headers body in
-            let parsed_payload =
-              try parse_notification_payload body event_type
-              with exn ->
-                Error
-                  (Printf.sprintf "Error while parsing %s payload: %s"
-                     ( match Headers.get headers "X-Github-Event" with
-                     | Some event -> event
-                     | None -> "" )
-                     (Exn.to_string exn))
+            let event =
+              try Github_notifications_handler.parse_exn headers body
+              with exn -> Error (sprintf "Error while parsing payload : %s" (Exn.to_string exn))
             in
-            match parsed_payload with
+            match event with
             | Ok payload ->
               let open Github.Slack in
               let () =
@@ -70,8 +62,7 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
                   send_notification serialized_notification
                   >|= (function
                         | Some (sc, txt) ->
-                          Stdio.print_endline
-                          @@ Printf.sprintf "Sent notification to Slack. Code: %i. Response: %s." sc txt
+                          Stdio.print_endline @@ sprintf "Sent notification to Slack. Code: %i. Response: %s." sc txt
                         | _ -> ())
                   |> ignore
                 | Error _ -> ()
@@ -81,5 +72,5 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
       |> ignore
     | _ -> send_response reqd "" `Not_found )
   | meth ->
-    let response_body = Printf.sprintf "%s is not an allowed method\n" (Method.to_string meth) in
+    let response_body = sprintf "%s is not an allowed method\n" (Method.to_string meth) in
     send_response reqd response_body `Method_not_allowed
