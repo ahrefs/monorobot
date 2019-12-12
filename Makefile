@@ -3,7 +3,7 @@
 default: build
 
 start:
-	dune exec -- ./notabot.exe
+	dune exec -- ./src/notabot.exe
 
 build:
 	dune build @install
