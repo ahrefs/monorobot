@@ -10,12 +10,16 @@ bug-reports: "https://github.com/ahrefs/notabot/issues"
 dev-repo: "git+https://github.com/ahrefs/notabot.git"
 depends: [
  "ocaml" {>= "4.03.0"}
- "sha"
  "atdgen"
+ "base"
+ "curl"
+ "hex"
  "httpaf"
  "httpaf-lwt-unix"
- "base"
- "stdio"
  "lwt"
+ "lwt_ppx"
+ "nocrypto"
+ "sha"
+ "stdio"
 ]
 build: ["dune" "build" "-p" name]
