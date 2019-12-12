@@ -63,7 +63,7 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
             in
             match parsed_payload with
             | Ok payload ->
-              let open Notabot.Github.Slack in
+              let open Github.Slack in
               let () =
                 match generate_notification payload with
                 | Ok serialized_notification ->
