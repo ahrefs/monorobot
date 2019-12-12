@@ -12,7 +12,7 @@ depends: [
  "ocaml" {>= "4.03.0"}
  "atdgen"
  "base"
- "curl"
+ "ocurl"
  "hex"
  "httpaf"
  "httpaf-lwt-unix"
