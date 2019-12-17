@@ -2,8 +2,16 @@ open Base
 open Lwt.Infix
 open Httpaf_lwt_unix
 open Request_handler
-open Error_handler
 module Arg = Caml.Arg
+
+let error_handler (_ : Unix.sockaddr) ?request:_ error start_response =
+  let open Httpaf in
+  let response_body = start_response Headers.empty in
+  begin match error with
+  | `Exn exn -> Stdio.printf "Request error. Reason: %s.\n" (Exn.to_string exn)
+  | #Status.standard as error -> Body.write_string response_body (Status.default_reason_phrase error)
+  end;
+  Body.close_writer response_body
 
 let main port =
   Lazy.force Configuration.Env.github_webhook_secret_token |> ignore;

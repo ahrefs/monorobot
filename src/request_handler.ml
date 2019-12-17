@@ -50,12 +50,12 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
       read_body (Reqd.request_body reqd)
       >|= (fun body ->
             let event =
-              try Github_notifications_handler.parse_exn headers body
+              try Github.parse_exn headers body
               with exn -> Error (sprintf "Error while parsing payload : %s" (Exn.to_string exn))
             in
             match event with
             | Ok payload ->
-              let open Github.Slack in
+              let open Slack in
               let () =
                 match generate_notification payload with
                 | Ok serialized_notification ->
