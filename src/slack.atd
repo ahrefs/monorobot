@@ -1,9 +1,9 @@
-type slack_webhook_notification_field = {
+type webhook_notification_field = {
   ?title: string nullable;
   value: string;
 }
 
-type slack_webhook_notification_attachment = {
+type webhook_notification_attachment = {
   fallback: string nullable;
   ?mrkdwn_in: string list nullable;
   ?color: string nullable;
@@ -14,7 +14,7 @@ type slack_webhook_notification_attachment = {
   ?title: string nullable;
   ?title_link: string nullable;
   ?text: string nullable;
-  ?fields: slack_webhook_notification_field list nullable;
+  ?fields: webhook_notification_field list nullable;
   ?image_url: string nullable;
   ?thumb_url: string nullable;
   ?ts: int nullable;
@@ -38,22 +38,22 @@ type text_object = {
   text: string;
 }
 
-type slack_webhook_notification_text_block = {
+type webhook_notification_text_block = {
   notification_type <json name="type"> : notification_section_block_type;
   text: text_object;
 }
 
-type slack_webhook_notification_divider_block = {
+type webhook_notification_divider_block = {
   notification_type <json name="type"> : notification_divider_block_type;
 }
 
-type slack_webhook_notification_block = [ 
-  Text of slack_webhook_notification_text_block
-  | Divider of slack_webhook_notification_divider_block
+type webhook_notification_block = [ 
+  Text of webhook_notification_text_block
+  | Divider of webhook_notification_divider_block
 ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
-type slack_webhook_notification = {
+type webhook_notification = {
   ?text: string nullable;
-  ?attachments: slack_webhook_notification_attachment list nullable;
-  ?blocks: slack_webhook_notification_block list nullable;
+  ?attachments: webhook_notification_attachment list nullable;
+  ?blocks: webhook_notification_block list nullable;
 }

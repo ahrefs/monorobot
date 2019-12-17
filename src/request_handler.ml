@@ -27,17 +27,11 @@ let send_response reqd response_body status =
 
 let log_incoming_request reqd =
   let { Request.meth; target; _ } = Reqd.request reqd in
-  Stdio.print_endline (sprintf "Request received: %s %s." (Method.to_string meth) target)
+  Stdio.print_endline "";
+  Stdio.print_endline @@ sprintf "Request received: %s %s." (Method.to_string meth) target
 
-let headers_stringified_json headers =
-  let headers_list = Headers.to_list headers in
-  let json_headers = `Assoc (List.map ~f:(fun (name, value) -> name, `String value) headers_list) in
-  Yojson.Safe.to_string json_headers
-
-let reply_with_bad_request reqd handler failing_function error_message headers =
-  Stdio.print_endline
-    (sprintf "%s notification bad request. While %s: %s. Headers: %s" handler failing_function error_message
-       (headers_stringified_json headers));
+let reply_with_bad_request reqd handler failing_function error_message =
+  Stdio.print_endline @@ sprintf "%s notification bad request. While %s: %s" handler failing_function error_message;
   send_response reqd "" `Bad_request
 
 let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
@@ -49,17 +43,19 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
     | "/github" ->
       read_body (Reqd.request_body reqd)
       >|= (fun body ->
+            Headers.to_list headers |> List.iter ~f:(fun (k,v) -> Stdio.print_endline @@ sprintf "%s: %s" k v);
+            Stdio.print_endline body;
+            Stdio.print_endline "";
             let event =
               try Github.parse_exn headers body
               with exn -> Error (sprintf "Error while parsing payload : %s" (Exn.to_string exn))
             in
             match event with
             | Ok payload ->
-              let open Slack in
               let () =
-                match generate_notification payload with
-                | Ok serialized_notification ->
-                  send_notification serialized_notification
+                match Action.generate_notification payload with
+                | Ok msg ->
+                  Slack.send_notification @@ Slack_j.string_of_webhook_notification msg
                   >|= (function
                         | Some (sc, txt) ->
                           Stdio.print_endline @@ sprintf "Sent notification to Slack. Code: %i. Response: %s." sc txt
@@ -68,7 +64,7 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
                 | Error _ -> ()
               in
               send_response reqd "" `OK
-            | Error error_message -> reply_with_bad_request reqd "Github" "parsing payload" error_message headers)
+            | Error error_message -> reply_with_bad_request reqd "Github" "parsing payload" error_message)
       |> ignore
     | _ -> send_response reqd "" `Not_found )
   | meth ->

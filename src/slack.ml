@@ -30,27 +30,26 @@ let generate_pull_request_notification notification =
       [ { title = Some "Labels"; value } ]
     | _ -> []
   in
-  string_of_slack_webhook_notification
-    {
-      text = None;
-      attachments =
-        Some
-          [ {
-              empty_attachments with
-              fallback = Some "Pull request notification";
-              color = Some "#ccc";
-              pretext = Some (Printf.sprintf "Pull request opened by %s" sender.login);
-              author_name = Some sender.login;
-              author_link = Some sender.url;
-              author_icon = Some sender.avatar_url;
-              title = Some title;
-              title_link = Some url;
-              text = Some body;
-              fields = Some fields;
-            }
-          ];
-      blocks = None;
-    }
+  {
+    text = None;
+    attachments =
+      Some
+        [ {
+            empty_attachments with
+            fallback = Some "Pull request notification";
+            color = Some "#ccc";
+            pretext = Some (Printf.sprintf "Pull request opened by %s" sender.login);
+            author_name = Some sender.login;
+            author_link = Some sender.url;
+            author_icon = Some sender.avatar_url;
+            title = Some title;
+            title_link = Some url;
+            text = Some body;
+            fields = Some fields;
+          }
+        ];
+    blocks = None;
+  }
 
 let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 (string_of_commit_hash hash)
 
@@ -72,24 +71,23 @@ let generate_push_notification notification =
     List.map commits ~f:(fun { url; id; message; _ } ->
         Printf.sprintf "`<%s|%s>` - `%s`" url (git_short_sha_hash id) message)
   in
-  string_of_slack_webhook_notification
-    {
-      text = None;
-      attachments =
-        Some
-          [ {
-              empty_attachments with
-              mrkdwn_in = Some [ "fields" ];
-              fallback = Some "Commit pushed notification";
-              color = Some "#ccc";
-              author_name = Some sender.login;
-              author_link = Some sender.url;
-              author_icon = Some sender.avatar_url;
-              fields = Some [ { value = String.concat ~sep:"\n" @@ (title :: commits_text_list); title = None } ];
-            }
-          ];
-      blocks = None;
-    }
+  {
+    text = None;
+    attachments =
+      Some
+        [ {
+            empty_attachments with
+            mrkdwn_in = Some [ "fields" ];
+            fallback = Some "Commit pushed notification";
+            color = Some "#ccc";
+            author_name = Some sender.login;
+            author_link = Some sender.url;
+            author_icon = Some sender.avatar_url;
+            fields = Some [ { value = String.concat ~sep:"\n" @@ (title :: commits_text_list); title = None } ];
+          }
+        ];
+    blocks = None;
+  }
 
 let generate_ci_run_notification (notification : ci_build_notification) =
   let { commit; state; target_url; description; context; _ } = notification in
@@ -100,39 +98,31 @@ let generate_ci_run_notification (notification : ci_build_notification) =
   let description = Printf.sprintf "*Description*: %s." description in
   let commit_info = Printf.sprintf "*Commit*: `<%s|%s>` - %s" url (git_short_sha_hash sha) message in
   let author_info = Printf.sprintf "*Author*: %s" author.login in
-  string_of_slack_webhook_notification
-    {
-      text = None;
-      attachments =
-        Some
-          [ {
-              empty_attachments with
-              mrkdwn_in = Some [ "fields"; "text" ];
-              fallback = Some "CI run notification";
-              color = Some "#ccc";
-              fields =
-                Some
-                  [ {
-                      title = None;
-                      value = String.concat ~sep:"\n" @@ [ title; status; description; commit_info; author_info ];
-                    }
-                  ];
-            }
-          ];
-      blocks = None;
-    }
+  {
+    text = None;
+    attachments =
+      Some
+        [ {
+            empty_attachments with
+            mrkdwn_in = Some [ "fields"; "text" ];
+            fallback = Some "CI run notification";
+            color = Some "#ccc";
+            fields =
+              Some
+                [ {
+                    title = None;
+                    value = String.concat ~sep:"\n" @@ [ title; status; description; commit_info; author_info ];
+                  }
+                ];
+          }
+        ];
+    blocks = None;
+  }
 
 let is_success_or_failed state =
   match state with
   | Success | Failed -> true
   | _ -> false
-
-let generate_notification request_notification =
-  match request_notification with
-  | Github.Push notification -> Ok (generate_push_notification notification)
-  | Pull_request notification -> Ok (generate_pull_request_notification notification)
-  | CI_run n when is_success_or_failed n.state -> Ok (generate_ci_run_notification n)
-  | _ -> Error ()
 
 let send_notification ?(content_type = "application/json") data =
   let slack_url = Lazy.force Configuration.Env.slack_webhook_url in
