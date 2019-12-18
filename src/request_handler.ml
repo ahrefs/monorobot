@@ -47,7 +47,7 @@ let request_handler cfg (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
             Stdio.print_endline body;
             Stdio.print_endline "";
             let event =
-              try Github.parse_exn ~secret:cfg.Notabot_t.gh_webhook_secret headers body
+              try Ok (Github.parse_exn ~secret:cfg.Notabot_t.gh_webhook_secret headers body)
               with exn -> Error (sprintf "Error while parsing payload : %s" (Exn.to_string exn))
             in
             match event with

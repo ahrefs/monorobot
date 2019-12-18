@@ -1,11 +1,13 @@
 open Httpaf
 open Base
+open Printf
 open Github_j
 
 type t =
   | Push of commit_pushed_notification
   | Pull_request of pr_notification
   | CI_run of ci_build_notification
+  | Event of string (* all other events *)
 
 let is_valid_signature ~secret headers_sig body =
   let request_hash =
@@ -17,10 +19,11 @@ let is_valid_signature ~secret headers_sig body =
 
 let parse_exn ~secret headers body =
   match Headers.get_exn headers "X-Hub-Signature" with
-  | req_sig when not @@ is_valid_signature ~secret req_sig body -> Error "request signature invalid"
+  | req_sig when not @@ is_valid_signature ~secret req_sig body -> failwith "request signature invalid"
   | _ ->
   match Headers.get_exn headers "X-GitHub-Event" with
-  | "push" -> Ok (Push (commit_pushed_notification_of_string body))
-  | "pull_request" -> Ok (Pull_request (pr_notification_of_string body))
-  | "status" -> Ok (CI_run (ci_build_notification_of_string body))
-  | event -> Error (Printf.sprintf "Unsupported github event: %s" event)
+  | "push" -> Push (commit_pushed_notification_of_string body)
+  | "pull_request" -> Pull_request (pr_notification_of_string body)
+  | "status" -> CI_run (ci_build_notification_of_string body)
+  | ("issue_comment" | "create" | "delete" | "pull_request_review_comment" | "pull_request_review" as event) -> Event event
+  | event -> failwith @@ sprintf "unsupported event : %s" event
