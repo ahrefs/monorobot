@@ -16,10 +16,11 @@ Build with
 make
 ```
 
+and use resulting `_build/default/src/notabot.exe` binary.
+
 ## Running
 
-Currently configuration is defined by environment variables `GH_WEBHOOK_SECRET_TOKEN` and `SLACK_WEBHOOK_URL`.
-Then run with `make start` or install/launch `_build/default/src/notabot.exe` binary as needed.
+Configuration is read at startup from `notabot.json` file according to src/notabot.atd schema.
 
 ## Testing (development)
 

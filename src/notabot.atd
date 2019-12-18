@@ -1,0 +1,16 @@
+
+type webhook = {
+  url : string;
+  channel : string;
+}
+
+type rule = {
+  prefix : string;
+  ignore : string list;
+  webhook : webhook;
+}
+
+type config = {
+  rules : rule list;
+  gh_webhook_secret: string;
+}
