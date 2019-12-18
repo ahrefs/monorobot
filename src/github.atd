@@ -4,10 +4,11 @@ type author = {
   ?username: string option;
 }
 
-type commit_hash = string wrap <ocaml t="Sha1.t" wrap="Sha1.string" unwrap="Sha1.to_hex">
+type commit_hash = string
 
 type commit = {
   id: commit_hash;
+  distinct: bool;
   message: string;
   timestamp: string;
   url: string;
@@ -87,6 +88,7 @@ type ci_build_state = [
   | Cancelled <json name="cancelled">
   | Timed_out <json name="timed_out">
   | Action_required <json name="action_required">
+  | Pending <json name="pending">
 ] <ocaml repr="classic">
 
 type inner_commit = {

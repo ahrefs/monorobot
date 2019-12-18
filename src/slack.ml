@@ -51,7 +51,7 @@ let generate_pull_request_notification notification =
     blocks = None;
   }
 
-let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 (Sha1.to_hex hash)
+let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
 let generate_push_notification notification =
   let { ref; sender; compare; commits; repository; _ } = notification in
@@ -61,15 +61,15 @@ let generate_push_notification notification =
     String.concat ~sep:"/" @@ Array.to_list @@ Array.subo ~pos:2 ref_tokens
   in
   let title =
-    Printf.sprintf "[<%s|%s>] <%s|%i new commit%s>" repository.url commit_branch compare
+    Printf.sprintf "[<%s|%s:%s>] <%s|%i new commit%s> pushed by <%s|%s>" repository.url repository.name commit_branch compare
       (List.length commits)
-      ( match commits with
-      | [ _ ] -> "s"
-      | _ -> "" )
+      (match commits with [_] -> "" | _ -> "s")
+      sender.url
+      sender.login
   in
   let commits_text_list =
-    List.map commits ~f:(fun { url; id; message; _ } ->
-        Printf.sprintf "`<%s|%s>` %s" url (git_short_sha_hash id) message)
+    List.map commits ~f:(fun { url; id; message; author; _ } ->
+        Printf.sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) message author.name)
   in
   {
     text = None;
@@ -80,9 +80,6 @@ let generate_push_notification notification =
             mrkdwn_in = Some [ "fields" ];
             fallback = Some "Commit pushed notification";
             color = Some "#ccc";
-            author_name = Some sender.login;
-            author_link = Some sender.url;
-            author_icon = Some sender.avatar_url;
             fields = Some [ { value = String.concat ~sep:"\n" @@ (title :: commits_text_list); title = None } ];
           }
         ];
