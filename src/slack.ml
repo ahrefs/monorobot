@@ -1,4 +1,5 @@
 open Base
+open Printf
 open Github_j
 open Slack_j
 
@@ -38,7 +39,7 @@ let generate_pull_request_notification notification =
             empty_attachments with
             fallback = Some "Pull request notification";
             color = Some "#ccc";
-            pretext = Some (Printf.sprintf "Pull request opened by %s" sender.login);
+            pretext = Some (sprintf "Pull request opened by %s" sender.login);
             author_name = Some sender.login;
             author_link = Some sender.url;
             author_icon = Some sender.avatar_url;
@@ -54,22 +55,37 @@ let generate_pull_request_notification notification =
 let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
 let generate_push_notification notification =
-  let { ref; sender; compare; commits; repository; _ } = notification in
+  let { ref; sender; created; deleted; forced; compare; commits; repository; _ } = notification in
   let ref_tokens = Array.of_list @@ String.split ~on:'/' ref in
   let commit_branch =
     (* take out refs/heads and get the full name of the branch *)
     String.concat ~sep:"/" @@ Array.to_list @@ Array.subo ~pos:2 ref_tokens
   in
   let title =
-    Printf.sprintf "[<%s|%s:%s>] <%s|%i new commit%s> pushed by <%s|%s>" repository.url repository.name commit_branch compare
-      (List.length commits)
-      (match commits with [_] -> "" | _ -> "s")
-      sender.url
-      sender.login
+    if deleted then
+      sprintf "[<%s|%s>] <%s|%s> deleted branch <%s|%s>"
+        repository.url
+        repository.name
+        sender.url
+        sender.login
+        compare
+        commit_branch
+    else
+      sprintf "[<%s|%s:%s>] <%s|%i commit%s> %spushed %sby <%s|%s>"
+        repository.url
+        repository.name
+        commit_branch
+        compare
+        (List.length commits)
+        (match commits with [_] -> "" | _ -> "s")
+        (if forced then "force-" else "")
+        (if created then "to new branch " else "")
+        sender.url
+        sender.login
   in
   let commits_text_list =
     List.map commits ~f:(fun { url; id; message; author; _ } ->
-        Printf.sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) message author.name)
+        sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) message author.name)
   in
   {
     text = None;
@@ -90,11 +106,11 @@ let generate_ci_run_notification (notification : ci_build_notification) =
   let { commit; state; target_url; description; context; _ } = notification in
   let { commit : inner_commit; url; sha; author } = commit in
   let ({ message; _ } : inner_commit) = commit in
-  let title = Printf.sprintf "*<%s|CI Build on %s>*" target_url context in
-  let status = Printf.sprintf "*Status*: %s" @@ string_of_ci_build_state state in
-  let description = Printf.sprintf "*Description*: %s." description in
-  let commit_info = Printf.sprintf "*Commit*: `<%s|%s>` - %s" url (git_short_sha_hash sha) message in
-  let author_info = Printf.sprintf "*Author*: %s" author.login in
+  let title = sprintf "*<%s|CI Build on %s>*" target_url context in
+  let status = sprintf "*Status*: %s" @@ string_of_ci_build_state state in
+  let description = sprintf "*Description*: %s." description in
+  let commit_info = sprintf "*Commit*: `<%s|%s>` - %s" url (git_short_sha_hash sha) message in
+  let author_info = sprintf "*Author*: %s" author.login in
   {
     text = None;
     attachments =
@@ -126,14 +142,14 @@ let send_notification ?(content_type = "application/json") webhook data =
   ( try%lwt
       match%lwt Curl_lwt.perform c with
       | Curl.CURLE_OK when not @@ (Curl.get_httpcode c = 200) ->
-        Stdio.print_endline (Printf.sprintf "Slack notification status code <> 200: %d" (Curl.get_httpcode c));
+        Stdio.print_endline (sprintf "Slack notification status code <> 200: %d" (Curl.get_httpcode c));
         Lwt.return None
       | Curl.CURLE_OK -> Lwt.return (Some (Curl.get_responsecode c, Buffer.contents r))
       | code ->
-        Stdio.print_endline @@ Printf.sprintf "Slack notification request errored: %s" (Curl.strerror code);
+        Stdio.print_endline @@ sprintf "Slack notification request errored: %s" (Curl.strerror code);
         Lwt.return None
     with exn ->
-      Stdio.print_endline @@ Printf.sprintf "Exn when posting notification to Slack: %s" (Exn.to_string exn);
+      Stdio.print_endline @@ sprintf "Exn when posting notification to Slack: %s" (Exn.to_string exn);
       Lwt.fail exn )
     [%lwt.finally
       Curl.cleanup c;
