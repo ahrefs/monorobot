@@ -20,5 +20,6 @@ depends: [
  "lwt_ppx"
  "nocrypto"
  "stdio"
+ "uri"
 ]
 build: ["dune" "build" "-p" name]
