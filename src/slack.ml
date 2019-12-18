@@ -56,15 +56,14 @@ let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
 let generate_push_notification notification =
   let { ref; sender; created; deleted; forced; compare; commits; repository; _ } = notification in
-  let ref_tokens = Array.of_list @@ String.split ~on:'/' ref in
-  let commit_branch =
-    (* take out refs/heads and get the full name of the branch *)
-    String.concat ~sep:"/" @@ Array.to_list @@ Array.subo ~pos:2 ref_tokens
-  in
+  (* take out refs/heads *)
+  let ref_tokens = List.drop (String.split ~on:'/' ref) 2 in
+  let commit_branch = String.concat ~sep:"/" ref_tokens in
+  let tree_url = String.concat ~sep:"/" [repository.url; "tree"; Uri.pct_encode commit_branch] in
   let title =
     if deleted then
       sprintf "<%s|[%s]> <%s|%s> deleted branch <%s|%s>"
-        repository.url
+        tree_url
         repository.name
         sender.url
         sender.login
@@ -72,7 +71,7 @@ let generate_push_notification notification =
         commit_branch
     else
       sprintf "<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby <%s|%s>"
-        repository.url
+        tree_url
         repository.name
         commit_branch
         compare
@@ -83,12 +82,13 @@ let generate_push_notification notification =
         sender.url
         sender.login
   in
-  let commits_text_list =
+  let commits =
     List.map commits ~f:(fun { url; id; message; author; _ } ->
-        sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) message author.name)
+      let title = Option.value ~default:"" @@ List.hd @@ String.split_lines message in
+      sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name)
   in
   {
-    text = None;
+    text = Some title;
     attachments =
       Some
         [ {
@@ -96,7 +96,7 @@ let generate_push_notification notification =
             mrkdwn_in = Some [ "fields" ];
             fallback = Some "Commit pushed notification";
             color = Some "#ccc";
-            fields = Some [ { value = String.concat ~sep:"\n" @@ (title :: commits_text_list); title = None } ];
+            fields = Some [ { value = String.concat ~sep:"\n" commits; title = None } ];
           }
         ];
     blocks = None;

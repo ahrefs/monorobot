@@ -1,6 +1,6 @@
 (executable
  (libraries curl curl.lwt nocrypto hex atdgen httpaf httpaf-lwt-unix base
-   stdio lwt lwt.unix)
+   stdio lwt lwt.unix uri)
  (preprocess
   (pps lwt_ppx))
  (public_name notabot))
