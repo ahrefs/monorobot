@@ -12,8 +12,10 @@ let filter rule commits =
   commits |> List.filter ~f:(fun commit -> touching rule commit.added || touching rule commit.removed || touching rule commit.modified)
 
 let partition_push rules n =
+  let open Github_t in
+  let commits = n.commits |> List.filter ~f:(fun c -> c.distinct) in
   rules |> List.filter_map ~f:begin fun rule ->
-    match filter rule n.Github_t.commits with
+    match filter rule commits with
     | [] -> None
     | l -> Some (rule, { n with commits = l })
   end

@@ -19,7 +19,6 @@ depends: [
  "lwt"
  "lwt_ppx"
  "nocrypto"
- "sha"
  "stdio"
 ]
 build: ["dune" "build" "-p" name]
