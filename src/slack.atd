@@ -47,7 +47,7 @@ type webhook_notification_divider_block = {
   notification_type <json name="type"> : notification_divider_block_type;
 }
 
-type webhook_notification_block = [ 
+type webhook_notification_block = [
   Text of webhook_notification_text_block
   | Divider of webhook_notification_divider_block
 ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
