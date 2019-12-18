@@ -33,9 +33,12 @@ type repository = {
 
 type commit_pushed_notification = {
  ref: string;
+ created: bool;
+ deleted: bool;
+ forced: bool;
  after: commit_hash;
  commits: commit list;
- head_commit: commit;
+ ?head_commit: commit option;
  repository: repository;
  compare: string;
  pusher: author;
