@@ -119,14 +119,9 @@ let generate_ci_run_notification (notification : ci_build_notification) =
     blocks = None;
   }
 
-let is_success_or_failed state =
-  match state with
-  | Success | Failed -> true
-  | _ -> false
-
-let send_notification ?(content_type = "application/json") data =
-  let slack_url = Lazy.force Configuration.Env.slack_webhook_url in
-  let r, c = Configuration.Curl.init_conn slack_url in
+let send_notification ?(content_type = "application/json") webhook data =
+  let data = Slack_j.string_of_webhook_notification data in
+  let r, c = Configuration.Curl.init_conn webhook.Notabot_t.url in
   Curl.set_post c true;
   Curl.set_httpheader c [ "Content-Type: " ^ content_type ];
   Curl.set_postfields c data;

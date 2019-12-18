@@ -34,7 +34,7 @@ let reply_with_bad_request reqd handler failing_function error_message =
   Stdio.print_endline @@ sprintf "%s notification bad request. While %s: %s" handler failing_function error_message;
   send_response reqd "" `Bad_request
 
-let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
+let request_handler cfg (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
   let { Request.meth; target; headers; _ } = Reqd.request reqd in
   log_incoming_request reqd;
   match meth with
@@ -47,21 +47,20 @@ let request_handler (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
             Stdio.print_endline body;
             Stdio.print_endline "";
             let event =
-              try Github.parse_exn headers body
+              try Github.parse_exn ~secret:cfg.Notabot_t.gh_webhook_secret headers body
               with exn -> Error (sprintf "Error while parsing payload : %s" (Exn.to_string exn))
             in
             match event with
             | Ok payload ->
               let () =
-                match Action.generate_notification payload with
-                | Ok msg ->
-                  Slack.send_notification @@ Slack_j.string_of_webhook_notification msg
+                Action.generate_notifications cfg payload |> List.iter ~f:begin fun (webhook, msg) ->
+                  Slack.send_notification webhook msg
                   >|= (function
                         | Some (sc, txt) ->
-                          Stdio.print_endline @@ sprintf "Sent notification to Slack. Code: %i. Response: %s." sc txt
+                          Stdio.print_endline @@ sprintf "Sent notification to #%s. Code: %i. Response: %s." webhook.channel sc txt
                         | _ -> ())
                   |> ignore
-                | Error _ -> ()
+                end
               in
               send_response reqd "" `OK
             | Error error_message -> reply_with_bad_request reqd "Github" "parsing payload" error_message)

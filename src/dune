@@ -28,3 +28,15 @@
  (deps slack.atd)
  (action
   (run atdgen -j %{deps})))
+
+(rule
+ (targets notabot_t.ml notabot_t.mli)
+ (deps notabot.atd)
+ (action
+  (run atdgen -t %{deps})))
+
+(rule
+ (targets notabot_j.ml notabot_j.mli)
+ (deps notabot.atd)
+ (action
+  (run atdgen -j %{deps})))

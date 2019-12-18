@@ -1,6 +1,7 @@
 type author = {
   name: string;
   email: string;
+  ?username: string option;
 }
 
 type commit_hash = string wrap <ocaml t="Sha1.t" wrap="Sha1.string" unwrap="Sha1.to_hex">
@@ -12,6 +13,9 @@ type commit = {
   url: string;
   author:  author;
   committer: author;
+  added: string list;
+  removed: string list;
+  modified: string list;
 }
 
 type user = {
@@ -41,7 +45,7 @@ type label = {
   name: string;
 }
 
-type pull_request = { 
+type pull_request = {
   id: int;
   body: string;
   title: string;

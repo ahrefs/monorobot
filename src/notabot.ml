@@ -1,7 +1,6 @@
 open Base
 open Lwt.Infix
 open Httpaf_lwt_unix
-open Request_handler
 module Arg = Caml.Arg
 
 let error_handler (_ : Unix.sockaddr) ?request:_ error start_response =
@@ -14,9 +13,9 @@ let error_handler (_ : Unix.sockaddr) ?request:_ error start_response =
   Body.close_writer response_body
 
 let main port =
-  Lazy.force Configuration.Env.github_webhook_secret_token |> ignore;
-  Lazy.force Configuration.Env.slack_webhook_url |> ignore;
+  let cfg = Notabot_j.config_of_string @@ Stdio.In_channel.read_all "notabot.json" in
   let listen_address = Unix.(ADDR_INET (inet_addr_loopback, port)) in
+  let request_handler = Request_handler.request_handler cfg in
   Lwt.async (fun () ->
       Lwt_io.establish_server_with_client_socket listen_address
         (Server.create_connection_handler ~request_handler ~error_handler)
