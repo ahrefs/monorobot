@@ -3,9 +3,8 @@ open Slack
 open Notabot_t
 
 let touching rule files =
-  files |> List.exists ~f:begin fun file ->
-    String.is_prefix file ~prefix:rule.prefix && not (List.exists ~f:(fun ignore -> String.is_prefix file ~prefix:ignore) rule.ignore)
-  end
+  let has_prefix s = List.exists ~f:(fun prefix -> String.is_prefix s ~prefix) in
+  files |> List.exists ~f:(fun file -> (List.is_empty rule.prefix || has_prefix file rule.prefix) && not (has_prefix file rule.ignore))
 
 let filter rule commits =
   let open Github_t in
@@ -28,11 +27,13 @@ let generate_notifications cfg req =
   | _ -> []
 
 let print_routing rules =
+  let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
   rules |> List.iter ~f:begin fun rule ->
-    Stdio.printf "  match %s*" rule.prefix;
-    begin match rule.ignore with
-    | [] -> ()
-    | l -> Stdio.printf " and not %s" (String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l)
+    begin match rule.prefix, rule.ignore with
+    | [], [] -> Stdio.printf "  any"
+    | l, [] -> Stdio.printf "  %s" (show_match l)
+    | [], l ->  Stdio.printf "  not %s" (show_match l)
+    | l, i ->  Stdio.printf "  %s and not %s" (show_match l) (show_match i)
     end;
     Stdio.printf " -> #%s\n%!" rule.webhook.channel;
   end

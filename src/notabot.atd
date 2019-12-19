@@ -4,8 +4,9 @@ type webhook = {
   channel : string;
 }
 
+(* the rule is considered matched if there is at least one file in commit that matches one of the [prefix] and does not match any of [ignore] *)
 type rule = {
-  prefix : string;
+  prefix : string list; (* empty list means match any *)
   ignore : string list;
   webhook : webhook;
 }
