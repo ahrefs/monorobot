@@ -63,7 +63,7 @@ let generate_push_notification notification =
   in
   let title =
     if deleted then
-      sprintf "[<%s|%s>] <%s|%s> deleted branch <%s|%s>"
+      sprintf "<%s|[%s]> <%s|%s> deleted branch <%s|%s>"
         repository.url
         repository.name
         sender.url
@@ -71,7 +71,7 @@ let generate_push_notification notification =
         compare
         commit_branch
     else
-      sprintf "[<%s|%s:%s>] <%s|%i commit%s> %spushed %sby <%s|%s>"
+      sprintf "<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby <%s|%s>"
         repository.url
         repository.name
         commit_branch
