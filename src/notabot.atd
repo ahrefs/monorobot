@@ -13,5 +13,5 @@ type rule = {
 
 type config = {
   rules : rule list;
-  gh_webhook_secret: string;
+  ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
 }
