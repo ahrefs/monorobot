@@ -55,11 +55,9 @@ let generate_pull_request_notification notification =
 let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
 let generate_push_notification notification =
-  let { ref; sender; created; deleted; forced; compare; commits; repository; _ } = notification in
-  (* take out refs/heads *)
-  let ref_tokens = List.drop (String.split ~on:'/' ref) 2 in
-  let commit_branch = String.concat ~sep:"/" ref_tokens in
-  let tree_url = String.concat ~sep:"/" [repository.url; "tree"; Uri.pct_encode commit_branch] in
+  let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in
+  let commits_branch = Github.get_commits_branch notification in
+  let tree_url = String.concat ~sep:"/" [repository.url; "tree"; Uri.pct_encode commits_branch] in
   let title =
     if deleted then
       sprintf "<%s|[%s]> <%s|%s> deleted branch <%s|%s>"
@@ -68,12 +66,12 @@ let generate_push_notification notification =
         sender.url
         sender.login
         compare
-        commit_branch
+        commits_branch
     else
       sprintf "<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby <%s|%s>"
         tree_url
         repository.name
-        commit_branch
+        commits_branch
         compare
         (List.length commits)
         (match commits with [_] -> "" | _ -> "s")

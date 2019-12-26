@@ -30,3 +30,8 @@ let parse_exn ~secret headers body =
   | "status" -> CI_run (ci_build_notification_of_string body)
   | ("issue_comment" | "create" | "delete" | "pull_request_review_comment" | "pull_request_review" as event) -> Event event
   | event -> failwith @@ sprintf "unsupported event : %s" event
+
+let get_commits_branch n =
+  match String.split ~on:'/' n.ref with
+  | "refs"::"heads"::l -> String.concat ~sep:"/" l
+  | _ -> n.ref
