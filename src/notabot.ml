@@ -17,6 +17,7 @@ let main port =
   let cfg = Notabot_j.config_of_string @@ Stdio.In_channel.read_all "notabot.json" in
   Stdio.print_endline "Using routing:";
   Action.print_routing cfg.rules;
+  Stdio.printf "Signature checking %s\n%!" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
   let listen_address = Unix.(ADDR_INET (inet_addr_loopback, port)) in
   let request_handler = Request_handler.request_handler cfg in
   Lwt.async (fun () ->

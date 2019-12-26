@@ -18,9 +18,12 @@ let is_valid_signature ~secret headers_sig body =
   String.equal headers_sig (Printf.sprintf "sha1=%s" request_hash)
 
 let parse_exn ~secret headers body =
-  match Headers.get_exn headers "X-Hub-Signature" with
-  | req_sig when not @@ is_valid_signature ~secret req_sig body -> failwith "request signature invalid"
-  | _ ->
+  begin match secret with
+  | None -> ()
+  | Some secret ->
+    let req_sig = Headers.get_exn headers "X-Hub-Signature" in
+    if not @@ is_valid_signature ~secret req_sig body then failwith "request signature invalid"
+  end;
   match Headers.get_exn headers "X-GitHub-Event" with
   | "push" -> Push (commit_pushed_notification_of_string body)
   | "pull_request" -> Pull_request (pr_notification_of_string body)
