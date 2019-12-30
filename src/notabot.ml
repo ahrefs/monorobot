@@ -12,11 +12,15 @@ let error_handler (_ : Unix.sockaddr) ?request:_ error start_response =
   end;
   Body.close_writer response_body
 
-let main port =
-  Stdio.print_endline "Notabot starting";
+let get_config () =
   let cfg = Notabot_j.config_of_string @@ Stdio.In_channel.read_all "notabot.json" in
   Stdio.print_endline "Using routing:";
   Action.print_routing cfg.rules;
+  cfg
+
+let main port =
+  Stdio.print_endline "Notabot starting";
+  let cfg = get_config () in
   Stdio.printf "Signature checking %s\n%!" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
   let listen_address = Unix.(ADDR_INET (inet_addr_loopback, port)) in
   let request_handler = Request_handler.request_handler cfg in
@@ -28,9 +32,20 @@ let main port =
   let forever, _ = Lwt.wait () in
   Lwt_main.run forever
 
+let check file =
+  let cfg = get_config () in
+  let headers = Httpaf.Headers.of_list ["X-GitHub-Event","push"] in
+  match Github.parse_exn ~secret:None headers (Stdio.In_channel.read_all file) with
+  | exception exn -> Stdio.printf "E: error while parsing payload : %s\n%!" (Exn.to_string exn)
+  | event ->
+  Action.generate_notifications cfg event |> List.iter ~f:begin fun (webhook, msg) ->
+    Stdio.printf "Will notify %s%s\n%!" webhook.Notabot_t.channel (match msg.Slack_t.text with None -> "" | Some s -> Printf.sprintf " with %S" s)
+  end
+
 let () =
   let port = ref 8080 in
-  Arg.parse
-    [ "-p", Arg.Set_int port, " Listening port number (8080 by default)" ]
-    ignore "Notabot, the notifications bot. Your options:";
+  Arg.parse [
+    "-p", Arg.Set_int port, " Listening port number (8080 by default)";
+    "-check", Arg.String (fun file -> check file; Caml.exit 0), " Read github notification payload from file and show actions to be taken";
+    ] ignore "Notabot, the notifications bot. Your options:";
   main !port
