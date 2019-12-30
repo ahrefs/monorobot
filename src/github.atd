@@ -71,6 +71,7 @@ type pr_action = [
   | Locked <json name="locked">
   | Unlocked <json name="unlocked">
   | Reopened <json name="reopened">
+  | Synchronize <json name="synchronize">
 ] <ocaml repr="classic">
 
 type pr_notification = {
