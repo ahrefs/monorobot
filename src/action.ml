@@ -16,8 +16,11 @@ let first_line s = match String.split ~on:'\n' s with x::_ -> x | [] -> s
 let is_main_merge_message message n cfg =
   match cfg.main_branch_name with
   | Some main_branch ->
-    let expect = sprintf "Merge branch '%s' into %s" main_branch (Github.get_commits_branch n) in
-    String.equal (first_line message) expect
+    let branch = Github.get_commits_branch n in
+    let expect = sprintf "Merge branch '%s' into %s" main_branch branch in
+    let expect2 = sprintf "Merge remote-tracking branch 'origin/%s' into %s" main_branch branch in
+    let title = first_line message in
+    String.equal title expect || String.equal title expect2
   | _ -> false
 
 let partition_push cfg n =
