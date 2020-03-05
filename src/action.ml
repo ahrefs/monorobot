@@ -25,12 +25,15 @@ let is_main_merge_message message n cfg =
 
 let partition_push cfg n =
   let open Github_t in
-  let commits = n.commits |> List.filter ~f:(fun c -> c.distinct) in
-  match commits, n.head_commit with
-  | [commit], Some head when String.equal head.id commit.id && is_main_merge_message head.message n cfg ->
-    Stdio.print_endline @@ sprintf "Main branch merge, not sending notifications : %s" (first_line head.message);
-    []
-  | _ ->
+  let commits =
+    n.commits
+    |> List.filter ~f:(fun c -> c.distinct)
+    |> List.filter ~f:begin fun c ->
+      let skip = is_main_merge_message c.message n cfg in
+      if skip then Stdio.print_endline @@ sprintf "Main branch merge, ignoring %s : %s" c.id (first_line c.message);
+      not skip
+    end
+  in
   cfg.rules |> List.filter_map ~f:begin fun rule ->
     match filter rule commits with
     | [] -> None
