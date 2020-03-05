@@ -28,7 +28,15 @@ let parse_exn ~secret headers body =
   | "push" -> Push (commit_pushed_notification_of_string body)
   | "pull_request" -> Pull_request (pr_notification_of_string body)
   | "status" -> CI_run (ci_build_notification_of_string body)
-  | ("issue_comment" | "create" | "delete" | "pull_request_review_comment" | "pull_request_review" as event) -> Event event
+  | "commit_comment"
+  | "issues"
+  | "issue_comment"
+  | "member"
+  | "create"
+  | "delete"
+  | "release"
+  | "pull_request_review_comment"
+  | "pull_request_review" as event -> Event event
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
 let get_commits_branch n =
