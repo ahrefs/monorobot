@@ -152,18 +152,19 @@ let send_notification ?(content_type = "application/json") webhook data =
   Curl.set_httpheader c [ "Content-Type: " ^ content_type ];
   Curl.set_postfields c data;
   Curl.set_postfieldsize c (String.length data);
-  ( try%lwt
+  begin try%lwt
       match%lwt Curl_lwt.perform c with
       | Curl.CURLE_OK when not @@ (Curl.get_httpcode c = 200) ->
-        Stdio.print_endline (sprintf "Slack notification status code <> 200: %d" (Curl.get_httpcode c));
+        Log.line "Slack notification status code <> 200: %d" (Curl.get_httpcode c);
         Lwt.return None
       | Curl.CURLE_OK -> Lwt.return (Some (Curl.get_responsecode c, Buffer.contents r))
       | code ->
-        Stdio.print_endline @@ sprintf "Slack notification request errored: %s" (Curl.strerror code);
+        Log.line "Slack notification request errored: %s" (Curl.strerror code);
         Lwt.return None
     with exn ->
-      Stdio.print_endline @@ sprintf "Exn when posting notification to Slack: %s" (Exn.to_string exn);
-      Lwt.fail exn )
+      Log.line "Exn when posting notification to Slack: %s" (Exn.to_string exn);
+      Lwt.fail exn
+  end
     [%lwt.finally
       Curl.cleanup c;
       Lwt.return ()]

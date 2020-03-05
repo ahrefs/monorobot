@@ -30,7 +30,7 @@ let partition_push cfg n =
     |> List.filter ~f:(fun c -> c.distinct)
     |> List.filter ~f:begin fun c ->
       let skip = is_main_merge_message c.message n cfg in
-      if skip then Stdio.print_endline @@ sprintf "Main branch merge, ignoring %s : %s" c.id (first_line c.message);
+      if skip then Log.line "Main branch merge, ignoring %s : %s" c.id (first_line c.message);
       not skip
     end
   in
