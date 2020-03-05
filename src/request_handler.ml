@@ -25,22 +25,13 @@ let send_response reqd response_body status =
   let headers = Headers.of_list [ "Content-Length", Int.to_string (String.length response_body) ] in
   Reqd.respond_with_string reqd (Response.create ~headers status) response_body
 
-let time_to_string ~gmt f =
-  let open Unix in
-  let t = (if gmt then gmtime else localtime) f in
-  let sec = sprintf "%07.4f" (Float.mod_float f 60.) in
-  sprintf "%04u-%02u-%02uT%02u:%02u:%s%s"
-    (1900 + t.tm_year) (t.tm_mon+1) t.tm_mday t.tm_hour t.tm_min sec (if gmt then "Z" else "")
-
-let gmt_now_string () = time_to_string ~gmt:true @@ Unix.gettimeofday ()
-
 let log_incoming_request reqd =
   let { Request.meth; target; _ } = Reqd.request reqd in
   Stdio.print_endline "";
-  Stdio.print_endline @@ sprintf "%s : request received: %s %s." (gmt_now_string ()) (Method.to_string meth) target
+  Log.line "request received: %s %s." (Method.to_string meth) target
 
 let reply_with_bad_request reqd handler failing_function error_message =
-  Stdio.print_endline @@ sprintf "%s notification bad request. While %s: %s" handler failing_function error_message;
+  Log.line "%s notification bad request. While %s: %s" handler failing_function error_message;
   send_response reqd "" `Bad_request
 
 let request_handler cfg (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
@@ -66,7 +57,7 @@ let request_handler cfg (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
                   Slack.send_notification webhook msg
                   >|= (function
                         | Some (sc, txt) ->
-                          Stdio.print_endline @@ sprintf "Sent notification to #%s. Code: %i. Response: %s." webhook.channel sc txt
+                          Log.line "Sent notification to #%s. Code: %i. Response: %s." webhook.channel sc txt
                         | _ -> ())
                   |> ignore
                 end
