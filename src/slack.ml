@@ -130,9 +130,24 @@ let generate_ci_run_notification (notification : ci_build_notification) =
     blocks = None;
   }
 
+let () = Curl.(global_init CURLINIT_GLOBALALL)
+
+let curl_init url =
+  let open Curl in
+  let r = Buffer.create 1024 in
+  let c = init () in
+  set_timeout c 10;
+  set_sslverifypeer c true;
+  set_sslverifyhost c SSLVERIFYHOST_HOSTNAME;
+  set_writefunction c (fun s -> Buffer.add_string r s; String.length s);
+  set_tcpnodelay c true;
+  set_verbose c false;
+  set_url c url;
+  r, c
+
 let send_notification ?(content_type = "application/json") webhook data =
   let data = Slack_j.string_of_webhook_notification data in
-  let r, c = Configuration.Curl.init_conn webhook.Notabot_t.url in
+  let r, c = curl_init webhook.Notabot_t.url in
   Curl.set_post c true;
   Curl.set_httpheader c [ "Content-Type: " ^ content_type ];
   Curl.set_postfields c data;
