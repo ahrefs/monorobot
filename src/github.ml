@@ -17,6 +17,7 @@ let is_valid_signature ~secret headers_sig body =
   let (`Hex request_hash) = Hex.of_string request_hash in
   String.equal headers_sig (Printf.sprintf "sha1=%s" request_hash)
 
+(* Parse a payload. The type of the payload is detected from the headers. *)
 let parse_exn ~secret headers body =
   begin match secret with
   | None -> ()
