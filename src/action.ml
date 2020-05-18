@@ -34,7 +34,7 @@ let partition_push cfg n =
       not skip
     end
   in
-  cfg.rules |> List.filter_map ~f:begin fun rule ->
+  cfg.push_rules |> List.filter_map ~f:begin fun rule ->
     match filter rule commits with
     | [] -> None
     | l -> Some (rule, { n with commits = l })

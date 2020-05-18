@@ -1,18 +1,42 @@
+(* This is the description of the configuration of the program *)
 
+(* this is used to describe where to post a message after processing a
+   payload from github. It is the destination. *)
 type webhook = {
-  url : string;
-  channel : string;
+  url : string; (* url to call to send the message *)
+  channel : string; (* name of the channel where the message will be posted *)
 }
 
-(* the rule is considered matched if there is at least one file in commit that matches one of the [prefix] and does not match any of [ignore] *)
-type rule = {
+(* This type of rule is used for events that must be routed based on the
+  files they are related to.
+
+  For each file listed in the payload, all the prefixes that are listed in
+  prefix and ignore will be tested. If a file matches a prefix and no ignore,
+  then the whole rule matches the payload and can be used.
+
+  If a commit affects 3 files:
+  - some/dir/a
+  - some/dir/b
+  - some/other/dir/c
+
+  And we are only interested by commits affecting files in some/dir
+
+  prefix should be ["some/dir"]
+
+  or
+
+  ignore should be ["some/other"]
+
+  The rule is considered matched if there is at least one file in commit that
+  matches one of the [prefix] and does not match any of [ignore] *)
+type prefix_rule = {
   prefix : string list; (* empty list means match any *)
   ignore : string list;
   webhook : webhook;
 }
 
 type config = {
-  rules : rule list;
+  push_rules : prefix_rule list; (* rules for push event *)
   ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
   ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)
 }
