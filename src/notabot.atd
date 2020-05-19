@@ -35,8 +35,15 @@ type prefix_rule = {
   webhook : webhook;
 }
 
+type pr_rule = {
+  labels : string list;
+  ignore : string list;
+  webhook : webhook;
+}
+
 type config = {
-  push_rules : prefix_rule list; (* rules for push event *)
+  push_rules : prefix_rule list;
+  pr_rules : pr_rule list;
   ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
   ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)
 }
