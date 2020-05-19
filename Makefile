@@ -6,11 +6,11 @@ start:
 	dune exec -- ./src/notabot.exe
 
 build:
-	dune build @install
+	dune build
 
 all: build
 
-format:
+fmt:
 	dune build @fmt --auto-promote
 
 clean:
