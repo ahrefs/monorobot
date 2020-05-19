@@ -1,3 +1,4 @@
-(lang dune 1.1)
+(lang dune 2.5)
 
-(using fmt 1.1)
+(formatting
+ (enabled_for ocaml reason))
