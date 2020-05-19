@@ -35,7 +35,8 @@ let generate_pull_request_notification notification =
     text = None;
     attachments =
       Some
-        [ {
+        [
+          {
             empty_attachments with
             fallback = Some "Pull request notification";
             color = Some "#ccc";
@@ -47,7 +48,7 @@ let generate_pull_request_notification notification =
             title_link = Some url;
             text = Some body;
             fields = Some fields;
-          }
+          };
         ];
     blocks = None;
   }
@@ -57,28 +58,21 @@ let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 let generate_push_notification notification =
   let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in
   let commits_branch = Github.get_commits_branch notification in
-  let tree_url = String.concat ~sep:"/" [repository.url; "tree"; Uri.pct_encode commits_branch] in
+  let tree_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode commits_branch ] in
   let title =
     if deleted then
-      sprintf "<%s|[%s]> <%s|%s> deleted branch <%s|%s>"
-        tree_url
-        repository.name
-        sender.url
-        sender.login
-        compare
+      sprintf "<%s|[%s]> <%s|%s> deleted branch <%s|%s>" tree_url repository.name sender.url sender.login compare
         commits_branch
     else
-      sprintf "<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby <%s|%s>"
-        tree_url
-        repository.name
-        commits_branch
-        compare
+      sprintf "<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby <%s|%s>" tree_url repository.name commits_branch compare
         (List.length commits)
-        (match commits with [_] -> "" | _ -> "s")
+        ( match commits with
+        | [ _ ] -> ""
+        | _ -> "s"
+        )
         (if forced then "force-" else "")
         (if created then "to new branch " else "")
-        sender.url
-        sender.login
+        sender.url sender.login
   in
   let commits =
     List.map commits ~f:(fun { url; id; message; author; _ } ->
@@ -89,13 +83,14 @@ let generate_push_notification notification =
     text = Some title;
     attachments =
       Some
-        [ {
+        [
+          {
             empty_attachments with
             mrkdwn_in = Some [ "fields" ];
             fallback = Some "Commit pushed notification";
             color = Some "#ccc";
             fields = Some [ { value = String.concat ~sep:"\n" commits; title = None } ];
-          }
+          };
         ];
     blocks = None;
   }
@@ -113,19 +108,21 @@ let generate_ci_run_notification (notification : ci_build_notification) =
     text = None;
     attachments =
       Some
-        [ {
+        [
+          {
             empty_attachments with
             mrkdwn_in = Some [ "fields"; "text" ];
             fallback = Some "CI run notification";
             color = Some "#ccc";
             fields =
               Some
-                [ {
+                [
+                  {
                     title = None;
                     value = String.concat ~sep:"\n" @@ [ title; status; description; commit_info; author_info ];
-                  }
+                  };
                 ];
-          }
+          };
         ];
     blocks = None;
   }
@@ -139,7 +136,9 @@ let curl_init url =
   set_timeout c 10;
   set_sslverifypeer c true;
   set_sslverifyhost c SSLVERIFYHOST_HOSTNAME;
-  set_writefunction c (fun s -> Buffer.add_string r s; String.length s);
+  set_writefunction c (fun s ->
+    Buffer.add_string r s;
+    String.length s);
   set_tcpnodelay c true;
   set_verbose c false;
   set_url c url;
@@ -152,7 +151,7 @@ let send_notification ?(content_type = "application/json") webhook data =
   Curl.set_httpheader c [ "Content-Type: " ^ content_type ];
   Curl.set_postfields c data;
   Curl.set_postfieldsize c (String.length data);
-  begin try%lwt
+  ( try%lwt
       match%lwt Curl_lwt.perform c with
       | Curl.CURLE_OK when not @@ (Curl.get_httpcode c = 200) ->
         Log.line "Slack notification status code <> 200: %d" (Curl.get_httpcode c);
@@ -164,7 +163,7 @@ let send_notification ?(content_type = "application/json") webhook data =
     with exn ->
       Log.line "Exn when posting notification to Slack: %s" (Exn.to_string exn);
       Lwt.fail exn
-  end
+  )
     [%lwt.finally
       Curl.cleanup c;
       Lwt.return ()]
