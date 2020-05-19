@@ -7,7 +7,9 @@ type t =
   | Push of commit_pushed_notification
   | Pull_request of pr_notification
   | CI_run of ci_build_notification
-  | Event of string (* all other events *)
+  | Event of string
+
+(* all other events *)
 
 let is_valid_signature ~secret headers_sig body =
   let request_hash =
@@ -19,28 +21,23 @@ let is_valid_signature ~secret headers_sig body =
 
 (* Parse a payload. The type of the payload is detected from the headers. *)
 let parse_exn ~secret headers body =
-  begin match secret with
-  | None -> ()
-  | Some secret ->
-    let req_sig = Headers.get_exn headers "X-Hub-Signature" in
-    if not @@ is_valid_signature ~secret req_sig body then failwith "request signature invalid"
+  begin
+    match secret with
+    | None -> ()
+    | Some secret ->
+      let req_sig = Headers.get_exn headers "X-Hub-Signature" in
+      if not @@ is_valid_signature ~secret req_sig body then failwith "request signature invalid"
   end;
   match Headers.get_exn headers "X-GitHub-Event" with
   | "push" -> Push (commit_pushed_notification_of_string body)
   | "pull_request" -> Pull_request (pr_notification_of_string body)
   | "status" -> CI_run (ci_build_notification_of_string body)
-  | "commit_comment"
-  | "issues"
-  | "issue_comment"
-  | "member"
-  | "create"
-  | "delete"
-  | "release"
-  | "pull_request_review_comment"
-  | "pull_request_review" as event -> Event event
+  | ( "commit_comment" | "issues" | "issue_comment" | "member" | "create" | "delete" | "release"
+    | "pull_request_review_comment" | "pull_request_review" ) as event ->
+    Event event
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
 let get_commits_branch n =
   match String.split ~on:'/' n.ref with
-  | "refs"::"heads"::l -> String.concat ~sep:"/" l
+  | "refs" :: "heads" :: l -> String.concat ~sep:"/" l
   | _ -> n.ref
