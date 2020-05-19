@@ -15,7 +15,9 @@ let error_handler (_ : Unix.sockaddr) ?request:_ error start_response =
 let get_config () =
   let cfg = Notabot_j.config_of_string @@ Stdio.In_channel.read_all "notabot.json" in
   Stdio.print_endline "Using push routing:";
-  Action.print_routing cfg.push_rules;
+  Action.print_push_routing cfg.push_rules;
+  Stdio.print_endline "Using pull request routing:";
+  Action.print_label_routing cfg.pr_rules;
   cfg
 
 let main port =
