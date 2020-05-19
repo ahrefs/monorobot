@@ -42,15 +42,27 @@ let partition_push cfg n =
 
 let generate_notifications cfg req =
   match req with
-  | Github.Push n -> partition_push cfg n |> List.map ~f:(fun (rule,n) -> rule.webhook, generate_push_notification n)
+  | Github.Push n -> partition_push cfg n |> List.map ~f:(fun ((rule: prefix_rule), n) -> rule.webhook, generate_push_notification n)
 (*   | Pull_request n when Poly.(n.action = Opened) -> [slack_notabot, generate_pull_request_notification n] *)
 (*   | CI_run n when Poly.(n.state <> Success) -> [slack_notabot, generate_ci_run_notification n] *)
   | _ -> []
 
-let print_routing rules =
+let print_push_routing rules =
   let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
   rules |> List.iter ~f:begin fun rule ->
     begin match rule.prefix, rule.ignore with
+    | [], [] -> Stdio.printf "  any"
+    | l, [] -> Stdio.printf "  %s" (show_match l)
+    | [], l ->  Stdio.printf "  not %s" (show_match l)
+    | l, i ->  Stdio.printf "  %s and not %s" (show_match l) (show_match i)
+    end;
+    Stdio.printf " -> #%s\n%!" rule.webhook.channel;
+  end
+
+let print_label_routing rules =
+  let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
+  rules |> List.iter ~f:begin fun rule ->
+    begin match rule.labels, rule.ignore with
     | [], [] -> Stdio.printf "  any"
     | l, [] -> Stdio.printf "  %s" (show_match l)
     | [], l ->  Stdio.printf "  not %s" (show_match l)
