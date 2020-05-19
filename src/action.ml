@@ -59,7 +59,7 @@ let print_push_routing rules =
     Stdio.printf " -> #%s\n%!" rule.webhook.channel;
   end
 
-let print_pr_routing rules =
+let print_label_routing rules =
   let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
   rules |> List.iter ~f:begin fun rule ->
     begin match rule.labels, rule.ignore with
