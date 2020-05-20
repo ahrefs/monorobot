@@ -37,26 +37,37 @@ let main port =
 (*
 To launch in check mode with a push event:
 
-dune exec -- ./src/notabot.exe -check mock_payloads/push_notification.json
+dune exec -- ./src/notabot.exe -check mock_payloads/push.example1.json
 *)
 let check file =
   let cfg = get_config () in
-  (* for now it only handles [push] events, this line must be changed to handle
-     PR/issue/... *)
-  let headers = Httpaf.Headers.of_list [ "X-GitHub-Event", "push" ] in
-  (* read the event from a file and try to parse it *)
-  match Github.parse_exn ~secret:None headers (Stdio.In_channel.read_all file) with
-  | exception exn -> Log.line "E: error while parsing payload : %s" (Exn.to_string exn)
-  | event ->
-    Action.generate_notifications cfg event
-    |> List.iter ~f:(fun (webhook, msg) ->
-         (* In check mode, instead of actually sending the message to slack, we
-            simply print it in the console *)
-         Log.line "Will notify %s%s" webhook.Notabot_t.channel
-           ( match msg.Slack_t.text with
-           | None -> ""
-           | Some s -> Printf.sprintf " with %S" s
-           ))
+  let kind =
+    let basename = Caml.Filename.basename file in
+    match String.split_on_chars basename ~on:[ '.' ] with
+    | [ kind; _name; ext ] when String.equal ext "json" -> Some kind
+    | _ ->
+      Log.line "E: payload %s is not named properly" basename;
+      Log.line "E: payload name must be KIND.NAME_OF_PAYLOAD.json";
+      None
+  in
+  match kind with
+  | None -> Log.line "E: unable to detect event kind, aborting"
+  | Some kind ->
+    let headers = Httpaf.Headers.of_list [ "X-GitHub-Event", kind ] in
+    (* read the event from a file and try to parse it *)
+    ( match Github.parse_exn ~secret:None headers (Stdio.In_channel.read_all file) with
+    | exception exn -> Log.line "E: error while parsing payload : %s" (Exn.to_string exn)
+    | event ->
+      Action.generate_notifications cfg event
+      |> List.iter ~f:(fun (webhook, msg) ->
+           (* In check mode, instead of actually sending the message to slack, we
+              simply print it in the console *)
+           Log.line "Will notify %s%s" webhook.Notabot_t.channel
+             ( match msg.Slack_t.text with
+             | None -> ""
+             | Some s -> Printf.sprintf " with %S" s
+             ))
+    )
 
 let () =
   let port = ref 8080 in
