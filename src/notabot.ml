@@ -39,7 +39,7 @@ To launch in check mode with a push event:
 
 dune exec -- ./src/notabot.exe -check mock_payloads/push.example1.json
 *)
-let check file =
+let check_common file print =
   let cfg = get_config () in
   let kind =
     let basename = Caml.Filename.basename file in
@@ -57,17 +57,33 @@ let check file =
     (* read the event from a file and try to parse it *)
     ( match Github.parse_exn ~secret:None headers (Stdio.In_channel.read_all file) with
     | exception exn -> Log.line "E: error while parsing payload : %s" (Exn.to_string exn)
-    | event ->
-      Action.generate_notifications cfg event
-      |> List.iter ~f:(fun (webhook, msg) ->
-           (* In check mode, instead of actually sending the message to slack, we
-              simply print it in the console *)
-           Log.line "Will notify %s%s" webhook.Notabot_t.channel
-             ( match msg.Slack_t.text with
-             | None -> ""
-             | Some s -> Printf.sprintf " with %S" s
-             ))
+    | event -> Action.generate_notifications cfg event |> List.iter ~f:print
     )
+
+let print_simplified_message (webhook, msg) =
+  (* In check mode, instead of actually sending the message to slack, we
+     simply print it in the console *)
+  Log.line "Will notify %s%s" webhook.Notabot_t.channel
+    ( match msg.Slack_t.text with
+    | None -> ""
+    | Some s -> Printf.sprintf " with %S" s
+    )
+
+let print_json_message (webhook, msg) =
+  let json = Slack_j.string_of_webhook_notification msg in
+  Log.line "Will notify %s" webhook.Notabot_t.channel;
+  let url = Uri.of_string "https://api.slack.com/docs/messages/builder" in
+  let url = Uri.add_query_param url ("msg", [ json ]) in
+  Log.line "%s" (Uri.to_string url);
+  Log.line "%s" json
+
+let check file =
+  check_common file print_simplified_message;
+  Caml.exit 0
+
+let check_json file =
+  check_common file print_json_message;
+  Caml.exit 0
 
 let () =
   let port = ref 8080 in
@@ -75,11 +91,11 @@ let () =
     [
       "-p", Arg.Set_int port, " Listening port number (8080 by default)";
       ( "-check",
-        Arg.String
-          (fun file ->
-            check file;
-            Caml.exit 0),
+        Arg.String (fun file -> check file),
         " Read github notification payload from file and show actions to be taken" );
+      ( "-check-json",
+        Arg.String (fun file -> check_json file),
+        " Read github notification payload from file and show json actions to be taken" );
     ]
     ignore "Notabot, the notifications bot. Your options:";
   main !port
