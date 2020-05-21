@@ -15,13 +15,12 @@ let filter_push rule commits =
   |> List.filter ~f:(fun commit ->
        touching_push rule commit.added || touching_push rule commit.removed || touching_push rule commit.modified)
 
-let touching_pr rule name = 
-  (List.mem ~equal:String.equal rule.labels name) && not (List.mem ~equal:String.equal rule.ignore name)
+let touching_pr rule name =
+  List.mem ~equal:String.equal rule.labels name && not (List.mem ~equal:String.equal rule.ignore name)
 
 let filter_pr rule labels =
   let open Github_t in
-  labels
-  |> List.filter ~f:(fun (label : label) -> touching_pr rule label.name)
+  labels |> List.filter ~f:(fun (label : label) -> touching_pr rule label.name)
 
 let first_line s =
   match String.split ~on:'\n' s with
@@ -56,21 +55,18 @@ let partition_push cfg n =
 
 let partition_pull_request cfg n =
   let open Github_t in
-  let labels =
-    n.pull_request.labels
-  in
+  let labels = n.pull_request.labels in
   cfg.pr_rules
   |> List.filter_map ~f:(fun rule ->
-    match filter_pr rule labels with
-    | [] -> None
-    | l -> Some (rule, { n with pull_request = {n.pull_request with labels = l}}))
+       match filter_pr rule labels with
+       | [] -> None
+       | l -> Some (rule, { n with pull_request = { n.pull_request with labels = l } }))
 
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
-    partition_push cfg n 
-    |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.webhook, generate_push_notification n)
-  | Github.Pull_request n -> 
+    partition_push cfg n |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.webhook, generate_push_notification n)
+  | Github.Pull_request n ->
     partition_pull_request cfg n
     |> List.map ~f:(fun ((rule : label_rule), n) -> rule.webhook, generate_pull_request_notification n)
   (*   | CI_run n when Poly.(n.state <> Success) -> [slack_notabot, generate_ci_run_notification n] *)
