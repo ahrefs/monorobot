@@ -1,0 +1,73 @@
+{
+    "push_rules": [
+        {
+            "prefix": [
+                "backend/a1"
+            ],
+            "ignore": [],
+            "webhook": {
+                "url": "https://idontknowitrightnow",
+                "channel": "a1"
+            }
+        },
+        {
+            "prefix": [
+                "backend/a5",
+                "backend/a4"
+            ],
+            "ignore": [],
+            "webhook": {
+                "url": "https://idontknowitrightnow",
+                "channel": "backend"
+            }
+        },
+        {
+            "prefix": [],
+            "ignore": [],
+            "webhook": {
+                "url": "https://idontknowitrightnow",
+                "channel": "all-push-events"
+            }
+        }
+    ],
+    "pr_rules": [
+        {
+            "labels": [
+                "backend"
+            ],
+            "ignore": [],
+            "webhook": {
+                "url": "https://idontknowitrightnow",
+                "channel": "backend"
+            }
+        },
+        {
+            "labels": [
+                "a1"
+            ],
+            "ignore": [],
+            "webhook": {
+                "url": "https://idontknowitrightnow",
+                "channel": "a1-bot"
+            }
+        },
+        {
+            "labels": [
+                "a3"
+            ],
+            "ignore": [],
+            "webhook": {
+                "url": "https://idontknowitrightnow",
+                "channel": "a3"
+            }
+        },
+        {
+            "labels": [],
+            "ignore": [],
+            "webhook": {
+                "url": "https://idontknowitrightnow",
+                "channel": "frontend-bot"
+            }
+        }
+    ]
+}
