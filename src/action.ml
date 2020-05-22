@@ -2,6 +2,7 @@ open Printf
 open Base
 open Slack
 open Notabot_t
+open Github_t
 
 let touching_push rule files =
   let has_prefix s = List.exists ~f:(fun prefix -> String.is_prefix s ~prefix) in
@@ -10,18 +11,15 @@ let touching_push rule files =
        (List.is_empty rule.prefix || has_prefix file rule.prefix) && not (has_prefix file rule.ignore))
 
 let filter_push rule commits =
-  let open Github_t in
   commits
   |> List.filter ~f:(fun commit ->
        touching_push rule commit.added || touching_push rule commit.removed || touching_push rule commit.modified)
 
 let touching_label rule name =
-  (List.is_empty rule.labels || List.mem ~equal:String.equal rule.labels name)
+  (List.is_empty rule.label_name || List.mem ~equal:String.equal rule.label_name name)
   && not (List.mem ~equal:String.equal rule.ignore name)
 
-let filter_label rule labels =
-  let open Github_t in
-  labels |> List.filter ~f:(fun (label : label) -> touching_label rule label.name)
+let exist_label rule labels = labels |> List.exists ~f:(fun (label : label) -> touching_label rule label.name)
 
 let first_line s =
   match String.split ~on:'\n' s with
@@ -39,7 +37,6 @@ let is_main_merge_message message n cfg =
   | _ -> false
 
 let partition_push cfg n =
-  let open Github_t in
   let commits =
     n.commits
     |> List.filter ~f:(fun c -> c.distinct)
@@ -55,21 +52,22 @@ let partition_push cfg n =
        | l -> Some (rule, { n with commits = l }))
 
 let partition_pr cfg n =
-  let open Github_t in
   let labels = n.pull_request.labels in
-  cfg.pr_rules
-  |> List.filter_map ~f:(fun rule ->
-       match filter_label rule labels with
-       | [] -> None
-       | _ -> Some (rule, n))
+  match labels with
+  | [] -> Option.value_map cfg.pr_rules.default ~default:[] ~f:(fun webhook -> [ webhook, n ])
+  | labels ->
+    cfg.pr_rules.rules
+    |> List.filter_map ~f:(fun rule ->
+         match exist_label rule labels with
+         | false -> None
+         | true -> Some (rule.webhook, n))
 
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
     partition_push cfg n |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.webhook, generate_push_notification n)
   | Github.Pull_request n ->
-    partition_pr cfg n
-    |> List.map ~f:(fun ((rule : label_rule), n) -> rule.webhook, generate_pull_request_notification n)
+    partition_pr cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_pull_request_notification n)
   (*   | CI_run n when Poly.(n.state <> Success) -> [slack_notabot, generate_ci_run_notification n] *)
   | _ -> []
 
@@ -91,7 +89,7 @@ let print_label_routing rules =
   rules
   |> List.iter ~f:(fun rule ->
        begin
-         match rule.labels, rule.ignore with
+         match rule.label_name, rule.ignore with
          | [], [] -> Stdio.printf "  any"
          | l, [] -> Stdio.printf "  %s" (show_match l)
          | [], l -> Stdio.printf "  not %s" (show_match l)

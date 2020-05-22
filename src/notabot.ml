@@ -18,7 +18,7 @@ let get_config () =
   Stdio.print_endline "Using push routing:";
   Action.print_push_routing cfg.push_rules;
   Stdio.print_endline "Using pull request routing:";
-  Action.print_label_routing cfg.pr_rules;
+  Action.print_label_routing cfg.pr_rules.rules;
   cfg
 
 let main port =
