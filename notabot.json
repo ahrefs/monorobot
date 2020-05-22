@@ -63,7 +63,9 @@
         },
         {
             "labels": [],
-            "ignore": [],
+            "ignore": [
+                "backend", "a1", "a3"
+            ],
             "webhook": {
                 "url": "https://idontknowitrightnow",
                 "channel": "frontend-bot"
