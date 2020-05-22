@@ -30,46 +30,53 @@
             }
         }
     ],
-    "pr_rules": [
-        {
-            "labels": [
-                "backend"
-            ],
-            "ignore": [],
-            "webhook": {
-                "url": "https://idontknowitrightnow",
-                "channel": "backend"
-            }
+    
+    "pr_rules": {
+        "default": {
+            "url": "https://idontknowitrightnow",
+            "channel": "frontend-bot"
         },
-        {
-            "labels": [
-                "a1"
-            ],
-            "ignore": [],
-            "webhook": {
-                "url": "https://idontknowitrightnow",
-                "channel": "a1-bot"
+        "rules": [
+            {
+                "label_name": [
+                    "backend"
+                ],
+                "ignore": [],
+                "webhook": {
+                    "url": "https://idontknowitrightnow",
+                    "channel": "backend"
+                }
+            },
+            {
+                "label_name": [
+                    "a1"
+                ],
+                "ignore": [],
+                "webhook": {
+                    "url": "https://idontknowitrightnow",
+                    "channel": "a1-bot"
+                }
+            },
+            {
+                "label_name": [
+                    "a3"
+                ],
+                "ignore": [],
+                "webhook": {
+                    "url": "https://idontknowitrightnow",
+                    "channel": "a3"
+                }
+            },
+            {
+                "label_name": [],
+                "ignore": [
+                    "backend", "a1", "a3"
+                ],
+                "webhook": {
+                    "url": "https://idontknowitrightnow",
+                    "channel": "frontend-bot"
+                }
             }
-        },
-        {
-            "labels": [
-                "a3"
-            ],
-            "ignore": [],
-            "webhook": {
-                "url": "https://idontknowitrightnow",
-                "channel": "a3"
-            }
-        },
-        {
-            "labels": [],
-            "ignore": [
-                "backend", "a1", "a3"
-            ],
-            "webhook": {
-                "url": "https://idontknowitrightnow",
-                "channel": "frontend-bot"
-            }
-        }
-    ]
+        ]
+    }
 }
