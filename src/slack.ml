@@ -22,7 +22,7 @@ let empty_attachments =
   }
 
 let generate_pull_request_notification notification =
-  let { sender; pull_request; _ } = notification in
+  let { action; sender; pull_request; _ } = notification in
   let { body; title; url; labels; _ } = pull_request in
   let fields =
     match List.length labels with
@@ -40,7 +40,9 @@ let generate_pull_request_notification notification =
             empty_attachments with
             fallback = Some "Pull request notification";
             color = Some "#ccc";
-            pretext = Some (sprintf "Pull request opened by %s" sender.login);
+            pretext = Some (sprintf "Pull request %s %s %s" (string_of_pr_action action) "by" sender.login);
+            (* currently notabot prints every action related to pull requests.
+               we will need to edit this function if we are only interested in certain actions. *)
             author_name = Some sender.login;
             author_link = Some sender.url;
             author_icon = Some sender.avatar_url;
@@ -52,6 +54,62 @@ let generate_pull_request_notification notification =
         ];
     blocks = None;
   }
+
+let generate_pr_review_comment_notification notification =
+  let { pull_request; sender; comment; _ } = notification in
+  let { body; url; _ } = comment in
+  let fields =
+    match List.length pull_request.labels with
+    | n when n > 0 ->
+      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) pull_request.labels) in
+      [ { title = Some "Labels"; value } ]
+    | _ -> []
+  in
+  {
+    text = None;
+    attachments =
+      Some
+        [
+          {
+            empty_attachments with
+            fallback = Some "Pull Request Review Comment notification";
+            color = Some "#ccc";
+            pretext = Some (sprintf "PR Review Comment created by %s" sender.login);
+            author_name = Some sender.login;
+            author_link = Some sender.url;
+            author_icon = Some sender.avatar_url;
+            title_link = Some url;
+            text = Some body;
+            fields = Some fields;
+          };
+        ];
+    blocks = None;
+  }
+
+(*
+  match string_of_comment_action action with
+  | "created" ->
+    {
+      text = None;
+      attachments =
+        Some
+          [
+            {
+              empty_attachments with
+              fallback = Some "Pull Request Review Comment notification";
+              color = Some "#ccc";
+              pretext = Some (sprintf "PR Review Comment created by %s" sender.login);
+              author_name = Some sender.login;
+              author_link = Some sender.url;
+              author_icon = Some sender.avatar_url;
+              title_link = Some url;
+              text = Some body;
+              fields = Some fields;
+            };
+          ];
+      blocks = None;
+    }
+  | _ -> { text = None; attachments = None; blocks = None }*)
 
 let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
