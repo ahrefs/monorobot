@@ -31,6 +31,16 @@ let generate_pull_request_notification notification =
       [ { title = Some "Labels"; value } ]
     | _ -> []
   in
+  let action_str =
+    match action with
+    | `Opened -> "opened"
+    | `Closed -> "closed"
+    | `Reopened -> "reopened"
+    | _ ->
+      invalid_arg
+        (sprintf "Notabot doesn't know how to generate pull request notification for the unexpected event %s"
+           (string_of_pr_action action))
+  in
   {
     text = None;
     attachments =
@@ -40,11 +50,7 @@ let generate_pull_request_notification notification =
             empty_attachments with
             fallback = Some "Pull request notification";
             color = Some "#ccc";
-            pretext =
-              Some
-                (sprintf "Pull request %s %s %s"
-                   (String.filter (string_of_pr_action action) ~f:(fun c -> Char.to_int c > 96 && Char.to_int c < 123))
-                   "by" sender.login);
+            pretext = Some (sprintf "Pull request %s by %s" action_str sender.login);
             author_name = Some sender.login;
             author_link = Some sender.url;
             author_icon = Some sender.avatar_url;
@@ -58,7 +64,7 @@ let generate_pull_request_notification notification =
   }
 
 let generate_pr_review_comment_notification notification =
-  let { pull_request; sender; comment; _ } = notification in
+  let { action; pull_request; sender; comment } = notification in
   let { body; url; _ } = comment in
   let fields =
     match List.length pull_request.labels with
@@ -66,6 +72,15 @@ let generate_pr_review_comment_notification notification =
       let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) pull_request.labels) in
       [ { title = Some "Labels"; value } ]
     | _ -> []
+  in
+  let action_str =
+    match action with
+    | Created -> "created"
+    | _ ->
+      invalid_arg
+        (sprintf
+           "Notabot doesn't know how to generate pull request review comment notification for the unexpected event %s"
+           (string_of_comment_action action))
   in
   {
     text = None;
@@ -76,7 +91,7 @@ let generate_pr_review_comment_notification notification =
             empty_attachments with
             fallback = Some "Pull Request Review Comment notification";
             color = Some "#ccc";
-            pretext = Some (sprintf "PR Review Comment created by %s" sender.login);
+            pretext = Some (sprintf "PR Review Comment %s by %s" action_str sender.login);
             author_name = Some sender.login;
             author_link = Some sender.url;
             author_icon = Some sender.avatar_url;

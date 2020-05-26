@@ -52,32 +52,34 @@ let partition_push cfg n =
        | l -> Some (rule, { n with commits = l }))
 
 let partition_pr cfg n =
-  let labels = n.pull_request.labels in
-  match labels with
-  | [] -> Option.value_map cfg.pr_rules.default ~default:[] ~f:(fun webhook -> [ webhook, n ])
-  | labels ->
-    cfg.pr_rules.rules
-    |> List.filter_map ~f:(fun rule ->
-         match exist_label rule labels with
-         | false -> None
-         | true ->
-         match n.action with
-         | Github_t.Opened | Closed | Reopened -> Some (rule.webhook, n)
-         | _ -> None)
+  match n.action with
+  | `Opened | `Closed | `Reopened ->
+    let labels = n.pull_request.labels in
+    ( match labels with
+    | [] -> Option.value_map cfg.pr_rules.default ~default:[] ~f:(fun webhook -> [ webhook, n ])
+    | labels ->
+      cfg.pr_rules.rules
+      |> List.filter_map ~f:(fun rule ->
+           match exist_label rule labels with
+           | false -> None
+           | true -> Some (rule.webhook, n))
+    )
+  | _ -> []
 
 let partition_pr_review_comment cfg (n : pr_review_comment_notification) =
-  let labels = n.pull_request.labels in
-  match labels with
-  | [] -> Option.value_map cfg.pr_rules.default ~default:[] ~f:(fun webhook -> [ webhook, n ])
-  | labels ->
-    cfg.pr_rules.rules
-    |> List.filter_map ~f:(fun rule ->
-         match exist_label rule labels with
-         | false -> None
-         | true ->
-         match n.action with
-         | Github_t.Created -> Some (rule.webhook, n)
-         | _ -> None)
+  match n.action with
+  | Created ->
+    let labels = n.pull_request.labels in
+    ( match labels with
+    | [] -> Option.value_map cfg.pr_rules.default ~default:[] ~f:(fun webhook -> [ webhook, n ])
+    | labels ->
+      cfg.pr_rules.rules
+      |> List.filter_map ~f:(fun rule ->
+           match exist_label rule labels with
+           | false -> None
+           | true -> Some (rule.webhook, n))
+    )
+  | _ -> []
 
 let generate_notifications cfg req =
   match req with
