@@ -6,6 +6,7 @@ open Github_j
 type t =
   | Push of commit_pushed_notification
   | Pull_request of pr_notification
+  | PR_review_comment of pr_review_comment_notification
   | CI_run of ci_build_notification
   | Event of string
 
@@ -31,9 +32,10 @@ let parse_exn ~secret headers body =
   match Headers.get_exn headers "X-GitHub-Event" with
   | "push" -> Push (commit_pushed_notification_of_string body)
   | "pull_request" -> Pull_request (pr_notification_of_string body)
+  | "pull_request_review_comment" -> PR_review_comment (pr_review_comment_notification_of_string body)
   | "status" -> CI_run (ci_build_notification_of_string body)
-  | ( "commit_comment" | "issues" | "issue_comment" | "member" | "create" | "delete" | "release"
-    | "pull_request_review_comment" | "pull_request_review" ) as event ->
+  | ("commit_comment" | "issues" | "issue_comment" | "member" | "create" | "delete" | "release" | "pull_request_review")
+    as event ->
     Event event
   | event -> failwith @@ sprintf "unsupported event : %s" event
 

@@ -50,12 +50,20 @@ type label = {
 }
 
 type pull_request = {
-  id: int;
+  number: int;
   body: string;
   title: string;
   url: string;
   labels: label list;
 }
+(*
+type issue = {
+  number: int;
+  body: string;
+  title: string;
+  url: string;
+  labels: label list;
+}*)
 
 type pr_action = [
   Assigned <json name="assigned">
@@ -73,12 +81,54 @@ type pr_action = [
   | Reopened <json name="reopened">
   | Synchronize <json name="synchronize">
 ] <ocaml repr="classic">
-
+(*
+type issue_action = [
+  Assigned <json name="assigned">
+  | Unassigned <json name="unassigned">
+  | Labeled <json name="labeled">
+  | Unlabeled <json name="unlabeled">
+  | Opened <json name="opened">
+  | Closed <json name="closed">
+  | Reopened <json name="reopened">
+] <ocaml repr="classic">
+*)
 type pr_notification = {
   action: pr_action;
   number: int;
   sender: user;
   pull_request: pull_request;
+}
+(*
+type issue_notification = {
+  action: issue_action;
+  sender: user;
+  issue: issue;
+}*)
+
+type comment_action = [
+  Created <json name="created">
+  | Edited <json name="edited">
+  | Deleted <json name="deleted">
+] <ocaml repr="classic">
+
+type comment = {
+  id: int;
+  body: string;
+  url: string;
+}
+(*
+type issue_comment_notification = {
+  action: comment_action;
+  issue: issue;
+  sender: user;
+  comment: comment;
+}*)
+
+type pr_review_comment_notification = {
+  action: comment_action;
+  pull_request: pull_request;
+  sender: user;
+  comment: comment;
 }
 
 type branch = {
@@ -103,7 +153,7 @@ type inner_commit = {
 
 type ci_commit = {
   sha: commit_hash;
-  commit: inner_commit; 
+  commit: inner_commit;
   html_url <ocaml name="url"> : string;
   author: user;
 }

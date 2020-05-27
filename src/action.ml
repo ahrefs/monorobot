@@ -52,15 +52,34 @@ let partition_push cfg n =
        | l -> Some (rule, { n with commits = l }))
 
 let partition_pr cfg n =
-  let labels = n.pull_request.labels in
-  match labels with
-  | [] -> Option.value_map cfg.pr_rules.default ~default:[] ~f:(fun webhook -> [ webhook, n ])
-  | labels ->
-    cfg.pr_rules.rules
-    |> List.filter_map ~f:(fun rule ->
-         match exist_label rule labels with
-         | false -> None
-         | true -> Some (rule.webhook, n))
+  match n.action with
+  | Opened | Closed | Reopened ->
+    let labels = n.pull_request.labels in
+    ( match labels with
+    | [] -> Option.value_map cfg.pr_rules.default ~default:[] ~f:(fun webhook -> [ webhook, n ])
+    | labels ->
+      cfg.pr_rules.rules
+      |> List.filter_map ~f:(fun rule ->
+           match exist_label rule labels with
+           | false -> None
+           | true -> Some (rule.webhook, n))
+    )
+  | _ -> []
+
+let partition_pr_review_comment cfg (n : pr_review_comment_notification) =
+  match n.action with
+  | Created ->
+    let labels = n.pull_request.labels in
+    ( match labels with
+    | [] -> Option.value_map cfg.pr_rules.default ~default:[] ~f:(fun webhook -> [ webhook, n ])
+    | labels ->
+      cfg.pr_rules.rules
+      |> List.filter_map ~f:(fun rule ->
+           match exist_label rule labels with
+           | false -> None
+           | true -> Some (rule.webhook, n))
+    )
+  | _ -> []
 
 let generate_notifications cfg req =
   match req with
@@ -68,6 +87,9 @@ let generate_notifications cfg req =
     partition_push cfg n |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.webhook, generate_push_notification n)
   | Github.Pull_request n ->
     partition_pr cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_pull_request_notification n)
+  | Github.PR_review_comment n ->
+    partition_pr_review_comment cfg n
+    |> List.map ~f:(fun (webhook, n) -> webhook, generate_pr_review_comment_notification n)
   (*   | CI_run n when Poly.(n.state <> Success) -> [slack_notabot, generate_ci_run_notification n] *)
   | _ -> []
 
