@@ -81,7 +81,17 @@ type pr_action = [
   | Reopened <json name="reopened">
   | Synchronize <json name="synchronize">
 ] <ocaml repr="classic">
-
+(*
+type issue_action = [
+  Assigned <json name="assigned">
+  | Unassigned <json name="unassigned">
+  | Labeled <json name="labeled">
+  | Unlabeled <json name="unlabeled">
+  | Opened <json name="opened">
+  | Closed <json name="closed">
+  | Reopened <json name="reopened">
+] <ocaml repr="classic">
+*)
 type pr_notification = {
   action: pr_action;
   number: int;
@@ -92,7 +102,7 @@ type pr_notification = {
 type issue_notification = {
   action: issue_action;
   sender: user;
-issue: issue;
+  issue: issue;
 }*)
 
 type comment_action = [
