@@ -1,16 +1,16 @@
 {
   "action": "opened",
   "issue": {
-    "url": "https://api.github.com/repos/xinyuluo/pr_test/issues/5",
+    "url": "https://api.github.com/repos/xinyuluo/pr_test/issues/6",
     "repository_url": "https://api.github.com/repos/xinyuluo/pr_test",
-    "labels_url": "https://api.github.com/repos/xinyuluo/pr_test/issues/5/labels{/name}",
-    "comments_url": "https://api.github.com/repos/xinyuluo/pr_test/issues/5/comments",
-    "events_url": "https://api.github.com/repos/xinyuluo/pr_test/issues/5/events",
-    "html_url": "https://github.com/xinyuluo/pr_test/issues/5",
-    "id": 624007043,
-    "node_id": "MDU6SXNzdWU2MjQwMDcwNDM=",
-    "number": 5,
-    "title": "handle issue event",
+    "labels_url": "https://api.github.com/repos/xinyuluo/pr_test/issues/6/labels{/name}",
+    "comments_url": "https://api.github.com/repos/xinyuluo/pr_test/issues/6/comments",
+    "events_url": "https://api.github.com/repos/xinyuluo/pr_test/issues/6/events",
+    "html_url": "https://github.com/xinyuluo/pr_test/issues/6",
+    "id": 625540269,
+    "node_id": "MDU6SXNzdWU2MjU1NDAyNjk=",
+    "number": 6,
+    "title": "create a test for issue_notification",
     "user": {
       "login": "xinyuluo",
       "id": 25223376,
@@ -42,11 +42,11 @@
     ],
     "milestone": null,
     "comments": 0,
-    "created_at": "2020-05-25T02:35:11Z",
-    "updated_at": "2020-05-25T02:35:11Z",
+    "created_at": "2020-05-27T09:38:14Z",
+    "updated_at": "2020-05-27T09:38:14Z",
     "closed_at": null,
     "author_association": "OWNER",
-    "body": ""
+    "body": "consider multiple cases including labeled/opened/closed/reopened"
   },
   "repository": {
     "id": 265741348,

@@ -1,3 +1,5 @@
+type basic_json <ocaml module="Yojson.Basic" t="t"> = abstract
+
 type author = {
   name: string;
   email: string;
@@ -56,14 +58,15 @@ type pull_request = {
   url: string;
   labels: label list;
 }
-(*
+
 type issue = {
   number: int;
   body: string;
   title: string;
   url: string;
   labels: label list;
-}*)
+  ?pull_request: basic_json nullable
+}
 
 type pr_action = [
   Assigned <json name="assigned">
@@ -81,29 +84,38 @@ type pr_action = [
   | Reopened <json name="reopened">
   | Synchronize <json name="synchronize">
 ] <ocaml repr="classic">
-(*
+
 type issue_action = [
   Assigned <json name="assigned">
   | Unassigned <json name="unassigned">
   | Labeled <json name="labeled">
   | Unlabeled <json name="unlabeled">
   | Opened <json name="opened">
+  | Edited <json name="edited">
+  | Deleted <json name="deleted">
   | Closed <json name="closed">
   | Reopened <json name="reopened">
+  | Pinned <json name="pinned">
+  | Unpinned <json name="unpinned">
+  | Locked <json name="locked">
+  | Unlocked <json name="unlocked">
+  | Transferred <json name="transferred">
+  | Milestoned <json name="milestoned">
+  | Demilestoned <json name="demilestoned">
 ] <ocaml repr="classic">
-*)
+
 type pr_notification = {
   action: pr_action;
   number: int;
   sender: user;
   pull_request: pull_request;
 }
-(*
+
 type issue_notification = {
   action: issue_action;
   sender: user;
   issue: issue;
-}*)
+}
 
 type comment_action = [
   Created <json name="created">
@@ -116,13 +128,13 @@ type comment = {
   body: string;
   url: string;
 }
-(*
+
 type issue_comment_notification = {
   action: comment_action;
   issue: issue;
   sender: user;
   comment: comment;
-}*)
+}
 
 type pr_review_comment_notification = {
   action: comment_action;
