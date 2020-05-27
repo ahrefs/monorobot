@@ -22,8 +22,8 @@ let empty_attachments =
   }
 
 let generate_pull_request_notification notification =
-  let { action; sender; pull_request; _ } = notification in
-  let { body; title; url; labels; number } = pull_request in
+  let { action; number; sender; pull_request } = notification in
+  let ({ body; title; url; labels; _ } : pull_request) = pull_request in
   let fields =
     match labels with
     | [] -> []
@@ -66,7 +66,7 @@ let generate_pull_request_notification notification =
 
 let generate_pr_review_comment_notification notification =
   let { action; pull_request; sender; comment } = notification in
-  let { body; url; _ } = comment in
+  let ({ body; url; _ } : comment) = comment in
   let fields =
     match pull_request.labels with
     | [] -> []
@@ -99,6 +99,94 @@ let generate_pr_review_comment_notification notification =
             author_icon = Some sender.avatar_url;
             title_link = Some url;
             text = Some body;
+            fields = Some fields;
+          };
+        ];
+    blocks = None;
+  }
+
+let generate_issue_notification notification =
+  let ({ action; sender; issue } : issue_notification) = notification in
+  let { number; body; title; url; labels; _ } = issue in
+  let fields =
+    match labels with
+    | [] -> []
+    | labels ->
+      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
+      [ { title = Some "Labels"; value } ]
+  in
+  let action_str =
+    match action with
+    | Opened -> "opened"
+    | Closed -> "closed"
+    | Reopened -> "reopened"
+    | _ ->
+      invalid_arg
+        (sprintf "Notabot doesn't know how to generate pull request notification for the unexpected event %s"
+           (string_of_issue_action action))
+  in
+  let summary = Some (sprintf "Issue #%d %s by %s" number action_str sender.login) in
+  {
+    text = None;
+    attachments =
+      Some
+        [
+          {
+            empty_attachments with
+            fallback = summary;
+            color = Some "#ccc";
+            pretext = summary;
+            author_name = Some sender.login;
+            author_link = Some sender.url;
+            author_icon = Some sender.avatar_url;
+            title = Some title;
+            title_link = Some url;
+            text = Some body;
+            fields = Some fields;
+          };
+        ];
+    blocks = None;
+  }
+
+let generate_issue_comment_notification notification =
+  let { action; issue; sender; comment } = notification in
+  let fields =
+    match issue.labels with
+    | [] -> []
+    | labels ->
+      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
+      [ { title = Some "Labels"; value } ]
+  in
+  let action_str =
+    match action with
+    | Created -> "created"
+    | _ ->
+      invalid_arg
+        (sprintf
+           "Notabot doesn't know how to generate pull request review comment notification for the unexpected event %s"
+           (string_of_comment_action action))
+  in
+  let kind =
+    match issue.pull_request with
+    | Some _ -> "PR"
+    | None -> "Issue"
+  in
+  let summary = Some (sprintf "Comment %s by %s in %s #%d" action_str sender.login kind issue.number) in
+  {
+    text = None;
+    attachments =
+      Some
+        [
+          {
+            empty_attachments with
+            fallback = summary;
+            color = Some "#ccc";
+            pretext = summary;
+            author_name = Some sender.login;
+            author_link = Some sender.url;
+            author_icon = Some sender.avatar_url;
+            title_link = Some comment.url;
+            text = Some comment.body;
             fields = Some fields;
           };
         ];
