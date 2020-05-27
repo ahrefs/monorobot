@@ -53,7 +53,7 @@ let partition_push cfg n =
 
 let partition_pr cfg n =
   match n.action with
-  | `Opened | `Closed | `Reopened ->
+  | Opened | Closed | Reopened ->
     let labels = n.pull_request.labels in
     ( match labels with
     | [] -> Option.value_map cfg.pr_rules.default ~default:[] ~f:(fun webhook -> [ webhook, n ])
