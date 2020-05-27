@@ -50,7 +50,7 @@ type label = {
 }
 
 type pull_request = {
-  id: int;
+  number: int;
   body: string;
   title: string;
   url: string;
@@ -58,12 +58,12 @@ type pull_request = {
 }
 (*
 type issue = {
-  id: int;
+  number: int;
   body: string;
   title: string;
   url: string;
   labels: label list;
-} *)
+}*)
 
 type pr_action = [
   Assigned <json name="assigned">
@@ -80,7 +80,7 @@ type pr_action = [
   | Unlocked <json name="unlocked">
   | Reopened <json name="reopened">
   | Synchronize <json name="synchronize">
-]
+] <ocaml repr="classic">
 
 type pr_notification = {
   action: pr_action;
@@ -88,6 +88,12 @@ type pr_notification = {
   sender: user;
   pull_request: pull_request;
 }
+(*
+type issue_notification = {
+  action: issue_action;
+  sender: user;
+issue: issue;
+}*)
 
 type comment_action = [
   Created <json name="created">

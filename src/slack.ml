@@ -23,7 +23,7 @@ let empty_attachments =
 
 let generate_pull_request_notification notification =
   let { action; sender; pull_request; _ } = notification in
-  let { body; title; url; labels; _ } = pull_request in
+  let { body; title; url; labels; number } = pull_request in
   let fields =
     match List.length labels with
     | n when n > 0 ->
@@ -33,9 +33,9 @@ let generate_pull_request_notification notification =
   in
   let action_str =
     match action with
-    | `Opened -> "opened"
-    | `Closed -> "closed"
-    | `Reopened -> "reopened"
+    | Opened -> "opened"
+    | Closed -> "closed"
+    | Reopened -> "reopened"
     | _ ->
       invalid_arg
         (sprintf "Notabot doesn't know how to generate pull request notification for the unexpected event %s"
@@ -48,9 +48,9 @@ let generate_pull_request_notification notification =
         [
           {
             empty_attachments with
-            fallback = Some "Pull request notification";
+            fallback = Some (sprintf "Pull request #%d %s by %s" number action_str sender.login);
             color = Some "#ccc";
-            pretext = Some (sprintf "Pull request %s by %s" action_str sender.login);
+            pretext = Some (sprintf "Pull request #%d %s by %s" number action_str sender.login);
             author_name = Some sender.login;
             author_link = Some sender.url;
             author_icon = Some sender.avatar_url;
@@ -89,9 +89,11 @@ let generate_pr_review_comment_notification notification =
         [
           {
             empty_attachments with
-            fallback = Some "Pull Request Review Comment notification";
+            fallback =
+              Some (sprintf "Pull Request #%d Review Comment %s by %s" pull_request.number action_str sender.login);
             color = Some "#ccc";
-            pretext = Some (sprintf "PR Review Comment %s by %s" action_str sender.login);
+            pretext =
+              Some (sprintf "Pull Request #%d Review Comment %s by %s" pull_request.number action_str sender.login);
             author_name = Some sender.login;
             author_link = Some sender.url;
             author_icon = Some sender.avatar_url;
