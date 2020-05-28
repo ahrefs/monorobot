@@ -38,7 +38,7 @@ let generate_pull_request_notification notification =
     | Reopened -> "reopened"
     | _ ->
       invalid_arg
-        (sprintf "Notabot doesn't know how to generate pull request notification for the unexpected event %s"
+        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
            (string_of_pr_action action))
   in
   let summary =
@@ -54,8 +54,53 @@ let generate_pull_request_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            title_link = Some html_url;
             text = Some body;
+            fields = Some fields;
+          };
+        ];
+    blocks = None;
+  }
+
+let generate_pr_review_notification notification =
+  let { action; sender; pull_request; review } = notification in
+  let ({ user; number; title; html_url; labels; _ } : pull_request) = pull_request in
+  let fields =
+    match labels with
+    | [] -> []
+    | labels ->
+      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
+      [ { title = Some "Labels"; value } ]
+  in
+  let action_str =
+    match action with
+    | Submitted ->
+      ( match review.state with
+      | "commented" -> "commented on"
+      | "approved" -> "approved"
+      | "changes_requested" -> "requested changes on"
+      | _ -> invalid_arg (sprintf "Error: unexpected review state %s" review.state)
+      )
+    | _ ->
+      invalid_arg
+        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
+           (string_of_pr_review_action action))
+  in
+  let summary =
+    Some
+      (sprintf "<%s|%s> %s <%s|%s>'s pull request #%d <%s|[%s]>" sender.url sender.login action_str user.url user.login
+         number html_url title)
+  in
+  {
+    text = None;
+    attachments =
+      Some
+        [
+          {
+            empty_attachments with
+            fallback = summary;
+            color = Some "#ccc";
+            pretext = summary;
+            text = Some review.body;
             fields = Some fields;
           };
         ];
@@ -64,7 +109,7 @@ let generate_pull_request_notification notification =
 
 let generate_pr_review_comment_notification notification =
   let { action; pull_request; sender; comment } = notification in
-  let ({ number; title; html_url; _ } : pull_request) = pull_request in
+  let ({ user; number; title; html_url; _ } : pull_request) = pull_request in
   let fields =
     match pull_request.labels with
     | [] -> []
@@ -77,14 +122,13 @@ let generate_pr_review_comment_notification notification =
     | Created -> "created"
     | _ ->
       invalid_arg
-        (sprintf
-           "Notabot doesn't know how to generate pull request review comment notification for the unexpected event %s"
+        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
            (string_of_comment_action action))
   in
   let summary =
     Some
-      (sprintf "Pull Request #%d <%s|[%s]> <%s|Review Comment> %s by <%s|%s>" number html_url title comment.html_url
-         action_str sender.url sender.login)
+      (sprintf "<%s|%s> %s a <%s|review comment> on <%s|%s>'s pull request #%d <%s|[%s]>" sender.url sender.login
+         action_str comment.html_url user.url user.login number html_url title)
   in
   {
     text = None;
@@ -120,7 +164,7 @@ let generate_issue_notification notification =
     | Reopened -> "reopened"
     | _ ->
       invalid_arg
-        (sprintf "Notabot doesn't know how to generate pull request notification for the unexpected event %s"
+        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
            (string_of_issue_action action))
   in
   let summary =
@@ -145,7 +189,7 @@ let generate_issue_notification notification =
 
 let generate_issue_comment_notification notification =
   let { action; issue; sender; comment } = notification in
-  let { number; title; labels; _ } = issue in
+  let { user; number; title; labels; _ } = issue in
   let fields =
     match labels with
     | [] -> []
@@ -155,7 +199,7 @@ let generate_issue_comment_notification notification =
   in
   let action_str =
     match action with
-    | Created -> "created"
+    | Created -> "commented"
     | _ ->
       invalid_arg
         (sprintf
@@ -164,13 +208,13 @@ let generate_issue_comment_notification notification =
   in
   let kind =
     match issue.pull_request with
-    | Some _ -> "PR"
-    | None -> "Issue"
+    | Some _ -> sprintf "<%s|%s>'s pull request" user.url user.login
+    | None -> "issue"
   in
   let summary =
     Some
-      (sprintf "<%s|Comment> %s by <%s|%s> in %s #%d <%s|[%s]>" comment.html_url action_str sender.url sender.login kind
-         number issue.html_url title)
+      (sprintf "<%s|%s> <%s|%s> on %s #%d <%s|[%s]>" sender.url sender.login comment.html_url action_str kind number
+         issue.html_url title)
   in
   {
     text = None;

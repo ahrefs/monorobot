@@ -81,12 +81,19 @@ let partition_issue_comment cfg (n : issue_comment_notification) =
   | Created -> partition_label cfg n.issue.labels
   | _ -> []
 
+let partition_pr_review cfg (n : pr_review_notification) =
+  match n.action with
+  | Submitted -> partition_label cfg n.pull_request.labels
+  | _ -> []
+
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
     partition_push cfg n |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.webhook, generate_push_notification n)
   | Github.Pull_request n ->
     partition_pr cfg n |> List.map ~f:(fun webhook -> webhook, generate_pull_request_notification n)
+  | Github.PR_review n ->
+    partition_pr_review cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_notification n)
   | Github.PR_review_comment n ->
     partition_pr_review_comment cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_comment_notification n)
   | Github.Issue n -> partition_issue cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_notification n)
