@@ -17,8 +17,8 @@ let get_config () =
   let cfg = Notabot_j.config_of_string @@ Stdio.In_channel.read_all "notabot.json" in
   Stdio.print_endline "Using push routing:";
   Action.print_push_routing cfg.push_rules;
-  Stdio.print_endline "Using pull request routing:";
-  Action.print_label_routing cfg.pr_rules.rules;
+  Stdio.print_endline "Using pull request/issue routing:";
+  Action.print_label_routing cfg.label_rules.rules;
   cfg
 
 let main port =
