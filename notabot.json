@@ -30,8 +30,8 @@
             }
         }
     ],
-    
-    "pr_rules": {
+
+    "label_rules": {
         "default": {
             "url": "https://idontknowitrightnow",
             "channel": "frontend-bot"
