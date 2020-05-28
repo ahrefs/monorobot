@@ -55,7 +55,7 @@ type pull_request = {
   number: int;
   body: string;
   title: string;
-  url: string;
+  html_url: string;
   labels: label list;
 }
 
@@ -63,7 +63,7 @@ type issue = {
   number: int;
   body: string;
   title: string;
-  url: string;
+  html_url: string;
   labels: label list;
   ?pull_request: basic_json nullable
 }
@@ -84,7 +84,13 @@ type pr_action = [
   | Reopened <json name="reopened">
   | Synchronize <json name="synchronize">
 ] <ocaml repr="classic">
-
+(*
+type pr_review_action = [
+  Submitted <json name="submitted">
+  | Dismissed <json name="dismissed">
+  | Edited <json name="edited">
+] <ocaml repr="classic">
+*)
 type issue_action = [
   Assigned <json name="assigned">
   | Unassigned <json name="unassigned">
@@ -110,6 +116,12 @@ type pr_notification = {
   sender: user;
   pull_request: pull_request;
 }
+(*
+type pr_review_notification = {
+  action: pr_action;
+  sender: user;
+  pull_request: pull_request;
+}*)
 
 type issue_notification = {
   action: issue_action;
@@ -126,7 +138,7 @@ type comment_action = [
 type comment = {
   id: int;
   body: string;
-  url: string;
+  html_url: string;
 }
 
 type issue_comment_notification = {
