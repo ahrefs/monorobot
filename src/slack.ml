@@ -75,7 +75,12 @@ let generate_pr_review_notification notification =
     match action with
     | Submitted ->
       ( match review.state with
-      | "commented" -> "commented on"
+      | "commented" ->
+        ( match review.body with
+        (* check if a message is indeed included *)
+        | "" -> "reviewed"
+        | _ -> "commented on"
+        )
       | "approved" -> "approved"
       | "changes_requested" -> "requested changes on"
       | _ -> invalid_arg (sprintf "Error: unexpected review state %s" review.state)
