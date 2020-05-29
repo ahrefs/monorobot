@@ -1,4 +1,4 @@
-.PHONY: all build clean start default format
+.PHONY: all build clean start default fmt test
 
 default: build
 
@@ -7,6 +7,12 @@ start:
 
 build:
 	dune build
+
+test:
+	dune runtest
+
+test_promote:
+	dune runtest --auto-promote
 
 all: build
 

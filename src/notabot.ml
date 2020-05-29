@@ -1,6 +1,7 @@
 open Base
 open Lwt.Infix
 open Httpaf_lwt_unix
+open Lib
 module Arg = Caml.Arg
 
 let error_handler (_ : Unix.sockaddr) ?request:_ error start_response =
@@ -41,17 +42,11 @@ dune exec -- ./src/notabot.exe -check mock_payloads/push.example1.json
 *)
 let check_common file print =
   let cfg = get_config () in
-  let kind =
-    let basename = Caml.Filename.basename file in
-    match String.split_on_chars basename ~on:[ '.' ] with
-    | [ kind; _name; ext ] when String.equal ext "json" -> Some kind
-    | _ ->
-      Log.line "E: payload %s is not named properly" basename;
-      Log.line "E: payload name must be KIND.NAME_OF_PAYLOAD.json";
-      None
-  in
-  match kind with
-  | None -> Log.line "E: unable to detect event kind, aborting"
+  match Mock.kind file with
+  | None ->
+    Log.line "E: payload %s is not named properly" file;
+    Log.line "E: payload name must be KIND.NAME_OF_PAYLOAD.json";
+    Log.line "E: unable to detect event kind, aborting"
   | Some kind ->
     let headers = Httpaf.Headers.of_list [ "X-GitHub-Event", kind ] in
     (* read the event from a file and try to parse it *)
