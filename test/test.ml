@@ -6,10 +6,10 @@ let print_notif (webhook, msg) =
     msg |> Slack_j.string_of_webhook_notification |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string
   in
   Stdio.printf "will notify #%s\n" webhook.Notabot_t.channel;
-  Stdio.printf "%s" json
+  Stdio.printf "%s\n" json
 
 let process cfg file =
-  Stdio.printf "file %s\n" file;
+  Stdio.printf "===== file %s =====\n" file;
   match Mock.kind file with
   | None -> ()
   | Some kind ->
