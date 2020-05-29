@@ -120,7 +120,7 @@ type pr_notification = {
 }
 
 type review = {
-  body: string;
+  ?body: string nullable;
   html_url: string;
   state: string;
 }
@@ -148,6 +148,8 @@ type comment = {
   id: int;
   body: string;
   html_url: string;
+  ?line: int nullable;
+  ?path: string nullable;
 }
 
 type issue_comment_notification = {
