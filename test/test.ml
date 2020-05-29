@@ -27,5 +27,6 @@ let () =
   let mock_dir = "../mock_payloads" in
   let jsons = Caml.Sys.readdir mock_dir in
   let jsons = Array.map ~f:(fun p -> Caml.Filename.concat mock_dir p) jsons in
+  Array.sort jsons ~compare:String.compare;
   let cfg = Notabot_j.config_of_string @@ Stdio.In_channel.read_all "notabot.json" in
   Array.iter ~f:(process cfg) jsons
