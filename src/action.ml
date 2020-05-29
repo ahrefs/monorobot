@@ -81,12 +81,30 @@ let partition_issue_comment cfg (n : issue_comment_notification) =
   | Created -> partition_label cfg n.issue.labels
   | _ -> []
 
+let partition_pr_review cfg (n : pr_review_notification) =
+  let { review; action; _ } = n in
+  match action, review.state, review.body with
+  | Submitted, "commented", (Some "" | None) -> []
+  (* the case (action = Submitted, review.state = "commented", review.body = "") happens when
+     a reviewer starts a review by commenting on particular sections of the code, which triggars a pull_request_review_comment event simultaneouly,
+     and then submits the review without submitting any general feedback or explicit approval/changes.
+
+     the case (action = Submitted, review.state = "commented", review.body = null) happens when
+     a reviewer adds a single comment on a particular section of the code, which triggars a pull_request_review_comment event simultaneouly.
+
+     in both cases, since pull_request_review_comment is already handled by another type of event, information in the pull_request_review payload
+     does not provide any insightful information and will thus be ignored. *)
+  | Submitted, _, _ -> partition_label cfg n.pull_request.labels
+  | _ -> []
+
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
     partition_push cfg n |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.webhook, generate_push_notification n)
   | Github.Pull_request n ->
     partition_pr cfg n |> List.map ~f:(fun webhook -> webhook, generate_pull_request_notification n)
+  | Github.PR_review n ->
+    partition_pr_review cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_notification n)
   | Github.PR_review_comment n ->
     partition_pr_review_comment cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_comment_notification n)
   | Github.Issue n -> partition_issue cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_notification n)
