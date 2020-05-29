@@ -31,7 +31,11 @@ jobs:
 
       - run: opam install . --deps-only --with-doc --with-test
 
-      - run: opam exec -- make
+      - name: compile
+        run: opam exec -- make
+
+      - name: run test
+        run: opam exec -- make test
 
       - name: check ocamlformat
         run: opam exec -- make fmt
