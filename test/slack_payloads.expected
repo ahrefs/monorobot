@@ -1,0 +1,219 @@
+file ../mock_payloads/issue_comment.deleted.json
+file ../mock_payloads/issue_comment.created_in_issue.json
+will notify #frontend-bot
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on issue #5 <https://github.com/xinyuluo/monorepo/issues/5|[handle issue event]>",
+      "color": "#ccc",
+      "pretext":
+        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on issue #5 <https://github.com/xinyuluo/monorepo/issues/5|[handle issue event]>",
+      "text": "handle issue comment\r\n",
+      "fields": []
+    }
+  ]
+}file ../mock_payloads/pull_request_review.edited.json
+file ../mock_payloads/push.two_commits.json
+will notify #all-push-events
+{
+  "text":
+    "<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by <https://github.com/thatportugueseguy|thatportugueseguy>",
+  "attachments": [
+    {
+      "fallback": "Commit pushed notification",
+      "mrkdwn_in": [ "fields" ],
+      "color": "#ccc",
+      "fields": [
+        {
+          "value":
+            "`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira"
+        }
+      ]
+    }
+  ]
+}file ../mock_payloads/issues.reopened.json
+will notify #backend
+{
+  "attachments": [
+    {
+      "fallback":
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> reopened by <https://github.com/xinyuluo|xinyuluo>",
+      "color": "#ccc",
+      "pretext":
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> reopened by <https://github.com/xinyuluo|xinyuluo>",
+      "text":
+        "consider multiple cases including labeled/opened/closed/reopened",
+      "fields": [ { "title": "Labels", "value": "backend" } ]
+    }
+  ]
+}file ../mock_payloads/pull_request_review.commented.json
+will notify #frontend-bot
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> <https://github.com/xinyuluo|xinyuluo>'s pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]>",
+      "color": "#ccc",
+      "pretext":
+        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> <https://github.com/xinyuluo|xinyuluo>'s pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]>",
+      "text": "submit a PR review",
+      "fields": [ { "title": "Labels", "value": "enhancement" } ]
+    }
+  ]
+}file ../mock_payloads/pull_request_review_comment.deleted.json
+file ../mock_payloads/issue_comment.edited.json
+file ../mock_payloads/pull_request.opened_one_label.json
+will notify #frontend-bot
+{
+  "attachments": [
+    {
+      "fallback":
+        "Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]> opened by <https://github.com/xinyuluo|xinyuluo>",
+      "color": "#ccc",
+      "pretext":
+        "Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]> opened by <https://github.com/xinyuluo|xinyuluo>",
+      "text": "",
+      "fields": [ { "title": "Labels", "value": "enhancement" } ]
+    }
+  ]
+}file ../mock_payloads/issues.closed.json
+will notify #backend
+{
+  "attachments": [
+    {
+      "fallback":
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> closed by <https://github.com/xinyuluo|xinyuluo>",
+      "color": "#ccc",
+      "pretext":
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> closed by <https://github.com/xinyuluo|xinyuluo>",
+      "text":
+        "consider multiple cases including labeled/opened/closed/reopened",
+      "fields": [ { "title": "Labels", "value": "backend" } ]
+    }
+  ]
+}file ../mock_payloads/issues.opened.json
+will notify #frontend-bot
+{
+  "attachments": [
+    {
+      "fallback":
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> opened by <https://github.com/xinyuluo|xinyuluo>",
+      "color": "#ccc",
+      "pretext":
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> opened by <https://github.com/xinyuluo|xinyuluo>",
+      "text":
+        "consider multiple cases including labeled/opened/closed/reopened",
+      "fields": []
+    }
+  ]
+}file ../mock_payloads/pull_request.closed_no_labels.json
+will notify #frontend-bot
+{
+  "attachments": [
+    {
+      "fallback":
+        "Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by <https://github.com/xinyuluo|xinyuluo>",
+      "color": "#ccc",
+      "pretext":
+        "Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by <https://github.com/xinyuluo|xinyuluo>",
+      "text": "",
+      "fields": []
+    }
+  ]
+}file ../mock_payloads/issue_comment.created_in_pr.json
+will notify #backend
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+      "color": "#ccc",
+      "pretext":
+        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+      "text": "comment example",
+      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+    }
+  ]
+}will notify #a1-bot
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+      "color": "#ccc",
+      "pretext":
+        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+      "text": "comment example",
+      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+    }
+  ]
+}file ../mock_payloads/pull_request_review_comment.edited.json
+file ../mock_payloads/pull_request.labeled_two_labels.json
+file ../mock_payloads/pull_request.review_requested_one_label.json
+file ../mock_payloads/pull_request_review.request_changes.json
+will notify #frontend-bot
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://github.com/Khady|Khady> <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> <https://github.com/xinyuluo|xinyuluo>'s pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+      "color": "#ccc",
+      "pretext":
+        "<https://github.com/Khady|Khady> <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> <https://github.com/xinyuluo|xinyuluo>'s pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+      "text": "request changes review",
+      "fields": []
+    }
+  ]
+}file ../mock_payloads/pull_request_review.submitted_no_comment.json
+file ../mock_payloads/pull_request_review.dismissed.json
+file ../mock_payloads/status.success.json
+exception when parsing ../mock_payloads/status.success.json: ("Atdgen_runtime.Oj_run.Error(\"Line 31:\\nMissing record field avatar_url\")")
+file ../mock_payloads/pull_request_review.approved.json
+will notify #frontend-bot
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://github.com/Khady|Khady> <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> <https://github.com/xinyuluo|xinyuluo>'s pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+      "color": "#ccc",
+      "pretext":
+        "<https://github.com/Khady|Khady> <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> <https://github.com/xinyuluo|xinyuluo>'s pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+      "text": "approve review",
+      "fields": []
+    }
+  ]
+}file ../mock_payloads/pull_request_review_comment.created.json
+will notify #backend
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://github.com/xinyuluo|xinyuluo> commented on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+      "color": "#ccc",
+      "pretext":
+        "<https://github.com/xinyuluo|xinyuluo> commented on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+      "title": "Comment by xinyuluo in README.md",
+      "title_link":
+        "https://github.com/xinyuluo/monorepo/pull/4#discussion_r0",
+      "text": "PR review comment example",
+      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+    }
+  ]
+}will notify #a1-bot
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://github.com/xinyuluo|xinyuluo> commented on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+      "color": "#ccc",
+      "pretext":
+        "<https://github.com/xinyuluo|xinyuluo> commented on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+      "title": "Comment by xinyuluo in README.md",
+      "title_link":
+        "https://github.com/xinyuluo/monorepo/pull/4#discussion_r0",
+      "text": "PR review comment example",
+      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+    }
+  ]
+}file ../mock_payloads/issues.labeled.json

@@ -1,0 +1,17 @@
+(executable
+ (name test)
+ (libraries lib))
+
+(rule
+ (deps
+  (source_tree ../mock_payloads)
+  notabot.json)
+ (action
+  (with-stdout-to
+   slack_payloads.out
+   (run ./test.exe))))
+
+(rule
+ (alias runtest)
+ (action
+  (diff slack_payloads.expected slack_payloads.out)))
