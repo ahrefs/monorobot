@@ -148,7 +148,6 @@ type comment = {
   id: int;
   body: string;
   html_url: string;
-  ?line: int nullable;
   ?path: string nullable;
 }
 

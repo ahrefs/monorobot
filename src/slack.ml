@@ -130,6 +130,11 @@ let generate_pr_review_comment_notification notification =
       (sprintf "<%s|%s> %s on <%s|%s>'s pull request #%d <%s|[%s]>" sender.url sender.login action_str user.url
          user.login number html_url title)
   in
+  let file =
+    match comment.path with
+    | None -> None
+    | Some a -> Some (sprintf "Comment by %s in %s" sender.login a)
+  in
   {
     text = None;
     attachments =
@@ -140,11 +145,7 @@ let generate_pr_review_comment_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            title =
-              Some
-                (sprintf "Comment by %s on line %d of %s" sender.login (Option.value_exn comment.line)
-                   (Option.value_exn comment.path));
-            (* a review comment must be accompanied with a line and a path, so Option.value_exn won't raise an error *)
+            title = file;
             title_link = Some comment.html_url;
             text = Some comment.body;
             fields = Some fields;
