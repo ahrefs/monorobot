@@ -75,12 +75,7 @@ let generate_pr_review_notification notification =
     match action with
     | Submitted ->
       ( match review.state with
-      | "commented" ->
-        ( match review.body with
-        (* check if a message is indeed included *)
-        | "" -> "reviewed"
-        | _ -> "commented on"
-        )
+      | "commented" -> "commented on"
       | "approved" -> "approved"
       | "changes_requested" -> "requested changes on"
       | _ -> invalid_arg (sprintf "Error: unexpected review state %s" review.state)
@@ -92,8 +87,8 @@ let generate_pr_review_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|%s> %s <%s|%s>'s pull request #%d <%s|[%s]>" sender.url sender.login action_str user.url user.login
-         number html_url title)
+      (sprintf "<%s|%s> <%s|%s> <%s|%s>'s pull request #%d <%s|[%s]>" sender.url sender.login review.html_url action_str
+         user.url user.login number html_url title)
   in
   {
     text = None;
@@ -105,7 +100,7 @@ let generate_pr_review_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            text = Some review.body;
+            text = review.body;
             fields = Some fields;
           };
         ];
@@ -124,7 +119,7 @@ let generate_pr_review_comment_notification notification =
   in
   let action_str =
     match action with
-    | Created -> "created"
+    | Created -> "commented"
     | _ ->
       invalid_arg
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
@@ -132,8 +127,8 @@ let generate_pr_review_comment_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|%s> %s a <%s|review comment> on <%s|%s>'s pull request #%d <%s|[%s]>" sender.url sender.login
-         action_str comment.html_url user.url user.login number html_url title)
+      (sprintf "<%s|%s> %s on <%s|%s>'s pull request #%d <%s|[%s]>" sender.url sender.login action_str user.url
+         user.login number html_url title)
   in
   {
     text = None;
@@ -145,6 +140,12 @@ let generate_pr_review_comment_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
+            title =
+              Some
+                (sprintf "Comment by %s on line %d of %s" sender.login (Option.value_exn comment.line)
+                   (Option.value_exn comment.path));
+            (* a review comment must be accompanied with a line and a path, so Option.value_exn won't raise an error *)
+            title_link = Some comment.html_url;
             text = Some comment.body;
             fields = Some fields;
           };

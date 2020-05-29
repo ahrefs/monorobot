@@ -82,8 +82,10 @@ let partition_issue_comment cfg (n : issue_comment_notification) =
   | _ -> []
 
 let partition_pr_review cfg (n : pr_review_notification) =
-  match n.action with
-  | Submitted -> partition_label cfg n.pull_request.labels
+  let { review; action; _ } = n in
+  match action, review.state, review.body with
+  | Submitted, "commented", (Some "" | None) -> []
+  | Submitted, _, _ -> partition_label cfg n.pull_request.labels
   | _ -> []
 
 let generate_notifications cfg req =
