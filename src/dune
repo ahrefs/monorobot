@@ -1,42 +1,5 @@
 (executable
- (libraries curl curl.lwt nocrypto hex atdgen httpaf httpaf-lwt-unix base
-   stdio lwt lwt.unix uri)
+ (libraries httpaf-lwt-unix lib)
  (preprocess
   (pps lwt_ppx))
  (public_name notabot))
-
-(rule
- (targets github_t.ml github_t.mli)
- (deps github.atd)
- (action
-  (run atdgen -t %{deps})))
-
-(rule
- (targets github_j.ml github_j.mli)
- (deps github.atd)
- (action
-  (run atdgen -j %{deps})))
-
-(rule
- (targets slack_t.ml slack_t.mli)
- (deps slack.atd)
- (action
-  (run atdgen -t %{deps})))
-
-(rule
- (targets slack_j.ml slack_j.mli)
- (deps slack.atd)
- (action
-  (run atdgen -j %{deps})))
-
-(rule
- (targets notabot_t.ml notabot_t.mli)
- (deps notabot.atd)
- (action
-  (run atdgen -t %{deps})))
-
-(rule
- (targets notabot_j.ml notabot_j.mli)
- (deps notabot.atd)
- (action
-  (run atdgen -j %{deps})))

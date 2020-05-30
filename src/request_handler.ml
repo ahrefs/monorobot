@@ -2,6 +2,7 @@ open Printf
 open Httpaf
 open Base
 open Lwt.Infix
+open Lib
 
 let read_body response_body =
   let open Httpaf in
