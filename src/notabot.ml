@@ -19,6 +19,14 @@ let http_server addr port =
   log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
   Lwt_main.run (Request_handler.start_http_server ~cfg ~addr ~port ())
 
+let send_slack_notification webhook file =
+  let data = Stdio.In_channel.read_all file in
+  match Slack_j.webhook_notification_of_string data with
+  | exception exn -> log#error ~exn "unable to parse notification"
+  | data ->
+    let webhook = { Notabot_t.channel = "placeholder"; url = webhook } in
+    Lwt_main.run (Slack.send_notification webhook data)
+
 let check_common file print =
   let cfg = get_config () in
   match Mock.kind file with
@@ -70,6 +78,14 @@ let mock_payload =
   let doc = "mock github webhook payload" in
   Arg.(required & pos 0 (some file) None & info [] ~docv:"MOCK_PAYLOAD" ~doc)
 
+let slack_webhook_url =
+  let doc = "slack webhook url" in
+  Arg.(required & pos 0 (some string) None & info [] ~docv:"SLACK_WEBHOOK" ~doc)
+
+let slack_notif =
+  let doc = "file containing a slack notification as a json" in
+  Arg.(required & pos 1 (some file) None & info [] ~docv:"SLACK_NOTIF" ~doc)
+
 let json =
   let doc = "display output as json" in
   Arg.(value & flag & info [ "j"; "json" ] ~docv:"JSON" ~doc)
@@ -86,10 +102,16 @@ let check =
   let term = Term.(const check $ mock_payload $ json) in
   term, info
 
+let slack_notif =
+  let doc = "read github notification payload from file and show actions to be taken" in
+  let info = Term.info "send-slack-notif" ~doc in
+  let term = Term.(const send_slack_notification $ slack_webhook_url $ slack_notif) in
+  term, info
+
 let default_cmd =
   let doc = "the notification bot" in
   Term.(ret (const (`Help (`Pager, None)))), Term.info "notabot" ~doc
 
-let cmds = [ run; check ]
+let cmds = [ run; check; slack_notif ]
 
 let () = Term.(exit @@ eval_choice default_cmd cmds)
