@@ -1,7 +1,10 @@
+open Devkit
 open Base
 open Printf
 open Github_j
 open Slack_j
+
+let log = Log.from "slack"
 
 let empty_attachments =
   {
@@ -341,14 +344,14 @@ let send_notification ?(content_type = "application/json") webhook data =
   ( try%lwt
       match%lwt Curl_lwt.perform c with
       | Curl.CURLE_OK when not @@ (Curl.get_httpcode c = 200) ->
-        Log.line "Slack notification status code <> 200: %d" (Curl.get_httpcode c);
+        log#warn "slack notification status code <> 200: %d" (Curl.get_httpcode c);
         Lwt.return None
       | Curl.CURLE_OK -> Lwt.return (Some (Curl.get_responsecode c, Buffer.contents r))
       | code ->
-        Log.line "Slack notification request errored: %s" (Curl.strerror code);
+        log#warn "slack notification request errored: %s" (Curl.strerror code);
         Lwt.return None
     with exn ->
-      Log.line "Exn when posting notification to Slack: %s" (Exn.to_string exn);
+      log#warn ~exn "error when posting notification to slack";
       Lwt.fail exn
   )
     [%lwt.finally

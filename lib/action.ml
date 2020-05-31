@@ -1,8 +1,11 @@
+open Devkit
 open Printf
 open Base
 open Slack
 open Notabot_t
 open Github_t
+
+let log = Log.from "action"
 
 let touching_push rule files =
   let has_prefix s = List.exists ~f:(fun prefix -> String.is_prefix s ~prefix) in
@@ -42,7 +45,7 @@ let partition_push cfg n =
     |> List.filter ~f:(fun c -> c.distinct)
     |> List.filter ~f:(fun c ->
          let skip = is_main_merge_message c.message n cfg in
-         if skip then Log.line "Main branch merge, ignoring %s : %s" c.id (first_line c.message);
+         if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
          not skip)
   in
   cfg.push_rules
