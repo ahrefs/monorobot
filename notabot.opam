@@ -17,8 +17,6 @@ depends: [
  "devkit"
  "ocurl"
  "hex"
- "httpaf"
- "httpaf-lwt-unix"
  "lwt"
  "lwt_ppx"
  "nocrypto"

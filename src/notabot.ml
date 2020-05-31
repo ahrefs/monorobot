@@ -1,21 +1,9 @@
 open Devkit
 open Base
-open Lwt.Infix
-open Httpaf_lwt_unix
 open Lib
 module Arg = Caml.Arg
 
 let log = Log.from "notabot"
-
-let error_handler (_ : Unix.sockaddr) ?request:_ error start_response =
-  let open Httpaf in
-  let response_body = start_response Headers.empty in
-  begin
-    match error with
-    | `Exn exn -> log#info ~exn "request error"
-    | #Status.standard as error -> Body.write_string response_body (Status.default_reason_phrase error)
-  end;
-  Body.close_writer response_body
 
 let get_config () =
   let cfg = Notabot_j.config_of_string @@ Stdio.In_channel.read_all "notabot.json" in
@@ -25,18 +13,11 @@ let get_config () =
   Action.print_label_routing cfg.label_rules.rules;
   cfg
 
-let http_server port =
+let http_server addr port =
   log#info "notabot starting";
   let cfg = get_config () in
   log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
-  let listen_address = Unix.(ADDR_INET (inet_addr_loopback, port)) in
-  let request_handler = Request_handler.request_handler cfg in
-  Lwt.async (fun () ->
-    Lwt_io.establish_server_with_client_socket listen_address
-      (Server.create_connection_handler ~request_handler ~error_handler)
-    >|= fun _server -> log#info "listening on port %i" port);
-  let forever, _ = Lwt.wait () in
-  Lwt_main.run forever
+  Lwt_main.run (Request_handler.start_http_server ~cfg ~addr ~port ())
 
 let check_common file print =
   let cfg = get_config () in
@@ -44,7 +25,7 @@ let check_common file print =
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file
   | Some kind ->
-    let headers = Httpaf.Headers.of_list [ "X-GitHub-Event", kind ] in
+    let headers = [ "x-github-event", kind ] in
     (* read the event from a file and try to parse it *)
     ( match Github.parse_exn ~secret:None headers (Stdio.In_channel.read_all file) with
     | exception exn -> log#error ~exn "unable to parse payload"
@@ -77,6 +58,10 @@ let check file json =
 
 open Cmdliner
 
+let addr =
+  let doc = "http listen addr" in
+  Arg.(value & opt string "127.0.0.1" & info [ "a"; "addr" ] ~docv:"ADDR" ~doc)
+
 let port =
   let doc = "http listen port" in
   Arg.(value & opt int 8080 & info [ "p"; "port" ] ~docv:"PORT" ~doc)
@@ -92,7 +77,7 @@ let json =
 let run =
   let doc = "launch the http server" in
   let info = Term.info "run" ~doc in
-  let term = Term.(const http_server $ port) in
+  let term = Term.(const http_server $ addr $ port) in
   term, info
 
 let check =

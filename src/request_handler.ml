@@ -1,75 +1,68 @@
-open Devkit
 open Printf
-open Httpaf
-open Base
-open Lwt.Infix
-open Lib
+open Devkit
 
 let log = Log.from "request_handler"
 
-let read_body response_body =
-  let open Httpaf in
-  let buf = Buffer.create 0x2000 in
-  let body_read, notify_body_read = Lwt.wait () in
-  let rec read_fn () =
-    Body.schedule_read response_body
-      ~on_eof:(fun () ->
-        Body.close_reader response_body;
-        Lwt.wakeup_later notify_body_read (Buffer.contents buf))
-      ~on_read:(fun response_fragment ~off ~len ->
-        let response_fragment_bytes = Bytes.create len in
-        Lwt_bytes.blit_to_bytes response_fragment off response_fragment_bytes 0 len;
-        Buffer.add_bytes buf response_fragment_bytes;
-        read_fn ())
+let process_github_notification cfg headers body =
+  let open Lib in
+  match Github.parse_exn ~secret:cfg.Notabot_t.gh_webhook_secret headers body with
+  | exception exn -> Exn_lwt.fail ~exn "unable to parse payload"
+  | payload ->
+    let notifications = Action.generate_notifications cfg payload in
+    Lwt_list.iter_s (fun (webhook, msg) -> Slack.send_notification webhook msg) notifications
+
+let setup_http ~cfg ~signature ~port ~ip =
+  let open Httpev in
+  let connection = Unix.ADDR_INET (ip, port) in
+  let%lwt () =
+    Httpev.setup_lwt { default with name = "notabot"; connection } (fun _http request ->
+      let module Arg = Args (struct let req = request end) in
+      let body r = Lwt.return (`Body r) in
+      let ret ?(status = `Ok) ?(typ = "text/plain") ?extra r =
+        let%lwt r = r in
+        body @@ serve ~status ?extra request typ r
+      in
+      let _ret' ?extra r =
+        let%lwt typ, r = r in
+        body @@ serve ~status:`Ok ?extra request typ r
+      in
+      let _ret'' ?extra r =
+        let%lwt status, typ, r = r in
+        body @@ serve ~status ?extra request typ r
+      in
+      let ret_err status s = body @@ serve_text ~status request s in
+      log#info "http: %s" (show_request request);
+      try%lwt
+        let path =
+          match Stre.nsplitc request.path '/' with
+          | "" :: p -> p
+          | _ -> Exn.fail "you are on a wrong path"
+        in
+        match request.meth, List.map Web.urldecode path with
+        | _, [ "stats" ] -> ret @@ Lwt.return (sprintf "%s %s uptime\n" signature Devkit.Action.uptime#get_str)
+        | _, [ "github" ] ->
+          log#info "%s" request.body;
+          let%lwt () = process_github_notification cfg request.headers request.body in
+          ret (Lwt.return "ok")
+        | _, _ ->
+          log#error "unknown path : %s" (Httpev.show_request request);
+          ret_err `Not_found "not found"
+      with
+      | Arg.Bad s ->
+        log#error "bad parameter %S : %s" s (Httpev.show_request request);
+        ret_err `Not_found (sprintf "bad parameter %s" s)
+      | exn ->
+        log#error ~exn "internal error : %s" (Httpev.show_request request);
+        ret_err `Internal_server_error
+          ( match exn with
+          | Failure s -> s
+          | Invalid_argument s -> s
+          | exn -> Exn.str exn
+          ))
   in
-  read_fn ();
-  body_read
+  Lwt.return_unit
 
-let send_response reqd response_body status =
-  let headers = Headers.of_list [ "Content-Length", Int.to_string (String.length response_body) ] in
-  Reqd.respond_with_string reqd (Response.create ~headers status) response_body
-
-let log_incoming_request reqd =
-  let { Request.meth; target; _ } = Reqd.request reqd in
-  Stdio.print_endline "";
-  log#info "request received: %s %s" (Method.to_string meth) target
-
-let reply_with_bad_request reqd handler failing_function error_message =
-  log#info "%s notification bad request. While %s: %s" handler failing_function error_message;
-  send_response reqd "" `Bad_request
-
-let request_handler cfg (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
-  let { Request.meth; target; headers; _ } = Reqd.request reqd in
-  log_incoming_request reqd;
-  match meth with
-  | `POST ->
-    ( match target with
-    | "/github" ->
-      read_body (Reqd.request_body reqd)
-      >|= (fun body ->
-            Headers.to_list headers |> List.iter ~f:(fun (k, v) -> Stdio.print_endline @@ sprintf "%s: %s" k v);
-            log#info "%s" body;
-            let event =
-              try Ok (Github.parse_exn ~secret:cfg.Notabot_t.gh_webhook_secret headers body)
-              with exn -> Error (sprintf "Error while parsing payload %s" (Exn.to_string exn))
-            in
-            match event with
-            | Ok payload ->
-              let () =
-                Action.generate_notifications cfg payload
-                |> List.iter ~f:(fun (webhook, msg) ->
-                     Slack.send_notification webhook msg
-                     >|= (function
-                           | Some (sc, txt) ->
-                             log#info "sent notification to #%s code: %i response: %s" webhook.channel sc txt
-                           | _ -> ())
-                     |> ignore)
-              in
-              send_response reqd "" `OK
-            | Error error_message -> reply_with_bad_request reqd "Github" "parsing payload" error_message)
-      |> ignore
-    | _ -> send_response reqd "" `Not_found
-    )
-  | meth ->
-    let response_body = sprintf "%s is not an allowed method\n" (Method.to_string meth) in
-    send_response reqd response_body `Method_not_allowed
+let start_http_server ~cfg ~addr ~port () =
+  let ip = Unix.inet_addr_of_string addr in
+  let signature = sprintf "listen %s:%d" (Unix.string_of_inet_addr ip) port in
+  setup_http ~cfg ~signature ~port ~ip

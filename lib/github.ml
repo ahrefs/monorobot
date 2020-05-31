@@ -1,5 +1,5 @@
-open Httpaf
 open Base
+open Devkit
 open Printf
 open Github_j
 
@@ -29,10 +29,12 @@ let parse_exn ~secret headers body =
     match secret with
     | None -> ()
     | Some secret ->
-      let req_sig = Headers.get_exn headers "X-Hub-Signature" in
-      if not @@ is_valid_signature ~secret req_sig body then failwith "request signature invalid"
+    match List.Assoc.find headers "x-hub-signature" ~equal:String.equal with
+    | None -> Exn.fail "unable to find header x-hub-signature"
+    | Some req_sig -> if not @@ is_valid_signature ~secret req_sig body then failwith "request signature invalid"
   end;
-  match Headers.get_exn headers "X-GitHub-Event" with
+  match List.Assoc.find_exn headers "x-github-event" ~equal:String.equal with
+  | exception exn -> Exn.fail ~exn "unable to read x-github-event"
   | "push" -> Push (commit_pushed_notification_of_string body)
   | "pull_request" -> Pull_request (pr_notification_of_string body)
   | "pull_request_review" -> PR_review (pr_review_notification_of_string body)

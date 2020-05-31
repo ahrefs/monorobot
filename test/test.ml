@@ -13,7 +13,7 @@ let process cfg file =
   match Mock.kind file with
   | None -> ()
   | Some kind ->
-    let headers = Httpaf.Headers.of_list [ "X-GitHub-Event", kind ] in
+    let headers = [ "x-github-event", kind ] in
     ( match Github.parse_exn ~secret:None headers (Stdio.In_channel.read_all file) with
     | exception exn ->
       Stdio.printf "exception when parsing %s: %s\n" file (Exn.to_string exn);
