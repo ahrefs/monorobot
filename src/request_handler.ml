@@ -1,8 +1,11 @@
+open Devkit
 open Printf
 open Httpaf
 open Base
 open Lwt.Infix
 open Lib
+
+let log = Log.from "request_handler"
 
 let read_body response_body =
   let open Httpaf in
@@ -29,10 +32,10 @@ let send_response reqd response_body status =
 let log_incoming_request reqd =
   let { Request.meth; target; _ } = Reqd.request reqd in
   Stdio.print_endline "";
-  Log.line "request received: %s %s." (Method.to_string meth) target
+  log#info "request received: %s %s" (Method.to_string meth) target
 
 let reply_with_bad_request reqd handler failing_function error_message =
-  Log.line "%s notification bad request. While %s: %s" handler failing_function error_message;
+  log#info "%s notification bad request. While %s: %s" handler failing_function error_message;
   send_response reqd "" `Bad_request
 
 let request_handler cfg (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
@@ -45,11 +48,10 @@ let request_handler cfg (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
       read_body (Reqd.request_body reqd)
       >|= (fun body ->
             Headers.to_list headers |> List.iter ~f:(fun (k, v) -> Stdio.print_endline @@ sprintf "%s: %s" k v);
-            Stdio.print_endline body;
-            Stdio.print_endline "";
+            log#info "%s" body;
             let event =
               try Ok (Github.parse_exn ~secret:cfg.Notabot_t.gh_webhook_secret headers body)
-              with exn -> Error (sprintf "Error while parsing payload : %s" (Exn.to_string exn))
+              with exn -> Error (sprintf "Error while parsing payload %s" (Exn.to_string exn))
             in
             match event with
             | Ok payload ->
@@ -59,7 +61,7 @@ let request_handler cfg (_ : Unix.sockaddr) (reqd : Httpaf.Reqd.t) =
                      Slack.send_notification webhook msg
                      >|= (function
                            | Some (sc, txt) ->
-                             Log.line "Sent notification to #%s. Code: %i. Response: %s." webhook.channel sc txt
+                             log#info "sent notification to #%s code: %i response: %s" webhook.channel sc txt
                            | _ -> ())
                      |> ignore)
               in

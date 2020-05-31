@@ -1,5 +1,5 @@
 (executable
- (libraries httpaf-lwt-unix lib cmdliner)
+ (libraries httpaf-lwt-unix lib cmdliner devkit devkit.core)
  (preprocess
   (pps lwt_ppx))
  (public_name notabot))
