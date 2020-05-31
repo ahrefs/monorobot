@@ -22,7 +22,7 @@ let get_config () =
   Action.print_label_routing cfg.label_rules.rules;
   cfg
 
-let main port =
+let http_server port =
   Log.line "Notabot starting";
   let cfg = get_config () in
   Log.line "Signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
@@ -35,11 +35,6 @@ let main port =
   let forever, _ = Lwt.wait () in
   Lwt_main.run forever
 
-(*
-To launch in check mode with a push event:
-
-dune exec -- ./src/notabot.exe -check mock_payloads/push.example1.json
-*)
 let check_common file print =
   let cfg = get_config () in
   match Mock.kind file with
@@ -72,25 +67,43 @@ let print_json_message (webhook, msg) =
   Log.line "%s" (Uri.to_string url);
   Log.line "%s" json
 
-let check file =
-  check_common file print_simplified_message;
-  Caml.exit 0
+let check file json =
+  match json with
+  | false -> check_common file print_simplified_message
+  | true -> check_common file print_json_message
 
-let check_json file =
-  check_common file print_json_message;
-  Caml.exit 0
+(** {2 cli} *)
 
-let () =
-  let port = ref 8080 in
-  Arg.parse
-    [
-      "-p", Arg.Set_int port, " Listening port number (8080 by default)";
-      ( "-check",
-        Arg.String (fun file -> check file),
-        " Read github notification payload from file and show actions to be taken" );
-      ( "-check-json",
-        Arg.String (fun file -> check_json file),
-        " Read github notification payload from file and show json actions to be taken" );
-    ]
-    ignore "Notabot, the notifications bot. Your options:";
-  main !port
+open Cmdliner
+
+let port =
+  let doc = "http listen port" in
+  Arg.(value & opt int 8080 & info [ "p"; "port" ] ~docv:"PORT" ~doc)
+
+let mock_payload =
+  let doc = "mock github webhook payload" in
+  Arg.(required & pos 0 (some file) None & info [] ~docv:"MOCK_PAYLOAD" ~doc)
+
+let json =
+  let doc = "display output as json" in
+  Arg.(value & flag & info [ "j"; "json" ] ~docv:"JSON" ~doc)
+
+let run =
+  let doc = "launch the http server" in
+  let info = Term.info "run" ~doc in
+  let term = Term.(const http_server $ port) in
+  term, info
+
+let check =
+  let doc = "read github notification payload from file and show actions to be taken" in
+  let info = Term.info "check" ~doc in
+  let term = Term.(const check $ mock_payload $ json) in
+  term, info
+
+let default_cmd =
+  let doc = "the notification bot" in
+  Term.(ret (const (`Help (`Pager, None)))), Term.info "notabot" ~doc
+
+let cmds = [ run; check ]
+
+let () = Term.(exit @@ eval_choice default_cmd cmds)

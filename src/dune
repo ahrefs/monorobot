@@ -1,5 +1,5 @@
 (executable
- (libraries httpaf-lwt-unix lib)
+ (libraries httpaf-lwt-unix lib cmdliner)
  (preprocess
   (pps lwt_ppx))
  (public_name notabot))
