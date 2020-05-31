@@ -317,42 +317,11 @@ let generate_ci_run_notification (notification : ci_build_notification) =
     blocks = None;
   }
 
-let () = Curl.(global_init CURLINIT_GLOBALALL)
-
-let curl_init url =
-  let open Curl in
-  let r = Buffer.create 1024 in
-  let c = init () in
-  set_timeout c 10;
-  set_sslverifypeer c true;
-  set_sslverifyhost c SSLVERIFYHOST_HOSTNAME;
-  set_writefunction c (fun s ->
-    Buffer.add_string r s;
-    String.length s);
-  set_tcpnodelay c true;
-  set_verbose c false;
-  set_url c url;
-  r, c
-
-let send_notification ?(content_type = "application/json") webhook data =
+let send_notification (webhook : Notabot_t.webhook) data =
   let data = Slack_j.string_of_webhook_notification data in
-  let _r, c = curl_init webhook.Notabot_t.url in
-  Curl.set_post c true;
-  Curl.set_httpheader c [ "Content-Type: " ^ content_type ];
-  Curl.set_postfields c data;
-  Curl.set_postfieldsize c (String.length data);
-  ( match%lwt Curl_lwt.perform c with
-  | exception exn ->
-    log#warn ~exn "error when posting notification to slack";
-    Lwt.fail exn
-  | Curl.CURLE_OK when not @@ (Curl.get_httpcode c = 200) ->
-    log#warn "slack notification status code <> 200: %d" (Curl.get_httpcode c);
+  let body = `Raw ("application/json", data) in
+  match%lwt Web.http_request_lwt ~verbose:true ~body `POST webhook.url with
+  | `Ok _ -> Lwt.return_unit
+  | `Error e ->
+    log#error "error when posting notification to slack: %s" e;
     Exn_lwt.fail "unable to send notification to slack"
-  | Curl.CURLE_OK -> Lwt.return_unit
-  | code ->
-    log#warn "slack notification request errored: %s" (Curl.strerror code);
-    Exn_lwt.fail "unable to send notification to slack"
-  )
-    [%lwt.finally
-      Curl.cleanup c;
-      Lwt.return ()]
