@@ -1,7 +1,7 @@
 (library
  (name lib)
  (libraries curl curl.lwt nocrypto hex atdgen base stdio lwt lwt.unix uri
-   httpaf devkit devkit.core)
+   devkit devkit.core)
  (preprocess
   (pps lwt_ppx)))
 

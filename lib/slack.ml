@@ -1,5 +1,5 @@
-open Devkit
 open Base
+open Devkit
 open Printf
 open Github_j
 open Slack_j
@@ -336,23 +336,22 @@ let curl_init url =
 
 let send_notification ?(content_type = "application/json") webhook data =
   let data = Slack_j.string_of_webhook_notification data in
-  let r, c = curl_init webhook.Notabot_t.url in
+  let _r, c = curl_init webhook.Notabot_t.url in
   Curl.set_post c true;
   Curl.set_httpheader c [ "Content-Type: " ^ content_type ];
   Curl.set_postfields c data;
   Curl.set_postfieldsize c (String.length data);
-  ( try%lwt
-      match%lwt Curl_lwt.perform c with
-      | Curl.CURLE_OK when not @@ (Curl.get_httpcode c = 200) ->
-        log#warn "slack notification status code <> 200: %d" (Curl.get_httpcode c);
-        Lwt.return None
-      | Curl.CURLE_OK -> Lwt.return (Some (Curl.get_responsecode c, Buffer.contents r))
-      | code ->
-        log#warn "slack notification request errored: %s" (Curl.strerror code);
-        Lwt.return None
-    with exn ->
-      log#warn ~exn "error when posting notification to slack";
-      Lwt.fail exn
+  ( match%lwt Curl_lwt.perform c with
+  | exception exn ->
+    log#warn ~exn "error when posting notification to slack";
+    Lwt.fail exn
+  | Curl.CURLE_OK when not @@ (Curl.get_httpcode c = 200) ->
+    log#warn "slack notification status code <> 200: %d" (Curl.get_httpcode c);
+    Exn_lwt.fail "unable to send notification to slack"
+  | Curl.CURLE_OK -> Lwt.return_unit
+  | code ->
+    log#warn "slack notification request errored: %s" (Curl.strerror code);
+    Exn_lwt.fail "unable to send notification to slack"
   )
     [%lwt.finally
       Curl.cleanup c;
