@@ -108,7 +108,8 @@ let slack_notif =
 
 let default_cmd =
   let doc = "the notification bot" in
-  Term.(ret (const (`Help (`Pager, None)))), Term.info "notabot" ~doc
+  let version = Version.get () in
+  Term.(ret (const (`Help (`Pager, None)))), Term.info "notabot" ~doc ~version
 
 let cmds = [ run; check; slack_notif ]
 

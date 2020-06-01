@@ -15,6 +15,7 @@ depends: [
  "base"
  "cmdliner"
  "devkit"
+ "dune-build-info"
  "hex"
  "lwt"
  "lwt_ppx"
