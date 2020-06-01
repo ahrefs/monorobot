@@ -317,10 +317,10 @@ let generate_ci_run_notification (notification : ci_build_notification) =
     blocks = None;
   }
 
-let send_notification (webhook : Notabot_t.webhook) data =
+let send_notification webhook_url data =
   let data = Slack_j.string_of_webhook_notification data in
   let body = `Raw ("application/json", data) in
-  match%lwt Web.http_request_lwt ~verbose:true ~body `POST webhook.url with
+  match%lwt Web.http_request_lwt ~verbose:true ~body `POST webhook_url with
   | `Ok _ -> Lwt.return_unit
   | `Error e ->
     log#error "error when posting notification to slack: %s" e;

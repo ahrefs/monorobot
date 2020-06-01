@@ -6,9 +6,9 @@ module Arg = Caml.Arg
 let log = Log.from "notabot"
 
 let get_config () =
-  let cfg = Notabot_j.config_of_string @@ Stdio.In_channel.read_all "notabot.json" in
-  log#info "using push routing:";
-  Action.print_push_routing cfg.push_rules;
+  let cfg = Config.load "notabot.json" in
+  log#info "using prefix routing:";
+  Action.print_prefix_routing cfg.prefix_rules;
   log#info "using pull request/issue routing:";
   Action.print_label_routing cfg.label_rules.rules;
   cfg
@@ -23,9 +23,7 @@ let send_slack_notification webhook file =
   let data = Stdio.In_channel.read_all file in
   match Slack_j.webhook_notification_of_string data with
   | exception exn -> log#error ~exn "unable to parse notification"
-  | data ->
-    let webhook = { Notabot_t.channel = "placeholder"; url = webhook } in
-    Lwt_main.run (Slack.send_notification webhook data)
+  | data -> Lwt_main.run (Slack.send_notification webhook data)
 
 let check_common file print =
   let cfg = get_config () in
@@ -40,18 +38,18 @@ let check_common file print =
     | event -> Action.generate_notifications cfg event |> List.iter ~f:print
     )
 
-let print_simplified_message (webhook, msg) =
+let print_simplified_message (chan, msg) =
   (* In check mode, instead of actually sending the message to slack, we
      simply print it in the console *)
-  log#info "will notify %s%s" webhook.Notabot_t.channel
+  log#info "will notify %s%s" chan
     ( match msg.Slack_t.text with
     | None -> ""
     | Some s -> Printf.sprintf " with %S" s
     )
 
-let print_json_message (webhook, msg) =
+let print_json_message (chan, msg) =
   let json = Slack_j.string_of_webhook_notification msg in
-  log#info "will notify %s" webhook.Notabot_t.channel;
+  log#info "will notify %s" chan;
   let url = Uri.of_string "https://api.slack.com/docs/messages/builder" in
   let url = Uri.add_query_param url ("msg", [ json ]) in
   log#info "%s" (Uri.to_string url);
