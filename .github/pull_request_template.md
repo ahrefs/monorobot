@@ -8,7 +8,7 @@ change.
 How to test the changes? Which command to run? Which output is expected?
 
 ```
-dune exec -- src/notabot.exe -check mock_payloads/SOME_FILE
+./notabot check mock_payloads/SOME_FILE
 ```
 
 ## References
