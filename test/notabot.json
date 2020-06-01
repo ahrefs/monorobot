@@ -1,14 +1,37 @@
 {
-    "push_rules": [
+    "slack_channels": [
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "a1"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "backend"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "all-push-events"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "frontend-bot"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "a1-bot"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "a3"
+        }
+    ],
+    "prefix_rules": [
         {
             "prefix": [
                 "backend/a1"
             ],
             "ignore": [],
-            "webhook": {
-                "url": "https://idontknowitrightnow",
-                "channel": "a1"
-            }
+            "chan": "a1"
         },
         {
             "prefix": [
@@ -16,66 +39,46 @@
                 "backend/a4"
             ],
             "ignore": [],
-            "webhook": {
-                "url": "https://idontknowitrightnow",
-                "channel": "backend"
-            }
+            "chan": "backend"
         },
         {
             "prefix": [],
             "ignore": [],
-            "webhook": {
-                "url": "https://idontknowitrightnow",
-                "channel": "all-push-events"
-            }
+            "chan": "all-push-events"
         }
     ],
-
     "label_rules": {
-        "default": {
-            "url": "https://idontknowitrightnow",
-            "channel": "frontend-bot"
-        },
+        "default": "frontend-bot",
         "rules": [
             {
                 "label_name": [
                     "backend"
                 ],
                 "ignore": [],
-                "webhook": {
-                    "url": "https://idontknowitrightnow",
-                    "channel": "backend"
-                }
+                "chan": "backend"
             },
             {
                 "label_name": [
                     "a1"
                 ],
                 "ignore": [],
-                "webhook": {
-                    "url": "https://idontknowitrightnow",
-                    "channel": "a1-bot"
-                }
+                "chan": "a1-bot"
             },
             {
                 "label_name": [
                     "a3"
                 ],
                 "ignore": [],
-                "webhook": {
-                    "url": "https://idontknowitrightnow",
-                    "channel": "a3"
-                }
+                "chan": "a3"
             },
             {
                 "label_name": [],
                 "ignore": [
-                    "backend", "a1", "a3"
+                    "backend",
+                    "a1",
+                    "a3"
                 ],
-                "webhook": {
-                    "url": "https://idontknowitrightnow",
-                    "channel": "frontend-bot"
-                }
+                "chan": "frontend-bot"
             }
         ]
     }
