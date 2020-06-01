@@ -18,6 +18,22 @@ let make (json_config : Notabot_t.config) =
         | Some c -> Exn.fail "chan %s is defined multiple time in the config" c)
       Chan_map.empty json_config.slack_channels
   in
+  let () =
+    List.iteri
+      (fun i ({ chan; _ } : Notabot_t.prefix_rule) ->
+        match Chan_map.find_opt chan chans with
+        | None -> Exn.fail "chan %s in prefix_rules %d is missing from slack_channels" chan i
+        | Some _ -> ())
+      json_config.prefix_rules
+  in
+  let () =
+    List.iteri
+      (fun i ({ chan; _ } : Notabot_t.label_rule) ->
+        match Chan_map.find_opt chan chans with
+        | None -> Exn.fail "chan %s in labels_rules %d is missing from slack_channels" chan i
+        | Some _ -> ())
+      json_config.label_rules.rules
+  in
   {
     chans;
     prefix_rules = json_config.prefix_rules;
