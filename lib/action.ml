@@ -3,6 +3,7 @@ open Printf
 open Base
 open Slack
 open Notabot_t
+open Config
 open Github_t
 
 let log = Log.from "action"
@@ -48,7 +49,7 @@ let partition_push cfg n =
          if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
          not skip)
   in
-  cfg.push_rules
+  cfg.prefix_rules
   |> List.filter_map ~f:(fun rule ->
        match filter_push rule commits with
        | [] -> None
@@ -62,7 +63,7 @@ let partition_label cfg labels =
     |> List.filter_map ~f:(fun rule ->
          match exist_label rule labels with
          | false -> None
-         | true -> Some rule.webhook)
+         | true -> Some rule.chan)
 
 let partition_pr cfg (n : pr_notification) =
   match n.action with
@@ -103,7 +104,7 @@ let partition_pr_review cfg (n : pr_review_notification) =
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
-    partition_push cfg n |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.webhook, generate_push_notification n)
+    partition_push cfg n |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.chan, generate_push_notification n)
   | Github.Pull_request n ->
     partition_pr cfg n |> List.map ~f:(fun webhook -> webhook, generate_pull_request_notification n)
   | Github.PR_review n ->
@@ -116,7 +117,7 @@ let generate_notifications cfg req =
   (*   | CI_run n when Poly.(n.state <> Success) -> [slack_notabot, generate_ci_run_notification n] *)
   | _ -> []
 
-let print_push_routing rules =
+let print_prefix_routing rules =
   let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
   rules
   |> List.iter ~f:(fun rule ->
@@ -127,7 +128,7 @@ let print_push_routing rules =
          | [], l -> Stdio.printf "  not %s" (show_match l)
          | l, i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
        end;
-       Stdio.printf " -> #%s\n%!" rule.webhook.channel)
+       Stdio.printf " -> #%s\n%!" rule.chan)
 
 let print_label_routing rules =
   let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
@@ -140,4 +141,4 @@ let print_label_routing rules =
          | [], l -> Stdio.printf "  not %s" (show_match l)
          | l, i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
        end;
-       Stdio.printf " -> #%s\n%!" rule.webhook.channel)
+       Stdio.printf " -> #%s\n%!" rule.chan)

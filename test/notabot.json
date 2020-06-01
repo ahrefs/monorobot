@@ -1,14 +1,37 @@
 {
-    "push_rules": [
+    "slack_channels": [
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "aa"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "backend"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "all-push-events"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "frontend-bot"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "aa-git"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "siren"
+        }
+    ],
+    "prefix_rules": [
         {
             "prefix": [
                 "backend/api"
             ],
             "ignore": [],
-            "webhook": {
-                "url": "https://idontknowitrightnow",
-                "channel": "aa"
-            }
+            "chan": "aa"
         },
         {
             "prefix": [
@@ -16,66 +39,46 @@
                 "backend/ahrefskit"
             ],
             "ignore": [],
-            "webhook": {
-                "url": "https://idontknowitrightnow",
-                "channel": "backend"
-            }
+            "chan": "backend"
         },
         {
             "prefix": [],
             "ignore": [],
-            "webhook": {
-                "url": "https://idontknowitrightnow",
-                "channel": "all-push-events"
-            }
+            "chan": "all-push-events"
         }
     ],
-
     "label_rules": {
-        "default": {
-            "url": "https://idontknowitrightnow",
-            "channel": "frontend-bot"
-        },
+        "default": "frontend-bot",
         "rules": [
             {
                 "label_name": [
                     "backend"
                 ],
                 "ignore": [],
-                "webhook": {
-                    "url": "https://idontknowitrightnow",
-                    "channel": "backend"
-                }
+                "chan": "backend"
             },
             {
                 "label_name": [
                     "aa"
                 ],
                 "ignore": [],
-                "webhook": {
-                    "url": "https://idontknowitrightnow",
-                    "channel": "aa-git"
-                }
+                "chan": "aa-git"
             },
             {
                 "label_name": [
                     "siren"
                 ],
                 "ignore": [],
-                "webhook": {
-                    "url": "https://idontknowitrightnow",
-                    "channel": "siren"
-                }
+                "chan": "siren"
             },
             {
                 "label_name": [],
                 "ignore": [
-                    "backend", "aa", "siren"
+                    "backend",
+                    "aa",
+                    "siren"
                 ],
-                "webhook": {
-                    "url": "https://idontknowitrightnow",
-                    "channel": "frontend-bot"
-                }
+                "chan": "frontend-bot"
             }
         ]
     }
