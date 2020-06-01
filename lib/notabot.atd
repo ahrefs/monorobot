@@ -32,22 +32,23 @@ type webhook = {
 type prefix_rule = {
   prefix : string list; (* empty list means match any *)
   ignore : string list;
-  webhook : webhook;
+  chan : string;
 }
 
 type label_rule = {
   label_name : string list;
   ignore : string list;
-  webhook : webhook;
+  chan: string;
 }
 
 type label_config = {
-  ?default: webhook nullable;
+  ?default: string nullable; (* if none of the rules is matching *)
   rules: label_rule list;
 }
 
 type config = {
-  push_rules : prefix_rule list;
+  slack_channels  : webhook list;
+  prefix_rules : prefix_rule list;
   label_rules : label_config;
   ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
   ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)

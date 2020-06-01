@@ -5,11 +5,15 @@ let log = Log.from "request_handler"
 
 let process_github_notification cfg headers body =
   let open Lib in
-  match Github.parse_exn ~secret:cfg.Notabot_t.gh_webhook_secret headers body with
+  match Github.parse_exn ~secret:cfg.Config.gh_webhook_secret headers body with
   | exception exn -> Exn_lwt.fail ~exn "unable to parse payload"
   | payload ->
     let notifications = Action.generate_notifications cfg payload in
-    Lwt_list.iter_s (fun (webhook, msg) -> Slack.send_notification webhook msg) notifications
+    Lwt_list.iter_s
+      (fun (chan, msg) ->
+        let url = Config.Chan_map.find chan cfg.chans in
+        Slack.send_notification url msg)
+      notifications
 
 let setup_http ~cfg ~signature ~port ~ip =
   let open Httpev in
