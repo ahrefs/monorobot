@@ -20,8 +20,12 @@ let filter_push rule commits =
        touching_push rule commit.added || touching_push rule commit.removed || touching_push rule commit.modified)
 
 let touching_label rule name =
-  (List.is_empty rule.label_name || List.mem ~equal:String.equal rule.label_name name)
-  && not (List.mem ~equal:String.equal rule.ignore name)
+  let name_lc = String.lowercase name in
+  let label_lc = List.map rule.label_name ~f:(fun l -> String.lowercase l) in
+  let ignore_lc = List.map rule.ignore ~f:(fun l -> String.lowercase l) in
+  (* convert both labels and config into lowe-case to make label matching case-insensitive *)
+  (List.is_empty label_lc || List.mem ~equal:String.equal label_lc name_lc)
+  && not (List.mem ~equal:String.equal ignore_lc name_lc)
 
 let exist_label rule labels = labels |> List.exists ~f:(fun (label : label) -> touching_label rule label.name)
 
