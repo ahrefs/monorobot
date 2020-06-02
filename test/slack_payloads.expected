@@ -61,6 +61,21 @@ will notify #backend
   ]
 }
 ===== file ../mock_payloads/issues.labeled.json =====
+will notify #backend
+{
+  "attachments": [
+    {
+      "fallback":
+        "Issue #6 <https://github.com/xinyuluo/pr_test/issues/6|[create a test for issue_notification]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+      "color": "#ccc",
+      "pretext":
+        "Issue #6 <https://github.com/xinyuluo/pr_test/issues/6|[create a test for issue_notification]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+      "text":
+        "consider multiple cases including labeled/opened/closed/reopened",
+      "fields": [ { "title": "Labels", "value": "backend" } ]
+    }
+  ]
+}
 ===== file ../mock_payloads/issues.opened.json =====
 will notify #frontend-bot
 {
@@ -124,6 +139,34 @@ will notify #frontend-bot
   ]
 }
 ===== file ../mock_payloads/pull_request.labeled_two_labels.json =====
+will notify #backend
+{
+  "attachments": [
+    {
+      "fallback":
+        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+      "color": "#ccc",
+      "pretext":
+        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+      "text": "",
+      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+    }
+  ]
+}
+will notify #aa-git
+{
+  "attachments": [
+    {
+      "fallback":
+        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+      "color": "#ccc",
+      "pretext":
+        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+      "text": "",
+      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+    }
+  ]
+}
 ===== file ../mock_payloads/pull_request.opened_one_label.json =====
 will notify #frontend-bot
 {
