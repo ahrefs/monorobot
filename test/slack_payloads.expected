@@ -144,10 +144,10 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled aa, backend by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
       "color": "#ccc",
       "pretext":
-        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled aa, backend by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
       "text": "",
       "fields": [ { "title": "Labels", "value": "aa, backend" } ]
     }
@@ -158,10 +158,10 @@ will notify #aa-git
   "attachments": [
     {
       "fallback":
-        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled aa, backend by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
       "color": "#ccc",
       "pretext":
-        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled aa, backend by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
       "text": "",
       "fields": [ { "title": "Labels", "value": "aa, backend" } ]
     }
@@ -173,10 +173,10 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "Pull request #3 <https://github.com/xinyuluo/pr_test/pull/3|[Update README.md]> opened and labeled enhancement by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #3 <https://github.com/xinyuluo/pr_test/pull/3|[Update README.md]> opened by <https://github.com/xinyuluo|xinyuluo>",
       "color": "#ccc",
       "pretext":
-        "Pull request #3 <https://github.com/xinyuluo/pr_test/pull/3|[Update README.md]> opened and labeled enhancement by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #3 <https://github.com/xinyuluo/pr_test/pull/3|[Update README.md]> opened by <https://github.com/xinyuluo|xinyuluo>",
       "text": "",
       "fields": [ { "title": "Labels", "value": "enhancement" } ]
     }
