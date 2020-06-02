@@ -34,11 +34,27 @@ let generate_pull_request_notification notification =
       let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
       [ { title = Some "Labels"; value } ]
   in
+  let rec label_names (labels : label list) =
+    match labels with
+    | [] -> None
+    | [ a ] -> Some (sprintf "%s" a.name)
+    | h :: t -> Some (sprintf "%s, %s" h.name (Option.value_exn (label_names t)))
+    (* list with a single element is covered in the previous case, so t should be nonempty
+       and thus the output of label_names t should not be None. *)
+  in
   let action_str =
     match action with
-    | Opened -> "opened"
+    | Opened ->
+      ( match labels with
+      | [] -> "opened"
+      | _ ->
+        sprintf "opened and labeled %s" (Option.value_exn (label_names labels))
+        (* label_names only returns None when labels is an empty list, which is handled in the previous case *)
+      )
     | Closed -> "closed"
     | Reopened -> "reopened"
+    | Labeled -> sprintf "labeled %s" (Option.value_exn (label_names labels))
+    (* label_names only returns None when labels is an empty list, which does not happen in a label_event *)
     | _ ->
       invalid_arg
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
@@ -172,6 +188,7 @@ let generate_issue_notification notification =
     | Opened -> "opened"
     | Closed -> "closed"
     | Reopened -> "reopened"
+    | Labeled -> "labeled"
     | _ ->
       invalid_arg
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
