@@ -71,12 +71,12 @@ let partition_label cfg labels =
 
 let partition_pr cfg (n : pr_notification) =
   match n.action with
-  | Opened | Closed | Reopened -> partition_label cfg n.pull_request.labels
+  | Opened | Closed | Reopened | Labeled -> partition_label cfg n.pull_request.labels
   | _ -> []
 
 let partition_issue cfg (n : issue_notification) =
   match n.action with
-  | Opened | Closed | Reopened -> partition_label cfg n.issue.labels
+  | Opened | Closed | Reopened | Labeled -> partition_label cfg n.issue.labels
   | _ -> []
 
 let partition_pr_review_comment cfg (n : pr_review_comment_notification) =

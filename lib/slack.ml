@@ -39,6 +39,7 @@ let generate_pull_request_notification notification =
     | Opened -> "opened"
     | Closed -> "closed"
     | Reopened -> "reopened"
+    | Labeled -> "labeled"
     | _ ->
       invalid_arg
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
@@ -172,6 +173,7 @@ let generate_issue_notification notification =
     | Opened -> "opened"
     | Closed -> "closed"
     | Reopened -> "reopened"
+    | Labeled -> "labeled"
     | _ ->
       invalid_arg
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
