@@ -93,6 +93,21 @@ will notify #backend
     }
   ]
 }
+===== file ../mock_payloads/pull_request.closed_capitalized.json =====
+will notify #aa-git
+{
+  "attachments": [
+    {
+      "fallback":
+        "Pull request #8 <https://github.com/xinyuluo/pr_test/pull/8|[Update README.md]> closed by <https://github.com/xinyuluo|xinyuluo>",
+      "color": "#ccc",
+      "pretext":
+        "Pull request #8 <https://github.com/xinyuluo/pr_test/pull/8|[Update README.md]> closed by <https://github.com/xinyuluo|xinyuluo>",
+      "text": "",
+      "fields": [ { "title": "Labels", "value": "AA" } ]
+    }
+  ]
+}
 ===== file ../mock_payloads/pull_request.closed_no_labels.json =====
 will notify #frontend-bot
 {
@@ -173,6 +188,7 @@ will notify #frontend-bot
   ]
 }
 ===== file ../mock_payloads/pull_request_review.submitted_no_comment.json =====
+===== file ../mock_payloads/pull_request_review.submitted_null_body.json =====
 ===== file ../mock_payloads/pull_request_review_comment.created.json =====
 will notify #backend
 {
@@ -210,6 +226,25 @@ will notify #aa-git
 }
 ===== file ../mock_payloads/pull_request_review_comment.deleted.json =====
 ===== file ../mock_payloads/pull_request_review_comment.edited.json =====
+===== file ../mock_payloads/push.commits2.json =====
+will notify #all-push-events
+{
+  "text":
+    "<https://git.ahrefs.com/ahrefs/frontend/tree/develop|[frontend:develop]> <https://git.ahrefs.com/ahrefs/frontend/compare/58345344f808...fd09397ab071|1 commit> pushed by <https://git.ahrefs.com/joris|joris>",
+  "attachments": [
+    {
+      "fallback": "Commit pushed notification",
+      "mrkdwn_in": [ "fields" ],
+      "color": "#ccc",
+      "fields": [
+        {
+          "value":
+            "`<https://git.ahrefs.com/ahrefs/frontend/commit/fd09397ab0710f3f88ec16686d2b71ee01edeefa|fd09397a>` eidx: cache opened files - Joris Giovannangeli"
+        }
+      ]
+    }
+  ]
+}
 ===== file ../mock_payloads/push.two_commits.json =====
 will notify #all-push-events
 {
@@ -231,3 +266,6 @@ will notify #all-push-events
 }
 ===== file ../mock_payloads/status.success.json =====
 exception when parsing ../mock_payloads/status.success.json: ("Atdgen_runtime.Oj_run.Error(\"Line 31:\\nMissing record field avatar_url\")")
+===== file ../mock_payloads/status.success1.json =====
+exception when parsing ../mock_payloads/status.success1.json: ("Yojson.Json_error(\"Line 5, bytes 16-49:\\nExpected '\\\"' but found 'null,\\n  \\\"context\\\": \\\"default\\\",\\n  \\\"'\")")
+===== file ../mock_payloads/status.success2.json =====
