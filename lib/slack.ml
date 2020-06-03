@@ -26,14 +26,7 @@ let empty_attachments =
 
 let generate_pull_request_notification notification =
   let { action; number; sender; pull_request } = notification in
-  let ({ body; title; html_url; labels; _ } : pull_request) = pull_request in
-  let fields =
-    match labels with
-    | [] -> []
-    | labels ->
-      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
-      [ { title = Some "Labels"; value } ]
-  in
+  let ({ body; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
     | Opened -> "opened"
@@ -51,30 +44,13 @@ let generate_pull_request_notification notification =
   {
     text = None;
     attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            fallback = summary;
-            color = Some "#ccc";
-            pretext = summary;
-            text = Some body;
-            fields = Some fields;
-          };
-        ];
+      Some [ { empty_attachments with fallback = summary; color = Some "#ccc"; pretext = summary; text = Some body } ];
     blocks = None;
   }
 
 let generate_pr_review_notification notification =
   let { action; sender; pull_request; review } = notification in
-  let ({ user; number; title; html_url; labels; _ } : pull_request) = pull_request in
-  let fields =
-    match labels with
-    | [] -> []
-    | labels ->
-      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
-      [ { title = Some "Labels"; value } ]
-  in
+  let ({ user; number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
     | Submitted ->
@@ -97,30 +73,13 @@ let generate_pr_review_notification notification =
   {
     text = None;
     attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            fallback = summary;
-            color = Some "#ccc";
-            pretext = summary;
-            text = review.body;
-            fields = Some fields;
-          };
-        ];
+      Some [ { empty_attachments with fallback = summary; color = Some "#ccc"; pretext = summary; text = review.body } ];
     blocks = None;
   }
 
 let generate_pr_review_comment_notification notification =
   let { action; pull_request; sender; comment } = notification in
   let ({ user; number; title; html_url; _ } : pull_request) = pull_request in
-  let fields =
-    match pull_request.labels with
-    | [] -> []
-    | labels ->
-      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
-      [ { title = Some "Labels"; value } ]
-  in
   let action_str =
     match action with
     | Created -> "commented"
@@ -152,7 +111,6 @@ let generate_pr_review_comment_notification notification =
             title = file;
             title_link = Some comment.html_url;
             text = Some comment.body;
-            fields = Some fields;
           };
         ];
     blocks = None;
@@ -160,14 +118,7 @@ let generate_pr_review_comment_notification notification =
 
 let generate_issue_notification notification =
   let ({ action; sender; issue } : issue_notification) = notification in
-  let { number; body; title; html_url; labels; _ } = issue in
-  let fields =
-    match labels with
-    | [] -> []
-    | labels ->
-      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
-      [ { title = Some "Labels"; value } ]
-  in
+  let { number; body; title; html_url; _ } = issue in
   let action_str =
     match action with
     | Opened -> "opened"
@@ -185,30 +136,13 @@ let generate_issue_notification notification =
   {
     text = None;
     attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            fallback = summary;
-            color = Some "#ccc";
-            pretext = summary;
-            text = Some body;
-            fields = Some fields;
-          };
-        ];
+      Some [ { empty_attachments with fallback = summary; color = Some "#ccc"; pretext = summary; text = Some body } ];
     blocks = None;
   }
 
 let generate_issue_comment_notification notification =
   let { action; issue; sender; comment } = notification in
-  let { user; number; title; labels; _ } = issue in
-  let fields =
-    match labels with
-    | [] -> []
-    | labels ->
-      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
-      [ { title = Some "Labels"; value } ]
-  in
+  let { user; number; title; _ } = issue in
   let action_str =
     match action with
     | Created -> "commented"
@@ -239,7 +173,6 @@ let generate_issue_comment_notification notification =
             color = Some "#ccc";
             pretext = summary;
             text = Some comment.body;
-            fields = Some fields;
           };
         ];
     blocks = None;
