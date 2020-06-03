@@ -8,8 +8,7 @@ will notify #frontend-bot
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/pr_test/issues/5#issuecomment-633347088|commented> on issue #5 <https://github.com/xinyuluo/pr_test/issues/5|[handle issue event]>",
-      "text": "handle issue comment\r\n",
-      "fields": []
+      "text": "handle issue comment\r\n"
     }
   ]
 }
@@ -23,8 +22,7 @@ will notify #backend
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/pr_test/pull/4#issuecomment-633344303|commented> on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]>",
-      "text": "comment example",
-      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+      "text": "comment example"
     }
   ]
 }
@@ -37,8 +35,7 @@ will notify #aa-git
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/pr_test/pull/4#issuecomment-633344303|commented> on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]>",
-      "text": "comment example",
-      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+      "text": "comment example"
     }
   ]
 }
@@ -55,8 +52,7 @@ will notify #backend
       "pretext":
         "Issue #6 <https://github.com/xinyuluo/pr_test/issues/6|[create a test for issue_notification]> closed by <https://github.com/xinyuluo|xinyuluo>",
       "text":
-        "consider multiple cases including labeled/opened/closed/reopened",
-      "fields": [ { "title": "Labels", "value": "backend" } ]
+        "consider multiple cases including labeled/opened/closed/reopened"
     }
   ]
 }
@@ -71,8 +67,7 @@ will notify #backend
       "pretext":
         "Issue #6 <https://github.com/xinyuluo/pr_test/issues/6|[create a test for issue_notification]> labeled by <https://github.com/xinyuluo|xinyuluo>",
       "text":
-        "consider multiple cases including labeled/opened/closed/reopened",
-      "fields": [ { "title": "Labels", "value": "backend" } ]
+        "consider multiple cases including labeled/opened/closed/reopened"
     }
   ]
 }
@@ -87,8 +82,7 @@ will notify #frontend-bot
       "pretext":
         "Issue #6 <https://github.com/xinyuluo/pr_test/issues/6|[create a test for issue_notification]> opened by <https://github.com/xinyuluo|xinyuluo>",
       "text":
-        "consider multiple cases including labeled/opened/closed/reopened",
-      "fields": []
+        "consider multiple cases including labeled/opened/closed/reopened"
     }
   ]
 }
@@ -103,8 +97,7 @@ will notify #backend
       "pretext":
         "Issue #6 <https://github.com/xinyuluo/pr_test/issues/6|[create a test for issue_notification]> reopened by <https://github.com/xinyuluo|xinyuluo>",
       "text":
-        "consider multiple cases including labeled/opened/closed/reopened",
-      "fields": [ { "title": "Labels", "value": "backend" } ]
+        "consider multiple cases including labeled/opened/closed/reopened"
     }
   ]
 }
@@ -118,8 +111,7 @@ will notify #aa-git
       "color": "#ccc",
       "pretext":
         "Pull request #8 <https://github.com/xinyuluo/pr_test/pull/8|[Update README.md]> closed by <https://github.com/xinyuluo|xinyuluo>",
-      "text": "",
-      "fields": [ { "title": "Labels", "value": "AA" } ]
+      "text": ""
     }
   ]
 }
@@ -133,8 +125,7 @@ will notify #frontend-bot
       "color": "#ccc",
       "pretext":
         "Pull request #2 <https://github.com/xinyuluo/pr_test/pull/2|[Update README.md]> closed by <https://github.com/xinyuluo|xinyuluo>",
-      "text": "",
-      "fields": []
+      "text": ""
     }
   ]
 }
@@ -148,8 +139,7 @@ will notify #backend
       "color": "#ccc",
       "pretext":
         "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
-      "text": "",
-      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+      "text": ""
     }
   ]
 }
@@ -162,8 +152,7 @@ will notify #aa-git
       "color": "#ccc",
       "pretext":
         "Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
-      "text": "",
-      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+      "text": ""
     }
   ]
 }
@@ -177,8 +166,7 @@ will notify #frontend-bot
       "color": "#ccc",
       "pretext":
         "Pull request #3 <https://github.com/xinyuluo/pr_test/pull/3|[Update README.md]> opened by <https://github.com/xinyuluo|xinyuluo>",
-      "text": "",
-      "fields": [ { "title": "Labels", "value": "enhancement" } ]
+      "text": ""
     }
   ]
 }
@@ -193,8 +181,7 @@ will notify #frontend-bot
       "color": "#ccc",
       "pretext":
         "<https://git.ahrefs.com/louis|louis> <https://git.ahrefs.com/louis/test-notabot/pull/6#pullrequestreview-22450|approved> <https://git.ahrefs.com/xinyuluo|xinyuluo>'s pull request #6 <https://git.ahrefs.com/louis/test-notabot/pull/6|[create pr_review_test.md]>",
-      "text": "approve review",
-      "fields": []
+      "text": "approve review"
     }
   ]
 }
@@ -208,8 +195,7 @@ will notify #frontend-bot
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/pr_test/pull/3#pullrequestreview-419921693|commented on> <https://github.com/xinyuluo|xinyuluo>'s pull request #3 <https://github.com/xinyuluo/pr_test/pull/3|[Update README.md]>",
-      "text": "submit a PR review",
-      "fields": [ { "title": "Labels", "value": "enhancement" } ]
+      "text": "submit a PR review"
     }
   ]
 }
@@ -225,8 +211,7 @@ will notify #frontend-bot
       "color": "#ccc",
       "pretext":
         "<https://git.ahrefs.com/louis|louis> <https://git.ahrefs.com/louis/test-notabot/pull/6#pullrequestreview-22451|requested changes on> <https://git.ahrefs.com/xinyuluo|xinyuluo>'s pull request #6 <https://git.ahrefs.com/louis/test-notabot/pull/6|[create pr_review_test.md]>",
-      "text": "request changes review",
-      "fields": []
+      "text": "request changes review"
     }
   ]
 }
@@ -245,8 +230,7 @@ will notify #backend
       "title": "Comment by xinyuluo in README.md",
       "title_link":
         "https://github.com/xinyuluo/pr_test/pull/4#discussion_r429778584",
-      "text": "PR review comment example",
-      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+      "text": "PR review comment example"
     }
   ]
 }
@@ -262,8 +246,7 @@ will notify #aa-git
       "title": "Comment by xinyuluo in README.md",
       "title_link":
         "https://github.com/xinyuluo/pr_test/pull/4#discussion_r429778584",
-      "text": "PR review comment example",
-      "fields": [ { "title": "Labels", "value": "aa, backend" } ]
+      "text": "PR review comment example"
     }
   ]
 }
@@ -307,8 +290,3 @@ will notify #all-push-events
     }
   ]
 }
-===== file ../mock_payloads/status.success.json =====
-exception when parsing ../mock_payloads/status.success.json: ("Atdgen_runtime.Oj_run.Error(\"Line 31:\\nMissing record field avatar_url\")")
-===== file ../mock_payloads/status.success1.json =====
-exception when parsing ../mock_payloads/status.success1.json: ("Yojson.Json_error(\"Line 5, bytes 16-49:\\nExpected '\\\"' but found 'null,\\n  \\\"context\\\": \\\"default\\\",\\n  \\\"'\")")
-===== file ../mock_payloads/status.success2.json =====
