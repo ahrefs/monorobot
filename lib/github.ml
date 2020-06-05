@@ -3,6 +3,8 @@ open Devkit
 open Printf
 open Github_j
 
+let log = Log.from "github"
+
 type t =
   | Push of commit_pushed_notification
   | Pull_request of pr_notification
@@ -10,7 +12,7 @@ type t =
   | PR_review_comment of pr_review_comment_notification
   | Issue of issue_notification
   | Issue_comment of issue_comment_notification
-  | CI_run of ci_build_notification
+  | Status of status_notification
   | Event of string
 
 (* all other events *)
@@ -41,7 +43,7 @@ let parse_exn ~secret headers body =
   | "pull_request_review_comment" -> PR_review_comment (pr_review_comment_notification_of_string body)
   | "issues" -> Issue (issue_notification_of_string body)
   | "issue_comment" -> Issue_comment (issue_comment_notification_of_string body)
-  | "status" -> CI_run (ci_build_notification_of_string body)
+  | "status" -> Status (status_notification_of_string body)
   | ("commit_comment" | "member" | "create" | "delete" | "release") as event -> Event event
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
@@ -49,3 +51,22 @@ let get_commits_branch n =
   match String.split ~on:'/' n.ref with
   | "refs" :: "heads" :: l -> String.concat ~sep:"/" l
   | _ -> n.ref
+
+let query_github_api ~token ~url parse =
+  let headers = [ sprintf "Authorization: token %s" token ] in
+  match%lwt Web.http_request_lwt ~verbose:true ~headers `GET url with
+  | `Error e ->
+    log#error "error while querying github api %s: %s" url e;
+    Lwt.return_none
+  | `Ok s ->
+  try Lwt.return_some (parse s)
+  with exn ->
+    log#error ~exn "impossible to parse github api answer to %s" url;
+    Lwt.return_none
+
+let generate_query_commmit (n : status_notification) =
+  (* the expected output is a payload containing content about commits *)
+  let mytoken = "some_token" in
+  match Lwt_main.run (query_github_api ~token:mytoken ~url:n.commit.url query_commit_of_string) with
+  | None -> invalid_arg (sprintf "Commit Not Found")
+  | Some a -> a

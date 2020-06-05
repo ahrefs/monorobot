@@ -38,9 +38,7 @@ let generate_pull_request_notification notification =
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
            (string_of_pr_action action))
   in
-  let summary =
-    Some (sprintf "Pull request #%d <%s|[%s]> %s by <%s|%s>" number html_url title action_str sender.url sender.login)
-  in
+  let summary = Some (sprintf "Pull request #%d <%s|[%s]> %s by %s" number html_url title action_str sender.login) in
   {
     text = None;
     attachments =
@@ -67,8 +65,8 @@ let generate_pr_review_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|%s> <%s|%s> <%s|%s>'s pull request #%d <%s|[%s]>" sender.url sender.login review.html_url action_str
-         user.url user.login number html_url title)
+      (sprintf "%s <%s|%s> %s's pull request #%d <%s|[%s]>" sender.login review.html_url action_str user.login number
+         html_url title)
   in
   {
     text = None;
@@ -89,9 +87,7 @@ let generate_pr_review_comment_notification notification =
            (string_of_comment_action action))
   in
   let summary =
-    Some
-      (sprintf "<%s|%s> %s on <%s|%s>'s pull request #%d <%s|[%s]>" sender.url sender.login action_str user.url
-         user.login number html_url title)
+    Some (sprintf "%s %s on %s's pull request #%d <%s|[%s]>" sender.login action_str user.login number html_url title)
   in
   let file =
     match comment.path with
@@ -130,9 +126,7 @@ let generate_issue_notification notification =
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
            (string_of_issue_action action))
   in
-  let summary =
-    Some (sprintf "Issue #%d <%s|[%s]> %s by <%s|%s>" number html_url title action_str sender.url sender.login)
-  in
+  let summary = Some (sprintf "Issue #%d <%s|[%s]> %s by %s" number html_url title action_str sender.login) in
   {
     text = None;
     attachments =
@@ -154,13 +148,13 @@ let generate_issue_comment_notification notification =
   in
   let kind =
     match issue.pull_request with
-    | Some _ -> sprintf "<%s|%s>'s pull request" user.url user.login
+    | Some _ -> sprintf "%s's pull request" user.login
     | None -> "issue"
   in
   let summary =
     Some
-      (sprintf "<%s|%s> <%s|%s> on %s #%d <%s|[%s]>" sender.url sender.login comment.html_url action_str kind number
-         issue.html_url title)
+      (sprintf "%s <%s|%s> on %s #%d <%s|[%s]>" sender.login comment.html_url action_str kind number issue.html_url
+         title)
   in
   {
     text = None;
@@ -186,10 +180,9 @@ let generate_push_notification notification =
   let tree_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode commits_branch ] in
   let title =
     if deleted then
-      sprintf "<%s|[%s]> <%s|%s> deleted branch <%s|%s>" tree_url repository.name sender.url sender.login compare
-        commits_branch
+      sprintf "<%s|[%s]> %s deleted branch <%s|%s>" tree_url repository.name sender.login compare commits_branch
     else
-      sprintf "<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby <%s|%s>" tree_url repository.name commits_branch compare
+      sprintf "<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby %s" tree_url repository.name commits_branch compare
         (List.length commits)
         ( match commits with
         | [ _ ] -> ""
@@ -197,7 +190,7 @@ let generate_push_notification notification =
         )
         (if forced then "force-" else "")
         (if created then "to new branch " else "")
-        sender.url sender.login
+        sender.login
   in
   let commits =
     List.map commits ~f:(fun { url; id; message; author; _ } ->
@@ -220,15 +213,38 @@ let generate_push_notification notification =
     blocks = None;
   }
 
-let generate_ci_run_notification (notification : ci_build_notification) =
-  let { commit; state; target_url; description; context; _ } = notification in
-  let { commit : inner_commit; url; sha; author } = commit in
+let generate_status_notification (notification : status_notification) =
+  let { commit; state; description; target_url; context; _ } = notification in
+  let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
-  let title = sprintf "*<%s|CI Build on %s>*" target_url context in
-  let status = sprintf "*Status*: %s" @@ string_of_ci_build_state state in
-  let description = sprintf "*Description*: %s." description in
-  let commit_info = sprintf "*Commit*: `<%s|%s>` - %s" url (git_short_sha_hash sha) message in
+  let state_info =
+    match state with
+    | Success -> "success"
+    | Failure -> "failure"
+    | Error -> "error"
+    | _ ->
+      invalid_arg
+        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
+           (string_of_status_state state))
+  in
+  let color_info =
+    match state with
+    | Success -> "good"
+    | _ -> "danger"
+  in
+  let description_info =
+    match description with
+    | None -> None
+    | Some s -> Some (sprintf "*Description*: %s." s)
+  in
+  let commit_info = sprintf "*Commit*: `<%s|%s>` - %s" html_url (git_short_sha_hash sha) message in
   let author_info = sprintf "*Author*: %s" author.login in
+  let summary =
+    match target_url with
+    | None ->
+      Some (sprintf "CI Build Status notification: %s" state_info) (* in case the CI run is not using buildkite *)
+    | Some t -> Some (sprintf "CI Build Status notification for <%s|%s>: %s" t context state_info)
+  in
   {
     text = None;
     attachments =
@@ -237,16 +253,11 @@ let generate_ci_run_notification (notification : ci_build_notification) =
           {
             empty_attachments with
             mrkdwn_in = Some [ "fields"; "text" ];
-            fallback = Some "CI run notification";
-            color = Some "#ccc";
-            fields =
-              Some
-                [
-                  {
-                    title = None;
-                    value = String.concat ~sep:"\n" @@ [ title; status; description; commit_info; author_info ];
-                  };
-                ];
+            fallback = summary;
+            pretext = summary;
+            color = Some color_info;
+            text = description_info;
+            fields = Some [ { title = None; value = String.concat ~sep:"\n" @@ [ commit_info; author_info ] } ];
           };
         ];
     blocks = None;
