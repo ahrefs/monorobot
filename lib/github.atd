@@ -178,9 +178,9 @@ type inner_commit = {
 type status_commit = {
   sha: commit_hash;
   commit: inner_commit;
-  url <ocaml name="url"> : string;
+  url: string;
   author: user;
-  html_url <ocaml name="html_url"> : string;
+  html_url: string;
 }
 
 type status_notification = {
@@ -188,7 +188,7 @@ type status_notification = {
   commit: status_commit;
   state: status_state;
   ?description: string nullable;
-  ?target_url <ocaml name="target_url">: string nullable;
+  ?target_url: string nullable;
   context: string;
 }
 
@@ -202,7 +202,7 @@ type file = {
   blob_url <ocaml name="url"> : string;
 }
 
-type query_commit = {
+type api_commit = {
   sha: commit_hash;
   commit: inner_commit;
   html_url <ocaml name="url"> : string;

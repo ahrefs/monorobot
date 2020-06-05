@@ -1,4 +1,5 @@
 {
+    "token": "some_token",
     "slack_channels": [
         {
             "url": "https://slack_webhook_url",

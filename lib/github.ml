@@ -52,7 +52,7 @@ let get_commits_branch n =
   | "refs" :: "heads" :: l -> String.concat ~sep:"/" l
   | _ -> n.ref
 
-let query_github_api ~token ~url parse =
+let query_api ~token ~url parse =
   let headers = [ sprintf "Authorization: token %s" token ] in
   match%lwt Web.http_request_lwt ~verbose:true ~headers `GET url with
   | `Error e ->
@@ -64,9 +64,6 @@ let query_github_api ~token ~url parse =
     log#error ~exn "impossible to parse github api answer to %s" url;
     Lwt.return_none
 
-let generate_query_commmit (n : status_notification) =
+let generate_query_commmit cfg (n : status_notification) =
   (* the expected output is a payload containing content about commits *)
-  let mytoken = "some_token" in
-  match Lwt_main.run (query_github_api ~token:mytoken ~url:n.commit.url query_commit_of_string) with
-  | None -> invalid_arg (sprintf "Commit Not Found")
-  | Some a -> a
+  query_api ~token:cfg.Config.token ~url:n.commit.url api_commit_of_string
