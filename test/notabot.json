@@ -1,4 +1,5 @@
 {
+    "offline": "github-api-cache",
     "slack_channels": [
         {
             "url": "https://slack_webhook_url",

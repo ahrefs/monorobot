@@ -113,30 +113,44 @@ let filter_commit rule files = files |> List.exists ~f:(fun file -> touching_com
 
 let partition_commit cfg (n : status_notification) =
   match n.state with
-  | Pending -> []
+  | Pending -> Lwt.return []
   | _ ->
-    let commits = Github.generate_query_commmit n in
-    cfg.prefix_rules
-    |> List.filter_map ~f:(fun rule ->
-         match filter_commit rule commits.files with
-         | false -> None
-         | true -> Some rule.chan)
+    ( match%lwt Github.generate_query_commmit cfg n with
+    | None -> Lwt.return []
+    | Some commit ->
+      cfg.prefix_rules
+      |> List.filter_map ~f:(fun rule ->
+           match filter_commit rule commit.files with
+           | false -> None
+           | true -> Some rule.chan)
+      |> Lwt.return
+    )
 
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
-    partition_push cfg n |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.chan, generate_push_notification n)
+    partition_push cfg n
+    |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.chan, generate_push_notification n)
+    |> Lwt.return
   | Github.Pull_request n ->
-    partition_pr cfg n |> List.map ~f:(fun webhook -> webhook, generate_pull_request_notification n)
+    partition_pr cfg n |> List.map ~f:(fun webhook -> webhook, generate_pull_request_notification n) |> Lwt.return
   | Github.PR_review n ->
-    partition_pr_review cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_notification n)
+    partition_pr_review cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_notification n) |> Lwt.return
   | Github.PR_review_comment n ->
-    partition_pr_review_comment cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_comment_notification n)
-  | Github.Issue n -> partition_issue cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_notification n)
+    partition_pr_review_comment cfg n
+    |> List.map ~f:(fun webhook -> webhook, generate_pr_review_comment_notification n)
+    |> Lwt.return
+  | Github.Issue n ->
+    partition_issue cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_notification n) |> Lwt.return
   | Github.Issue_comment n ->
-    partition_issue_comment cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
-  | Github.Status n -> partition_commit cfg n |> List.map ~f:(fun webhook -> webhook, generate_status_notification n)
-  | _ -> []
+    partition_issue_comment cfg n
+    |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
+    |> Lwt.return
+  | Github.Status n ->
+    let%lwt webhooks = partition_commit cfg n in
+    let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks in
+    Lwt.return notifs
+  | _ -> Lwt.return []
 
 let print_prefix_routing rules =
   let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
