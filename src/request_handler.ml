@@ -8,7 +8,7 @@ let process_github_notification cfg headers body =
   match Github.parse_exn ~secret:cfg.Config.gh_webhook_secret headers body with
   | exception exn -> Exn_lwt.fail ~exn "unable to parse payload"
   | payload ->
-    let notifications = Action.generate_notifications cfg payload in
+    let%lwt notifications = Action.generate_notifications cfg payload in
     Lwt_list.iter_s
       (fun (chan, msg) ->
         let url = Config.Chan_map.find chan cfg.chans in
