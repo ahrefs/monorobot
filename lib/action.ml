@@ -4,7 +4,7 @@ open Base
 open Slack
 open Notabot_t
 open Config
-open Github_t
+open Github_j
 
 let log = Log.from "action"
 
@@ -105,6 +105,23 @@ let partition_pr_review cfg (n : pr_review_notification) =
   | Submitted, _, _ -> partition_label cfg n.pull_request.labels
   | _ -> []
 
+let touching_commit rule filename =
+  let has_prefix s = List.exists ~f:(fun prefix -> String.is_prefix s ~prefix) in
+  (List.is_empty rule.prefix || has_prefix filename rule.prefix) && not (has_prefix filename rule.ignore)
+
+let filter_commit rule files = files |> List.exists ~f:(fun file -> touching_commit rule file.filename)
+
+let partition_commit cfg (n : status_notification) =
+  match n.state with
+  | Pending -> []
+  | _ ->
+    let commits = Github.generate_query_commmit n in
+    cfg.prefix_rules
+    |> List.filter_map ~f:(fun rule ->
+         match filter_commit rule commits.files with
+         | false -> None
+         | true -> Some rule.chan)
+
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
@@ -118,7 +135,7 @@ let generate_notifications cfg req =
   | Github.Issue n -> partition_issue cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_notification n)
   | Github.Issue_comment n ->
     partition_issue_comment cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
-  (*   | CI_run n when Poly.(n.state <> Success) -> [slack_notabot, generate_ci_run_notification n] *)
+  | Github.Status n -> partition_commit cfg n |> List.map ~f:(fun webhook -> webhook, generate_status_notification n)
   | _ -> []
 
 let print_prefix_routing rules =
