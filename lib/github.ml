@@ -64,9 +64,23 @@ let query_github_api ~token ~url parse =
     log#error ~exn "impossible to parse github api answer to %s" url;
     Lwt.return_none
 
-let generate_query_commmit (n : status_notification) =
+let generate_query_commmit cfg (n : status_notification) =
   (* the expected output is a payload containing content about commits *)
   let mytoken = "some_token" in
-  match Lwt_main.run (query_github_api ~token:mytoken ~url:n.commit.url query_commit_of_string) with
-  | None -> invalid_arg (sprintf "Commit Not Found")
-  | Some a -> a
+  match cfg.Config.offline with
+  | None -> query_github_api ~token:mytoken ~url:n.commit.url query_commit_of_string
+  | Some path ->
+    let f = Caml.Filename.concat path n.commit.sha in
+    ( match Caml.Sys.file_exists f with
+    | false ->
+      log#error "unable to find offline file %s" f;
+      Lwt.return_none
+    | true ->
+      Stdio.In_channel.with_file f ~f:(fun ic ->
+        try
+          let content = Stdio.In_channel.input_all ic in
+          Lwt.return_some (query_commit_of_string content)
+        with exn ->
+          log#error ~exn "unable to read offline file %s" f;
+          Lwt.return_none)
+    )

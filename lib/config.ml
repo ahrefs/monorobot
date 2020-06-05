@@ -7,6 +7,7 @@ type t = {
   label_rules : Notabot_t.label_config;
   gh_webhook_secret : string option;
   main_branch_name : string option;
+  offline : string option;
 }
 
 let make (json_config : Notabot_t.config) =
@@ -40,6 +41,7 @@ let make (json_config : Notabot_t.config) =
     label_rules = json_config.label_rules;
     gh_webhook_secret = json_config.gh_webhook_secret;
     main_branch_name = json_config.main_branch_name;
+    offline = json_config.offline;
   }
 
 let load path =

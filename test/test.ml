@@ -11,16 +11,17 @@ let print_notif (chan, msg) =
 let process cfg file =
   Stdio.printf "===== file %s =====\n" file;
   match Mock.kind file with
-  | None -> ()
+  | None -> Lwt.return_unit
   | Some kind ->
     let headers = [ "x-github-event", kind ] in
     ( match Github.parse_exn ~secret:None headers (Stdio.In_channel.read_all file) with
     | exception exn ->
       Stdio.printf "exception when parsing %s: %s\n" file (Exn.to_string exn);
-      ()
+      Lwt.return_unit
     | event ->
-      let notifs = Action.generate_notifications cfg event in
-      List.iter notifs ~f:print_notif
+      let%lwt notifs = Action.generate_notifications cfg event in
+      List.iter notifs ~f:print_notif;
+      Lwt.return_unit
     )
 
 let () =
@@ -29,4 +30,6 @@ let () =
   let jsons = Caml.Sys.readdir mock_dir in
   let jsons = Array.map ~f:(fun p -> Caml.Filename.concat mock_dir p) jsons in
   Array.sort jsons ~compare:String.compare;
-  Array.iter ~f:(process cfg) jsons
+  Lwt_main.run
+    (let jsons = Array.to_list jsons in
+     Lwt_list.iter_s (process cfg) jsons)
