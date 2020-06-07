@@ -1,3 +1,49 @@
+===== file ../mock_payloads/commit_comment.code_embedded.json =====
+will notify #all-push-events
+{
+  "attachments": [
+    {
+      "fallback":
+        "xinyuluo commented on commit `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39729580|cd5b85af>`",
+      "mrkdwn_in": [ "pretext" ],
+      "color": "#ccc",
+      "pretext":
+        "xinyuluo commented on commit `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39729580|cd5b85af>`",
+      "text":
+        "this can be written shorter:\r\n`\r\n| Some serpDomain -> Domain.is_subdomain serpDomain domain\r\n| None -> false\r\n`"
+    }
+  ]
+}
+===== file ../mock_payloads/commit_comment.direct.json =====
+will notify #frontend-bot
+{
+  "attachments": [
+    {
+      "fallback":
+        "xinyuluo commented on commit `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39726328|cd5b85af>`",
+      "mrkdwn_in": [ "pretext" ],
+      "color": "#ccc",
+      "pretext":
+        "xinyuluo commented on commit `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39726328|cd5b85af>`",
+      "text": "add a commit comment"
+    }
+  ]
+}
+===== file ../mock_payloads/commit_comment.on_the_code.json =====
+will notify #all-push-events
+{
+  "attachments": [
+    {
+      "fallback":
+        "xinyuluo commented on commit `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39726325|cd5b85af>`",
+      "mrkdwn_in": [ "pretext" ],
+      "color": "#ccc",
+      "pretext":
+        "xinyuluo commented on commit `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39726325|cd5b85af>`",
+      "text": "add a single comment on the code in a commit"
+    }
+  ]
+}
 ===== file ../mock_payloads/issue_comment.created_in_issue.json =====
 will notify #frontend-bot
 {

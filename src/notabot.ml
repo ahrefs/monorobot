@@ -8,7 +8,7 @@ let log = Log.from "notabot"
 let get_config () =
   let cfg = Config.load "notabot.json" in
   log#info "using prefix routing:";
-  Action.print_prefix_routing cfg.prefix_rules;
+  Action.print_prefix_routing cfg.prefix_rules.rules;
   log#info "using pull request/issue routing:";
   Action.print_label_routing cfg.label_rules.rules;
   cfg

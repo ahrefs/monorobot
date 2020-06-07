@@ -53,7 +53,7 @@ let partition_push cfg n =
          if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
          not skip)
   in
-  cfg.prefix_rules
+  cfg.prefix_rules.rules
   |> List.filter_map ~f:(fun rule ->
        match filter_push rule commits with
        | [] -> None
@@ -105,6 +105,21 @@ let partition_pr_review cfg (n : pr_review_notification) =
   | Submitted, _, _ -> partition_label cfg n.pull_request.labels
   | _ -> []
 
+let touching_commit rule filename =
+  let has_prefix s = List.exists ~f:(fun prefix -> String.is_prefix s ~prefix) in
+  (List.is_empty rule.prefix || has_prefix filename rule.prefix) && not (has_prefix filename rule.ignore)
+
+let partition_commit_comment cfg n =
+  let path = n.comment.path in
+  match path with
+  | None -> Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ])
+  | Some p ->
+    cfg.prefix_rules.rules
+    |> List.filter_map ~f:(fun rule ->
+         match touching_commit rule p with
+         | false -> None
+         | true -> Some rule.chan)
+
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
@@ -118,6 +133,8 @@ let generate_notifications cfg req =
   | Github.Issue n -> partition_issue cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_notification n)
   | Github.Issue_comment n ->
     partition_issue_comment cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
+  | Github.Commit_comment n ->
+    partition_commit_comment cfg n |> List.map ~f:(fun webhook -> webhook, generate_commit_comment_notification n)
   (*   | CI_run n when Poly.(n.state <> Success) -> [slack_notabot, generate_ci_run_notification n] *)
   | _ -> []
 

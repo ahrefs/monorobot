@@ -25,28 +25,31 @@
             "channel": "siren"
         }
     ],
-    "prefix_rules": [
-        {
-            "prefix": [
-                "backend/api"
-            ],
-            "ignore": [],
-            "chan": "aa"
-        },
-        {
-            "prefix": [
-                "backend/megaindex",
-                "backend/ahrefskit"
-            ],
-            "ignore": [],
-            "chan": "backend"
-        },
-        {
-            "prefix": [],
-            "ignore": [],
-            "chan": "all-push-events"
-        }
-    ],
+    "prefix_rules": {
+        "default": "frontend-bot",
+        "rules":[
+            {
+                "prefix": [
+                    "backend/api"
+                ],
+                "ignore": [],
+                "chan": "aa"
+            },
+            {
+                "prefix": [
+                    "backend/megaindex",
+                    "backend/ahrefskit"
+                ],
+                "ignore": [],
+                "chan": "backend"
+            },
+            {
+                "prefix": [],
+                "ignore": [],
+                "chan": "all-push-events"
+            }
+        ]
+    },
     "label_rules": {
         "default": "frontend-bot",
         "rules": [
