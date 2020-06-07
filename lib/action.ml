@@ -4,7 +4,7 @@ open Base
 open Slack
 open Notabot_t
 open Config
-open Github_t
+open Github_j
 
 let log = Log.from "action"
 
@@ -123,20 +123,29 @@ let partition_commit_comment cfg n =
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
-    partition_push cfg n |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.chan, generate_push_notification n)
+    partition_push cfg n
+    |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.chan, generate_push_notification n)
+    |> Lwt.return
   | Github.Pull_request n ->
-    partition_pr cfg n |> List.map ~f:(fun webhook -> webhook, generate_pull_request_notification n)
+    partition_pr cfg n |> List.map ~f:(fun webhook -> webhook, generate_pull_request_notification n) |> Lwt.return
   | Github.PR_review n ->
-    partition_pr_review cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_notification n)
+    partition_pr_review cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_notification n) |> Lwt.return
   | Github.PR_review_comment n ->
-    partition_pr_review_comment cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_comment_notification n)
-  | Github.Issue n -> partition_issue cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_notification n)
+    partition_pr_review_comment cfg n
+    |> List.map ~f:(fun webhook -> webhook, generate_pr_review_comment_notification n)
+    |> Lwt.return
+  | Github.Issue n ->
+    partition_issue cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_notification n) |> Lwt.return
   | Github.Issue_comment n ->
-    partition_issue_comment cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
+    partition_issue_comment cfg n
+    |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
+    |> Lwt.return
   | Github.Commit_comment n ->
-    partition_commit_comment cfg n |> List.map ~f:(fun webhook -> webhook, generate_commit_comment_notification n)
+    partition_commit_comment cfg n
+    |> List.map ~f:(fun webhook -> webhook, generate_commit_comment_notification n)
+    |> Lwt.return
   (*   | CI_run n when Poly.(n.state <> Success) -> [slack_notabot, generate_ci_run_notification n] *)
-  | _ -> []
+  | _ -> Lwt.return []
 
 let print_prefix_routing rules =
   let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in

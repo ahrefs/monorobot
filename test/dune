@@ -1,6 +1,8 @@
 (executable
  (name test)
- (libraries lib))
+ (libraries lib)
+ (preprocess
+   (pps lwt_ppx)))
 
 (rule
  (deps

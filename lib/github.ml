@@ -3,6 +3,8 @@ open Devkit
 open Printf
 open Github_j
 
+let log = Log.from "github"
+
 type t =
   | Push of commit_pushed_notification
   | Pull_request of pr_notification
