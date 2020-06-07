@@ -149,6 +149,7 @@ type comment = {
   body: string;
   html_url: string;
   ?path: string nullable;
+  ?commit_id: string nullable;
 }
 
 type issue_comment_notification = {
@@ -199,4 +200,10 @@ type ci_build_notification = {
   description: string;
   context: string;
   branches: branch list;
+}
+
+type commit_comment_notification = {
+  action: string;
+  comment: comment;
+  sender: user;
 }

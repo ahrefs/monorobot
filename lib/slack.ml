@@ -252,6 +252,33 @@ let generate_ci_run_notification (notification : ci_build_notification) =
     blocks = None;
   }
 
+let generate_commit_comment_notification notification =
+  let { sender; comment; _ } = notification in
+  let commit_id =
+    match comment.commit_id with
+    | None -> invalid_arg "commit id not found"
+    | Some c -> c
+  in
+  let summary =
+    Some (sprintf "%s commented on commit `<%s|%s>`" sender.login comment.html_url (git_short_sha_hash commit_id))
+  in
+  {
+    text = None;
+    attachments =
+      Some
+        [
+          {
+            empty_attachments with
+            mrkdwn_in = Some [ "pretext" ];
+            fallback = summary;
+            color = Some "#ccc";
+            pretext = summary;
+            text = Some comment.body;
+          };
+        ];
+    blocks = None;
+  }
+
 let send_notification webhook_url data =
   let data = Slack_j.string_of_webhook_notification data in
   let body = `Raw ("application/json", data) in

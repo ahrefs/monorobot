@@ -11,6 +11,7 @@ type t =
   | Issue of issue_notification
   | Issue_comment of issue_comment_notification
   | CI_run of ci_build_notification
+  | Commit_comment of commit_comment_notification
   | Event of string
 
 (* all other events *)
@@ -42,7 +43,8 @@ let parse_exn ~secret headers body =
   | "issues" -> Issue (issue_notification_of_string body)
   | "issue_comment" -> Issue_comment (issue_comment_notification_of_string body)
   | "status" -> CI_run (ci_build_notification_of_string body)
-  | ("commit_comment" | "member" | "create" | "delete" | "release") as event -> Event event
+  | "commit_comment" -> Commit_comment (commit_comment_notification_of_string body)
+  | ("member" | "create" | "delete" | "release") as event -> Event event
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
 let get_commits_branch n =
