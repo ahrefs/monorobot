@@ -4,10 +4,10 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on issue #5 <https://github.com/xinyuluo/monorepo/issues/5|[handle issue event]>",
+        "xinyuluo <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on issue #5 <https://github.com/xinyuluo/monorepo/issues/5|[handle issue event]>",
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on issue #5 <https://github.com/xinyuluo/monorepo/issues/5|[handle issue event]>",
+        "xinyuluo <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on issue #5 <https://github.com/xinyuluo/monorepo/issues/5|[handle issue event]>",
       "text": "handle issue comment\r\n"
     }
   ]
@@ -18,10 +18,10 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
       "text": "comment example"
     }
   ]
@@ -31,10 +31,10 @@ will notify #a1-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
       "text": "comment example"
     }
   ]
@@ -47,10 +47,10 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> closed by <https://github.com/xinyuluo|xinyuluo>",
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> closed by xinyuluo",
       "color": "#ccc",
       "pretext":
-        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> closed by <https://github.com/xinyuluo|xinyuluo>",
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> closed by xinyuluo",
       "text":
         "consider multiple cases including labeled/opened/closed/reopened"
     }
@@ -62,10 +62,10 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> labeled by xinyuluo",
       "color": "#ccc",
       "pretext":
-        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> labeled by xinyuluo",
       "text":
         "consider multiple cases including labeled/opened/closed/reopened"
     }
@@ -77,10 +77,10 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> opened by <https://github.com/xinyuluo|xinyuluo>",
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> opened by xinyuluo",
       "color": "#ccc",
       "pretext":
-        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> opened by <https://github.com/xinyuluo|xinyuluo>",
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> opened by xinyuluo",
       "text":
         "consider multiple cases including labeled/opened/closed/reopened"
     }
@@ -92,10 +92,10 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> reopened by <https://github.com/xinyuluo|xinyuluo>",
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> reopened by xinyuluo",
       "color": "#ccc",
       "pretext":
-        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> reopened by <https://github.com/xinyuluo|xinyuluo>",
+        "Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> reopened by xinyuluo",
       "text":
         "consider multiple cases including labeled/opened/closed/reopened"
     }
@@ -107,10 +107,10 @@ will notify #a1-bot
   "attachments": [
     {
       "fallback":
-        "Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|[Update README.md]> closed by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|[Update README.md]> closed by xinyuluo",
       "color": "#ccc",
       "pretext":
-        "Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|[Update README.md]> closed by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|[Update README.md]> closed by xinyuluo",
       "text": ""
     }
   ]
@@ -121,10 +121,10 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by xinyuluo",
       "color": "#ccc",
       "pretext":
-        "Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by xinyuluo",
       "text": ""
     }
   ]
@@ -135,10 +135,10 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
       "color": "#ccc",
       "pretext":
-        "Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
       "text": ""
     }
   ]
@@ -148,10 +148,10 @@ will notify #a1-bot
   "attachments": [
     {
       "fallback":
-        "Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
       "color": "#ccc",
       "pretext":
-        "Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
       "text": ""
     }
   ]
@@ -162,10 +162,10 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]> opened by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]> opened by xinyuluo",
       "color": "#ccc",
       "pretext":
-        "Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]> opened by <https://github.com/xinyuluo|xinyuluo>",
+        "Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]> opened by xinyuluo",
       "text": ""
     }
   ]
@@ -177,10 +177,10 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/Khady|Khady> <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> <https://github.com/xinyuluo|xinyuluo>'s pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+        "Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> xinyuluo's pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
       "color": "#ccc",
       "pretext":
-        "<https://github.com/Khady|Khady> <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> <https://github.com/xinyuluo|xinyuluo>'s pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+        "Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> xinyuluo's pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
       "text": "approve review"
     }
   ]
@@ -191,10 +191,10 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> <https://github.com/xinyuluo|xinyuluo>'s pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]>",
+        "xinyuluo <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> xinyuluo's pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]>",
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo|xinyuluo> <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> <https://github.com/xinyuluo|xinyuluo>'s pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]>",
+        "xinyuluo <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> xinyuluo's pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]>",
       "text": "submit a PR review"
     }
   ]
@@ -207,10 +207,10 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/Khady|Khady> <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> <https://github.com/xinyuluo|xinyuluo>'s pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+        "Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> xinyuluo's pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
       "color": "#ccc",
       "pretext":
-        "<https://github.com/Khady|Khady> <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> <https://github.com/xinyuluo|xinyuluo>'s pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+        "Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> xinyuluo's pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
       "text": "request changes review"
     }
   ]
@@ -223,10 +223,10 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo|xinyuluo> commented on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "xinyuluo commented on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo|xinyuluo> commented on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "xinyuluo commented on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
       "title": "Comment by xinyuluo in README.md",
       "title_link":
         "https://github.com/xinyuluo/monorepo/pull/4#discussion_r0",
@@ -239,10 +239,10 @@ will notify #a1-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo|xinyuluo> commented on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "xinyuluo commented on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo|xinyuluo> commented on <https://github.com/xinyuluo|xinyuluo>'s pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "xinyuluo commented on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
       "title": "Comment by xinyuluo in README.md",
       "title_link":
         "https://github.com/xinyuluo/monorepo/pull/4#discussion_r0",
@@ -252,30 +252,11 @@ will notify #a1-bot
 }
 ===== file ../mock_payloads/pull_request_review_comment.deleted.json =====
 ===== file ../mock_payloads/pull_request_review_comment.edited.json =====
-===== file ../mock_payloads/push.commits2.json =====
-will notify #all-push-events
-{
-  "text":
-    "<https://github.com/ahrefs/monorepo/tree/develop|[frontend:develop]> <https://github.com/ahrefs/monorepo/compare/58345344f808...fd09397ab071|1 commit> pushed by <https://github.com/yasunariw|yasunariw>",
-  "attachments": [
-    {
-      "fallback": "Commit pushed notification",
-      "mrkdwn_in": [ "fields" ],
-      "color": "#ccc",
-      "fields": [
-        {
-          "value":
-            "`<https://github.com/ahrefs/monorepo/commit/fd09397ab0710f3f88ec16686d2b71ee01edeefa|fd09397a>` eidx: cache opened files - Joris Giovannangeli"
-        }
-      ]
-    }
-  ]
-}
 ===== file ../mock_payloads/push.two_commits.json =====
 will notify #all-push-events
 {
   "text":
-    "<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by <https://github.com/thatportugueseguy|thatportugueseguy>",
+    "<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
   "attachments": [
     {
       "fallback": "Commit pushed notification",
@@ -285,6 +266,67 @@ will notify #all-push-events
         {
           "value":
             "`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira"
+        }
+      ]
+    }
+  ]
+}
+===== file ../mock_payloads/status.failure_test.json =====
+will notify #all-push-events
+{
+  "attachments": [
+    {
+      "fallback":
+        "CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: failure",
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "pretext":
+        "CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: failure",
+      "text": "*Description*: Build #2 failed (20 seconds).",
+      "fields": [
+        {
+          "value":
+            "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` - Update README.md\n*Author*: Khady"
+        }
+      ]
+    }
+  ]
+}
+===== file ../mock_payloads/status.pending_test.json =====
+===== file ../mock_payloads/status.success_public_repo_no_buildkite.json =====
+will notify #all-push-events
+{
+  "attachments": [
+    {
+      "fallback": "CI Build Status notification: success",
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "good",
+      "pretext": "CI Build Status notification: success",
+      "fields": [
+        {
+          "value":
+            "*Commit*: `<https://github.com/Codertocat/Hello-World/commit/6113728f27ae82c7b1a177c8d03f9e96e0adf246|6113728f>` - Initial commit\n*Author*: Codertocat"
+        }
+      ]
+    }
+  ]
+}
+===== file ../mock_payloads/status.success_test.json =====
+will notify #all-push-events
+{
+  "attachments": [
+    {
+      "fallback":
+        "CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: success",
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "good",
+      "pretext":
+        "CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: success",
+      "text": "*Description*: Build #2 passed (5 minutes, 19 seconds).",
+      "fields": [
+        {
+          "value":
+            "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` - Update README.md\n*Author*: Khady"
         }
       ]
     }
