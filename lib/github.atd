@@ -24,8 +24,6 @@ type commit = {
 type user = {
   login: string;
   id: int;
-  html_url <ocaml name="url"> : string;
-  avatar_url: string;
 }
 
 type repository = {
@@ -165,38 +163,49 @@ type pr_review_comment_notification = {
   comment: comment;
 }
 
-type branch = {
-  name: string;
-}
-
-type ci_build_state = [
+type status_state = [
   Success <json name="success">
-  | Failed <json name="failure">
-  | Neutral <json name="neutral">
-  | Cancelled <json name="cancelled">
-  | Timed_out <json name="timed_out">
-  | Action_required <json name="action_required">
+  | Failure <json name="failure">
   | Pending <json name="pending">
+  | Error <json name="error">
 ] <ocaml repr="classic">
 
 type inner_commit = {
   author: author;
-  committer: author;
   message: string;
 }
 
-type ci_commit = {
+type status_commit = {
+  sha: commit_hash;
+  commit: inner_commit;
+  url: string;
+  author: user;
+  html_url: string;
+}
+
+type status_notification = {
+  sha: commit_hash;
+  commit: status_commit;
+  state: status_state;
+  ?description: string nullable;
+  ?target_url: string nullable;
+  context: string;
+}
+
+type file = {
+  sha: commit_hash;
+  filename: string;
+  status: string;
+  additions: int;
+  deletions: int;
+  changes: int;
+  blob_url <ocaml name="url"> : string;
+}
+
+type api_commit = {
   sha: commit_hash;
   commit: inner_commit;
   html_url <ocaml name="url"> : string;
   author: user;
-}
-
-type ci_build_notification = {
-  commit: ci_commit;
-  state: ci_build_state;
-  target_url: string;
-  description: string;
-  context: string;
-  branches: branch list;
+  files: file list;
 }

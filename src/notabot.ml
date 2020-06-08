@@ -9,7 +9,7 @@ let get_config () =
   let cfg = Config.load "notabot.json" in
   log#info "using prefix routing:";
   Action.print_prefix_routing cfg.prefix_rules;
-  log#info "using pull request/issue routing:";
+  log#info "using label routing:";
   Action.print_label_routing cfg.label_rules.rules;
   cfg
 
@@ -29,13 +29,19 @@ let check_common file print =
   let cfg = get_config () in
   match Mock.kind file with
   | None ->
-    log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file
+    log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
+    Lwt.return_unit
   | Some kind ->
     let headers = [ "x-github-event", kind ] in
     (* read the event from a file and try to parse it *)
     ( match Github.parse_exn ~secret:None headers (Stdio.In_channel.read_all file) with
-    | exception exn -> log#error ~exn "unable to parse payload"
-    | event -> Action.generate_notifications cfg event |> List.iter ~f:print
+    | exception exn ->
+      log#error ~exn "unable to parse payload";
+      Lwt.return_unit
+    | event ->
+      let%lwt notifs = Action.generate_notifications cfg event in
+      List.iter ~f:print notifs;
+      Lwt.return_unit
     )
 
 let print_simplified_message (chan, msg) =
@@ -56,9 +62,11 @@ let print_json_message (chan, msg) =
   log#info "%s" json
 
 let check file json =
-  match json with
-  | false -> check_common file print_simplified_message
-  | true -> check_common file print_json_message
+  Lwt_main.run
+    ( match json with
+    | false -> check_common file print_simplified_message
+    | true -> check_common file print_json_message
+    )
 
 (** {2 cli} *)
 
