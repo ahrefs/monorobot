@@ -66,4 +66,20 @@ let query_api ~token ~url parse =
 
 let generate_query_commmit cfg (n : status_notification) =
   (* the expected output is a payload containing content about commits *)
-  query_api ~token:cfg.Config.token ~url:n.commit.url api_commit_of_string
+  match cfg.Config.offline with
+  | None -> query_api ~token:cfg.Config.token ~url:n.commit.url api_commit_of_string
+  | Some path ->
+    let f = Caml.Filename.concat path n.commit.sha in
+    ( match Caml.Sys.file_exists f with
+    | false ->
+      log#error "unable to find offline file %s" f;
+      Lwt.return_none
+    | true ->
+      Stdio.In_channel.with_file f ~f:(fun ic ->
+        try
+          let content = Stdio.In_channel.input_all ic in
+          Lwt.return_some (api_commit_of_string content)
+        with exn ->
+          log#error ~exn "unable to read offline file %s" f;
+          Lwt.return_none)
+    )
