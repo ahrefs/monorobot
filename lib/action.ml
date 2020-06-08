@@ -120,6 +120,23 @@ let partition_commit_comment cfg n =
          | false -> None
          | true -> Some rule.chan)
 
+let filter_commit rule files = files |> List.exists ~f:(fun file -> touching_commit rule file.filename)
+
+let partition_commit cfg (n : status_notification) =
+  match n.state with
+  | Pending -> Lwt.return []
+  | _ ->
+    ( match%lwt Github.generate_query_commmit cfg n with
+    | None -> Lwt.return []
+    | Some commit ->
+      cfg.prefix_rules.rules
+      |> List.filter_map ~f:(fun rule ->
+           match filter_commit rule commit.files with
+           | false -> None
+           | true -> Some rule.chan)
+      |> Lwt.return
+    )
+
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
@@ -144,7 +161,10 @@ let generate_notifications cfg req =
     partition_commit_comment cfg n
     |> List.map ~f:(fun webhook -> webhook, generate_commit_comment_notification n)
     |> Lwt.return
-  (*   | CI_run n when Poly.(n.state <> Success) -> [slack_notabot, generate_ci_run_notification n] *)
+  | Github.Status n ->
+    let%lwt webhooks = partition_commit cfg n in
+    let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks in
+    Lwt.return notifs
   | _ -> Lwt.return []
 
 let print_prefix_routing rules =

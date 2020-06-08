@@ -2,11 +2,12 @@
  (name test)
  (libraries lib)
  (preprocess
-   (pps lwt_ppx)))
+  (pps lwt_ppx)))
 
 (rule
  (deps
   (source_tree ../mock_payloads)
+  (source_tree github-api-cache)
   notabot.json)
  (action
   (with-stdout-to

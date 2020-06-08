@@ -57,4 +57,6 @@ type config = {
   label_rules : label_config;
   ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
   ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)
+  token: string;
+  ?offline: string option; (* where to find github api data when http calls are not allowed *)
 }
