@@ -46,14 +46,10 @@ let filter_push rules commit =
     | true -> Some (rule.chan, commit))
 
 let group_commit webhook l =
-  List.filter_map l ~f:(fun e ->
-    match e with
-    | chan, commit ->
-      let filter = String.equal webhook chan in
-      ( match filter with
-      | false -> None
-      | true -> Some commit
-      ))
+  List.filter_map l ~f:(fun (chan, commit) ->
+    match String.equal webhook chan with
+    | false -> None
+    | true -> Some commit)
 
 let partition_push cfg n =
   let default commit = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook, commit ]) in
@@ -173,25 +169,20 @@ let partition_status cfg (n : status_notification) =
   match n.state with
   | Pending -> Lwt.return []
   | _ ->
-    ( match%lwt Github.generate_query_commmit cfg n.commit.url n.commit.sha with
+    ( match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
     | None ->
-      Lwt.return []
-      (* return [] here because this case happens when the path is unavailable and
-         the commit cannot be queried via api. an error messege will be generated,
-         and thus the bot should not notify any channels *)
+      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+      Lwt.return default
     | Some commit -> Lwt.return (partition_commit cfg commit.files)
     )
 
 let partition_commit_comment cfg n =
-  let%lwt commit = Github.generate_commit_from_commit_comment cfg n in
   match n.comment.path with
   | None ->
-    ( match commit with
+    ( match%lwt Github.generate_commit_from_commit_comment cfg n with
     | None ->
-      Lwt.return []
-      (* return [] here because this case happens when the path is unavailable and
-         the commit cannot be queried via api. an error messege will be generated,
-         and notabot should not notify any channels *)
+      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+      Lwt.return default
     | Some commit -> Lwt.return (partition_commit cfg commit.files)
     )
   | Some p ->
@@ -200,80 +191,6 @@ let partition_commit_comment cfg n =
     let notifs = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
     Lwt.return notifs
   | l -> Lwt.return l
-
-(*
-let filter_commit rule files = files |> List.exists ~f:(fun file -> touching_prefix rule file.filename)
-
-let partition_commit_comment cfg (n : commit_comment_notification) =
-  let url = n.repository.commits_url in
-  let url_length = String.length url - 6 in
-  (* remove {\sha} from the string *)
-  let sha =
-    match n.comment.commit_id with
-    | None ->
-      log#error "unable to find commit id for this commit comment event";
-      ""
-    | Some id -> id
-  in
-  let commit_url = String.sub ~pos:0 ~len:url_length url ^ "/" ^ sha in
-  (* add sha hash to get the full api link *)
-  let path = n.comment.path in
-  let%lwt commit = Github.generate_query_commmit cfg commit_url sha in
-  let chan_sub =
-    match path with
-    | None ->
-      ( match commit with
-      | None -> []
-      | Some commit ->
-        cfg.prefix_rules.rules
-        |> List.filter_map ~f:(fun rule ->
-             match filter_commit rule commit.files with
-             | false -> None
-             | true -> Some rule.chan)
-      )
-    | Some p ->
-      cfg.prefix_rules.rules
-      |> List.filter_map ~f:(fun rule ->
-           match touching_prefix rule p with
-           | false -> None
-           | true -> Some rule.chan)
-  in
-  match commit, chan_sub with
-  | None, _ ->
-    Lwt.return []
-    (* return [] here because this case happens when the path is unavailable and
-       the commit cannot be queried via api. an error messege will be generated,
-       and thus the bot should not notify any channels *)
-  | _, [] ->
-    let notifs = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-    Lwt.return notifs
-  | _, l -> Lwt.return l
-
-let partition_commit cfg (n : status_notification) =
-  match n.state with
-  | Pending -> Lwt.return []
-  | _ ->
-    ( match%lwt Github.generate_query_commmit cfg n.commit.url n.commit.sha with
-    | None ->
-      Lwt.return []
-      (* return [] here because this case happens when the path is unavailable and
-         the commit cannot be queried via api. an error messege will be generated,
-         and thus the bot should not notify any channels *)
-    | Some commit ->
-      let chan_sub =
-        cfg.prefix_rules.rules
-        |> List.filter_map ~f:(fun rule ->
-             match filter_commit rule commit.files with
-             | false -> None
-             | true -> Some rule.chan)
-      in
-      ( match chan_sub with
-      | [] ->
-        let notifs = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-        Lwt.return notifs
-      | l -> Lwt.return l
-      )
-    )*)
 
 let generate_notifications cfg req =
   match req with
@@ -295,7 +212,8 @@ let generate_notifications cfg req =
     |> Lwt.return
   | Github.Commit_comment n ->
     let%lwt webhooks = partition_commit_comment cfg n in
-    let notifs = List.map ~f:(fun webhook -> webhook, generate_commit_comment_notification cfg n) webhooks in
+    let%lwt notif = generate_commit_comment_notification cfg n in
+    let notifs = List.map ~f:(fun webhook -> webhook, notif) webhooks in
     Lwt.return notifs
   | Github.Status n ->
     let%lwt webhooks = partition_status cfg n in

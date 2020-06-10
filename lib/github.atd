@@ -28,6 +28,7 @@ type user = {
 
 type repository = {
   name: string;
+  full_name: string;
   html_url <ocaml name="url"> : string;
   commits_url: string;
 }
@@ -66,7 +67,7 @@ type issue = {
   title: string;
   html_url: string;
   labels: label list;
-  ?pull_request: basic_json nullable
+  ?pull_request: basic_json nullable;
 }
 
 type pr_action = [
@@ -116,6 +117,7 @@ type pr_notification = {
   number: int;
   sender: user;
   pull_request: pull_request;
+  repository: repository;
 }
 
 type review = {
@@ -129,12 +131,14 @@ type pr_review_notification = {
   sender: user;
   pull_request: pull_request;
   review: review;
+  repository: repository;
 }
 
 type issue_notification = {
   action: issue_action;
   sender: user;
   issue: issue;
+  repository: repository;
 }
 
 type comment_action = [
@@ -156,6 +160,7 @@ type issue_comment_notification = {
   issue: issue;
   sender: user;
   comment: comment;
+  repository: repository;
 }
 
 type pr_review_comment_notification = {
@@ -163,6 +168,7 @@ type pr_review_comment_notification = {
   pull_request: pull_request;
   sender: user;
   comment: comment;
+  repository: repository;
 }
 
 type status_state = [
@@ -192,6 +198,7 @@ type status_notification = {
   ?description: string nullable;
   ?target_url: string nullable;
   context: string;
+  repository: repository;
 }
 
 type file = {
