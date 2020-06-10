@@ -28,7 +28,7 @@
         }
     ],
     "prefix_rules": {
-        "default": "frontend-bot",
+        "default": "default",
         "rules":[
             {
                 "prefix": [
@@ -53,7 +53,7 @@
         ]
     },
     "label_rules": {
-        "default": "frontend-bot",
+        "default": "default",
         "rules": [
             {
                 "label_name": [

@@ -56,7 +56,7 @@ let get_commits_branch n =
 
 let query_api ~token ~url parse =
   let headers = [ sprintf "Authorization: token %s" token ] in
-  match%lwt Web.http_request_lwt ~verbose:true ~headers `GET url with
+  match%lwt Web.http_request_lwt ~ua:"notabot" ~verbose:true ~headers `GET url with
   | `Error e ->
     log#error "error while querying github api %s: %s" url e;
     Lwt.return_none
@@ -66,12 +66,12 @@ let query_api ~token ~url parse =
     log#error ~exn "impossible to parse github api answer to %s" url;
     Lwt.return_none
 
-let generate_query_commmit cfg (n : status_notification) =
+let generate_query_commmit cfg url sha =
   (* the expected output is a payload containing content about commits *)
   match cfg.Config.offline with
-  | None -> query_api ~token:cfg.Config.token ~url:n.commit.url api_commit_of_string
+  | None -> query_api ~token:cfg.Config.token ~url api_commit_of_string
   | Some path ->
-    let f = Caml.Filename.concat path n.commit.sha in
+    let f = Caml.Filename.concat path sha in
     ( match Caml.Sys.file_exists f with
     | false ->
       log#error "unable to find offline file %s" f;

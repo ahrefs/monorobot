@@ -1,5 +1,20 @@
+===== file ../mock_payloads/commit_comment.different_author.json =====
+will notify #all-push-events
+{
+  "attachments": [
+    {
+      "fallback":
+        "xinyuluo commented on commit `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-0|0d95302a>`",
+      "mrkdwn_in": [ "pretext", "text" ],
+      "color": "#ccc",
+      "pretext":
+        "xinyuluo commented on commit `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-0|0d95302a>`",
+      "text": "comment here"
+    }
+  ]
+}
 ===== file ../mock_payloads/commit_comment.general_comment.json =====
-will notify #frontend-bot
+will notify #all-push-events
 {
   "attachments": [
     {
@@ -29,6 +44,21 @@ will notify #all-push-events
     }
   ]
 }
+===== file ../mock_payloads/commit_comment.multiple_paths.json =====
+will notify #all-push-events
+{
+  "attachments": [
+    {
+      "fallback":
+        "xinyuluo commented on commit `<https://github.com/xinyuluo/monorepo/commit/41dad1d3d41f329f00836f166a7103a262e69889#commitcomment-0|41dad1d3>`",
+      "mrkdwn_in": [ "pretext", "text" ],
+      "color": "#ccc",
+      "pretext":
+        "xinyuluo commented on commit `<https://github.com/xinyuluo/monorepo/commit/41dad1d3d41f329f00836f166a7103a262e69889#commitcomment-0|41dad1d3>`",
+      "text": "make a comment"
+    }
+  ]
+}
 ===== file ../mock_payloads/commit_comment.short_comment.json =====
 will notify #all-push-events
 {
@@ -45,7 +75,7 @@ will notify #all-push-events
   ]
 }
 ===== file ../mock_payloads/issue_comment.created_in_issue.json =====
-will notify #frontend-bot
+will notify #default
 {
   "attachments": [
     {
@@ -59,7 +89,7 @@ will notify #frontend-bot
   ]
 }
 ===== file ../mock_payloads/issue_comment.created_in_pr.json =====
-will notify #backend
+will notify #a1-bot
 {
   "attachments": [
     {
@@ -72,7 +102,7 @@ will notify #backend
     }
   ]
 }
-will notify #a1-bot
+will notify #backend
 {
   "attachments": [
     {
@@ -133,7 +163,7 @@ will notify #backend
   ]
 }
 ===== file ../mock_payloads/issues.opened.json =====
-will notify #frontend-bot
+will notify #default
 {
   "attachments": [
     {
@@ -177,7 +207,7 @@ will notify #a1-bot
   ]
 }
 ===== file ../mock_payloads/pull_request.closed_no_labels.json =====
-will notify #frontend-bot
+will notify #default
 {
   "attachments": [
     {
@@ -191,7 +221,7 @@ will notify #frontend-bot
   ]
 }
 ===== file ../mock_payloads/pull_request.labeled_two_labels.json =====
-will notify #backend
+will notify #a1-bot
 {
   "attachments": [
     {
@@ -204,7 +234,7 @@ will notify #backend
     }
   ]
 }
-will notify #a1-bot
+will notify #backend
 {
   "attachments": [
     {
@@ -233,7 +263,7 @@ will notify #frontend-bot
 }
 ===== file ../mock_payloads/pull_request.review_requested_one_label.json =====
 ===== file ../mock_payloads/pull_request_review.approved.json =====
-will notify #frontend-bot
+will notify #default
 {
   "attachments": [
     {
@@ -263,7 +293,7 @@ will notify #frontend-bot
 ===== file ../mock_payloads/pull_request_review.dismissed.json =====
 ===== file ../mock_payloads/pull_request_review.edited.json =====
 ===== file ../mock_payloads/pull_request_review.request_changes.json =====
-will notify #frontend-bot
+will notify #default
 {
   "attachments": [
     {
@@ -279,7 +309,7 @@ will notify #frontend-bot
 ===== file ../mock_payloads/pull_request_review.submitted_no_comment.json =====
 ===== file ../mock_payloads/pull_request_review.submitted_null_body.json =====
 ===== file ../mock_payloads/pull_request_review_comment.created.json =====
-will notify #backend
+will notify #a1-bot
 {
   "attachments": [
     {
@@ -295,7 +325,7 @@ will notify #backend
     }
   ]
 }
-will notify #a1-bot
+will notify #backend
 {
   "attachments": [
     {

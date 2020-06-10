@@ -29,6 +29,7 @@ type user = {
 type repository = {
   name: string;
   html_url <ocaml name="url"> : string;
+  commits_url: string;
 }
 
 type commit_pushed_notification = {
@@ -213,6 +214,7 @@ type api_commit = {
 
 type commit_comment_notification = {
   action: string;
+  repository: repository;
   comment: comment;
   sender: user;
 }
