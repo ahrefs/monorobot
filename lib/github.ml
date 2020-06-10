@@ -66,7 +66,7 @@ let query_api ~token ~url parse =
     log#error ~exn "impossible to parse github api answer to %s" url;
     Lwt.return_none
 
-let generate_query_commmit cfg url sha =
+let generate_query_commmit cfg ~url ~sha =
   (* the expected output is a payload containing content about commits *)
   match cfg.Config.offline with
   | None -> query_api ~token:cfg.Config.token ~url api_commit_of_string
@@ -99,4 +99,4 @@ let generate_commit_from_commit_comment cfg n =
   in
   let commit_url = String.sub ~pos:0 ~len:url_length url ^ "/" ^ sha in
   (* add sha hash to get the full api link *)
-  generate_query_commmit cfg commit_url sha
+  generate_query_commmit cfg ~url:commit_url ~sha

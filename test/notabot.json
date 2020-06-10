@@ -4,6 +4,10 @@
     "slack_channels": [
         {
             "url": "https://slack_webhook_url",
+            "channel": "default"
+        },
+        {
+            "url": "https://slack_webhook_url",
             "channel": "a1"
         },
         {
