@@ -182,20 +182,8 @@ let partition_status cfg (n : status_notification) =
     | Some commit -> Lwt.return (partition_commit cfg commit.files)
     )
 
-let partition_commit_comment cfg (n : commit_comment_notification) =
-  let url = n.repository.commits_url in
-  let url_length = String.length url - 6 in
-  (* remove {\sha} from the string *)
-  let sha =
-    match n.comment.commit_id with
-    | None ->
-      log#error "unable to find commit id for this commit comment event";
-      ""
-    | Some id -> id
-  in
-  let commit_url = String.sub ~pos:0 ~len:url_length url ^ "/" ^ sha in
-  (* add sha hash to get the full api link *)
-  let%lwt commit = Github.generate_query_commmit cfg commit_url sha in
+let partition_commit_comment cfg n =
+  let%lwt commit = Github.generate_commit_from_commit_comment cfg n in
   match n.comment.path with
   | None ->
     ( match commit with
@@ -307,7 +295,7 @@ let generate_notifications cfg req =
     |> Lwt.return
   | Github.Commit_comment n ->
     let%lwt webhooks = partition_commit_comment cfg n in
-    let notifs = List.map ~f:(fun webhook -> webhook, generate_commit_comment_notification n) webhooks in
+    let notifs = List.map ~f:(fun webhook -> webhook, generate_commit_comment_notification cfg n) webhooks in
     Lwt.return notifs
   | Github.Status n ->
     let%lwt webhooks = partition_status cfg n in
