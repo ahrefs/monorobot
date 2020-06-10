@@ -23,7 +23,7 @@ let send_slack_notification webhook file =
   let data = Stdio.In_channel.read_all file in
   match Slack_j.webhook_notification_of_string data with
   | exception exn -> log#error ~exn "unable to parse notification"
-  | data -> Lwt_main.run (Slack.send_notification webhook data)
+  | data -> Lwt_main.run (Slack.send_notification webhook (Lwt.return data))
 
 let check_common file print =
   let cfg = get_config () in
@@ -40,26 +40,28 @@ let check_common file print =
       Lwt.return_unit
     | event ->
       let%lwt notifs = Action.generate_notifications cfg event in
-      List.iter ~f:print notifs;
-      Lwt.return_unit
+      Lwt_list.iter_s print notifs
     )
 
 let print_simplified_message (chan, msg) =
   (* In check mode, instead of actually sending the message to slack, we
      simply print it in the console *)
-  log#info "will notify %s%s" chan
-    ( match msg.Slack_t.text with
-    | None -> ""
-    | Some s -> Printf.sprintf " with %S" s
-    )
+  let%lwt msg = msg in
+  Lwt.return
+    (log#info "will notify %s%s" chan
+       ( match msg.Slack_t.text with
+       | None -> ""
+       | Some s -> Printf.sprintf " with %S" s
+       ))
 
 let print_json_message (chan, msg) =
+  let%lwt msg = msg in
   let json = Slack_j.string_of_webhook_notification msg in
   log#info "will notify %s" chan;
   let url = Uri.of_string "https://api.slack.com/docs/messages/builder" in
   let url = Uri.add_query_param url ("msg", [ json ]) in
   log#info "%s" (Uri.to_string url);
-  log#info "%s" json
+  Lwt.return (log#info "%s" json)
 
 let check file json =
   Lwt_main.run

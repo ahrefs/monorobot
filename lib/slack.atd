@@ -18,6 +18,7 @@ type webhook_notification_attachment = {
   ?image_url: string nullable;
   ?thumb_url: string nullable;
   ?ts: int nullable;
+  ?footer: string nullable;
 }
 
 type notification_section_block_type = [

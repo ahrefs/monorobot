@@ -85,3 +85,18 @@ let generate_query_commmit cfg url sha =
           log#error ~exn "unable to read offline file %s" f;
           Lwt.return_none)
     )
+
+let generate_commit_from_commit_comment cfg n =
+  let url = n.repository.commits_url in
+  let url_length = String.length url - 6 in
+  (* remove {\sha} from the string *)
+  let sha =
+    match n.comment.commit_id with
+    | None ->
+      log#error "unable to find commit id for this commit comment event";
+      ""
+    | Some id -> id
+  in
+  let commit_url = String.sub ~pos:0 ~len:url_length url ^ "/" ^ sha in
+  (* add sha hash to get the full api link *)
+  generate_query_commmit cfg commit_url sha
