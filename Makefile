@@ -6,7 +6,7 @@ start:
 	dune exec -- ./src/notabot.exe
 
 build:
-	dune build
+	dune build src/notabot.exe
 
 test:
 	dune runtest
