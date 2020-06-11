@@ -1,0 +1,110 @@
+{
+  "sha": "41dad1d3d41f329f00836f166a7103a262e69889",
+  "node_id": "MDY6Q29tbWl0MjY1NzQxMzQ4OjQxZGFkMWQzZDQxZjMyOWYwMDgzNmYxNjZhNzEwM2EyNjJlNjk4ODk=",
+  "commit": {
+    "author": {
+      "name": "Xinyu Luo",
+      "email": "xinyu.luo@ahrefs.com",
+      "date": "2020-06-08T09:55:09Z"
+    },
+    "committer": {
+      "name": "Xinyu Luo",
+      "email": "xinyu.luo@ahrefs.com",
+      "date": "2020-06-08T09:55:09Z"
+    },
+    "message": "make changes in 2 files",
+    "tree": {
+      "sha": "22393b31025471050fe5ebffe1ca92963416cb9f",
+      "url": "https://api.github.com/repos/xinyuluo/pr_test/git/trees/22393b31025471050fe5ebffe1ca92963416cb9f"
+    },
+    "url": "https://api.github.com/repos/xinyuluo/pr_test/git/commits/41dad1d3d41f329f00836f166a7103a262e69889",
+    "comment_count": 1,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null
+    }
+  },
+  "url": "https://api.github.com/repos/xinyuluo/pr_test/commits/41dad1d3d41f329f00836f166a7103a262e69889",
+  "html_url": "https://github.com/xinyuluo/pr_test/commit/41dad1d3d41f329f00836f166a7103a262e69889",
+  "comments_url": "https://api.github.com/repos/xinyuluo/pr_test/commits/41dad1d3d41f329f00836f166a7103a262e69889/comments",
+  "author": {
+    "login": "xinyuluo",
+    "id": 25223376,
+    "node_id": "MDQ6VXNlcjI1MjIzMzc2",
+    "avatar_url": "https://avatars0.githubusercontent.com/u/25223376?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/xinyuluo",
+    "html_url": "https://github.com/xinyuluo",
+    "followers_url": "https://api.github.com/users/xinyuluo/followers",
+    "following_url": "https://api.github.com/users/xinyuluo/following{/other_user}",
+    "gists_url": "https://api.github.com/users/xinyuluo/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/xinyuluo/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/xinyuluo/subscriptions",
+    "organizations_url": "https://api.github.com/users/xinyuluo/orgs",
+    "repos_url": "https://api.github.com/users/xinyuluo/repos",
+    "events_url": "https://api.github.com/users/xinyuluo/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/xinyuluo/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "xinyuluo",
+    "id": 25223376,
+    "node_id": "MDQ6VXNlcjI1MjIzMzc2",
+    "avatar_url": "https://avatars0.githubusercontent.com/u/25223376?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/xinyuluo",
+    "html_url": "https://github.com/xinyuluo",
+    "followers_url": "https://api.github.com/users/xinyuluo/followers",
+    "following_url": "https://api.github.com/users/xinyuluo/following{/other_user}",
+    "gists_url": "https://api.github.com/users/xinyuluo/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/xinyuluo/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/xinyuluo/subscriptions",
+    "organizations_url": "https://api.github.com/users/xinyuluo/orgs",
+    "repos_url": "https://api.github.com/users/xinyuluo/repos",
+    "events_url": "https://api.github.com/users/xinyuluo/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/xinyuluo/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "a5dcbfdafb3d4f5ed23fdc27d04a451ebca650a3",
+      "url": "https://api.github.com/repos/xinyuluo/pr_test/commits/a5dcbfdafb3d4f5ed23fdc27d04a451ebca650a3",
+      "html_url": "https://github.com/xinyuluo/pr_test/commit/a5dcbfdafb3d4f5ed23fdc27d04a451ebca650a3"
+    }
+  ],
+  "stats": {
+    "total": 39,
+    "additions": 18,
+    "deletions": 21
+  },
+  "files": [
+    {
+      "sha": "29ea67e12ffe6b54e6d751138a6aa407f0dc9a29",
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "blob_url": "https://github.com/xinyuluo/pr_test/blob/41dad1d3d41f329f00836f166a7103a262e69889/README.md",
+      "raw_url": "https://github.com/xinyuluo/pr_test/raw/41dad1d3d41f329f00836f166a7103a262e69889/README.md",
+      "contents_url": "https://api.github.com/repos/xinyuluo/pr_test/contents/README.md?ref=41dad1d3d41f329f00836f166a7103a262e69889",
+      "patch": "@@ -33,3 +33,4 @@ To display the list of options for the application, simply run:\n \n ### Ongoing Work\n This application currently works for sequential sessions (i.e., only one client connection at a time, and other incoming clients need to wait for the current one to finish). We will work on allowing the server to handle multiple concurrent sessions at the same time.\n+1111111"
+    },
+    {
+      "sha": "103b78e0749ce835869239a7840d21bb14c92bcb",
+      "filename": "runner/chat.ml",
+      "status": "modified",
+      "additions": 17,
+      "deletions": 21,
+      "changes": 38,
+      "blob_url": "https://github.com/xinyuluo/pr_test/blob/41dad1d3d41f329f00836f166a7103a262e69889/runner/chat.ml",
+      "raw_url": "https://github.com/xinyuluo/pr_test/raw/41dad1d3d41f329f00836f166a7103a262e69889/runner/chat.ml",
+      "contents_url": "https://api.github.com/repos/xinyuluo/pr_test/contents/runner/chat.ml?ref=41dad1d3d41f329f00836f166a7103a262e69889",
+      "patch": "@@ -8,10 +8,6 @@ type message =\n   | Text of textMessage\n   | Trip of tripMessage\n \n-(* -------------------- *)\n-(* Command line options *)\n-(* -------------------- *)\n-\n let mode = ref \"server\"\n let host = ref (gethostname ())\n let port = ref 1111\n@@ -24,16 +20,16 @@ let get_host () =\n   let record = gethostbyname !host in\n   record.Unix.h_addr_list.(0)\n \n-let get_port () = \n+let get_port () =\n   !port\n \n let get_end_point () =\n   ADDR_INET (get_host (), get_port ())\n \n-let build_text_message text time = \n+let build_text_message text time =\n   { text = text; time = time }\n \n-let build_trip_message time = \n+let build_trip_message time =\n   { trip = time }\n \n (* ------ *)\n@@ -43,17 +39,17 @@ let build_trip_message time =\n module Client =\n   struct\n     let client_setup () =\n-      let sockaddr = get_end_point () in \n+      let sockaddr = get_end_point () in\n       let domain = domain_of_sockaddr sockaddr in\n       let sock = socket domain SOCK_STREAM 0 in\n       try\n-        connect sock sockaddr; \n+        connect sock sockaddr;\n         print_endline \"Connected to server. What can I do for you?\";\n         sock\n       with\n-      | Not_found -> \n+      | Not_found ->\n         print_endline \"Host not found.\";\n-        close sock; \n+        close sock;\n         raise Not_found\n \n     let client_send (i, o) =\n@@ -66,13 +62,13 @@ module Client =\n         done\n       with\n       | Exit -> exit 0\n-    \n+\n     let client_process (i, o) =\n       try\n         while true do\n           let m = input_value i in\n           match m with\n-          | Trip msg -> \n+          | Trip msg ->\n             print_endline (sprintf \"] Message received. Round-trip time: %fs\" (gettimeofday () -. msg.trip));\n           | Text msg ->\n             print_endline (sprintf \"Server response: %s\" msg.text);\n@@ -103,7 +99,7 @@ module Client =\n module Server =\n   struct\n     let server_setup () =\n-      let sockaddr = get_end_point () in \n+      let sockaddr = get_end_point () in\n       let domain = domain_of_sockaddr sockaddr in\n       let sock = socket domain SOCK_STREAM 0 in\n       let sockad = get_end_point () in\n@@ -115,15 +111,15 @@ module Server =\n         sock\n       with Not_found ->\n         print_endline \"Unable to create server.\";\n-        close sock; \n+        close sock;\n         raise Not_found\n \n     let server_process (i, o) =\n       try\n         while true do\n           let m = input_value i in\n           match m with\n-          | Trip msg -> \n+          | Trip msg ->\n             print_endline (sprintf \"] Message received. Round-trip time: %fs\" (gettimeofday () -. msg.trip));\n           | Text msg ->\n             print_endline (sprintf \"Client request: %s\" msg.text);\n@@ -161,24 +157,24 @@ module Server =\n let set_mode s =\n   mode := s\n \n-let usage = \n+let usage =\n   \"Usage: chat [-host <host>] [-port <port>] [-mode <client|server>]\"\n \n let args = [\n   (\"-host\", Arg.Set_string host, \"The hostname to connect to: default localhost\")\n-; (\"-port\", Arg.Set_int port, \"The port to connect to: default 8889\")  \n+; (\"-port\", Arg.Set_int port, \"The port to connect to: default 8889\")\n ; (\"-mode\", Arg.Symbol ([\"client\"; \"server\"], set_mode), \" default server\")\n ]\n \n let init () =\n   match !mode with\n-  | \"server\" -> \n+  | \"server\" ->\n     print_endline \"Running in server mode.\";\n     Server.run ()\n-  | \"client\" -> \n+  | \"client\" ->\n     print_endline \"Running in client mode.\";\n     Client.run ()\n-  | _ -> \n+  | _ ->\n     print_endline \"Unrecognized command\"\n \n let _ ="
+    }
+  ]
+}

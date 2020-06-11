@@ -22,10 +22,11 @@ let empty_attachments =
     image_url = None;
     thumb_url = None;
     ts = None;
+    footer = None;
   }
 
 let generate_pull_request_notification notification =
-  let { action; number; sender; pull_request } = notification in
+  let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
@@ -38,16 +39,30 @@ let generate_pull_request_notification notification =
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
            (string_of_pr_action action))
   in
-  let summary = Some (sprintf "Pull request #%d <%s|[%s]> %s by %s" number html_url title action_str sender.login) in
+  let summary =
+    Some
+      (sprintf "<%s|[%s]> Pull request #%d <%s|[%s]> %s by %s" repository.url repository.full_name number html_url title
+         action_str sender.login)
+  in
   {
     text = None;
     attachments =
-      Some [ { empty_attachments with fallback = summary; color = Some "#ccc"; pretext = summary; text = Some body } ];
+      Some
+        [
+          {
+            empty_attachments with
+            mrkdwn_in = Some [ "text" ];
+            fallback = summary;
+            color = Some "#ccc";
+            pretext = summary;
+            text = Some body;
+          };
+        ];
     blocks = None;
   }
 
 let generate_pr_review_notification notification =
-  let { action; sender; pull_request; review } = notification in
+  let { action; sender; pull_request; review; repository } = notification in
   let ({ user; number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
@@ -65,18 +80,28 @@ let generate_pr_review_notification notification =
   in
   let summary =
     Some
-      (sprintf "%s <%s|%s> %s's pull request #%d <%s|[%s]>" sender.login review.html_url action_str user.login number
-         html_url title)
+      (sprintf "<%s|[%s]> %s <%s|%s> %s's pull request #%d <%s|[%s]>" repository.url repository.full_name sender.login
+         review.html_url action_str user.login number html_url title)
   in
   {
     text = None;
     attachments =
-      Some [ { empty_attachments with fallback = summary; color = Some "#ccc"; pretext = summary; text = review.body } ];
+      Some
+        [
+          {
+            empty_attachments with
+            mrkdwn_in = Some [ "text" ];
+            fallback = summary;
+            color = Some "#ccc";
+            pretext = summary;
+            text = review.body;
+          };
+        ];
     blocks = None;
   }
 
 let generate_pr_review_comment_notification notification =
-  let { action; pull_request; sender; comment } = notification in
+  let { action; pull_request; sender; comment; repository } = notification in
   let ({ user; number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
@@ -87,12 +112,14 @@ let generate_pr_review_comment_notification notification =
            (string_of_comment_action action))
   in
   let summary =
-    Some (sprintf "%s %s on %s's pull request #%d <%s|[%s]>" sender.login action_str user.login number html_url title)
+    Some
+      (sprintf "<%s|[%s]> %s %s on %s's pull request #%d <%s|[%s]>" repository.url repository.full_name sender.login
+         action_str user.login number html_url title)
   in
   let file =
     match comment.path with
     | None -> None
-    | Some a -> Some (sprintf "Comment by %s in %s" sender.login a)
+    | Some a -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url a)
   in
   {
     text = None;
@@ -101,11 +128,11 @@ let generate_pr_review_comment_notification notification =
         [
           {
             empty_attachments with
+            mrkdwn_in = Some [ "text" ];
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            title = file;
-            title_link = Some comment.html_url;
+            footer = file;
             text = Some comment.body;
           };
         ];
@@ -113,7 +140,7 @@ let generate_pr_review_comment_notification notification =
   }
 
 let generate_issue_notification notification =
-  let ({ action; sender; issue } : issue_notification) = notification in
+  let ({ action; sender; issue; repository } : issue_notification) = notification in
   let { number; body; title; html_url; _ } = issue in
   let action_str =
     match action with
@@ -126,16 +153,30 @@ let generate_issue_notification notification =
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
            (string_of_issue_action action))
   in
-  let summary = Some (sprintf "Issue #%d <%s|[%s]> %s by %s" number html_url title action_str sender.login) in
+  let summary =
+    Some
+      (sprintf "<%s|[%s]> Issue #%d <%s|[%s]> %s by %s" repository.url repository.full_name number html_url title
+         action_str sender.login)
+  in
   {
     text = None;
     attachments =
-      Some [ { empty_attachments with fallback = summary; color = Some "#ccc"; pretext = summary; text = Some body } ];
+      Some
+        [
+          {
+            empty_attachments with
+            mrkdwn_in = Some [ "text" ];
+            fallback = summary;
+            color = Some "#ccc";
+            pretext = summary;
+            text = Some body;
+          };
+        ];
     blocks = None;
   }
 
 let generate_issue_comment_notification notification =
-  let { action; issue; sender; comment } = notification in
+  let { action; issue; sender; comment; repository } = notification in
   let { user; number; title; _ } = issue in
   let action_str =
     match action with
@@ -153,8 +194,8 @@ let generate_issue_comment_notification notification =
   in
   let summary =
     Some
-      (sprintf "%s <%s|%s> on %s #%d <%s|[%s]>" sender.login comment.html_url action_str kind number issue.html_url
-         title)
+      (sprintf "<%s|[%s]> %s <%s|%s> on %s #%d <%s|[%s]>" repository.url repository.full_name sender.login
+         comment.html_url action_str kind number issue.html_url title)
   in
   {
     text = None;
@@ -163,6 +204,7 @@ let generate_issue_comment_notification notification =
         [
           {
             empty_attachments with
+            mrkdwn_in = Some [ "text" ];
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
@@ -214,7 +256,7 @@ let generate_push_notification notification =
   }
 
 let generate_status_notification (notification : status_notification) =
-  let { commit; state; description; target_url; context; _ } = notification in
+  let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
   let state_info =
@@ -242,8 +284,12 @@ let generate_status_notification (notification : status_notification) =
   let summary =
     match target_url with
     | None ->
-      Some (sprintf "CI Build Status notification: %s" state_info) (* in case the CI run is not using buildkite *)
-    | Some t -> Some (sprintf "CI Build Status notification for <%s|%s>: %s" t context state_info)
+      Some (sprintf "<%s|[%s]> CI Build Status notification: %s" repository.url repository.full_name state_info)
+      (* in case the CI run is not using buildkite *)
+    | Some t ->
+      Some
+        (sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name t context
+           state_info)
   in
   {
     text = None;
@@ -262,6 +308,48 @@ let generate_status_notification (notification : status_notification) =
         ];
     blocks = None;
   }
+
+let generate_commit_comment_notification cfg notification =
+  match%lwt Github.generate_commit_from_commit_comment cfg notification with
+  | None -> invalid_arg "no commits found"
+  | Some api_commit ->
+    let { commit; author; _ } = api_commit in
+    let { sender; comment; repository; _ } = notification in
+    let commit_id =
+      match comment.commit_id with
+      | None -> invalid_arg "commit id not found"
+      | Some c -> c
+    in
+    let summary =
+      Some
+        (sprintf "<%s|[%s]> %s commented on %s's commit `<%s|%s>` - %s" repository.url repository.full_name sender.login
+           author.login comment.html_url (git_short_sha_hash commit_id) commit.message)
+    in
+    let path =
+      match comment.path with
+      | None -> None
+      | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
+    in
+    let notifs =
+      {
+        text = None;
+        attachments =
+          Some
+            [
+              {
+                empty_attachments with
+                mrkdwn_in = Some [ "pretext"; "text" ];
+                fallback = summary;
+                color = Some "#ccc";
+                pretext = summary;
+                footer = path;
+                text = Some comment.body;
+              };
+            ];
+        blocks = None;
+      }
+    in
+    Lwt.return notifs
 
 let send_notification webhook_url data =
   let data = Slack_j.string_of_webhook_notification data in

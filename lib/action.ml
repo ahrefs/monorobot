@@ -8,16 +8,9 @@ open Github_j
 
 let log = Log.from "action"
 
-let touching_push rule files =
+let touching_prefix rule name =
   let has_prefix s = List.exists ~f:(fun prefix -> String.is_prefix s ~prefix) in
-  files
-  |> List.exists ~f:(fun file ->
-       (List.is_empty rule.prefix || has_prefix file rule.prefix) && not (has_prefix file rule.ignore))
-
-let filter_push rule commits =
-  commits
-  |> List.filter ~f:(fun commit ->
-       touching_push rule commit.added || touching_push rule commit.removed || touching_push rule commit.modified)
+  (List.is_empty rule.prefix || has_prefix name rule.prefix) && not (has_prefix name rule.ignore)
 
 let touching_label rule name =
   let name_lc = String.lowercase name in
@@ -26,8 +19,6 @@ let touching_label rule name =
   (* convert both labels and config into lowe-case to make label matching case-insensitive *)
   (List.is_empty label_lc || List.mem ~equal:String.equal label_lc name_lc)
   && not (List.mem ~equal:String.equal ignore_lc name_lc)
-
-let exist_label rule labels = labels |> List.exists ~f:(fun (label : label) -> touching_label rule label.name)
 
 let first_line s =
   match String.split ~on:'\n' s with
@@ -44,30 +35,69 @@ let is_main_merge_message message n cfg =
     String.equal title expect || String.equal title expect2
   | _ -> false
 
+let filter_push rules commit =
+  let matching_push rule files = List.exists files ~f:(fun file -> touching_prefix rule file) in
+  List.filter_map rules ~f:(fun rule ->
+    let filter =
+      matching_push rule commit.added || matching_push rule commit.removed || matching_push rule commit.modified
+    in
+    match filter with
+    | false -> None
+    | true -> Some (rule.chan, commit))
+
+let group_commit webhook l =
+  List.filter_map l ~f:(fun (chan, commit) ->
+    match String.equal webhook chan with
+    | false -> None
+    | true -> Some commit)
+
 let partition_push cfg n =
-  let commits =
+  let default commit = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook, commit ]) in
+  let rules = cfg.prefix_rules.rules in
+  let channels =
     n.commits
     |> List.filter ~f:(fun c -> c.distinct)
     |> List.filter ~f:(fun c ->
          let skip = is_main_merge_message c.message n cfg in
          if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
          not skip)
+    |> List.map ~f:(fun commit ->
+         match filter_push rules commit with
+         | [] -> default commit
+         | l -> l)
   in
-  cfg.prefix_rules
+  let concat_chan = List.concat channels in
+  let prefix_chans =
+    let chans = List.map rules ~f:(fun (rule : prefix_rule) -> rule.chan) in
+    let chans = Option.value_map cfg.prefix_rules.default ~default:chans ~f:(fun default -> default :: chans) in
+    List.dedup_and_sort chans ~compare:String.compare
+  in
+  List.filter_map prefix_chans ~f:(fun chan ->
+    match group_commit chan concat_chan with
+    | [] -> None
+    | l -> Some (chan, { n with commits = l }))
+
+let filter_label rules label =
+  rules
   |> List.filter_map ~f:(fun rule ->
-       match filter_push rule commits with
-       | [] -> None
-       | l -> Some (rule, { n with commits = l }))
+       match touching_label rule label.name with
+       | false -> None
+       | true -> Some rule.chan)
 
 let partition_label cfg labels =
+  let default = Option.value_map cfg.label_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
   match labels with
-  | [] -> Option.value_map cfg.label_rules.default ~default:[] ~f:(fun webhook -> [ webhook ])
+  | [] -> default
   | labels ->
-    cfg.label_rules.rules
-    |> List.filter_map ~f:(fun rule ->
-         match exist_label rule labels with
-         | false -> None
-         | true -> Some rule.chan)
+    let rules = cfg.label_rules.rules in
+    let channels =
+      labels
+      |> List.map ~f:(fun label ->
+           match filter_label rules label with
+           | [] -> default
+           | l -> l)
+    in
+    List.dedup_and_sort ~compare:String.compare (List.concat channels)
 
 let partition_pr cfg (n : pr_notification) =
   match n.action with
@@ -105,33 +135,61 @@ let partition_pr_review cfg (n : pr_review_notification) =
   | Submitted, _, _ -> partition_label cfg n.pull_request.labels
   | _ -> []
 
-let touching_commit rule filename =
-  let has_prefix s = List.exists ~f:(fun prefix -> String.is_prefix s ~prefix) in
-  (List.is_empty rule.prefix || has_prefix filename rule.prefix) && not (has_prefix filename rule.ignore)
+let filter_commit rules filename =
+  rules
+  |> List.filter_map ~f:(fun rule ->
+       match touching_prefix rule filename with
+       | false -> None
+       | true -> Some rule.chan)
 
-let filter_commit rule files = files |> List.exists ~f:(fun file -> touching_commit rule file.filename)
+let partition_commit cfg files =
+  let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+  match files with
+  | [] ->
+    log#error "this commit contains no files";
+    []
+  | files ->
+    let rules = cfg.prefix_rules.rules in
+    let channels =
+      files
+      |> List.map ~f:(fun file ->
+           match filter_commit rules file.filename with
+           | [] -> default
+           | l -> l)
+    in
+    List.dedup_and_sort ~compare:String.compare (List.concat channels)
 
-let partition_commit cfg (n : status_notification) =
+let partition_status cfg (n : status_notification) =
   match n.state with
   | Pending -> Lwt.return []
   | _ ->
-    ( match%lwt Github.generate_query_commmit cfg n with
-    | None -> Lwt.return []
-    | Some commit ->
-      cfg.prefix_rules
-      |> List.filter_map ~f:(fun rule ->
-           match filter_commit rule commit.files with
-           | false -> None
-           | true -> Some rule.chan)
-      |> Lwt.return
+    ( match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
+    | None ->
+      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+      Lwt.return default
+    | Some commit -> Lwt.return (partition_commit cfg commit.files)
     )
+
+let partition_commit_comment cfg n =
+  match n.comment.path with
+  | None ->
+    ( match%lwt Github.generate_commit_from_commit_comment cfg n with
+    | None ->
+      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+      Lwt.return default
+    | Some commit -> Lwt.return (partition_commit cfg commit.files)
+    )
+  | Some p ->
+  match filter_commit cfg.prefix_rules.rules p with
+  | [] ->
+    let notifs = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+    Lwt.return notifs
+  | l -> Lwt.return l
 
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
-    partition_push cfg n
-    |> List.map ~f:(fun ((rule : prefix_rule), n) -> rule.chan, generate_push_notification n)
-    |> Lwt.return
+    partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return
   | Github.Pull_request n ->
     partition_pr cfg n |> List.map ~f:(fun webhook -> webhook, generate_pull_request_notification n) |> Lwt.return
   | Github.PR_review n ->
@@ -146,8 +204,13 @@ let generate_notifications cfg req =
     partition_issue_comment cfg n
     |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
     |> Lwt.return
+  | Github.Commit_comment n ->
+    let%lwt webhooks = partition_commit_comment cfg n in
+    let%lwt notif = generate_commit_comment_notification cfg n in
+    let notifs = List.map ~f:(fun webhook -> webhook, notif) webhooks in
+    Lwt.return notifs
   | Github.Status n ->
-    let%lwt webhooks = partition_commit cfg n in
+    let%lwt webhooks = partition_status cfg n in
     let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks in
     Lwt.return notifs
   | _ -> Lwt.return []

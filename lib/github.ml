@@ -12,6 +12,7 @@ type t =
   | PR_review_comment of pr_review_comment_notification
   | Issue of issue_notification
   | Issue_comment of issue_comment_notification
+  | Commit_comment of commit_comment_notification
   | Status of status_notification
   | Event of string
 
@@ -44,7 +45,8 @@ let parse_exn ~secret headers body =
   | "issues" -> Issue (issue_notification_of_string body)
   | "issue_comment" -> Issue_comment (issue_comment_notification_of_string body)
   | "status" -> Status (status_notification_of_string body)
-  | ("commit_comment" | "member" | "create" | "delete" | "release") as event -> Event event
+  | "commit_comment" -> Commit_comment (commit_comment_notification_of_string body)
+  | ("member" | "create" | "delete" | "release") as event -> Event event
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
 let get_commits_branch n =
@@ -54,7 +56,7 @@ let get_commits_branch n =
 
 let query_api ~token ~url parse =
   let headers = [ sprintf "Authorization: token %s" token ] in
-  match%lwt Web.http_request_lwt ~verbose:true ~headers `GET url with
+  match%lwt Web.http_request_lwt ~ua:"notabot" ~verbose:true ~headers `GET url with
   | `Error e ->
     log#error "error while querying github api %s: %s" url e;
     Lwt.return_none
@@ -64,12 +66,12 @@ let query_api ~token ~url parse =
     log#error ~exn "impossible to parse github api answer to %s" url;
     Lwt.return_none
 
-let generate_query_commmit cfg (n : status_notification) =
+let generate_query_commmit cfg ~url ~sha =
   (* the expected output is a payload containing content about commits *)
   match cfg.Config.offline with
-  | None -> query_api ~token:cfg.Config.token ~url:n.commit.url api_commit_of_string
+  | None -> query_api ~token:cfg.Config.token ~url api_commit_of_string
   | Some path ->
-    let f = Caml.Filename.concat path n.commit.sha in
+    let f = Caml.Filename.concat path sha in
     ( match Caml.Sys.file_exists f with
     | false ->
       log#error "unable to find offline file %s" f;
@@ -83,3 +85,18 @@ let generate_query_commmit cfg (n : status_notification) =
           log#error ~exn "unable to read offline file %s" f;
           Lwt.return_none)
     )
+
+let generate_commit_from_commit_comment cfg n =
+  let url = n.repository.commits_url in
+  let url_length = String.length url - 6 in
+  (* remove {\sha} from the string *)
+  let sha =
+    match n.comment.commit_id with
+    | None ->
+      log#error "unable to find commit id for this commit comment event";
+      ""
+    | Some id -> id
+  in
+  let commit_url = String.sub ~pos:0 ~len:url_length url ^ "/" ^ sha in
+  (* add sha hash to get the full api link *)
+  generate_query_commmit cfg ~url:commit_url ~sha
