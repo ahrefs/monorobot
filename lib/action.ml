@@ -67,21 +67,15 @@ let partition_push cfg n =
          | l -> l)
   in
   let concat_chan = List.concat channels in
-  let default_chan =
-    Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook ->
-      match group_commit webhook concat_chan with
-      | [] -> []
-      | l -> [ webhook, { n with commits = l } ])
+  let prefix_chans =
+    let chans = List.map rules ~f:(fun (rule : prefix_rule) -> rule.chan) in
+    let chans = Option.value_map cfg.prefix_rules.default ~default:chans ~f:(fun default -> default :: chans) in
+    List.dedup_and_sort chans ~compare:String.compare
   in
-  let prefix_chan =
-    List.filter_map rules ~f:(fun rule ->
-      match group_commit rule.chan concat_chan with
-      | [] -> None
-      | l -> Some (rule.chan, { n with commits = l }))
-  in
-  (* ideally, i think we should check and remove duplicates here too,
-     but i'm not sure how to compare tuples of type (String, push_notification) *)
-  List.append default_chan prefix_chan
+  List.filter_map prefix_chans ~f:(fun chan ->
+    match group_commit chan concat_chan with
+    | [] -> None
+    | l -> Some (chan, { n with commits = l }))
 
 let filter_label rules label =
   rules
