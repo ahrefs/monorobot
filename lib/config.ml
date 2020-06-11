@@ -38,7 +38,7 @@ let make (json_config : Notabot_t.config) =
   in
   let () =
     match json_config.prefix_rules.default with
-    | None -> Exn.fail "default chan in prefix_rules undefined in the config"
+    | None -> ()
     | Some d ->
     match Chan_map.find_opt d chans with
     | None -> Exn.fail "default chan %s in prefix_rules is missing from slack_channels" d
@@ -46,7 +46,7 @@ let make (json_config : Notabot_t.config) =
   in
   let () =
     match json_config.label_rules.default with
-    | None -> Exn.fail "default chan in label_rules undefined in the config"
+    | None -> ()
     | Some d ->
     match Chan_map.find_opt d chans with
     | None -> Exn.fail "default chan %s in label_rules is missing from slack_channels" d
