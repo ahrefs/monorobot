@@ -1,5 +1,9 @@
 {
     "offline": "github-api-cache",
+    "status_filter": [
+        "default",
+        "buildkite/notabot-test"
+    ],
     "slack_channels": [
         {
             "url": "https://slack_webhook_url",
