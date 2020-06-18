@@ -9,6 +9,7 @@ type t = {
   main_branch_name : string option;
   gh_token : string option;
   offline : string option;
+  status_filter : string list option;
 }
 
 let make (json_config : Notabot_t.config) =
@@ -60,6 +61,7 @@ let make (json_config : Notabot_t.config) =
     main_branch_name = json_config.main_branch_name;
     gh_token = json_config.gh_token;
     offline = json_config.offline;
+    status_filter = json_config.status_filter;
   }
 
 let load path =
