@@ -8,7 +8,8 @@
  (deps
   (source_tree ../mock_payloads)
   (source_tree github-api-cache)
-  notabot.json)
+  notabot.json
+  secrets.json)
  (action
   (with-stdout-to
    slack_payloads.out
