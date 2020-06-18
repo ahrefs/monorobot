@@ -64,6 +64,9 @@ let make (json_config : Notabot_t.config) =
     status_filter = json_config.status_filter;
   }
 
-let load path =
+let load ?gh_token path =
   let cfg = Notabot_j.config_of_string @@ Stdio.In_channel.read_all path in
-  make cfg
+  let cfg = make cfg in
+  match cfg.gh_token, gh_token with
+  | None, None | Some _, None -> cfg
+  | Some _, Some _ | None, Some _ -> { cfg with gh_token }
