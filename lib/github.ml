@@ -54,9 +54,9 @@ let get_commits_branch n =
   | "refs" :: "heads" :: l -> String.concat ~sep:"/" l
   | _ -> n.ref
 
-let query_api ~token ~url parse =
-  let headers = [ sprintf "Authorization: token %s" token ] in
-  match%lwt Web.http_request_lwt ~ua:"notabot" ~verbose:true ~headers `GET url with
+let query_api ?token ~url parse =
+  let headers = Option.map token ~f:(fun t -> [ sprintf "Authorization: token %s" t ]) in
+  match%lwt Web.http_request_lwt ~ua:"notabot" ~verbose:true ?headers `GET url with
   | `Error e ->
     log#error "error while querying github api %s: %s" url e;
     Lwt.return_none
@@ -69,7 +69,7 @@ let query_api ~token ~url parse =
 let generate_query_commmit cfg ~url ~sha =
   (* the expected output is a payload containing content about commits *)
   match cfg.Config.offline with
-  | None -> query_api ~token:cfg.Config.token ~url api_commit_of_string
+  | None -> query_api ?token:cfg.Config.gh_token ~url api_commit_of_string
   | Some path ->
     let f = Caml.Filename.concat path sha in
     ( match Caml.Sys.file_exists f with
