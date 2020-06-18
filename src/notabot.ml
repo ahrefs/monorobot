@@ -5,17 +5,17 @@ module Arg = Caml.Arg
 
 let log = Log.from "notabot"
 
-let get_config () =
-  let cfg = Config.load "notabot.json" in
+let get_config path =
+  let cfg = Config.load path in
   log#info "using prefix routing:";
   Action.print_prefix_routing cfg.prefix_rules.rules;
   log#info "using label routing:";
   Action.print_label_routing cfg.label_rules.rules;
   cfg
 
-let http_server addr port =
+let http_server addr port config =
   log#info "notabot starting";
-  let cfg = get_config () in
+  let cfg = get_config config in
   log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
   Lwt_main.run (Request_handler.start_http_server ~cfg ~addr ~port ())
 
@@ -25,8 +25,8 @@ let send_slack_notification webhook file =
   | exception exn -> log#error ~exn "unable to parse notification"
   | data -> Lwt_main.run (Slack.send_notification webhook data)
 
-let check_common file print =
-  let cfg = get_config () in
+let check_common file print config =
+  let cfg = get_config config in
   match Mock.kind file with
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
@@ -61,11 +61,11 @@ let print_json_message (chan, msg) =
   log#info "%s" (Uri.to_string url);
   log#info "%s" json
 
-let check file json =
+let check file json config =
   Lwt_main.run
     ( match json with
-    | false -> check_common file print_simplified_message
-    | true -> check_common file print_json_message
+    | false -> check_common file print_simplified_message config
+    | true -> check_common file print_json_message config
     )
 
 (** {2 cli} *)
@@ -79,6 +79,10 @@ let addr =
 let port =
   let doc = "http listen port" in
   Arg.(value & opt int 8080 & info [ "p"; "port" ] ~docv:"PORT" ~doc)
+
+let config =
+  let doc = "configuration file" in
+  Arg.(value & opt file "notabot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
 
 let mock_payload =
   let doc = "mock github webhook payload" in
@@ -99,13 +103,13 @@ let json =
 let run =
   let doc = "launch the http server" in
   let info = Term.info "run" ~doc in
-  let term = Term.(const http_server $ addr $ port) in
+  let term = Term.(const http_server $ addr $ port $ config) in
   term, info
 
 let check =
   let doc = "read github notification payload from file and show actions to be taken" in
   let info = Term.info "check" ~doc in
-  let term = Term.(const check $ mock_payload $ json) in
+  let term = Term.(const check $ mock_payload $ json $ config) in
   term, info
 
 let slack_notif =
