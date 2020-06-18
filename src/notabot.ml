@@ -5,17 +5,17 @@ module Arg = Caml.Arg
 
 let log = Log.from "notabot"
 
-let get_config path gh_token =
-  let cfg = Config.load ?gh_token path in
+let get_config config secrets =
+  let cfg = Config.load config secrets in
   log#info "using prefix routing:";
   Action.print_prefix_routing cfg.prefix_rules.rules;
   log#info "using label routing:";
   Action.print_label_routing cfg.label_rules.rules;
   cfg
 
-let http_server addr port config gh_token =
+let http_server addr port config secrets =
   log#info "notabot starting";
-  let cfg = get_config config gh_token in
+  let cfg = get_config config secrets in
   log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
   Lwt_main.run (Request_handler.start_http_server ~cfg ~addr ~port ())
 
@@ -25,8 +25,8 @@ let send_slack_notification webhook file =
   | exception exn -> log#error ~exn "unable to parse notification"
   | data -> Lwt_main.run (Slack.send_notification webhook data)
 
-let check_common file print config gh_token =
-  let cfg = get_config config gh_token in
+let check_common file print config secrets =
+  let cfg = get_config config secrets in
   match Mock.kind file with
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
@@ -61,21 +61,16 @@ let print_json_message (chan, msg) =
   log#info "%s" (Uri.to_string url);
   log#info "%s" json
 
-let check file json config gh_config =
+let check file json config secrets =
   Lwt_main.run
     ( match json with
-    | false -> check_common file print_simplified_message config gh_config
-    | true -> check_common file print_json_message config gh_config
+    | false -> check_common file print_simplified_message config secrets
+    | true -> check_common file print_json_message config secrets
     )
 
 (** {2 cli} *)
 
 open Cmdliner
-
-let github_token =
-  let doc = "github token, will override the one from the json configuration if present" in
-  let env = Arg.env_var "GITHUB_TOKEN" in
-  Arg.(value & opt (some string) None & info [ "github-token" ] ~docv:"GITHUB_TOKEN" ~doc ~env)
 
 let addr =
   let doc = "http listen addr" in
@@ -88,6 +83,10 @@ let port =
 let config =
   let doc = "configuration file" in
   Arg.(value & opt file "notabot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
+
+let secrets =
+  let doc = "configuration file containing secrets" in
+  Arg.(value & opt file "secrets.json" & info [ "secrets" ] ~docv:"secrets" ~doc)
 
 let mock_payload =
   let doc = "mock github webhook payload" in
@@ -108,13 +107,13 @@ let json =
 let run =
   let doc = "launch the http server" in
   let info = Term.info "run" ~doc in
-  let term = Term.(const http_server $ addr $ port $ config $ github_token) in
+  let term = Term.(const http_server $ addr $ port $ config $ secrets) in
   term, info
 
 let check =
   let doc = "read github notification payload from file and show actions to be taken" in
   let info = Term.info "check" ~doc in
-  let term = Term.(const check $ mock_payload $ json $ config $ github_token) in
+  let term = Term.(const check $ mock_payload $ json $ config $ secrets) in
   term, info
 
 let slack_notif =

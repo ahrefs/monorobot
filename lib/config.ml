@@ -12,14 +12,14 @@ type t = {
   status_filter : string list option;
 }
 
-let make (json_config : Notabot_t.config) =
+let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
   let chans =
     List.fold_left
       (fun acc (webhook : Notabot_t.webhook) ->
         match Chan_map.find_opt webhook.channel acc with
         | None -> Chan_map.add webhook.channel webhook.url acc
         | Some c -> Exn.fail "chan %s is defined multiple time in the config" c)
-      Chan_map.empty json_config.slack_channels
+      Chan_map.empty secrets.slack_channels
   in
   let () =
     List.iteri
@@ -59,14 +59,12 @@ let make (json_config : Notabot_t.config) =
     label_rules = json_config.label_rules;
     gh_webhook_secret = json_config.gh_webhook_secret;
     main_branch_name = json_config.main_branch_name;
-    gh_token = json_config.gh_token;
+    gh_token = secrets.gh_token;
     offline = json_config.offline;
     status_filter = json_config.status_filter;
   }
 
-let load ?gh_token path =
-  let cfg = Notabot_j.config_of_string @@ Stdio.In_channel.read_all path in
-  let cfg = make cfg in
-  match cfg.gh_token, gh_token with
-  | None, None | Some _, None -> cfg
-  | Some _, Some _ | None, Some _ -> { cfg with gh_token }
+let load path secrets =
+  let config = Notabot_j.config_of_string @@ Stdio.In_channel.read_all path in
+  let secrets = Notabot_j.secrets_of_string @@ Stdio.In_channel.read_all secrets in
+  make config secrets
