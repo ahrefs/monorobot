@@ -1,9 +1,17 @@
 {
     "offline": "github-api-cache",
-    "status_filter": [
-        "default",
-        "buildkite/pipeline2"
-    ],
+    "status_rules": {
+        "name": [
+            "default",
+            "buildkite/pipeline2"
+        ],
+        "status": {
+            "pending": false,
+            "success": true,
+            "failure": true,
+            "error": true
+        }
+    },
     "prefix_rules": {
         "default": "default",
         "rules": [

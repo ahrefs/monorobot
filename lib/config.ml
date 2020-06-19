@@ -1,6 +1,11 @@
 open Devkit
 module Chan_map = Map.Make (String)
 
+type status_rules = {
+  title : string list option;
+  status : Github_t.status_state list;
+}
+
 type t = {
   chans : string Chan_map.t;
   prefix_rules : Notabot_t.prefix_config;
@@ -9,7 +14,7 @@ type t = {
   main_branch_name : string option;
   gh_token : string option;
   offline : string option;
-  status_filter : string list option;
+  status_rules : status_rules;
 }
 
 let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
@@ -53,6 +58,20 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     | None -> Exn.fail "default chan %s in label_rules is missing from slack_channels" d
     | Some _ -> ()
   in
+  let status_rules =
+    let status =
+      let open Github_t in
+      let j = json_config.status_rules.status in
+      List.filter_map id
+        [
+          (if j.success then Some Success else None);
+          (if j.failure then Some Failure else None);
+          (if j.pending then Some Pending else None);
+          (if j.error then Some Error else None);
+        ]
+    in
+    { title = json_config.status_rules.title; status }
+  in
   {
     chans;
     prefix_rules = json_config.prefix_rules;
@@ -61,7 +80,7 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     main_branch_name = json_config.main_branch_name;
     gh_token = secrets.gh_token;
     offline = json_config.offline;
-    status_filter = json_config.status_filter;
+    status_rules;
   }
 
 let load path secrets =

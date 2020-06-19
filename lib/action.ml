@@ -167,10 +167,10 @@ let partition_status cfg (n : status_notification) =
       Lwt.return default
     | Some commit -> Lwt.return (partition_commit cfg commit.files)
   in
-  match n.state with
-  | Pending -> Lwt.return []
-  | Success | Failure | Error ->
-  match cfg.status_filter with
+  match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
+  | false -> Lwt.return []
+  | true ->
+  match cfg.status_rules.title with
   | None -> get_commit_info ()
   | Some status_filter ->
   match List.exists status_filter ~f:(String.equal n.context) with
