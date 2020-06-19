@@ -51,10 +51,22 @@ type label_config = {
   rules: label_rule list;
 }
 
+type status_state = {
+  success: bool;
+  failure: bool;
+  pending: bool;
+  error: bool;
+}
+
+type status_config = {
+  ?title: string list option; (* keep only status events with a title matching this list *)
+  status: status_state;
+}
+
 type config = {
   prefix_rules : prefix_config;
   label_rules : label_config;
-  ?status_filter : string list option; (* keep only status events with a name matching this list *)
+  status_rules : status_config;
   ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)
   ?offline: string option; (* where to find github api data when http calls are not allowed *)
 }

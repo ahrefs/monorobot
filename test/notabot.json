@@ -1,9 +1,17 @@
 {
     "offline": "github-api-cache",
-    "status_filter": [
-        "default",
-        "buildkite/notabot-test"
-    ],
+    "status_rules": {
+        "name": [
+            "default",
+            "buildkite/notabot-test"
+        ],
+        "status": {
+            "pending": false,
+            "success": true,
+            "failure": true,
+            "error": true
+        }
+    },
     "prefix_rules": {
         "default": "default",
         "rules": [
