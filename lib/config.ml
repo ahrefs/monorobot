@@ -57,7 +57,7 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     chans;
     prefix_rules = json_config.prefix_rules;
     label_rules = json_config.label_rules;
-    gh_webhook_secret = json_config.gh_webhook_secret;
+    gh_webhook_secret = secrets.gh_webhook_secret;
     main_branch_name = json_config.main_branch_name;
     gh_token = secrets.gh_token;
     offline = json_config.offline;

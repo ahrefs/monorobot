@@ -4,36 +4,6 @@
         "default",
         "buildkite/notabot-test"
     ],
-    "slack_channels": [
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "default"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "aa"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "backend"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "all-push-events"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "frontend-bot"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "aa-git"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "siren"
-        }
-    ],
     "prefix_rules": {
         "default": "default",
         "rules": [
