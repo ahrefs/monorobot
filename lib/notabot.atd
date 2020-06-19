@@ -54,8 +54,7 @@ type label_config = {
 type config = {
   prefix_rules : prefix_config;
   label_rules : label_config;
-  ?status_filter : string list option;
-  ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
+  ?status_filter : string list option; (* keep only status events with a name matching this list *)
   ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)
   ?offline: string option; (* where to find github api data when http calls are not allowed *)
 }
@@ -63,4 +62,5 @@ type config = {
 type secrets = {
   slack_channels : webhook list;
   ?gh_token: string option; (* must not be specified for public repositories *)
+  ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
 }

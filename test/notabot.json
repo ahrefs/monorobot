@@ -4,36 +4,6 @@
         "default",
         "buildkite/pipeline2"
     ],
-    "slack_channels": [
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "default"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "a1"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "backend"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "all-push-events"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "frontend-bot"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "a1-bot"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "a3"
-        }
-    ],
     "prefix_rules": {
         "default": "default",
         "rules": [
