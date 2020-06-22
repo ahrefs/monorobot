@@ -160,15 +160,22 @@ let partition_commit cfg files =
     List.dedup_and_sort ~compare:String.compare (List.concat channels)
 
 let partition_status cfg (n : status_notification) =
-  match n.state with
-  | Pending -> Lwt.return []
-  | _ ->
-    ( match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
+  let get_commit_info () =
+    match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
     | None ->
       let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
       Lwt.return default
     | Some commit -> Lwt.return (partition_commit cfg commit.files)
-    )
+  in
+  match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
+  | false -> Lwt.return []
+  | true ->
+  match cfg.status_rules.title with
+  | None -> get_commit_info ()
+  | Some status_filter ->
+  match List.exists status_filter ~f:(String.equal n.context) with
+  | false -> Lwt.return []
+  | true -> get_commit_info ()
 
 let partition_commit_comment cfg n =
   match n.comment.path with

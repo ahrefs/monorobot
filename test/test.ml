@@ -25,7 +25,7 @@ let process cfg file =
     )
 
 let () =
-  let cfg = Config.load "notabot.json" in
+  let cfg = Config.load "notabot.json" "secrets.json" in
   let mock_dir = "../mock_payloads" in
   let jsons = Caml.Sys.readdir mock_dir in
   let jsons = Array.map ~f:(fun p -> Caml.Filename.concat mock_dir p) jsons in
