@@ -183,6 +183,10 @@ type inner_commit = {
   message: string;
 }
 
+type branch = {
+  name: string;
+}
+
 type status_commit = {
   sha: commit_hash;
   commit: inner_commit;
@@ -199,6 +203,7 @@ type status_notification = {
   ?target_url: string nullable;
   context: string;
   repository: repository;
+  branches: branch list;
 }
 
 type file = {
