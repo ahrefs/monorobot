@@ -1,6 +1,7 @@
+open Printf
 open Base
 open Devkit
-open Printf
+open Common
 open Github_j
 open Slack_j
 
@@ -243,7 +244,7 @@ let generate_push_notification notification =
   in
   let commits =
     List.map commits ~f:(fun { url; id; message; author; _ } ->
-      let title = Option.value ~default:"" @@ List.hd @@ String.split_lines message in
+      let title = first_line message in
       sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name)
   in
   {
@@ -286,7 +287,7 @@ let generate_status_notification (notification : status_notification) =
     | None -> None
     | Some s -> Some (sprintf "*Description*: %s." s)
   in
-  let commit_info = sprintf "*Commit*: `<%s|%s>` - %s" html_url (git_short_sha_hash sha) message in
+  let commit_info = sprintf "*Commit*: `<%s|%s>` - %s" html_url (git_short_sha_hash sha) (first_line message) in
   let author_info = sprintf "*Author*: %s" author.login in
   let branches_info =
     let branches = notification.branches |> List.map ~f:(fun ({ name } : branch) -> name) |> String.concat ~sep:", " in
@@ -335,7 +336,7 @@ let generate_commit_comment_notification cfg notification =
     let summary =
       Some
         (sprintf "<%s|[%s]> %s commented on `<%s|%s>` - %s" repository.url repository.full_name sender.login
-           comment.html_url (git_short_sha_hash commit_id) commit.message)
+           comment.html_url (git_short_sha_hash commit_id) (first_line commit.message))
     in
     let path =
       match comment.path with

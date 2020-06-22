@@ -4,6 +4,7 @@ open Base
 open Slack
 open Notabot_t
 open Config
+open Common
 open Github_j
 
 let log = Log.from "action"
@@ -19,11 +20,6 @@ let touching_label rule name =
   (* convert both labels and config into lowe-case to make label matching case-insensitive *)
   (List.is_empty label_lc || List.mem ~equal:String.equal label_lc name_lc)
   && not (List.mem ~equal:String.equal ignore_lc name_lc)
-
-let first_line s =
-  match String.split ~on:'\n' s with
-  | x :: _ -> x
-  | [] -> s
 
 let is_main_merge_message message n cfg =
   match cfg.main_branch_name with
