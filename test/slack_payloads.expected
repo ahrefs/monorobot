@@ -216,8 +216,7 @@ will notify #a1-bot
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|[Update README.md]> closed by xinyuluo",
-      "text": ""
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|[Update README.md]> closed by xinyuluo"
     }
   ]
 }
@@ -231,8 +230,7 @@ will notify #default
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by xinyuluo",
-      "text": ""
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by xinyuluo"
     }
   ]
 }
