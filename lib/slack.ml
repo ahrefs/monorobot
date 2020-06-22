@@ -63,9 +63,9 @@ let generate_pull_request_notification notification =
             color = Some "#ccc";
             pretext = summary;
             text =
-              ( match action_str with
-              | "labeled" -> label_str
-              | "closed" -> None
+              ( match action with
+              | Labeled -> label_str
+              | Closed -> None
               | _ -> Some body
               );
           };
