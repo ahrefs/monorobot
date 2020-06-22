@@ -27,7 +27,14 @@ let empty_attachments =
 
 let generate_pull_request_notification notification =
   let { action; number; sender; pull_request; repository } = notification in
-  let ({ body; title; html_url; _ } : pull_request) = pull_request in
+  let ({ body; title; html_url; labels; _ } : pull_request) = pull_request in
+  let label_str =
+    match labels with
+    | [] -> None
+    | labels ->
+      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
+      Some (sprintf "Labels: %s" value)
+  in
   let action_str =
     match action with
     | Opened -> "opened"
@@ -55,7 +62,11 @@ let generate_pull_request_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            text = Some body;
+            text =
+              ( match action_str with
+              | "labeled" -> label_str
+              | _ -> Some body
+              );
           };
         ];
     blocks = None;

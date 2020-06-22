@@ -247,7 +247,7 @@ will notify #aa-git
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by xinyuluo",
-      "text": ""
+      "text": "Labels: aa, backend"
     }
   ]
 }
@@ -261,7 +261,7 @@ will notify #backend
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|[README update]> labeled by xinyuluo",
-      "text": ""
+      "text": "Labels: aa, backend"
     }
   ]
 }
