@@ -325,7 +325,7 @@ let generate_commit_comment_notification cfg notification =
   match%lwt Github.generate_commit_from_commit_comment cfg notification with
   | None -> invalid_arg "no commits found"
   | Some api_commit ->
-    let { commit; author; _ } = api_commit in
+    let { commit; author; files; _ } = api_commit in
     let { sender; comment; repository; _ } = notification in
     let commit_id =
       match comment.commit_id with
@@ -339,7 +339,11 @@ let generate_commit_comment_notification cfg notification =
     in
     let path =
       match comment.path with
-      | None -> None
+      | None ->
+        ( match files with
+        | [ file ] -> Some (sprintf "New comment by %s in <%s|%s>" sender.login file.url file.filename)
+        | _ -> None
+        )
       | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
     in
     let notifs =

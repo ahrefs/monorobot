@@ -26,7 +26,9 @@ will notify #all-push-events
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` - add new line at EOF",
-      "text": "add a commit comment"
+      "text": "add a commit comment",
+      "footer":
+        "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/blob/cd5b85afa306840e0790b62e349ee1f828b2a3c2/main.ml|main.ml>"
     }
   ]
 }
