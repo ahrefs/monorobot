@@ -65,6 +65,7 @@ let generate_pull_request_notification notification =
             text =
               ( match action_str with
               | "labeled" -> label_str
+              | "closed" -> None
               | _ -> Some body
               );
           };
