@@ -399,7 +399,7 @@ will notify #all-push-events
       "fields": [
         {
           "value":
-            "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` - Update README.md\n*Author*: Khady"
+            "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` - Update README.md\n*Author*: Khady\n*Branches*: master"
         }
       ]
     }
@@ -420,7 +420,7 @@ will notify #all-push-events
       "fields": [
         {
           "value":
-            "*Commit*: `<https://github.com/Codertocat/Hello-World/commit/6113728f27ae82c7b1a177c8d03f9e96e0adf246|6113728f>` - Initial commit\n*Author*: Codertocat"
+            "*Commit*: `<https://github.com/Codertocat/Hello-World/commit/6113728f27ae82c7b1a177c8d03f9e96e0adf246|6113728f>` - Initial commit\n*Author*: Codertocat\n*Branches*: master, changes, gh-pages"
         }
       ]
     }
@@ -441,7 +441,7 @@ will notify #all-push-events
       "fields": [
         {
           "value":
-            "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` - Update README.md\n*Author*: Khady"
+            "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` - Update README.md\n*Author*: Khady\n*Branches*: master"
         }
       ]
     }

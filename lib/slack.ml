@@ -293,6 +293,10 @@ let generate_status_notification (notification : status_notification) =
   in
   let commit_info = sprintf "*Commit*: `<%s|%s>` - %s" html_url (git_short_sha_hash sha) message in
   let author_info = sprintf "*Author*: %s" author.login in
+  let branches_info =
+    let branches = notification.branches |> List.map ~f:(fun ({ name } : branch) -> name) |> String.concat ~sep:", " in
+    sprintf "*Branches*: %s" branches
+  in
   let summary =
     match target_url with
     | None ->
@@ -315,7 +319,8 @@ let generate_status_notification (notification : status_notification) =
             pretext = summary;
             color = Some color_info;
             text = description_info;
-            fields = Some [ { title = None; value = String.concat ~sep:"\n" @@ [ commit_info; author_info ] } ];
+            fields =
+              Some [ { title = None; value = String.concat ~sep:"\n" @@ [ commit_info; author_info; branches_info ] } ];
           };
         ];
     blocks = None;
