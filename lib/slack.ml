@@ -27,7 +27,14 @@ let empty_attachments =
 
 let generate_pull_request_notification notification =
   let { action; number; sender; pull_request; repository } = notification in
-  let ({ body; title; html_url; _ } : pull_request) = pull_request in
+  let ({ body; title; html_url; labels; _ } : pull_request) = pull_request in
+  let label_str =
+    match labels with
+    | [] -> None
+    | labels ->
+      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
+      Some (sprintf "Labels: %s" value)
+  in
   let action_str =
     match action with
     | Opened -> "opened"
@@ -55,7 +62,12 @@ let generate_pull_request_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            text = Some body;
+            text =
+              ( match action with
+              | Labeled -> label_str
+              | Closed -> None
+              | _ -> Some body
+              );
           };
         ];
     blocks = None;
@@ -313,7 +325,7 @@ let generate_commit_comment_notification cfg notification =
   match%lwt Github.generate_commit_from_commit_comment cfg notification with
   | None -> invalid_arg "no commits found"
   | Some api_commit ->
-    let { commit; author; _ } = api_commit in
+    let { commit; author; files; _ } = api_commit in
     let { sender; comment; repository; _ } = notification in
     let commit_id =
       match comment.commit_id with
@@ -327,7 +339,11 @@ let generate_commit_comment_notification cfg notification =
     in
     let path =
       match comment.path with
-      | None -> None
+      | None ->
+        ( match files with
+        | [ file ] -> Some (sprintf "New comment by %s in <%s|%s>" sender.login file.url file.filename)
+        | _ -> None
+        )
       | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
     in
     let notifs =
