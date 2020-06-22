@@ -49,7 +49,7 @@ let generate_pull_request_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> Pull request #%d <%s|[%s]> %s by %s" repository.url repository.full_name number html_url title
+      (sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by %s" repository.url repository.full_name number html_url title
          action_str sender.login)
   in
   {
@@ -93,7 +93,7 @@ let generate_pr_review_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s <%s|%s> #%d <%s|[%s]>" repository.url repository.full_name sender.login
+      (sprintf "<%s|[%s]> %s <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login
          review.html_url action_str number html_url title)
   in
   {
@@ -126,7 +126,7 @@ let generate_pr_review_comment_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s %s on #%d <%s|[%s]>" repository.url repository.full_name sender.login
+      (sprintf "<%s|[%s]> %s %s on #%d <%s|%s>" repository.url repository.full_name sender.login
          action_str number html_url title)
   in
   let file =
@@ -168,7 +168,7 @@ let generate_issue_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> Issue #%d <%s|[%s]> %s by %s" repository.url repository.full_name number html_url title
+      (sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by %s" repository.url repository.full_name number html_url title
          action_str sender.login)
   in
   {
@@ -202,7 +202,7 @@ let generate_issue_comment_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s <%s|%s> on #%d <%s|[%s]>" repository.url repository.full_name sender.login
+      (sprintf "<%s|[%s]> %s <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login
          comment.html_url action_str number issue.html_url title)
   in
   {
@@ -287,8 +287,7 @@ let generate_status_notification (notification : status_notification) =
     | None -> None
     | Some s -> Some (sprintf "*Description*: %s." s)
   in
-  let commit_info = sprintf "*Commit*: `<%s|%s>` - %s" html_url (git_short_sha_hash sha) (first_line message) in
-  let author_info = sprintf "*Author*: %s" author.login in
+  let commit_info = sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message) author.login in
   let branches_info =
     let branches = notification.branches |> List.map ~f:(fun ({ name } : branch) -> name) |> String.concat ~sep:", " in
     sprintf "*Branches*: %s" branches
@@ -316,7 +315,7 @@ let generate_status_notification (notification : status_notification) =
             color = Some color_info;
             text = description_info;
             fields =
-              Some [ { title = None; value = String.concat ~sep:"\n" @@ [ commit_info; author_info; branches_info ] } ];
+              Some [ { title = None; value = String.concat ~sep:"\n" @@ [ commit_info; branches_info ] } ];
           };
         ];
     blocks = None;
@@ -335,7 +334,7 @@ let generate_commit_comment_notification cfg notification =
     in
     let summary =
       Some
-        (sprintf "<%s|[%s]> %s commented on `<%s|%s>` - %s" repository.url repository.full_name sender.login
+        (sprintf "<%s|[%s]> %s commented on `<%s|%s>` %s" repository.url repository.full_name sender.login
            comment.html_url (git_short_sha_hash commit_id) (first_line commit.message))
     in
     let path =
