@@ -4,11 +4,11 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> xinyuluo commented on Khady's commit `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-0|0d95302a>` - Update README.md",
+        "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> xinyuluo commented on `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-0|0d95302a>` Update README.md",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> xinyuluo commented on Khady's commit `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-0|0d95302a>` - Update README.md",
+        "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> xinyuluo commented on `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-0|0d95302a>` Update README.md",
       "text": "comment here",
       "footer":
         "New comment by xinyuluo in <https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-0|README.md>"
@@ -21,11 +21,11 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` - add new line at EOF",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` - add new line at EOF",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF",
       "text": "add a commit comment",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/blob/cd5b85afa306840e0790b62e349ee1f828b2a3c2/main.ml|main.ml>"
@@ -38,11 +38,11 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` - add new line at EOF",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` - add new line at EOF",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF",
       "text":
         "this can be written shorter:\r\n`\r\n| Some obj -> Obj.is_valid obj o\r\n| None -> false\r\n`",
       "footer":
@@ -56,11 +56,11 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/41dad1d3d41f329f00836f166a7103a262e69889#commitcomment-0|41dad1d3>` - make changes in 2 files",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/41dad1d3d41f329f00836f166a7103a262e69889#commitcomment-0|41dad1d3>` make changes in 2 files",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/41dad1d3d41f329f00836f166a7103a262e69889#commitcomment-0|41dad1d3>` - make changes in 2 files",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/41dad1d3d41f329f00836f166a7103a262e69889#commitcomment-0|41dad1d3>` make changes in 2 files",
       "text": "make a comment"
     }
   ]
@@ -71,11 +71,11 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` - add new line at EOF",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` - add new line at EOF",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF",
       "text": "add a single comment on the code in a commit",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|main.ml>"
@@ -88,11 +88,11 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on issue #5 <https://github.com/xinyuluo/monorepo/issues/5|[handle issue event]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on #5 <https://github.com/xinyuluo/monorepo/issues/5|handle issue event>",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on issue #5 <https://github.com/xinyuluo/monorepo/issues/5|[handle issue event]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on #5 <https://github.com/xinyuluo/monorepo/issues/5|handle issue event>",
       "text": "handle issue comment\r\n"
     }
   ]
@@ -103,11 +103,11 @@ will notify #a1-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
       "text": "comment example"
     }
   ]
@@ -117,11 +117,11 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
       "text": "comment example"
     }
   ]
@@ -133,11 +133,11 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> yasunariw <https://github.com/ahrefs/monorepo/pull/6168#issuecomment-17123|commented> on yasunariw's pull request #6168 <https://github.com/ahrefs/monorepo/pull/6168|[Feature 1234]>",
+        "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> yasunariw <https://github.com/ahrefs/monorepo/pull/6168#issuecomment-17123|commented> on #6168 <https://github.com/ahrefs/monorepo/pull/6168|Feature 1234>",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> yasunariw <https://github.com/ahrefs/monorepo/pull/6168#issuecomment-17123|commented> on yasunariw's pull request #6168 <https://github.com/ahrefs/monorepo/pull/6168|[Feature 1234]>",
+        "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> yasunariw <https://github.com/ahrefs/monorepo/pull/6168#issuecomment-17123|commented> on #6168 <https://github.com/ahrefs/monorepo/pull/6168|Feature 1234>",
       "text":
         "> I do not understand this\r\n\r\nDo you have access to the logs on the website?"
     }
@@ -150,11 +150,11 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> closed by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> closed by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> closed by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> closed by xinyuluo",
       "text":
         "consider multiple cases including labeled/opened/closed/reopened"
     }
@@ -166,11 +166,11 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> labeled by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> labeled by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> labeled by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> labeled by xinyuluo",
       "text":
         "consider multiple cases including labeled/opened/closed/reopened"
     }
@@ -182,11 +182,11 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> opened by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> opened by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> opened by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> opened by xinyuluo",
       "text":
         "consider multiple cases including labeled/opened/closed/reopened"
     }
@@ -198,11 +198,11 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> reopened by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> reopened by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|[create a test for issue_notification]> reopened by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> reopened by xinyuluo",
       "text":
         "consider multiple cases including labeled/opened/closed/reopened"
     }
@@ -214,11 +214,11 @@ will notify #a1-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|[Update README.md]> closed by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|[Update README.md]> closed by xinyuluo"
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by xinyuluo"
     }
   ]
 }
@@ -228,11 +228,11 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> closed by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by xinyuluo"
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> closed by xinyuluo"
     }
   ]
 }
@@ -242,11 +242,11 @@ will notify #a1-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by xinyuluo",
       "text": "Labels: a1, backend"
     }
   ]
@@ -256,11 +256,11 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by xinyuluo",
       "text": "Labels: a1, backend"
     }
   ]
@@ -271,11 +271,11 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]> opened by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md> opened by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]> opened by xinyuluo",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md> opened by xinyuluo",
       "text": ""
     }
   ]
@@ -287,11 +287,11 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://github.com/Khady/monorepo|[Khady/monorepo]> Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> xinyuluo's pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+        "<https://github.com/Khady/monorepo|[Khady/monorepo]> Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/Khady/monorepo|[Khady/monorepo]> Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> xinyuluo's pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+        "<https://github.com/Khady/monorepo|[Khady/monorepo]> Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>",
       "text": "approve review"
     }
   ]
@@ -302,11 +302,11 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> xinyuluo's pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> xinyuluo's pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|[Update README.md]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>",
       "text": "submit a PR review"
     }
   ]
@@ -319,11 +319,11 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://github.com/Khady/monorepo|[Khady/monorepo]> Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> xinyuluo's pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+        "<https://github.com/Khady/monorepo|[Khady/monorepo]> Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/Khady/monorepo|[Khady/monorepo]> Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> xinyuluo's pull request #6 <https://github.com/Khady/monorepo/pull/6|[create pr_review_test.md]>",
+        "<https://github.com/Khady/monorepo|[Khady/monorepo]> Khady <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>",
       "text": "request changes review"
     }
   ]
@@ -336,11 +336,11 @@ will notify #a1-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
       "text": "PR review comment example",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
@@ -352,11 +352,11 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]>",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
       "text": "PR review comment example",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
@@ -399,7 +399,7 @@ will notify #all-push-events
       "fields": [
         {
           "value":
-            "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` - Update README.md\n*Author*: Khady\n*Branches*: master"
+            "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branches*: master"
         }
       ]
     }
@@ -420,7 +420,7 @@ will notify #all-push-events
       "fields": [
         {
           "value":
-            "*Commit*: `<https://github.com/Codertocat/Hello-World/commit/6113728f27ae82c7b1a177c8d03f9e96e0adf246|6113728f>` - Initial commit\n*Author*: Codertocat\n*Branches*: master, changes, gh-pages"
+            "*Commit*: `<https://github.com/Codertocat/Hello-World/commit/6113728f27ae82c7b1a177c8d03f9e96e0adf246|6113728f>` Initial commit - Codertocat\n*Branches*: master, changes, gh-pages"
         }
       ]
     }
@@ -441,7 +441,7 @@ will notify #all-push-events
       "fields": [
         {
           "value":
-            "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` - Update README.md\n*Author*: Khady\n*Branches*: master"
+            "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branches*: master"
         }
       ]
     }
