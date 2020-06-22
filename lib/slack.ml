@@ -75,7 +75,7 @@ let generate_pull_request_notification notification =
 
 let generate_pr_review_notification notification =
   let { action; sender; pull_request; review; repository } = notification in
-  let ({ user; number; title; html_url; _ } : pull_request) = pull_request in
+  let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
     | Submitted ->
@@ -92,8 +92,8 @@ let generate_pr_review_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s <%s|%s> %s's pull request #%d <%s|[%s]>" repository.url repository.full_name sender.login
-         review.html_url action_str user.login number html_url title)
+      (sprintf "<%s|[%s]> %s <%s|%s> #%d <%s|[%s]>" repository.url repository.full_name sender.login
+         review.html_url action_str number html_url title)
   in
   {
     text = None;
@@ -114,7 +114,7 @@ let generate_pr_review_notification notification =
 
 let generate_pr_review_comment_notification notification =
   let { action; pull_request; sender; comment; repository } = notification in
-  let ({ user; number; title; html_url; _ } : pull_request) = pull_request in
+  let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
     | Created -> "commented"
@@ -125,8 +125,8 @@ let generate_pr_review_comment_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s %s on %s's pull request #%d <%s|[%s]>" repository.url repository.full_name sender.login
-         action_str user.login number html_url title)
+      (sprintf "<%s|[%s]> %s %s on #%d <%s|[%s]>" repository.url repository.full_name sender.login
+         action_str number html_url title)
   in
   let file =
     match comment.path with
@@ -189,7 +189,7 @@ let generate_issue_notification notification =
 
 let generate_issue_comment_notification notification =
   let { action; issue; sender; comment; repository } = notification in
-  let { user; number; title; _ } = issue in
+  let { number; title; _ } = issue in
   let action_str =
     match action with
     | Created -> "commented"
@@ -199,15 +199,10 @@ let generate_issue_comment_notification notification =
            "Notabot doesn't know how to generate pull request review comment notification for the unexpected event %s"
            (string_of_comment_action action))
   in
-  let kind =
-    match issue.pull_request with
-    | Some _ -> sprintf "%s's pull request" user.login
-    | None -> "issue"
-  in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s <%s|%s> on %s #%d <%s|[%s]>" repository.url repository.full_name sender.login
-         comment.html_url action_str kind number issue.html_url title)
+      (sprintf "<%s|[%s]> %s <%s|%s> on #%d <%s|[%s]>" repository.url repository.full_name sender.login
+         comment.html_url action_str number issue.html_url title)
   in
   {
     text = None;
@@ -330,7 +325,7 @@ let generate_commit_comment_notification cfg notification =
   match%lwt Github.generate_commit_from_commit_comment cfg notification with
   | None -> invalid_arg "no commits found"
   | Some api_commit ->
-    let { commit; author; files; _ } = api_commit in
+    let { commit; files; _ } = api_commit in
     let { sender; comment; repository; _ } = notification in
     let commit_id =
       match comment.commit_id with
@@ -339,8 +334,8 @@ let generate_commit_comment_notification cfg notification =
     in
     let summary =
       Some
-        (sprintf "<%s|[%s]> %s commented on %s's commit `<%s|%s>` - %s" repository.url repository.full_name sender.login
-           author.login comment.html_url (git_short_sha_hash commit_id) commit.message)
+        (sprintf "<%s|[%s]> %s commented on `<%s|%s>` - %s" repository.url repository.full_name sender.login
+           comment.html_url (git_short_sha_hash commit_id) commit.message)
     in
     let path =
       match comment.path with
