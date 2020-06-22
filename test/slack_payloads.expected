@@ -247,7 +247,7 @@ will notify #a1-bot
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
-      "text": ""
+      "text": "Labels: a1, backend"
     }
   ]
 }
@@ -261,7 +261,7 @@ will notify #backend
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
-      "text": ""
+      "text": "Labels: a1, backend"
     }
   ]
 }
