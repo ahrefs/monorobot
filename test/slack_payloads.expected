@@ -26,7 +26,9 @@ will notify #all-push-events
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` - add new line at EOF",
-      "text": "add a commit comment"
+      "text": "add a commit comment",
+      "footer":
+        "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/blob/cd5b85afa306840e0790b62e349ee1f828b2a3c2/main.ml|main.ml>"
     }
   ]
 }
@@ -216,8 +218,7 @@ will notify #a1-bot
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|[Update README.md]> closed by xinyuluo",
-      "text": ""
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|[Update README.md]> closed by xinyuluo"
     }
   ]
 }
@@ -231,8 +232,7 @@ will notify #default
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by xinyuluo",
-      "text": ""
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|[Update README.md]> closed by xinyuluo"
     }
   ]
 }
@@ -247,7 +247,7 @@ will notify #a1-bot
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
-      "text": ""
+      "text": "Labels: a1, backend"
     }
   ]
 }
@@ -261,7 +261,7 @@ will notify #backend
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|[README update]> labeled by xinyuluo",
-      "text": ""
+      "text": "Labels: a1, backend"
     }
   ]
 }
