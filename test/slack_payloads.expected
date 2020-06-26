@@ -405,6 +405,7 @@ will notify #all-push-events
     }
   ]
 }
+===== file ../mock_payloads/status.merge_develop.json =====
 ===== file ../mock_payloads/status.pending_test.json =====
 ===== file ../mock_payloads/status.success_public_repo_no_buildkite.json =====
 will notify #all-push-events
