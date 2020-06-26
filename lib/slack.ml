@@ -93,8 +93,8 @@ let generate_pr_review_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login
-         review.html_url action_str number html_url title)
+      (sprintf "<%s|[%s]> %s <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login review.html_url
+         action_str number html_url title)
   in
   {
     text = None;
@@ -126,8 +126,8 @@ let generate_pr_review_comment_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s %s on #%d <%s|%s>" repository.url repository.full_name sender.login
-         action_str number html_url title)
+      (sprintf "<%s|[%s]> %s %s on #%d <%s|%s>" repository.url repository.full_name sender.login action_str number
+         html_url title)
   in
   let file =
     match comment.path with
@@ -202,8 +202,8 @@ let generate_issue_comment_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login
-         comment.html_url action_str number issue.html_url title)
+      (sprintf "<%s|[%s]> %s <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login comment.html_url
+         action_str number issue.html_url title)
   in
   {
     text = None;
@@ -226,7 +226,7 @@ let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
 let generate_push_notification notification =
   let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in
-  let commits_branch = Github.get_commits_branch notification in
+  let commits_branch = Github.get_commits_branch notification.ref in
   let tree_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode commits_branch ] in
   let title =
     if deleted then
@@ -287,7 +287,9 @@ let generate_status_notification (notification : status_notification) =
     | None -> None
     | Some s -> Some (sprintf "*Description*: %s." s)
   in
-  let commit_info = sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message) author.login in
+  let commit_info =
+    sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message) author.login
+  in
   let branches_info =
     let branches = notification.branches |> List.map ~f:(fun ({ name } : branch) -> name) |> String.concat ~sep:", " in
     sprintf "*Branches*: %s" branches
@@ -314,8 +316,7 @@ let generate_status_notification (notification : status_notification) =
             pretext = summary;
             color = Some color_info;
             text = description_info;
-            fields =
-              Some [ { title = None; value = String.concat ~sep:"\n" @@ [ commit_info; branches_info ] } ];
+            fields = Some [ { title = None; value = String.concat ~sep:"\n" @@ [ commit_info; branches_info ] } ];
           };
         ];
     blocks = None;

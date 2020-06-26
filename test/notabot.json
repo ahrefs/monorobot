@@ -1,5 +1,6 @@
 {
     "offline": "github-api-cache",
+    "main_branch_name": "develop",
     "status_rules": {
         "name": [
             "default",

@@ -49,10 +49,10 @@ let parse_exn ~secret headers body =
   | ("member" | "create" | "delete" | "release") as event -> Event event
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
-let get_commits_branch n =
-  match String.split ~on:'/' n.ref with
+let get_commits_branch ref =
+  match String.split ~on:'/' ref with
   | "refs" :: "heads" :: l -> String.concat ~sep:"/" l
-  | _ -> n.ref
+  | _ -> ref
 
 let query_api ?token ~url parse =
   let headers = Option.map token ~f:(fun t -> [ sprintf "Authorization: token %s" t ]) in
