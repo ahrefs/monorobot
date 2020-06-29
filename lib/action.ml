@@ -21,10 +21,9 @@ let touching_label rule name =
   (List.is_empty label_lc || List.mem ~equal:String.equal label_lc name_lc)
   && not (List.mem ~equal:String.equal ignore_lc name_lc)
 
-let is_main_merge_message message n cfg =
+let is_main_merge_message ~msg:message ~branch cfg =
   match cfg.main_branch_name with
   | Some main_branch ->
-    let branch = Github.get_commits_branch n in
     let expect = sprintf "Merge branch '%s' into %s" main_branch branch in
     let expect2 = sprintf "Merge remote-tracking branch 'origin/%s' into %s" main_branch branch in
     let title = first_line message in
@@ -54,7 +53,8 @@ let partition_push cfg n =
     n.commits
     |> List.filter ~f:(fun c -> c.distinct)
     |> List.filter ~f:(fun c ->
-         let skip = is_main_merge_message c.message n cfg in
+         let branch = Github.get_commits_branch n.ref in
+         let skip = is_main_merge_message ~msg:c.message ~branch cfg in
          if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
          not skip)
     |> List.map ~f:(fun commit ->
@@ -161,7 +161,14 @@ let partition_status cfg (n : status_notification) =
     | None ->
       let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
       Lwt.return default
-    | Some commit -> Lwt.return (partition_commit cfg commit.files)
+    | Some commit ->
+    match
+      List.exists n.branches ~f:(fun { name } -> is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
+    with
+    | true ->
+      log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
+      Lwt.return []
+    | false -> Lwt.return (partition_commit cfg commit.files)
   in
   match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
   | false -> Lwt.return []
@@ -189,6 +196,13 @@ let partition_commit_comment cfg n =
     Lwt.return notifs
   | l -> Lwt.return l
 
+let is_cancelled_status_notification notification =
+  let { state; description; _ } = notification in
+  let r = Re.Str.regexp_case_fold "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$" in
+  match description, state with
+  | Some s, Failure when Re.Str.string_match r s 0 -> true
+  | _ -> false
+
 let generate_notifications cfg req =
   match req with
   | Github.Push n ->
@@ -214,8 +228,10 @@ let generate_notifications cfg req =
     Lwt.return notifs
   | Github.Status n ->
     let%lwt webhooks = partition_status cfg n in
-    let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks in
-    Lwt.return notifs
+    ( match is_cancelled_status_notification n && cfg.suppress_cancelled_events with
+    | true -> Lwt.return []
+    | _ -> Lwt.return (List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks)
+    )
   | _ -> Lwt.return []
 
 let print_prefix_routing rules =
