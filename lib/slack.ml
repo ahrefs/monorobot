@@ -316,14 +316,7 @@ let generate_status_notification (notification : status_notification) =
             pretext = summary;
             color = Some color_info;
             text = description_info;
-<<<<<<< HEAD
             fields = Some [ { title = None; value = String.concat ~sep:"\n" [ commit_info; branches_info ] } ];
-||||||| parent of 72247fc... filter merge commit of main branch in status events
-            fields =
-              Some [ { title = None; value = String.concat ~sep:"\n" @@ [ commit_info; branches_info ] } ];
-=======
-            fields = Some [ { title = None; value = String.concat ~sep:"\n" @@ [ commit_info; branches_info ] } ];
->>>>>>> 72247fc... filter merge commit of main branch in status events
           };
         ];
     blocks = None;
