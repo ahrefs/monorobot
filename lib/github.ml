@@ -49,10 +49,10 @@ let parse_exn ~secret headers body =
   | ("member" | "create" | "delete" | "release") as event -> Event event
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
-let get_commits_branch n =
-  match String.split ~on:'/' n.ref with
+let get_commits_branch ref =
+  match String.split ~on:'/' ref with
   | "refs" :: "heads" :: l -> String.concat ~sep:"/" l
-  | _ -> n.ref
+  | _ -> ref
 
 let query_api ?token ~url parse =
   let headers = Option.map token ~f:(fun t -> [ sprintf "Authorization: token %s" t ]) in
@@ -74,7 +74,7 @@ let generate_query_commmit cfg ~url ~sha =
     let f = Caml.Filename.concat path sha in
     ( match Caml.Sys.file_exists f with
     | false ->
-      log#error "unable to find offline file %s" f;
+      log#error "unable to find offline file %s, try fetching it from %s" f url;
       Lwt.return_none
     | true ->
       Stdio.In_channel.with_file f ~f:(fun ic ->
