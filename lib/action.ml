@@ -207,26 +207,26 @@ let generate_notifications cfg req =
   match req with
   | Github.Push n ->
     partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return
-  | Github.Pull_request n ->
+  | Pull_request n ->
     partition_pr cfg n |> List.map ~f:(fun webhook -> webhook, generate_pull_request_notification n) |> Lwt.return
-  | Github.PR_review n ->
+  | PR_review n ->
     partition_pr_review cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_notification n) |> Lwt.return
-  | Github.PR_review_comment n ->
+  | PR_review_comment n ->
     partition_pr_review_comment cfg n
     |> List.map ~f:(fun webhook -> webhook, generate_pr_review_comment_notification n)
     |> Lwt.return
-  | Github.Issue n ->
+  | Issue n ->
     partition_issue cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_notification n) |> Lwt.return
-  | Github.Issue_comment n ->
+  | Issue_comment n ->
     partition_issue_comment cfg n
     |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
     |> Lwt.return
-  | Github.Commit_comment n ->
+  | Commit_comment n ->
     let%lwt webhooks = partition_commit_comment cfg n in
     let%lwt notif = generate_commit_comment_notification cfg n in
     let notifs = List.map ~f:(fun webhook -> webhook, notif) webhooks in
     Lwt.return notifs
-  | Github.Status n ->
+  | Status n ->
     let%lwt webhooks = partition_status cfg n in
     ( match is_cancelled_status_notification n && cfg.suppress_cancelled_events with
     | true -> Lwt.return []
@@ -248,7 +248,7 @@ let print_prefix_routing rules =
        Stdio.printf " -> #%s\n%!" rule.chan)
 
 let print_label_routing rules =
-  let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
+  let show_match l = String.concat ~sep:" or " l in
   rules
   |> List.iter ~f:(fun rule ->
        begin
