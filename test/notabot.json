@@ -72,5 +72,6 @@
                 "chan": "frontend-bot"
             }
         ]
-    }
+    },
+    "suppress_cancelled_events": true
 }

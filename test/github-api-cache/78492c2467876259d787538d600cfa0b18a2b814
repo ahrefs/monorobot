@@ -1,0 +1,79 @@
+{
+  "sha": "78492c2467876259d787538d600cfa0b18a2b814",
+  "node_id": "MDY6Q29tbWl0MTgyOjc4NDkyYzI0Njc4NzYyNTlkNzg3NTM4ZDYwMGNmYTBiMThhMmI4MTQ=",
+  "commit": {
+    "author": {
+      "name": "Louis Roché",
+      "email": "louis.roche@ahrefs.com",
+      "date": "2020-06-23T08:13:21Z"
+    },
+    "committer": {
+      "name": "GitHub Enterprise",
+      "email": "git@ahrefs.com",
+      "date": "2020-06-23T08:13:21Z"
+    },
+    "message": "long ci step",
+    "tree": {
+      "sha": "7dafff78ed5c2b44e443d9c9165f55f41bbc0eeb",
+      "url": "https://git.ahrefs.com/api/v3/repos/ahrefs/notabot_test/git/trees/7dafff78ed5c2b44e443d9c9165f55f41bbc0eeb"
+    },
+    "url": "https://git.ahrefs.com/api/v3/repos/ahrefs/notabot_test/git/commits/78492c2467876259d787538d600cfa0b18a2b814",
+    "comment_count": 0,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null
+    }
+  },
+  "url": "https://git.ahrefs.com/api/v3/repos/ahrefs/notabot_test/commits/78492c2467876259d787538d600cfa0b18a2b814",
+  "html_url": "https://git.ahrefs.com/ahrefs/notabot_test/commit/78492c2467876259d787538d600cfa0b18a2b814",
+  "comments_url": "https://git.ahrefs.com/api/v3/repos/ahrefs/notabot_test/commits/78492c2467876259d787538d600cfa0b18a2b814/comments",
+  "author": {
+    "login": "louis",
+    "id": 34,
+    "node_id": "MDQ6VXNlcjM0",
+    "avatar_url": "https://git.ahrefs.com/avatars/u/34?",
+    "gravatar_id": "",
+    "url": "https://git.ahrefs.com/api/v3/users/louis",
+    "html_url": "https://git.ahrefs.com/louis",
+    "followers_url": "https://git.ahrefs.com/api/v3/users/louis/followers",
+    "following_url": "https://git.ahrefs.com/api/v3/users/louis/following{/other_user}",
+    "gists_url": "https://git.ahrefs.com/api/v3/users/louis/gists{/gist_id}",
+    "starred_url": "https://git.ahrefs.com/api/v3/users/louis/starred{/owner}{/repo}",
+    "subscriptions_url": "https://git.ahrefs.com/api/v3/users/louis/subscriptions",
+    "organizations_url": "https://git.ahrefs.com/api/v3/users/louis/orgs",
+    "repos_url": "https://git.ahrefs.com/api/v3/users/louis/repos",
+    "events_url": "https://git.ahrefs.com/api/v3/users/louis/events{/privacy}",
+    "received_events_url": "https://git.ahrefs.com/api/v3/users/louis/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "committer": null,
+  "parents": [
+    {
+      "sha": "c7071df521211921fb2478ce877d61d936d5d9f0",
+      "url": "https://git.ahrefs.com/api/v3/repos/ahrefs/notabot_test/commits/c7071df521211921fb2478ce877d61d936d5d9f0",
+      "html_url": "https://git.ahrefs.com/ahrefs/notabot_test/commit/c7071df521211921fb2478ce877d61d936d5d9f0"
+    }
+  ],
+  "stats": {
+    "total": 1,
+    "additions": 1,
+    "deletions": 0
+  },
+  "files": [
+    {
+      "sha": "c61033bda19d2d2ce2b883ad144bc8c20620c15b",
+      "filename": ".build.sh",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "blob_url": "https://git.ahrefs.com/ahrefs/notabot_test/blob/78492c2467876259d787538d600cfa0b18a2b814/.build.sh",
+      "raw_url": "https://git.ahrefs.com/ahrefs/notabot_test/raw/78492c2467876259d787538d600cfa0b18a2b814/.build.sh",
+      "contents_url": "https://git.ahrefs.com/api/v3/repos/ahrefs/notabot_test/contents/.build.sh?ref=78492c2467876259d787538d600cfa0b18a2b814",
+      "patch": "@@ -12,6 +12,7 @@ EOF\n     agents:\n       linux: \"true\"\n     command:\n+      - sleep 120\n       - exit 0\n EOF\n "
+    }
+  ]
+}
