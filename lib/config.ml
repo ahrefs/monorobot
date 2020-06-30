@@ -15,6 +15,7 @@ type t = {
   gh_token : string option;
   offline : string option;
   status_rules : status_rules;
+  suppress_cancelled_events : bool;
 }
 
 let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
@@ -72,6 +73,7 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     in
     { title = json_config.status_rules.title; status }
   in
+  let suppress_cancelled_events = Option.default true json_config.suppress_cancelled_events in
   {
     chans;
     prefix_rules = json_config.prefix_rules;
@@ -81,6 +83,7 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     gh_token = secrets.gh_token;
     offline = json_config.offline;
     status_rules;
+    suppress_cancelled_events;
   }
 
 let load path secrets =

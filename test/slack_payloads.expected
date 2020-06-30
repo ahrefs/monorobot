@@ -384,6 +384,7 @@ will notify #all-push-events
     }
   ]
 }
+===== file ../mock_payloads/status.cancelled_test.json =====
 ===== file ../mock_payloads/status.failure_test.json =====
 will notify #all-push-events
 {

@@ -274,8 +274,8 @@ let generate_status_notification (notification : status_notification) =
     | Error -> "error"
     | _ ->
       invalid_arg
-        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
-           (string_of_status_state state))
+        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s of %s"
+           (string_of_status_state state) sha)
   in
   let color_info =
     match state with
@@ -316,7 +316,7 @@ let generate_status_notification (notification : status_notification) =
             pretext = summary;
             color = Some color_info;
             text = description_info;
-            fields = Some [ { title = None; value = String.concat ~sep:"\n" @@ [ commit_info; branches_info ] } ];
+            fields = Some [ { title = None; value = String.concat ~sep:"\n" [ commit_info; branches_info ] } ];
           };
         ];
     blocks = None;

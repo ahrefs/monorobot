@@ -74,7 +74,7 @@ let generate_query_commmit cfg ~url ~sha =
     let f = Caml.Filename.concat path sha in
     ( match Caml.Sys.file_exists f with
     | false ->
-      log#error "unable to find offline file %s" f;
+      log#error "unable to find offline file %s, try fetching it from %s" f url;
       Lwt.return_none
     | true ->
       Stdio.In_channel.with_file f ~f:(fun ic ->
