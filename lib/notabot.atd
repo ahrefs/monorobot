@@ -31,13 +31,13 @@ type webhook = {
   matches one of the [prefix] and does not match any of [ignore] *)
 type prefix_rule = {
   prefix : string list; (* empty list means match any *)
-  ignore : string list;
+  ~ignore : string list;
   chan : string;
 }
 
 type label_rule = {
   label_name : string list;
-  ignore : string list;
+  ~ignore : string list;
   chan: string;
 }
 
