@@ -78,8 +78,13 @@ type secrets = {
   ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
 }
 
+type build_state = [
+  Success <json name="success">
+  | Failure <json name="failure">
+] <ocaml repr="classic">
+
 type branch_info = {
-  ?last_build_state : status_state option;
+  ?last_build_state : build_state option;
 }
 
 type state = {
