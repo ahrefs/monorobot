@@ -8,9 +8,9 @@ let state_of_json (json_state : Notabot_t.state) : t =
       (fun (branch : Notabot_t.branch_info) ->
         let last_build_state : Github_t.status_state option =
           match branch.last_build_state with
-          | Some { success = true; failure = _; pending = _; error = _ } -> Some Success
-          | Some { success = _; failure = true; pending = _; error = _ } -> Some Failure
-          | Some { success = _; failure = _; pending = true; error = _ } -> Some Pending
+          | Some { success = true; failure = false; pending = false; error = false } -> Some Success
+          | Some { success = false; failure = true; pending = false; error = false } -> Some Failure
+          | Some { success = false; failure = false; pending = true; error = false } -> Some Pending
           | Some { success = _; failure = _; pending = _; error = _ } -> Some Error
           | None -> None
         in
