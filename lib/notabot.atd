@@ -77,3 +77,11 @@ type secrets = {
   ?gh_token: string option; (* must not be specified for public repositories *)
   ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
 }
+
+type branch_info = {
+  last_build_state : status_state;
+}
+
+type state = {
+  branches : branch_info list;
+}
