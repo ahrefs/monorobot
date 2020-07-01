@@ -79,7 +79,7 @@ type secrets = {
 }
 
 type branch_info = {
-  last_build_state : status_state;
+  ?last_build_state : status_state option;
 }
 
 type state = {

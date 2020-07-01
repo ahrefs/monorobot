@@ -1,4 +1,4 @@
-type branch_state = { mutable last_build_state : Github_t.status_state }
+type branch_state = { mutable last_build_state : Github_t.status_state option }
 
 type t = { branches : branch_state list }
 
@@ -6,12 +6,13 @@ let state_of_json (json_state : Notabot_t.state) : t =
   let branches =
     List.map
       (fun (branch : Notabot_t.branch_info) ->
-        let last_build_state : Github_t.status_state =
+        let last_build_state : Github_t.status_state option =
           match branch.last_build_state with
-          | { success = true; failure = _; pending = _; error = _ } -> Success
-          | { success = _; failure = true; pending = _; error = _ } -> Failure
-          | { success = _; failure = _; pending = true; error = _ } -> Pending
-          | { success = _; failure = _; pending = _; error = _ } -> Error
+          | Some { success = true; failure = _; pending = _; error = _ } -> Some Success
+          | Some { success = _; failure = true; pending = _; error = _ } -> Some Failure
+          | Some { success = _; failure = _; pending = true; error = _ } -> Some Pending
+          | Some { success = _; failure = _; pending = _; error = _ } -> Some Error
+          | None -> None
         in
         { last_build_state })
       json_state.branches
@@ -25,12 +26,13 @@ let json_of_state (state : t) : Notabot_t.state =
         let last_build_state_json s f p e : Notabot_t.status_state =
           { success = s; failure = f; pending = p; error = e }
         in
-        let last_build_state : Notabot_t.status_state =
+        let last_build_state : Notabot_t.status_state option =
           match branch.last_build_state with
-          | Success -> last_build_state_json true false false false
-          | Failure -> last_build_state_json false true false false
-          | Pending -> last_build_state_json false false true false
-          | Error -> last_build_state_json false false false true
+          | None -> None
+          | Some Success -> Some (last_build_state_json true false false false)
+          | Some Failure -> Some (last_build_state_json false true false false)
+          | Some Pending -> Some (last_build_state_json false false true false)
+          | Some Error -> Some (last_build_state_json false false false true)
         in
         let branch_info : Notabot_t.branch_info = { last_build_state } in
         branch_info)
