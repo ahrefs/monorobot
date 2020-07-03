@@ -22,41 +22,61 @@ let json_of_state (state : t) : Notabot_t.state =
       (fun (branch : branch_state) ->
         let name = branch.name in
         let last_build_state : Notabot_t.build_state option = branch.last_build_state in
-        let branch_info : Notabot_t.branch_info = { name; last_build_state } in
-        branch_info)
+        let branch_state : Notabot_t.branch_info = { name; last_build_state } in
+        branch_state)
       state.branches
   in
   { branches }
 
+let string_of_state state =
+  let json = json_of_state state in
+  Notabot_j.string_of_state json
+
 let default_state = { branches = [] }
 
-let default_branch_info name = { name; last_build_state = None }
+let default_branch_state name = { name; last_build_state = None }
 
-let get_branch_state name state =
+let get_branch_state state name =
   match List.filter (fun branch -> branch.name = name) state.branches with
   | b :: _ -> Some b
   | [] -> None
 
-let set_branch_state name branch_info state =
+let set_branch_state state branch_state =
   let branches =
     match
       List.fold_left
-        (fun (bs, found) b -> if b.name = name then branch_info :: bs, true else b :: bs, found)
+        (fun (bs, found) b -> if b.name = branch_state.name then branch_state :: bs, true else b :: bs, found)
         ([], false) state.branches
     with
     | bs, true -> bs
-    | bs, false -> branch_info :: bs
+    | bs, false -> branch_state :: bs
   in
   { branches }
 
-(* { state with branches = branches } *)
+let update_state state_record event =
+  match event with
+  | Github.Push _ | Pull_request _ | PR_review _ | PR_review_comment _ | Issue _ | Issue_comment _ | Commit_comment _
+  | Event _ ->
+    state_record
+  | Status n ->
+    List.fold_left
+      (fun s (b : Github_t.branch) ->
+        let last_build_state : Notabot_t.build_state option =
+          match n.state with
+          | Success -> Some Success
+          | _ -> Some Failure
+        in
+        let branch_state =
+          match get_branch_state s b.name with
+          | Some b -> b
+          | None -> default_branch_state b.name
+        in
+        let branch_state' = { branch_state with last_build_state } in
+        set_branch_state s branch_state')
+      state_record n.branches
 
-let load path =
-  try state_of_json @@ Notabot_j.state_of_string @@ Stdio.In_channel.read_all path with Sys_error _ -> default_state
+let load path = state_of_json @@ Notabot_j.state_of_string @@ Stdio.In_channel.read_all path
 
 let save path state =
-  let json = json_of_state state in
-  let str = Notabot_j.string_of_state json in
+  let str = string_of_state state in
   Stdio.Out_channel.write_all path ~data:str
-
-(* TODO set values to records *)

@@ -196,14 +196,33 @@ let partition_commit_comment cfg n =
     Lwt.return notifs
   | l -> Lwt.return l
 
-let is_cancelled_status_notification notification =
-  let { state; description; _ } = notification in
-  let r = Re.Str.regexp_case_fold "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$" in
-  match description, state with
-  | Some s, Failure when Re.Str.string_match r s 0 -> true
+let hide_cancelled (notification : status_notification) cfg =
+  let is_cancelled_status =
+    let { state; description; _ } = notification in
+    let r = Re.Str.regexp_case_fold "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$" in
+    match description, state with
+    | Some s, Failure when Re.Str.string_match r s 0 -> true
+    | _ -> false
+  in
+  is_cancelled_status && cfg.suppress_cancelled_events
+
+let hide_success (notification : status_notification) state =
+  match notification.state with
+  | Success ->
+    List.fold ~f:( || ) ~init:false
+    @@ List.map
+         ~f:(fun b ->
+           match State.get_branch_state state b.name with
+           | None -> false
+           | Some { last_build_state; _ } ->
+           match last_build_state with
+           | None | Some Failure -> false
+           | Some Success -> true)
+         notification.branches
   | _ -> false
 
-let generate_notifications cfg req =
+let generate_notifications cfg load_state update_state req =
+  let state = load_state () in
   match req with
   | Github.Push n ->
     partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return
@@ -228,7 +247,9 @@ let generate_notifications cfg req =
     Lwt.return notifs
   | Status n ->
     let%lwt webhooks = partition_status cfg n in
-    ( match is_cancelled_status_notification n && cfg.suppress_cancelled_events with
+    let to_hide_predicates = [ hide_cancelled n cfg; hide_success n state ] in
+    update_state state req;
+    ( match List.fold ~f:( || ) ~init:false to_hide_predicates with
     | true -> Lwt.return []
     | _ -> Lwt.return (List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks)
     )
