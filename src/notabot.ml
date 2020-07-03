@@ -13,11 +13,17 @@ let get_config config secrets =
   Action.print_label_routing cfg.label_rules.rules;
   cfg
 
-let http_server addr port config secrets =
+let get_state path = try State.load path with Sys_error _ -> State.default_state
+
+let update_state_at_path state_path state event = State.save state_path @@ State.update_state state event
+
+let http_server addr port config state_path secrets =
   log#info "notabot starting";
   let cfg = get_config config secrets in
+  let load_state () = get_state state_path in
+  let update_state = update_state_at_path state_path in
   log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
-  Lwt_main.run (Request_handler.start_http_server ~cfg ~addr ~port ())
+  Lwt_main.run (Request_handler.start_http_server ~cfg ~load_state ~update_state ~addr ~port ())
 
 let send_slack_notification webhook file =
   let data = Stdio.In_channel.read_all file in
@@ -25,8 +31,10 @@ let send_slack_notification webhook file =
   | exception exn -> log#error ~exn "unable to parse notification"
   | data -> Lwt_main.run (Slack.send_notification webhook data)
 
-let check_common file print config secrets =
+let check_common file print config secrets state_path =
   let cfg = get_config config secrets in
+  let load_state () = get_state state_path in
+  let update_state = update_state_at_path state_path in
   match Mock.kind file with
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
@@ -39,7 +47,7 @@ let check_common file print config secrets =
       log#error ~exn "unable to parse payload";
       Lwt.return_unit
     | event ->
-      let%lwt notifs = Action.generate_notifications cfg event in
+      let%lwt notifs = Action.generate_notifications cfg load_state update_state event in
       List.iter ~f:print notifs;
       Lwt.return_unit
     )
@@ -61,11 +69,11 @@ let print_json_message (chan, msg) =
   log#info "%s" (Uri.to_string url);
   log#info "%s" json
 
-let check file json config secrets =
+let check file json config secrets state =
   Lwt_main.run
     ( match json with
-    | false -> check_common file print_simplified_message config secrets
-    | true -> check_common file print_json_message config secrets
+    | false -> check_common file print_simplified_message config secrets state
+    | true -> check_common file print_json_message config secrets state
     )
 
 (** {2 cli} *)
@@ -88,6 +96,10 @@ let secrets =
   let doc = "configuration file containing secrets" in
   Arg.(value & opt file "secrets.json" & info [ "secrets" ] ~docv:"secrets" ~doc)
 
+let state =
+  let doc = "state file" in
+  Arg.(value & opt file "notabot_state.json" & info [ "state" ] ~docv:"STATE" ~doc)
+
 let mock_payload =
   let doc = "mock github webhook payload" in
   Arg.(required & pos 0 (some file) None & info [] ~docv:"MOCK_PAYLOAD" ~doc)
@@ -107,13 +119,13 @@ let json =
 let run =
   let doc = "launch the http server" in
   let info = Term.info "run" ~doc in
-  let term = Term.(const http_server $ addr $ port $ config $ secrets) in
+  let term = Term.(const http_server $ addr $ port $ config $ secrets $ state) in
   term, info
 
 let check =
   let doc = "read github notification payload from file and show actions to be taken" in
   let info = Term.info "check" ~doc in
-  let term = Term.(const check $ mock_payload $ json $ config $ secrets) in
+  let term = Term.(const check $ mock_payload $ json $ config $ secrets $ state) in
   term, info
 
 let slack_notif =
@@ -127,5 +139,27 @@ let default_cmd =
   Term.(ret (const (`Help (`Pager, None)))), Term.info "notabot" ~doc
 
 let cmds = [ run; check; slack_notif ]
+
+(*
+let () =
+  let path = "state.json" in
+  printfn "hey";
+  let state = State.default_state in
+  let branch_state : State.branch_state option = State.get_branch_state state "test" in
+  ( match branch_state with
+  | None -> printfn "branch doesnt exist"
+  | Some b ->
+  match b.last_build_state with
+  | None -> printfn "last build state not defined"
+  | Some Success -> printfn "last build state success"
+  | Some Failure -> printfn "last build state failure"
+  );
+  let state' =
+    match branch_state with
+    | None -> state
+    | Some b -> State.set_branch_state state { b with last_build_state = None }
+  in
+State.save path state'
+*)
 
 let () = Term.(exit @@ eval_choice default_cmd cmds)

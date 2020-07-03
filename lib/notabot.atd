@@ -84,6 +84,7 @@ type build_state = [
 ] <ocaml repr="classic">
 
 type branch_info = {
+  name : string;
   ?last_build_state : build_state option;
 }
 
