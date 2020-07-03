@@ -19,7 +19,7 @@ let process cfg file =
       Stdio.printf "exception when parsing %s: %s\n" file (Exn.to_string exn);
       Lwt.return_unit
     | event ->
-      let%lwt notifs = Action.generate_notifications cfg event in
+      let%lwt notifs = Action.generate_notifications cfg (fun () -> State.default_state) (fun _ _ -> ()) event in
       List.iter notifs ~f:print_notif;
       Lwt.return_unit
     )
