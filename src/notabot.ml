@@ -140,26 +140,4 @@ let default_cmd =
 
 let cmds = [ run; check; slack_notif ]
 
-(*
-let () =
-  let path = "state.json" in
-  printfn "hey";
-  let state = State.default_state in
-  let branch_state : State.branch_state option = State.get_branch_state state "test" in
-  ( match branch_state with
-  | None -> printfn "branch doesnt exist"
-  | Some b ->
-  match b.last_build_state with
-  | None -> printfn "last build state not defined"
-  | Some Success -> printfn "last build state success"
-  | Some Failure -> printfn "last build state failure"
-  );
-  let state' =
-    match branch_state with
-    | None -> state
-    | Some b -> State.set_branch_state state { b with last_build_state = None }
-  in
-State.save path state'
-*)
-
 let () = Term.(exit @@ eval_choice default_cmd cmds)
