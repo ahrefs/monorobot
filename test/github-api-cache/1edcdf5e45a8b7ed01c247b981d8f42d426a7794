@@ -1,0 +1,122 @@
+{
+  "sha": "1edcdf5e45a8b7ed01c247b981d8f42d426a7794",
+  "node_id": "MDY6Q29tbWl0MjY1NzQxMzQ4OjFlZGNkZjVlNDVhOGI3ZWQwMWMyNDdiOTgxZDhmNDJkNDI2YTc3OTQ=",
+  "commit": {
+    "author": {
+      "name": "xinyuluo",
+      "email": "luoxinyu06@gmail.com",
+      "date": "2020-05-21T03:04:22Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2020-05-21T03:04:22Z"
+    },
+    "message": "Add files via upload",
+    "tree": {
+      "sha": "b0e3f737ccd133dec1b880518f8fee587a67f92d",
+      "url": "https://api.github.com/repos/xinyuluo/pr_test/git/trees/b0e3f737ccd133dec1b880518f8fee587a67f92d"
+    },
+    "url": "https://api.github.com/repos/xinyuluo/pr_test/git/commits/1edcdf5e45a8b7ed01c247b981d8f42d426a7794",
+    "comment_count": 2,
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJexe+2CRBK7hj4Ov3rIwAAdHIIAKjES+C01q1huexTyIHF/5pA\n5xOkWm2adEhh9msANjVYi3gMnqjy+tfSiaAxUpVbohJKOGh/Qj7SL3kSXysJxhO2\nTXWlSDPqy6zHTT67NG9SbXsAHcodNTQoIyXr2W2+Kv03BBdrHniDXlID5bujHD7f\nVD1eZpAlekpKn3NKX9p+CxfEWUg8pKzp3xJIser4WjojbXyAs3lDoQMa7VTZgFO3\nyibIj98aOG3SAY2Jedkpmu4158w9sGC1B7avfELgUEKMtl+EACiwkdBW3mwblBRa\n0x/kJPRpy6w+C1zFugRgLkxbElRcsQbZ00D/DcnvYrsbfhmI9wda3oIH0Ix0EhI=\n=wOP+\n-----END PGP SIGNATURE-----\n",
+      "payload": "tree b0e3f737ccd133dec1b880518f8fee587a67f92d\nparent f8384148db4f6bc2d10daf54764fe67b8f4223f2\nauthor xinyuluo <luoxinyu06@gmail.com> 1590030262 +0800\ncommitter GitHub <noreply@github.com> 1590030262 +0800\n\nAdd files via upload"
+    }
+  },
+  "url": "https://api.github.com/repos/xinyuluo/pr_test/commits/1edcdf5e45a8b7ed01c247b981d8f42d426a7794",
+  "html_url": "https://github.com/xinyuluo/pr_test/commit/1edcdf5e45a8b7ed01c247b981d8f42d426a7794",
+  "comments_url": "https://api.github.com/repos/xinyuluo/pr_test/commits/1edcdf5e45a8b7ed01c247b981d8f42d426a7794/comments",
+  "author": {
+    "login": "xinyuluo",
+    "id": 25223376,
+    "node_id": "MDQ6VXNlcjI1MjIzMzc2",
+    "avatar_url": "https://avatars0.githubusercontent.com/u/25223376?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/xinyuluo",
+    "html_url": "https://github.com/xinyuluo",
+    "followers_url": "https://api.github.com/users/xinyuluo/followers",
+    "following_url": "https://api.github.com/users/xinyuluo/following{/other_user}",
+    "gists_url": "https://api.github.com/users/xinyuluo/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/xinyuluo/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/xinyuluo/subscriptions",
+    "organizations_url": "https://api.github.com/users/xinyuluo/orgs",
+    "repos_url": "https://api.github.com/users/xinyuluo/repos",
+    "events_url": "https://api.github.com/users/xinyuluo/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/xinyuluo/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+    "avatar_url": "https://avatars3.githubusercontent.com/u/19864447?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/web-flow",
+    "html_url": "https://github.com/web-flow",
+    "followers_url": "https://api.github.com/users/web-flow/followers",
+    "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+    "organizations_url": "https://api.github.com/users/web-flow/orgs",
+    "repos_url": "https://api.github.com/users/web-flow/repos",
+    "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/web-flow/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "f8384148db4f6bc2d10daf54764fe67b8f4223f2",
+      "url": "https://api.github.com/repos/xinyuluo/pr_test/commits/f8384148db4f6bc2d10daf54764fe67b8f4223f2",
+      "html_url": "https://github.com/xinyuluo/pr_test/commit/f8384148db4f6bc2d10daf54764fe67b8f4223f2"
+    }
+  ],
+  "stats": {
+    "total": 243,
+    "additions": 242,
+    "deletions": 1
+  },
+  "files": [
+    {
+      "sha": "792f7fb2fb90f6c7d3403ff6fd139227f70b4642",
+      "filename": "Makefile",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21,
+      "blob_url": "https://github.com/xinyuluo/pr_test/blob/1edcdf5e45a8b7ed01c247b981d8f42d426a7794/Makefile",
+      "raw_url": "https://github.com/xinyuluo/pr_test/raw/1edcdf5e45a8b7ed01c247b981d8f42d426a7794/Makefile",
+      "contents_url": "https://api.github.com/repos/xinyuluo/pr_test/contents/Makefile?ref=1edcdf5e45a8b7ed01c247b981d8f42d426a7794",
+      "patch": "@@ -0,0 +1,21 @@\n+LIBS = -thread unix.cmxa threads.cmxa\n+\n+FILE := bin/chat\n+\n+OBJS := runner/chat.cmx\n+\n+all: $(FILE)\n+\n+bin/%: $(OBJS)\n+\t@mkdir -p bin\n+\tocamlopt $(LIBS) -o $@ $(OBJS)\n+\n+%.cmx: %.ml\n+\t@mkdir -p obj\n+\tocamlopt $(LIBS) -I runner/ -c $^\n+\n+clean:\n+\t@rm -rf bin\n+\t@rm -rf obj\n+\t@rm -rf runner/*.cmi\n+\t@rm -rf runner/*.o\n\\ No newline at end of file"
+    },
+    {
+      "sha": "1a100653600611bce8fd16e6d107b3d287f5c900",
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 35,
+      "deletions": 1,
+      "changes": 36,
+      "blob_url": "https://github.com/xinyuluo/pr_test/blob/1edcdf5e45a8b7ed01c247b981d8f42d426a7794/README.md",
+      "raw_url": "https://github.com/xinyuluo/pr_test/raw/1edcdf5e45a8b7ed01c247b981d8f42d426a7794/README.md",
+      "contents_url": "https://api.github.com/repos/xinyuluo/pr_test/contents/README.md?ref=1edcdf5e45a8b7ed01c247b981d8f42d426a7794",
+      "patch": "@@ -1 +1,35 @@\n-# pr_test\n\\ No newline at end of file\n+## Simple One-on-one Chat\n+\n+A simple one-one-one chat in OCaml\n+\n+### Building and Running the Project:\n+\n+To compile the project, simply run:\n+```bash\n+make\n+```\n+To remove the files generated by the compiler, type\n+```bash\n+make clean\n+```\n+To execute, run each line in a separate terminal session after building the project. Make sure the server is started before the client.\n+```bash\n+./bin/chat [-host <host>] [-port <port>] [-mode <client|server>]\n+```\n+The default host is localhost; the port to connect to is 1111; the default mode is server.\n+\n+For example, to start the application as a server using localhost with port 1111, simply run:\n+```bash\n+./bin/chat\n+```\n+To run the application as a client that aims to connect to a server socket with host \"192.168.1.101\" with port 8889, run:\n+```bash\n+./bin/chat -host \"192.168.1.101\" -port 8889 -mode client\n+```\n+To display the list of options for the application, simply run:\n+```bash\n+./bin/chat -help\n+```\n+\n+### Ongoing Work\n+This application currently works for sequential sessions (only one client connection at a time, and other incoming clients need to wait for the current one to finish). We are currently working on implementations that allow the server to handle multiple concurrent sessions.\n\\ No newline at end of file"
+    },
+    {
+      "sha": "bf0bb3dde5bd449ffdc0d9227160b4aa95f74047",
+      "filename": "runner/chat.ml",
+      "status": "added",
+      "additions": 186,
+      "deletions": 0,
+      "changes": 186,
+      "blob_url": "https://github.com/xinyuluo/pr_test/blob/1edcdf5e45a8b7ed01c247b981d8f42d426a7794/runner/chat.ml",
+      "raw_url": "https://github.com/xinyuluo/pr_test/raw/1edcdf5e45a8b7ed01c247b981d8f42d426a7794/runner/chat.ml",
+      "contents_url": "https://api.github.com/repos/xinyuluo/pr_test/contents/runner/chat.ml?ref=1edcdf5e45a8b7ed01c247b981d8f42d426a7794",
+      "patch": "@@ -0,0 +1,186 @@\n+open Unix\n+open Printf\n+\n+type textMessage = { time: float; text: string }\n+type tripMessage= { trip: float }\n+\n+type message =\n+  | Text of textMessage\n+  | Trip of tripMessage\n+\n+(* -------------------- *)\n+(* Command line options *)\n+(* -------------------- *)\n+\n+let mode = ref \"server\"\n+let host = ref (gethostname ())\n+let port = ref 1111\n+\n+(* ------ *)\n+(* Common *)\n+(* ------ *)\n+\n+let get_host () =\n+  let record = gethostbyname !host in\n+  record.Unix.h_addr_list.(0)\n+\n+let get_port () = \n+  !port\n+\n+let get_end_point () =\n+  ADDR_INET (get_host (), get_port ())\n+\n+let build_text_message text time = \n+  { text = text; time = time }\n+\n+let build_trip_message time = \n+  { trip = time }\n+\n+(* ------ *)\n+(* Client *)\n+(* ------ *)\n+\n+module Client =\n+  struct\n+    let client_setup () =\n+      let sockaddr = get_end_point () in \n+      let domain = domain_of_sockaddr sockaddr in\n+      let sock = socket domain SOCK_STREAM 0 in\n+      try\n+        connect sock sockaddr; \n+        print_endline \"Connected to server. What can I do for you?\";\n+        sock\n+      with\n+      | Not_found -> \n+        print_endline \"Host not found.\";\n+        close sock; \n+        raise Not_found\n+\n+    let client_send (i, o) =\n+      try\n+        while true do\n+          let line = read_line () in\n+          let text_msg = Text (build_text_message line (gettimeofday ())) in\n+          output_value o text_msg;\n+          flush o;\n+        done\n+      with\n+      | Exit -> exit 0\n+    \n+    let client_process (i, o) =\n+      try\n+        while true do\n+          let m = input_value i in\n+          match m with\n+          | Trip msg -> \n+            print_endline (sprintf \"] Message received. Round-trip time: %fs\" (gettimeofday () -. msg.trip));\n+          | Text msg ->\n+            print_endline (sprintf \"Server response: %s\" msg.text);\n+            let trip_msg = Trip (build_trip_message msg.time) in\n+            output_value o trip_msg;\n+            flush o;\n+        done\n+      with End_of_file -> print_endline \"Disconnected!\"; exit 0\n+\n+    let client_start_convo server_socket =\n+      let i = in_channel_of_descr server_socket in\n+      let o = out_channel_of_descr server_socket in\n+      let proc_t = Thread.create client_process (i, o) in\n+      let send_t = Thread.create client_send (i, o) in\n+      (proc_t, send_t)\n+\n+    let run () =\n+      let socket = client_setup () in\n+      let (proc_t, send_t) = client_start_convo socket in\n+      Thread.join proc_t;\n+      Thread.join send_t\n+  end\n+\n+(* ------ *)\n+(* Server *)\n+(* ------ *)\n+\n+module Server =\n+  struct\n+    let server_setup () =\n+      let sockaddr = get_end_point () in \n+      let domain = domain_of_sockaddr sockaddr in\n+      let sock = socket domain SOCK_STREAM 0 in\n+      let sockad = get_end_point () in\n+      try\n+        bind sock sockad;\n+        listen sock 1;\n+        setsockopt sock SO_REUSEADDR true;\n+        print_endline \"Waiting for client connections...\";\n+        sock\n+      with Not_found ->\n+        print_endline \"Unable to create server.\";\n+        close sock; \n+        raise Not_found\n+\n+    let server_process (i, o) =\n+      try\n+        while true do\n+          let m = input_value i in\n+          match m with\n+          | Trip msg -> \n+            print_endline (sprintf \"] Message received. Round-trip time: %fs\" (gettimeofday () -. msg.trip));\n+          | Text msg ->\n+            print_endline (sprintf \"Client request: %s\" msg.text);\n+            let trip_msg = Trip (build_trip_message msg.time) in\n+            output_value o trip_msg;\n+            flush o;\n+          let line = read_line () in\n+          let text_msg = Text (build_text_message line (gettimeofday ())) in\n+          output_value o text_msg;\n+          flush o;\n+        done\n+      with End_of_file ->\n+        print_endline \"Client ended session!\";\n+        shutdown_connection i\n+\n+    let server_start_convo server_socket =\n+      print_endline \"New client connected!\";\n+      let i = in_channel_of_descr server_socket in\n+      let o = out_channel_of_descr server_socket in\n+      Thread.create server_process (i, o)\n+\n+    let run () =\n+      let socket = server_setup () in\n+      while true do\n+        let (client_socket, _) = accept socket in\n+        let t = server_start_convo client_socket in\n+        Thread.join t\n+      done\n+  end\n+\n+(* ---- *)\n+(* Main *)\n+(* ---- *)\n+\n+let set_mode s =\n+  mode := s\n+\n+let usage = \n+  \"Usage: chat [-host <host>] [-port <port>] [-mode <client|server>]\"\n+\n+let args = [\n+  (\"-host\", Arg.Set_string host, \"The hostname to connect to: default localhost\")\n+; (\"-port\", Arg.Set_int port, \"The port to connect to: default 8889\")  \n+; (\"-mode\", Arg.Symbol ([\"client\"; \"server\"], set_mode), \" default server\")\n+]\n+\n+let init () =\n+  match !mode with\n+  | \"server\" -> \n+    print_endline \"Running in server mode.\";\n+    Server.run ()\n+  | \"client\" -> \n+    print_endline \"Running in client mode.\";\n+    Client.run ()\n+  | _ -> \n+    print_endline \"Unrecognized command\"\n+\n+let _ =\n+  Arg.parse args (fun _ -> ()) usage;\n+  init ()\n\\ No newline at end of file"
+    }
+  ]
+}

@@ -210,19 +210,19 @@ let partition_status (ctx : Context.t) (n : status_notification) =
   res
 
 let partition_commit_comment cfg n =
+  let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
   match n.comment.path with
   | None ->
     ( match%lwt Github.generate_commit_from_commit_comment cfg n with
-    | None ->
-      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-      Lwt.return default
-    | Some commit -> Lwt.return (partition_commit cfg commit.files)
+    | None -> Lwt.return default
+    | Some commit ->
+    match partition_commit cfg commit.files with
+    | [ p ] -> Lwt.return [ p ]
+    | _ -> Lwt.return default
     )
   | Some p ->
   match filter_commit cfg.prefix_rules.rules p with
-  | [] ->
-    let notifs = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-    Lwt.return notifs
+  | [] -> Lwt.return default
   | l -> Lwt.return l
 
 let generate_notifications (ctx : Context.t) req =
