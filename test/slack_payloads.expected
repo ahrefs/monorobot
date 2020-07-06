@@ -25,24 +25,26 @@ will notify #all-push-events
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
-<<<<<<< HEAD
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF",
-      "text": "add a commit comment",
-      "footer":
-        "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/blob/cd5b85afa306840e0790b62e349ee1f828b2a3c2/main.ml|main.ml>"
-||||||| merged common ancestors
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` - add new line at EOF",
-      "text": "add a commit comment",
-      "footer":
-        "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/blob/cd5b85afa306840e0790b62e349ee1f828b2a3c2/main.ml|main.ml>"
-=======
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on xinyuluo's commit `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` - add new line at EOF",
       "text": "add a commit comment"
->>>>>>> improve commit comment routing
     }
   ]
 }
-===== file ../mock_payloads/commit_comment.general_comment.multiple_path.json =====
+===== file ../mock_payloads/commit_comment.general_comment_multiple_path.json =====
+will notify #all-push-events
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/1edcdf5e45a8b7ed01c247b981d8f42d426a7794#commitcomment-0|1edcdf5e>` Add files via upload",
+      "mrkdwn_in": [ "pretext", "text" ],
+      "color": "#ccc",
+      "pretext":
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/1edcdf5e45a8b7ed01c247b981d8f42d426a7794#commitcomment-0|1edcdf5e>` Add files via upload",
+      "text": "this is a test for general commit comment with multiple paths"
+    }
+  ]
+}
 ===== file ../mock_payloads/commit_comment.long_comment.json =====
 will notify #all-push-events
 {
