@@ -209,15 +209,15 @@ let hide_cancelled (notification : status_notification) cfg =
 let hide_success (notification : status_notification) state =
   match notification.state with
   | Success ->
-    List.fold ~f:( || ) ~init:false
+    List.exists ~f:id
     @@ List.map
          ~f:(fun b ->
-           match State.get_branch_state state b.name with
+           match State.get_branch_state b.name state with
            | None -> false
            | Some { last_build_state; _ } ->
            match last_build_state with
-           | None | Some Failure -> false
-           | Some Success -> true)
+           | Failure -> false
+           | Success -> true)
          notification.branches
   | _ -> false
 
@@ -249,7 +249,7 @@ let generate_notifications cfg load_state update_state req =
     let%lwt webhooks = partition_status cfg n in
     let to_hide_predicates = [ hide_cancelled n cfg; hide_success n state ] in
     update_state state req;
-    ( match List.fold ~f:( || ) ~init:false to_hide_predicates with
+    ( match List.exists ~f:id to_hide_predicates with
     | true -> Lwt.return []
     | _ -> Lwt.return (List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks)
     )
