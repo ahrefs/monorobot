@@ -1,5 +1,3 @@
-module BranchStates = Map.Make (String)
-
 type t = { branches : (string * Notabot_t.branch_info) list }
 
 let state_of_json (json_state : Notabot_t.state) : t =
@@ -47,6 +45,8 @@ let update_state (state : t) event =
       state n.branches
 
 let load path = state_of_json @@ Notabot_j.state_of_string @@ Stdio.In_channel.read_all path
+
+let load_safe path = try load path with Sys_error _ -> default_state
 
 let save path state =
   let str = string_of_state state in
