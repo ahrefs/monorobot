@@ -1,31 +1,13 @@
-type branch_state = {
-  name : string;
-  last_build_state : Notabot_t.build_state option;
-}
+module BranchStates = Map.Make (String)
 
-type t = { branches : branch_state list }
+type t = { branches : (string * Notabot_t.branch_info) list }
 
 let state_of_json (json_state : Notabot_t.state) : t =
-  let branches =
-    List.map
-      (fun (branch : Notabot_t.branch_info) ->
-        let name = branch.name in
-        let last_build_state = branch.last_build_state in
-        { name; last_build_state })
-      json_state.branches
-  in
+  let branches = List.map (fun (branch : Notabot_t.branch_info) -> branch.name, branch) json_state.branches in
   { branches }
 
 let json_of_state (state : t) : Notabot_t.state =
-  let branches : Notabot_t.branch_info list =
-    List.map
-      (fun (branch : branch_state) ->
-        let name = branch.name in
-        let last_build_state : Notabot_t.build_state option = branch.last_build_state in
-        let branch_state : Notabot_t.branch_info = { name; last_build_state } in
-        branch_state)
-      state.branches
-  in
+  let branches = List.map (fun (_, branch) -> branch) state.branches in
   { branches }
 
 let string_of_state state =
@@ -34,46 +16,35 @@ let string_of_state state =
 
 let default_state = { branches = [] }
 
-let default_branch_state name = { name; last_build_state = None }
+let default_branch_state name =
+  let branch_info : Notabot_t.branch_info = { name; last_build_state = Failure } in
+  name, branch_info
 
-let get_branch_state state name =
-  match List.filter (fun branch -> branch.name = name) state.branches with
-  | b :: _ -> Some b
-  | [] -> None
+let get_branch_state name state = List.assoc_opt name state.branches
 
-let set_branch_state state branch_state =
-  let branches =
-    match
-      List.fold_left
-        (fun (bs, found) b -> if b.name = branch_state.name then branch_state :: bs, true else b :: bs, found)
-        ([], false) state.branches
-    with
-    | bs, true -> bs
-    | bs, false -> branch_state :: bs
-  in
-  { branches }
+let set_branch_state (branch_state : Notabot_t.branch_info) state =
+  let removed_list = List.remove_assoc branch_state.name state.branches in
+  { branches = (branch_state.name, branch_state) :: removed_list }
 
-let update_state state_record event =
+let set_branch_last_build_state name build_state state =
+  match get_branch_state name state with
+  | None -> { branches = default_branch_state name :: state.branches }
+  | Some branch_state -> set_branch_state { branch_state with last_build_state = build_state } state
+
+let update_state (state : t) event =
   match event with
   | Github.Push _ | Pull_request _ | PR_review _ | PR_review_comment _ | Issue _ | Issue_comment _ | Commit_comment _
   | Event _ ->
-    state_record
+    state
   | Status n ->
+    let last_build_state : Notabot_t.build_state =
+      match n.state with
+      | Success -> Success
+      | Failure | Pending | Error -> Failure
+    in
     List.fold_left
-      (fun s (b : Github_t.branch) ->
-        let last_build_state : Notabot_t.build_state option =
-          match n.state with
-          | Success -> Some Success
-          | _ -> Some Failure
-        in
-        let branch_state =
-          match get_branch_state s b.name with
-          | Some b -> b
-          | None -> default_branch_state b.name
-        in
-        let branch_state' = { branch_state with last_build_state } in
-        set_branch_state s branch_state')
-      state_record n.branches
+      (fun (state' : t) (b : Github_t.branch) -> set_branch_last_build_state b.name last_build_state state')
+      state n.branches
 
 let load path = state_of_json @@ Notabot_j.state_of_string @@ Stdio.In_channel.read_all path
 

@@ -85,7 +85,7 @@ type build_state = [
 
 type branch_info = {
   name : string;
-  ?last_build_state : build_state option;
+  ~last_build_state <ocaml default="Failure">: build_state;
 }
 
 type state = {
