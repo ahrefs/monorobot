@@ -38,9 +38,10 @@ Some event notifications (e.g., status, commit comment) require a personal token
 
 For more detailed instructions on token generation, refer to https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line.
 
-### Configuration
+### Documentation
 
-[documentation](./documentation/config.md)
+* [config](./documentation/config.md)
+* [secret](./documentation/secret.md)
 
 ## Testing (development)
 
