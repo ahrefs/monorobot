@@ -11,9 +11,7 @@ let print_notif (chan, msg) =
 let load_initial_state state_dir file =
   let basename = Caml.Filename.basename file in
   let state_file = Caml.Filename.concat state_dir basename in
-  match Caml.Sys.file_exists state_file with
-  | true -> State.load state_file
-  | false -> State.default_state
+  State.load_safe state_file
 
 let process cfg state_dir file =
   Stdio.printf "===== file %s =====\n" file;

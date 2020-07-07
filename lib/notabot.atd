@@ -79,13 +79,13 @@ type secrets = {
 }
 
 type build_state = [
-  Success <json name="success">
-  | Failure <json name="failure">
+  | Success
+  | Failure
 ] <ocaml repr="classic">
 
 type branch_info = {
   name : string;
-  ~last_build_state <ocaml default="Failure">: build_state;
+  last_build_state : build_state; (* if unknown or not built before, set to 'Failure' *)
 }
 
 type state = {

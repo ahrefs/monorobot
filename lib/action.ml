@@ -168,16 +168,12 @@ let hide_cancelled (notification : status_notification) cfg =
 let hide_success (notification : status_notification) state =
   match notification.state with
   | Success ->
-    List.exists ~f:id
-    @@ List.map
-         ~f:(fun b ->
-           match State.get_branch_state b.name state with
-           | None -> false
-           | Some { last_build_state; _ } ->
-           match last_build_state with
-           | Failure -> false
-           | Success -> true)
-         notification.branches
+    List.exists
+      ~f:(fun b ->
+        match State.get_branch_state b.name state with
+        | None | Some { last_build_state = Failure; _ } -> false
+        | Some { last_build_state = Success; _ } -> true)
+      notification.branches
   | _ -> false
 
 let partition_status cfg load_state update_state (n : status_notification) =
