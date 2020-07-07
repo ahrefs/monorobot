@@ -155,47 +155,6 @@ let partition_commit cfg files =
     in
     List.dedup_and_sort ~compare:String.compare (List.concat channels)
 
-let partition_status cfg (n : status_notification) =
-  let get_commit_info () =
-    match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
-    | None ->
-      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-      Lwt.return default
-    | Some commit ->
-    match
-      List.exists n.branches ~f:(fun { name } -> is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
-    with
-    | true ->
-      log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
-      Lwt.return []
-    | false -> Lwt.return (partition_commit cfg commit.files)
-  in
-  match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
-  | false -> Lwt.return []
-  | true ->
-  match cfg.status_rules.title with
-  | None -> get_commit_info ()
-  | Some status_filter ->
-  match List.exists status_filter ~f:(String.equal n.context) with
-  | false -> Lwt.return []
-  | true -> get_commit_info ()
-
-let partition_commit_comment cfg n =
-  match n.comment.path with
-  | None ->
-    ( match%lwt Github.generate_commit_from_commit_comment cfg n with
-    | None ->
-      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-      Lwt.return default
-    | Some commit -> Lwt.return (partition_commit cfg commit.files)
-    )
-  | Some p ->
-  match filter_commit cfg.prefix_rules.rules p with
-  | [] ->
-    let notifs = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-    Lwt.return notifs
-  | l -> Lwt.return l
-
 let hide_cancelled (notification : status_notification) cfg =
   let is_cancelled_status =
     let { state; description; _ } = notification in
@@ -221,8 +180,53 @@ let hide_success (notification : status_notification) state =
          notification.branches
   | _ -> false
 
-let generate_notifications cfg load_state update_state req =
+let partition_status cfg load_state update_state (n : status_notification) =
+  let get_commit_info () =
+    match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
+    | None ->
+      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+      Lwt.return default
+    | Some commit ->
+    match
+      List.exists n.branches ~f:(fun { name } -> is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
+    with
+    | true ->
+      log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
+      Lwt.return []
+    | false -> Lwt.return (partition_commit cfg commit.files)
+  in
   let state = load_state () in
+  update_state state (Github.Status n);
+  match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
+  | false -> Lwt.return []
+  | true ->
+  match List.exists ~f:id [ hide_cancelled n cfg; hide_success n state ] with
+  | true -> Lwt.return []
+  | false ->
+  match cfg.status_rules.title with
+  | None -> get_commit_info ()
+  | Some status_filter ->
+  match List.exists status_filter ~f:(String.equal n.context) with
+  | false -> Lwt.return []
+  | true -> get_commit_info ()
+
+let partition_commit_comment cfg n =
+  match n.comment.path with
+  | None ->
+    ( match%lwt Github.generate_commit_from_commit_comment cfg n with
+    | None ->
+      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+      Lwt.return default
+    | Some commit -> Lwt.return (partition_commit cfg commit.files)
+    )
+  | Some p ->
+  match filter_commit cfg.prefix_rules.rules p with
+  | [] ->
+    let notifs = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+    Lwt.return notifs
+  | l -> Lwt.return l
+
+let generate_notifications cfg load_state update_state req =
   match req with
   | Github.Push n ->
     partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return
@@ -246,13 +250,9 @@ let generate_notifications cfg load_state update_state req =
     let notifs = List.map ~f:(fun webhook -> webhook, notif) webhooks in
     Lwt.return notifs
   | Status n ->
-    let%lwt webhooks = partition_status cfg n in
-    let to_hide_predicates = [ hide_cancelled n cfg; hide_success n state ] in
-    update_state state req;
-    ( match List.exists ~f:id to_hide_predicates with
-    | true -> Lwt.return []
-    | _ -> Lwt.return (List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks)
-    )
+    let%lwt webhooks = partition_status cfg load_state update_state n in
+    let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks in
+    Lwt.return notifs
   | _ -> Lwt.return []
 
 let print_prefix_routing rules =
