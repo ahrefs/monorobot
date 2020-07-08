@@ -14,8 +14,8 @@ let string_of_state state =
 
 let default_state = { branches = [] }
 
-let default_branch_state name =
-  let branch_info : Notabot_t.branch_info = { name; last_build_state = Failure } in
+let default_branch_state name timestamp =
+  let branch_info : Notabot_t.branch_info = { name; last_build_state = Failure; updated_at = timestamp } in
   name, branch_info
 
 let get_branch_state name state = List.assoc_opt name state.branches
@@ -24,9 +24,9 @@ let set_branch_state (branch_state : Notabot_t.branch_info) state =
   let removed_list = List.remove_assoc branch_state.name state.branches in
   { branches = (branch_state.name, branch_state) :: removed_list }
 
-let set_branch_last_build_state name build_state state =
+let set_branch_last_build_state name build_state timestamp state =
   match get_branch_state name state with
-  | None -> { branches = default_branch_state name :: state.branches }
+  | None -> { branches = default_branch_state name timestamp :: state.branches }
   | Some branch_state -> set_branch_state { branch_state with last_build_state = build_state } state
 
 let update_state (state : t) event =
@@ -41,7 +41,8 @@ let update_state (state : t) event =
       | Failure | Pending | Error -> Failure
     in
     List.fold_left
-      (fun (state' : t) (b : Github_t.branch) -> set_branch_last_build_state b.name last_build_state state')
+      (fun (state' : t) (b : Github_t.branch) ->
+        set_branch_last_build_state b.name last_build_state n.updated_at state')
       state n.branches
 
 let load path = state_of_json @@ Notabot_j.state_of_string @@ Stdio.In_channel.read_all path

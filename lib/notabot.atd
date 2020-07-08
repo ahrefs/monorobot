@@ -86,6 +86,7 @@ type build_state = [
 type branch_info = {
   name : string;
   last_build_state : build_state; (* if unknown or not built before, set to 'Failure' *)
+  updated_at : string;
 }
 
 type state = {
