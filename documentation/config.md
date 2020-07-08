@@ -1,3 +1,7 @@
+# About
+
+Config file is where the variables affecting the behaviour of notabot are defined.
+
 # Configuration values
 
 | value | description | optional | default |

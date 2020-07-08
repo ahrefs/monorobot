@@ -1,3 +1,7 @@
+# About
+
+Secret file is where sensitive information such as the urls used for webhooks and other tokens are stored.
+
 # Secret Values
 
 | value | description | optional | default |
