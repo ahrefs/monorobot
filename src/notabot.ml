@@ -18,7 +18,7 @@ let update_state_at_path state_path state event = State.save state_path @@ State
 let http_server addr port config state_path secrets =
   log#info "notabot starting";
   let cfg = get_config config secrets in
-  let load_state () = State.load_safe state_path in
+  let load_state () = State.load state_path in
   let update_state = update_state_at_path state_path in
   log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
   Lwt_main.run (Request_handler.start_http_server ~cfg ~load_state ~update_state ~addr ~port ())
@@ -31,7 +31,7 @@ let send_slack_notification webhook file =
 
 let check_common file print config secrets state_path =
   let cfg = get_config config secrets in
-  let load_state () = State.load_safe state_path in
+  let load_state () = State.load state_path in
   let update_state = update_state_at_path state_path in
   match Mock.kind file with
   | None ->
