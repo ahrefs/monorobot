@@ -204,6 +204,7 @@ type status_notification = {
   context: string;
   repository: repository;
   branches: branch list;
+  updated_at: string;
 }
 
 type file = {
