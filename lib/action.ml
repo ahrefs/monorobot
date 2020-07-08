@@ -155,7 +155,28 @@ let partition_commit cfg files =
     in
     List.dedup_and_sort ~compare:String.compare (List.concat channels)
 
-let partition_status cfg (n : status_notification) =
+let hide_cancelled (notification : status_notification) cfg =
+  let is_cancelled_status =
+    let { state; description; _ } = notification in
+    let r = Re.Str.regexp_case_fold "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$" in
+    match description, state with
+    | Some s, Failure when Re.Str.string_match r s 0 -> true
+    | _ -> false
+  in
+  is_cancelled_status && cfg.suppress_cancelled_events
+
+let hide_success (notification : status_notification) state =
+  match notification.state with
+  | Success ->
+    List.exists
+      ~f:(fun b ->
+        match State.get_branch_state b.name state with
+        | None | Some { last_build_state = Failure; _ } -> false
+        | Some { last_build_state = Success; _ } -> true)
+      notification.branches
+  | _ -> false
+
+let partition_status cfg load_state update_state (n : status_notification) =
   let get_commit_info () =
     match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
     | None ->
@@ -170,9 +191,14 @@ let partition_status cfg (n : status_notification) =
       Lwt.return []
     | false -> Lwt.return (partition_commit cfg commit.files)
   in
+  let state = load_state () in
+  update_state state (Github.Status n);
   match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
   | false -> Lwt.return []
   | true ->
+  match List.exists ~f:id [ hide_cancelled n cfg; hide_success n state ] with
+  | true -> Lwt.return []
+  | false ->
   match cfg.status_rules.title with
   | None -> get_commit_info ()
   | Some status_filter ->
@@ -196,14 +222,7 @@ let partition_commit_comment cfg n =
     Lwt.return notifs
   | l -> Lwt.return l
 
-let is_cancelled_status_notification notification =
-  let { state; description; _ } = notification in
-  let r = Re.Str.regexp_case_fold "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$" in
-  match description, state with
-  | Some s, Failure when Re.Str.string_match r s 0 -> true
-  | _ -> false
-
-let generate_notifications cfg req =
+let generate_notifications cfg load_state update_state req =
   match req with
   | Github.Push n ->
     partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return
@@ -227,11 +246,9 @@ let generate_notifications cfg req =
     let notifs = List.map ~f:(fun webhook -> webhook, notif) webhooks in
     Lwt.return notifs
   | Status n ->
-    let%lwt webhooks = partition_status cfg n in
-    ( match is_cancelled_status_notification n && cfg.suppress_cancelled_events with
-    | true -> Lwt.return []
-    | _ -> Lwt.return (List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks)
-    )
+    let%lwt webhooks = partition_status cfg load_state update_state n in
+    let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks in
+    Lwt.return notifs
   | _ -> Lwt.return []
 
 let print_prefix_routing rules =

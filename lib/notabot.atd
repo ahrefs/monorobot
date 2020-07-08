@@ -77,3 +77,17 @@ type secrets = {
   ?gh_token: string option; (* must not be specified for public repositories *)
   ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
 }
+
+type build_state = [
+  | Success
+  | Failure
+] <ocaml repr="classic">
+
+type branch_info = {
+  last_build_state : build_state; (* if unknown or not built before, set to 'Failure' *)
+  updated_at : string;
+}
+
+type state = {
+  branches : (string * branch_info) list;
+}
