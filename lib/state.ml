@@ -1,54 +1,52 @@
-type t = { branches : (string * Notabot_t.branch_info) list }
+open Devkit
 
-let state_of_json (json_state : Notabot_t.state) : t =
-  let branches = List.map (fun (branch : Notabot_t.branch_info) -> branch.name, branch) json_state.branches in
-  { branches }
+let log = Log.from "state"
 
-let json_of_state (state : t) : Notabot_t.state =
-  let branches = List.map (fun (_, branch) -> branch) state.branches in
-  { branches }
+let default_state : Notabot_t.state = { branches = [] }
 
-let string_of_state state =
-  let json = json_of_state state in
-  Notabot_j.string_of_state json
+let default_branch_state timestamp =
+  let branch_info : Notabot_t.branch_info = { last_build_state = Failure; updated_at = timestamp } in
+  branch_info
 
-let default_state = { branches = [] }
+let get_branch_state name (state : Notabot_t.state) = List.assoc_opt name state.branches
 
-let default_branch_state name timestamp =
-  let branch_info : Notabot_t.branch_info = { name; last_build_state = Failure; updated_at = timestamp } in
-  name, branch_info
+let set_branch_state name (branch_state : Notabot_t.branch_info) (state : Notabot_t.state) : Notabot_t.state =
+  let removed_list = List.remove_assoc name state.branches in
+  { branches = (name, branch_state) :: removed_list }
 
-let get_branch_state name state = List.assoc_opt name state.branches
-
-let set_branch_state (branch_state : Notabot_t.branch_info) state =
-  let removed_list = List.remove_assoc branch_state.name state.branches in
-  { branches = (branch_state.name, branch_state) :: removed_list }
-
-let set_branch_last_build_state name build_state timestamp state =
+let set_branch_last_build_state name build_state timestamp (state : Notabot_t.state) : Notabot_t.state =
   match get_branch_state name state with
-  | None -> { branches = default_branch_state name timestamp :: state.branches }
-  | Some branch_state -> set_branch_state { branch_state with last_build_state = build_state } state
+  | None -> { branches = (name, default_branch_state timestamp) :: state.branches }
+  | Some _ -> set_branch_state name { last_build_state = build_state; updated_at = timestamp } state
 
-let update_state (state : t) event =
+let build_state_of_status_state = function
+  | Github_t.Success -> Notabot_t.Success
+  | Failure | Pending | Error -> Failure
+
+let update_state_status (state : Notabot_t.state) (n : Github_t.status_notification) =
+  let last_build_state = build_state_of_status_state n.state in
+  List.fold_left
+    (fun state (b : Github_t.branch) -> set_branch_last_build_state b.name last_build_state n.updated_at state)
+    state n.branches
+
+let update_state (state : Notabot_t.state) event =
   match event with
   | Github.Push _ | Pull_request _ | PR_review _ | PR_review_comment _ | Issue _ | Issue_comment _ | Commit_comment _
   | Event _ ->
     state
-  | Status n ->
-    let last_build_state : Notabot_t.build_state =
-      match n.state with
-      | Success -> Success
-      | Failure | Pending | Error -> Failure
-    in
-    List.fold_left
-      (fun (state' : t) (b : Github_t.branch) ->
-        set_branch_last_build_state b.name last_build_state n.updated_at state')
-      state n.branches
+  | Status n -> update_state_status state n
 
-let load path = state_of_json @@ Notabot_j.state_of_string @@ Stdio.In_channel.read_all path
+let load_unsafe path = Notabot_j.state_of_string @@ Stdio.In_channel.read_all path
 
-let load_safe path = try load path with Sys_error _ -> default_state
+let load ?(silent = false) path =
+  try load_unsafe path
+  with Sys_error _ ->
+    ( match silent with
+    | true -> ()
+    | false -> log#info "unable to load state at '%s', falling back to default" path
+    );
+    default_state
 
 let save path state =
-  let str = string_of_state state in
+  let str = Notabot_j.string_of_state state in
   Stdio.Out_channel.write_all path ~data:str
