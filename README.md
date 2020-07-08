@@ -38,11 +38,10 @@ Some event notifications (e.g., status, commit comment) require a personal token
 
 For more detailed instructions on token generation, refer to https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line.
 
-### Configuration values
+### Documentation
 
-| value | description | optional | default |
-|-|-|-|-|
-| `suppress_cancelled_events` | supresses status cancelled events | Yes | `true` |
+* [config](./documentation/config.md)
+* [secret](./documentation/secret.md)
 
 ## Testing (development)
 
