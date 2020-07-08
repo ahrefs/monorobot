@@ -38,13 +38,10 @@ let update_state (state : Notabot_t.state) event =
 
 let load_unsafe path = Notabot_j.state_of_string @@ Stdio.In_channel.read_all path
 
-let load ?(silent = false) path =
+let load path =
   try load_unsafe path
   with Sys_error _ ->
-    ( match silent with
-    | true -> ()
-    | false -> log#info "unable to load state at '%s', falling back to default" path
-    );
+    log#warn "unable to load state at '%s', falling back to default" path;
     default_state
 
 let save path state =
