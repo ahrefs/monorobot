@@ -1,39 +1,26 @@
-module Context = struct
-  type t = {
-    mutable state : Notabot_t.state;
-    mutable cfg : Config.t;
-    load_state : unit -> Notabot_t.state;
-    update_state : Notabot_t.state -> Github.t -> unit;
-    get_config : string -> string -> Config.t;
-  }
+type t = {
+  mutable state : Notabot_t.state;
+  mutable cfg : Config.t;
+  load_state : unit -> Notabot_t.state;
+  update_state : Notabot_t.state -> Github.t -> unit;
+  get_config : unit -> Config.t;
+}
 
-  let make_context ~state_path ~path ~secrets =
-    let get_config path secrets = Config.load path secrets in
-    let load_state () = State.load state_path in
-    let rec r =
-      lazy
-        {
-          get_config =
-            (fun path secrets ->
-              let cfg = get_config path secrets in
-              let r = Lazy.force r in
-              r.cfg <- cfg;
-              cfg);
-          cfg = get_config path secrets;
-          load_state =
-            (fun () ->
-              let s = load_state () in
-              let r = Lazy.force r in
-              r.state <- s;
-              s);
-          update_state =
-            (fun state event ->
-              let s = State.update_state state event in
-              let r = Lazy.force r in
-              r.state <- s;
-              State.save state_path s);
-          state = load_state ();
-        }
-    in
-    r
-end
+let make ~state_path ~path ~secrets =
+  let get_config' () = Config.load path secrets in
+  let load_state' () = State.load state_path in
+
+  let cfg_setter r x = r.cfg <- x in
+  let state_setter r x = r.state <- x in
+  let set_and_id r setter x =
+    setter r x;
+    x
+  in
+
+  let rec get_config () = set_and_id r cfg_setter @@ get_config' ()
+  and cfg = get_config' ()
+  and load_state () = set_and_id r state_setter @@ load_state' ()
+  and update_state state event = State.save state_path @@ set_and_id r state_setter @@ State.update_state state event
+  and state = load_state' ()
+  and r = { get_config; cfg; load_state; update_state; state } in
+  r
