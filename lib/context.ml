@@ -6,8 +6,8 @@ type t = {
   load_config : unit -> Config.t;
 }
 
-let make ~state_path ~path ~secrets =
-  let load_config' () = Config.load path secrets in
+let make ~state_path ~cfg_path ~secrets_path =
+  let load_config' () = Config.load cfg_path secrets_path in
   let load_state' () = State.load state_path in
 
   let cfg_setter r x = r.cfg <- x in
