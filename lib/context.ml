@@ -1,7 +1,3 @@
-open Devkit
-
-let log = Log.from "context"
-
 type t = {
   mutable state : Notabot_t.state;
   mutable cfg : Config.t;
