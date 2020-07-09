@@ -166,17 +166,19 @@ let hide_cancelled (notification : status_notification) cfg =
   is_cancelled_status && cfg.suppress_cancelled_events
 
 let hide_success (n : status_notification) (ctx : Context.t) =
-  let state = ctx.state in
+  let res =
+    match n.state with
+    | Success ->
+      List.exists
+        ~f:(fun b ->
+          match State.get_branch_state b.name ctx.state with
+          | None | Some { last_build_state = Failure; _ } -> false
+          | Some { last_build_state = Success; _ } -> true)
+        n.branches
+    | _ -> false
+  in
   ctx.update_state (Github.Status n);
-  match n.state with
-  | Success ->
-    List.exists
-      ~f:(fun b ->
-        match State.get_branch_state b.name state with
-        | None | Some { last_build_state = Failure; _ } -> false
-        | Some { last_build_state = Success; _ } -> true)
-      n.branches
-  | _ -> false
+  res
 
 let partition_status (ctx : Context.t) (n : status_notification) =
   let cfg = ctx.cfg in
