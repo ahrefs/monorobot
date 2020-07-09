@@ -8,7 +8,7 @@ let print_notif (chan, msg) =
   Stdio.printf "will notify #%s\n" chan;
   Stdio.printf "%s\n" json
 
-let process state_dir cfg_path secrets_path file =
+let process ~state_dir ~cfg_path ~secrets_path file =
   Stdio.printf "===== file %s =====\n" file;
   match Mock.kind file with
   | None -> Lwt.return_unit
@@ -34,4 +34,4 @@ let () =
   Array.sort jsons ~compare:String.compare;
   Lwt_main.run
     (let jsons = Array.to_list jsons in
-     Lwt_list.iter_s (process "../mock_states" "notabot.json" "secrets.json") jsons)
+     Lwt_list.iter_s (process ~state_dir:"../mock_states" ~cfg_path:"notabot.json" ~secrets_path:"secrets.json") jsons)
