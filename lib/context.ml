@@ -26,7 +26,8 @@ let make ~state_path ~cfg_path ~secrets_path ?(disable_write = false) () =
   and cfg = load_config' ()
   and load_state () = set r state_setter @@ load_state' ()
   and update_state state event =
-    (if disable_write then ignore else State.save state_path) @@ set r state_setter @@ update_state' state event
+    let act = if disable_write then ignore else State.save state_path in
+    act @@ set r state_setter @@ update_state' state event
   and state = load_state' ()
   and r = { load_config; cfg; load_state; update_state; state } in
   r
