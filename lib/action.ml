@@ -176,7 +176,8 @@ let hide_success (notification : status_notification) state =
       notification.branches
   | _ -> false
 
-let partition_status cfg load_state update_state (n : status_notification) =
+let partition_status (ctx : Context.t) (n : status_notification) =
+  let cfg = ctx.cfg in
   let get_commit_info () =
     match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
     | None ->
@@ -191,8 +192,8 @@ let partition_status cfg load_state update_state (n : status_notification) =
       Lwt.return []
     | false -> Lwt.return (partition_commit cfg commit.files)
   in
-  let state = load_state () in
-  update_state state (Github.Status n);
+  let state = ctx.state in
+  ctx.update_state state (Github.Status n);
   match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
   | false -> Lwt.return []
   | true ->
@@ -222,7 +223,8 @@ let partition_commit_comment cfg n =
     Lwt.return notifs
   | l -> Lwt.return l
 
-let generate_notifications cfg load_state update_state req =
+let generate_notifications (ctx : Context.t) req =
+  let cfg = ctx.cfg in
   match req with
   | Github.Push n ->
     partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return
@@ -246,7 +248,7 @@ let generate_notifications cfg load_state update_state req =
     let notifs = List.map ~f:(fun webhook -> webhook, notif) webhooks in
     Lwt.return notifs
   | Status n ->
-    let%lwt webhooks = partition_status cfg load_state update_state n in
+    let%lwt webhooks = partition_status ctx n in
     let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks in
     Lwt.return notifs
   | _ -> Lwt.return []
