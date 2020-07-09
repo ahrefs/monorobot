@@ -2,7 +2,7 @@ type t = {
   mutable state : Notabot_t.state;
   mutable cfg : Config.t;
   load_state : unit -> Notabot_t.state;
-  update_state : Notabot_t.state -> Github.t -> unit;
+  update_state : Github.t -> unit;
   load_config : unit -> Config.t;
 }
 
@@ -23,8 +23,8 @@ let make ~state_path ~cfg_path ~secrets_path ?(disable_write = false) () =
   (* mutable field helper functions *)
   let rec load_config () = set r cfg_setter @@ load_config' ()
   and load_state () = set r state_setter @@ load_state' ()
-  and update_state state event =
+  and update_state event =
     let act = if disable_write then ignore else State.save state_path in
-    act @@ set r state_setter @@ update_state' state event
+    act @@ set r state_setter @@ update_state' r.state event
   and r = { load_config; cfg; load_state; update_state; state } in
   r

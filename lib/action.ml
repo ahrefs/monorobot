@@ -167,7 +167,7 @@ let hide_cancelled (notification : status_notification) cfg =
 
 let hide_success (n : status_notification) (ctx : Context.t) =
   let state = ctx.state in
-  ctx.update_state state (Github.Status n);
+  ctx.update_state (Github.Status n);
   match n.state with
   | Success ->
     List.exists
