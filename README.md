@@ -40,8 +40,8 @@ For more detailed instructions on token generation, refer to https://help.github
 
 ### Documentation
 
-* [config](./documentation/config.md)
-* [secret](./documentation/secret.md)
+* [config](./documentation/config_docs.md)
+* [secret](./documentation/secret_docs.md)
 
 ## Testing (development)
 
