@@ -4,6 +4,42 @@ Secret file is where sensitive information such as the urls used for webhooks an
 
 # Secret Values
 
+**example**
+```json
+{
+    "slack_channels": [
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "default"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "a1"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "backend"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "all-push-events"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "frontend-bot"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "a1-bot"
+        },
+        {
+            "url": "https://slack_webhook_url",
+            "channel": "a3"
+        }
+    ]
+}
+```
+
 | value | description | optional | default |
 |-|-|-|-|
 | `slack_channels` | list of webhook config objects | No | - |

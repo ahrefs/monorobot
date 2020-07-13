@@ -4,6 +4,24 @@ Config file is where the variables affecting the behaviour of notabot are define
 
 # Configuration values
 
+**example**
+```json
+{
+    "offline": "github-api-cache",
+    "main_branch_name": "develop",
+    "status_rules": {
+      ...
+    },
+    "prefix_rules": {
+      ...
+    },
+    "label_rules": {
+      ...
+    },
+    "suppress_cancelled_events": true
+}
+```
+
 | value | description | optional | default |
 |-|-|-|-|
 | `main_branch_name` | main branch used for the repo; filtering notifications about merges of main into other branches | Yes | - |
@@ -15,6 +33,22 @@ Config file is where the variables affecting the behaviour of notabot are define
 
 ## Status Config
 
+**example**
+```json
+"status_rules": {
+    "name": [
+        "default",
+        "buildkite/pipeline2"
+    ],
+    "status": {
+        "pending": false,
+        "success": true,
+        "failure": true,
+        "error": true
+    }
+},
+```
+
 | value | description | optional | default |
 |-|-|-|-|
 | `title` | if defines a whitelist of values for the github payload. If not specified, all is permitted. | Yes | - |
@@ -24,19 +58,48 @@ Config file is where the variables affecting the behaviour of notabot are define
 
 A json object with fields of bools for each status type. Set them to true to suppress status of that type.
 
-example: 
-```json
-"status": {
-    "pending": false,
-    "success": true,
-    "failure": true,
-    "error": true
-}
-```
-
 ## Label Config
 
 Label rules apply to PR and issues notifications.
+
+**example**
+```json
+"label_rules": {
+    "default": "default",
+    "rules": [
+        {
+            "label_name": [
+                "backend"
+            ],
+            "ignore": [],
+            "chan": "backend"
+        },
+        {
+            "label_name": [
+                "a1"
+            ],
+            "ignore": [],
+            "chan": "a1-bot"
+        },
+        {
+            "label_name": [
+                "a3"
+            ],
+            "ignore": [],
+            "chan": "a3"
+        },
+        {
+            "label_name": [],
+            "ignore": [
+                "backend",
+                "a1",
+                "a3"
+            ],
+            "chan": "frontend-bot"
+        }
+    ]
+},
+```
 
 | value | description | optional | default |
 |-|-|-|-|
@@ -56,6 +119,36 @@ Label rules apply to PR and issues notifications.
 Prefix rules apply to filenames. If a filename satisfies a prefix rule, the rule's channel will be notified.
 
 The prefix config object is exactly the same as **Label Config** except its `rules` are list of `prefix_rule` objects.
+
+**example**
+```json
+"prefix_rules": {
+    "default": "default",
+    "rules": [
+        {
+            "prefix": [
+                "backend/a1"
+            ],
+            "ignore": [],
+            "chan": "a1"
+        },
+        {
+            "prefix": [
+                "backend/a5",
+                "backend/a4"
+            ],
+            "ignore": [],
+            "chan": "backend"
+        },
+        {
+            "prefix": [],
+            "ignore": [],
+            "chan": "all-push-events"
+        }
+    ]
+},
+```
+
 
 ### Prefix Rule
 
