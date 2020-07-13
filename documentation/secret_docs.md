@@ -10,6 +10,27 @@ Secret file is where sensitive information such as the urls used for webhooks an
 | `gh_token` | must not be specified for public repositories | Yes | - |
 | `gh_webhook_secret` | if not specified signatures will not be checked | Yes | - |
 
+## `gh_token`
+
+### Token generation
+
+Some event notifications (e.g., status, commit comment) require a personal token to be addded to the configuration. To create a personal token, take the following steps:
+1. Verify your email address, if needed.
+1. In the upper-right corner of any page, click your profile photo, then click **Settings**.
+1. In the left sidebar, click **Developer settings**.
+1. In the left sidebar, click **Personal access tokens**.
+1. Click **Generate new token**.
+1. Give your token a descriptive name in the **Note** section.
+1. Grant ***repo*** scope.
+1. Click **Generate token**.
+1. Copy the token to `secrets.json` file in a `gh_token` field.
+
+For more detailed instructions on token generation, refer to https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line.
+
+
+## `gh_webhook_secret`
+For more information on `gh_webhook_secret` see [developer.github.com/webhooks/securing](https://developer.github.com/webhooks/securing/)
+
 ## Webhook Config
 
 Channels that are defined in rules in config will be mapped to urls defined in the webhook
