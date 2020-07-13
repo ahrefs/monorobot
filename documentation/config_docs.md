@@ -52,7 +52,7 @@ Config file is where the variables affecting the behaviour of notabot are define
 | value | description | optional | default |
 |-|-|-|-|
 | `title` | if defines a whitelist of values for the github payload. If not specified, all is permitted. | Yes | - |
-| `status` | a `status_state` config object, if false will suppress status notifications of that type | No | - |
+| `status` | a `status_state` config object | No | - |
 
 ### Status State
 
