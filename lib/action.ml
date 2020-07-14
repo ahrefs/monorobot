@@ -177,7 +177,7 @@ let hide_success (n : status_notification) (ctx : Context.t) =
         n.branches
     | _ -> false
   in
-  ctx.update_state (Github.Status n);
+  Context.update_state ctx (Github.Status n);
   res
 
 let partition_status (ctx : Context.t) (n : status_notification) =
