@@ -29,6 +29,10 @@ let update_state ctx event =
   | false -> State.save ctx.data.state ctx.state
   | true -> ()
 
+let update_and_get_state ctx event =
+  update_state ctx event;
+  ctx.state
+
 let make ~state_path ~cfg_path ~secrets_path ?(disable_write = false) () =
   let cfg = Config.load cfg_path secrets_path in
   let state = State.load state_path in
