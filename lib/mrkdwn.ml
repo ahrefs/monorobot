@@ -193,7 +193,7 @@ let rec add_to_buffer buf ?(args = default_bra) { bl_desc; _ } =
       g' "\n"
     in
     ignore @@ List.map render_term l
-  | Code_block (label, code) -> g "```%s\n%s\n```" label code
+  | Code_block (label, code) -> g "```%s\n%s\n```\n" label code
   | Thematic_break -> g' "***\n"
   | Html_block _ -> log#error "illegal mrkdwn html block"
 
@@ -205,3 +205,5 @@ let to_string t =
   Buffer.contents buf
 
 let to_mrkdwn doc = to_string @@ of_doc doc
+
+let mrkdwn_of_markdown str = to_mrkdwn @@ Omd.of_string str
