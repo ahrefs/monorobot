@@ -66,6 +66,8 @@ let rec block { bl_desc; bl_attributes } =
 
 let quote_render = "> "
 
+let defs_render = ": "
+
 (* inline render arguments *)
 type ira = {
   at_start : bool;
@@ -143,6 +145,8 @@ let rec add_to_buffer buf ?(args = default_bra) { bl_desc; _ } =
   (* argument aliases *)
   let f = add_to_buffer buf in
   let fi = add_to_buffer_inline buf in
+  let fim = add_to_buffer_inline buf ~args:mid_ira in
+  let fiq = fi ~args:(if args.in_quote then quote_ira else start_ira) in
   let g = Printf.bprintf buf in
   let g' = Buffer.add_string buf in
   (* recursive call and printing aliases *)
@@ -150,7 +154,7 @@ let rec add_to_buffer buf ?(args = default_bra) { bl_desc; _ } =
   match bl_desc with
   | Blockquote qs -> ignore @@ List.map (f ~args:quote_args') qs
   | Paragraph md ->
-    ignore @@ fi ~args:(if args.in_quote then quote_ira else start_ira) md;
+    ignore @@ fiq md;
     g' "\n"
   | List (ty, _, bls) ->
     let indices = List.init (List.length bls) id in
@@ -175,7 +179,22 @@ let rec add_to_buffer buf ?(args = default_bra) { bl_desc; _ } =
     g' @@ String.make n '#';
     g' " ";
     ignore @@ fi ~args:mid_ira h
-  | _ -> ()
+  | Definition_list l ->
+    let fi' d =
+      g' defs_render;
+      ignore @@ fim d;
+      g' "\n"
+    in
+    let render_term { term; defs } =
+      ignore @@ fiq term;
+      g' "\n";
+      ignore @@ List.map fi' defs;
+      g' "\n"
+    in
+    ignore @@ List.map render_term l
+  | Code_block (label, code) -> g "```%s\n%s\n```" label code
+  | Thematic_break -> g' "***"
+  | Html_block _ -> log#error "illegal mrkdwn inline"
 
 let of_doc t = List.map block t
 
