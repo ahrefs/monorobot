@@ -89,12 +89,14 @@ let rec add_to_buffer_inline buf ?(args = start_ira) { il_desc; _ } =
   let g = Printf.bprintf buf in
   let g' = Buffer.add_string buf in
   (* recursive call and printing aliases *)
-  let insert_block_quote () = if args.at_start && args.block_quote then g' quote_render else () in
-  (* helper functions *)
+  ( match il_desc with
+  | Link _ | Emph _ | Strong _ | Text _ | Code _ -> if args.at_start && args.block_quote then g' quote_render else ()
+  | Concat _ | Hard_break | Soft_break | Html _ | Image _ -> ()
+  );
+  (* insert blockquote *)
   match il_desc with
   | Concat xs -> List.fold_left (fun args' x -> f x ~args:args') args xs
   | Link { label; destination; title } ->
-    insert_block_quote ();
     ( match title with
     | Some v -> g "<%s - " v
     | None -> g' "<"
@@ -103,23 +105,19 @@ let rec add_to_buffer_inline buf ?(args = start_ira) { il_desc; _ } =
     g "|%s>" destination;
     args'
   | Emph e ->
-    insert_block_quote ();
     g' "_";
     let args' = fc e in
     g' "_";
     args'
   | Strong s ->
-    insert_block_quote ();
     g' "*";
     let args' = fc s in
     g' "*";
     args'
   | Text t ->
-    insert_block_quote ();
     g' t;
     not_start_args'
   | Code c ->
-    insert_block_quote ();
     g "`%s`" c;
     not_start_args'
   | Hard_break | Soft_break ->
