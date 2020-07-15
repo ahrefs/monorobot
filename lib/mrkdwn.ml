@@ -36,7 +36,7 @@ let escape_uri s =
     s;
   Buffer.contents b
 
-let rec inline ({ il_desc; il_attributes } : Omd.inline) =
+let rec inline { il_desc; il_attributes } =
   let il_desc' =
     match il_desc with
     | Concat l -> Concat (List.map inline l)
@@ -146,7 +146,7 @@ let rec add_to_buffer buf ?(args = default_bra) { bl_desc; _ } =
   (* argument aliases *)
   let f = add_to_buffer buf in
   let fi = add_to_buffer_inline buf in
-  let fim = add_to_buffer_inline buf ~args:mid_ira in
+  let fim = fi ~args:mid_ira in
   let fiq = fi ~args:(if args.in_quote then quote_ira else start_ira) in
   let g = Printf.bprintf buf in
   let g' = Buffer.add_string buf in
