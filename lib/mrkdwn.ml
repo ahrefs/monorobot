@@ -66,16 +66,19 @@ let rec block { bl_desc; bl_attributes } =
 
 let quote_render = "> "
 
-type inline_render_args = {
+(* inline render arguments *)
+type ira = {
   at_start : bool;
   block_quote : bool;
 }
 
-let start_inline_render_args = { at_start = true; block_quote = false }
+let start_ira = { at_start = true; block_quote = false }
 
-let quote_inline_render_args = { at_start = true; block_quote = true }
+let mid_ira = { at_start = false; block_quote = false }
 
-let rec add_to_buffer_inline buf ?(args = start_inline_render_args) { il_desc; _ } =
+let quote_ira = { at_start = true; block_quote = true }
+
+let rec add_to_buffer_inline buf ?(args = start_ira) { il_desc; _ } =
   let not_start_args' = { args with at_start = false } in
   let start_args' = { args with at_start = true } in
   (* argument aliases *)
@@ -93,15 +96,18 @@ let rec add_to_buffer_inline buf ?(args = start_inline_render_args) { il_desc; _
     | Some v -> g "<%s - " v
     | None -> g' "<"
     );
+    insert_block_quote ();
     let args' = fc label in
     g "|%s>" destination;
     args'
   | Emph e ->
+    insert_block_quote ();
     g' "_";
     let args' = fc e in
     g' "_";
     args'
   | Strong s ->
+    insert_block_quote ();
     g' "*";
     let args' = fc s in
     g' "*";
@@ -121,16 +127,17 @@ let rec add_to_buffer_inline buf ?(args = start_inline_render_args) { il_desc; _
     log#error "illegal mrkdwn inline";
     args
 
-type block_render_args = {
+(* block render arguments *)
+type bra = {
   in_quote : bool;
   indent_level : int;
 }
 
-let default_block_render_args = { in_quote = false; indent_level = 0 }
+let default_bra = { in_quote = false; indent_level = 0 }
 
-let quote_block_render_args = { in_quote = true; indent_level = 0 }
+let quote_bra = { in_quote = true; indent_level = 0 }
 
-let rec add_to_buffer buf ?(args = default_block_render_args) { bl_desc; _ } =
+let rec add_to_buffer buf ?(args = default_bra) { bl_desc; _ } =
   let quote_args' = { args with in_quote = true } in
   let inc_indent_args' = { args with indent_level = args.indent_level + 1 } in
   (* argument aliases *)
@@ -139,32 +146,35 @@ let rec add_to_buffer buf ?(args = default_block_render_args) { bl_desc; _ } =
   let g = Printf.bprintf buf in
   let g' = Buffer.add_string buf in
   (* recursive call and printing aliases *)
+  let insert_block_quote () = if args.in_quote then g' quote_render else () in
   match bl_desc with
   | Blockquote qs -> ignore @@ List.map (f ~args:quote_args') qs
   | Paragraph md ->
-    ignore @@ fi ~args:(if args.in_quote then quote_inline_render_args else start_inline_render_args) md;
+    ignore @@ fi ~args:(if args.in_quote then quote_ira else start_ira) md;
     g' "\n"
   | List (ty, _, bls) ->
     let indices = List.init (List.length bls) id in
-    ignore
-    @@ List.map (fun (i, bl) ->
-         let indent_str = String.make (args.indent_level * 2) ' ' in
-         ignore
-         @@ List.map
-              (fun ({ bl_desc = bl_desc'; _ } as b) ->
-                match bl_desc' with
-                | List _ -> f ~args:inc_indent_args' b
-                | _ ->
-                  let bullet_str =
-                    match ty with
-                    | Ordered (n, c) -> string_of_int (n + i) ^ Char.escaped c
-                    | Bullet _ -> "-"
-                  in
-                  if args.in_quote then g' quote_render else ();
-                  g "%s%s " indent_str bullet_str;
-                  f b)
-              bl)
-    @@ List.combine indices bls
+    let bls_indexed = List.combine indices bls in
+    let indent_str = String.make (args.indent_level * 2) ' ' in
+    let bullet_str i =
+      match ty with
+      | Ordered (n, c) -> string_of_int (n + i) ^ Char.escaped c
+      | Bullet _ -> "-"
+    in
+    let f' i ({ bl_desc; _ } as b) =
+      match bl_desc with
+      | List _ -> f ~args:inc_indent_args' b
+      | _ ->
+        insert_block_quote ();
+        g "%s%s " indent_str @@ bullet_str i;
+        f b
+    in
+    ignore @@ List.map (fun (i, bl) -> List.map (f' i) bl) bls_indexed
+  | Heading (n, h) ->
+    insert_block_quote ();
+    g' @@ String.make n '#';
+    g' " ";
+    ignore @@ fi ~args:mid_ira h
   | _ -> ()
 
 let of_doc t = List.map block t
