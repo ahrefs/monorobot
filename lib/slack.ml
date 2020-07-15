@@ -319,7 +319,7 @@ let generate_status_notification (notification : status_notification) =
             fallback = summary;
             pretext = summary;
             color = Some color_info;
-            text = mrkdwn_of_markdown_opt description_info;
+            text = description_info;
             fields = Some [ { title = None; value = String.concat ~sep:"\n" [ commit_info; branches_info ] } ];
           };
         ];
