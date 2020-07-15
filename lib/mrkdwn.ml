@@ -94,11 +94,11 @@ let rec add_to_buffer_inline buf ?(args = start_ira) { il_desc; _ } =
   match il_desc with
   | Concat xs -> List.fold_left (fun args' x -> f x ~args:args') args xs
   | Link { label; destination; title } ->
+    insert_block_quote ();
     ( match title with
     | Some v -> g "<%s - " v
     | None -> g' "<"
     );
-    insert_block_quote ();
     let args' = fc label in
     g "|%s>" destination;
     args'
