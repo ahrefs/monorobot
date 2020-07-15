@@ -36,7 +36,7 @@ let escape_uri s =
     s;
   Buffer.contents b
 
-let rec inline { il_desc; il_attributes } =
+let rec inline ({ il_desc; il_attributes } : Omd.inline) =
   let il_desc' =
     match il_desc with
     | Concat l -> Concat (List.map inline l)
