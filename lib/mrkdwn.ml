@@ -125,8 +125,11 @@ let rec add_to_buffer_inline buf ?(args = start_ira) { il_desc; _ } =
   | Hard_break | Soft_break ->
     g' "\n";
     start_args'
-  | Html _ | Image _ ->
-    log#error "illegal mrkdwn inline";
+  | Html _ ->
+    log#error "illegal mrkdwn html inline";
+    args
+  | Image _ ->
+    log#error "illegal mrkdwn image inline";
     args
 
 (* block render arguments *)
@@ -193,8 +196,8 @@ let rec add_to_buffer buf ?(args = default_bra) { bl_desc; _ } =
     in
     ignore @@ List.map render_term l
   | Code_block (label, code) -> g "```%s\n%s\n```" label code
-  | Thematic_break -> g' "***"
-  | Html_block _ -> log#error "illegal mrkdwn inline"
+  | Thematic_break -> g' "***\n"
+  | Html_block _ -> log#error "illegal mrkdwn html block"
 
 let of_doc t = List.map block t
 
