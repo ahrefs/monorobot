@@ -44,7 +44,7 @@ will notify #all-push-events
       "pretext":
         "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> xinyuluo commented on `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39729580|cd5b85af>` add new line at EOF",
       "text":
-        "this can be written shorter:\r\n`\r\n| Some serpDomain -> Domain.is_subdomain serpDomain domain\r\n| None -> false\r\n`",
+        "this can be written shorter:\n`| Some serpDomain -> Domain.is_subdomain serpDomain domain | None -> false`",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39729580|runner/chat.ml>"
     }
@@ -93,7 +93,7 @@ will notify #default
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> xinyuluo <https://github.com/xinyuluo/pr_test/issues/5#issuecomment-633347088|commented> on #5 <https://github.com/xinyuluo/pr_test/issues/5|handle issue event>",
-      "text": "handle issue comment\r\n"
+      "text": "handle issue comment"
     }
   ]
 }
@@ -139,7 +139,7 @@ will notify #frontend-bot
       "pretext":
         "<https://git.ahrefs.com/ahrefs/frontend|[ahrefs/frontend]> raman <https://git.ahrefs.com/ahrefs/frontend/pull/6168#issuecomment-17123|commented> on #6168 <https://git.ahrefs.com/ahrefs/frontend/pull/6168|[ADMIN] Search results by IP (Blocked IP Info UI)>",
       "text":
-        "> I do not understand this\r\n\r\nDo you have access to AA logs in ahrefs.me?"
+        "> I do not understand this\nDo you have access to AA logs in ahrefs.me?"
     }
   ]
 }
