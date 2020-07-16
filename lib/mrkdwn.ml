@@ -13,10 +13,10 @@ let rec transform e =
   | Text _ as e -> e
   | Emph t -> surround "_" t
   | Bold t -> surround "*" t
-  | Ul ts -> Ul (transform_list2 ts)
-  | Ol ts -> Ol (transform_list2 ts)
-  | Ulp ts -> Ulp (transform_list2 ts)
-  | Olp ts -> Olp (transform_list2 ts)
+  | Ul ts -> Ul (transform_flatten ts)
+  | Ol ts -> Ol (transform_flatten ts)
+  | Ulp ts -> Ulp (transform_flatten ts)
+  | Olp ts -> Olp (transform_flatten ts)
   | Url (href, label, title) ->
     let label = to_markdown @@ transform_list label in
     let title = if String.length title > 0 then Printf.sprintf "%s - " title else title in
@@ -29,7 +29,7 @@ let rec transform e =
 
 and transform_list = List.map ~f:transform
 
-and transform_list2 = List.map ~f:transform_list
+and transform_flatten = List.map ~f:transform_list
 
 and surround s t =
   let t = to_markdown @@ transform_list t in
