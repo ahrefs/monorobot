@@ -44,7 +44,7 @@ will notify #all-push-events
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> xinyuluo commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF",
       "text":
-        "this can be written shorter:\n`| Some serpDomain -> Domain.is_subdomain serpDomain domain | None -> false`",
+        "this can be written shorter:\n`\n| Some serpDomain -> Domain.is_subdomain serpDomain domain\n| None -> false`",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|main.ml>"
     }
@@ -139,7 +139,7 @@ will notify #frontend-bot
       "pretext":
         "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> yasunariw <https://github.com/ahrefs/monorepo/pull/6168#issuecomment-17123|commented> on #6168 <https://github.com/ahrefs/monorepo/pull/6168|Feature 1234>",
       "text":
-        "> I do not understand this\nDo you have access to the logs on the website?"
+        "> I do not understand this\n\n\nDo you have access to the logs on the website?"
     }
   ]
 }
