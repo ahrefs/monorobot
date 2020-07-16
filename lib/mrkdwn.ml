@@ -8,8 +8,7 @@ let escape_url_element_characters str =
   let repl c = String.substr_replace_all ~pattern:(Char.to_string c) ~with_:(Printf.sprintf "\\%c" c) in
   str |> repl '<' |> repl '>' |> repl '|'
 
-let rec transform e =
-  match e with
+let rec transform = function
   | H1 t -> H1 (transform_list t)
   | H2 t -> H2 (transform_list t)
   | H3 t | H4 t | H5 t | H6 t -> Paragraph [ Bold (transform_list t) ]
