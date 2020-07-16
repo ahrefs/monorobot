@@ -4,6 +4,10 @@ open Devkit
 
 let log = Log.from "mrkdwn"
 
+let escape_url_element_characters str =
+  let repl c = String.substr_replace_all ~pattern:(Printf.sprintf "%c" c) ~with_:(Printf.sprintf "\\%c" c) in
+  str |> repl '<' |> repl '>' |> repl '|'
+
 let rec transform e =
   match e with
   | H1 t -> H1 (transform_list t)
@@ -18,7 +22,8 @@ let rec transform e =
   | Ulp ts -> Ulp (transform_flatten ts)
   | Olp ts -> Olp (transform_flatten ts)
   | Url (href, label, title) ->
-    let label = to_markdown @@ transform_list label in
+    let label = escape_url_element_characters @@ to_markdown @@ transform_list label in
+    let title = escape_url_element_characters title in
     let title = if String.length title > 0 then Printf.sprintf "%s - " title else title in
     Raw (Printf.sprintf "<%s%s|%s>" title label href)
   | Html _ as e -> Raw (Printf.sprintf "`%s`" @@ to_markdown [ e ])
