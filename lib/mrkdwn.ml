@@ -11,8 +11,8 @@ let rec transform e =
   | H3 t | H4 t | H5 t | H6 t -> Paragraph [ Bold (transform_list t) ]
   | Paragraph t -> Paragraph (transform_list t)
   | Text _ as e -> e
-  | Emph t -> surround "_" @@ transform_list t
-  | Bold t -> surround "*" @@ transform_list t
+  | Emph t -> surround "_" t
+  | Bold t -> surround "*" t
   | Ul ts -> Ul (transform_list2 ts)
   | Ol ts -> Ol (transform_list2 ts)
   | Ulp ts -> Ulp (transform_list2 ts)
