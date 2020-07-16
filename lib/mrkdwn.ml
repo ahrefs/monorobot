@@ -21,7 +21,8 @@ let rec transform e =
     let label = to_markdown @@ transform_list label in
     let title = if String.length title > 0 then Printf.sprintf "%s - " title else title in
     Raw (Printf.sprintf "<%s%s|%s>" title label href)
-  | (Html _ | Html_comment _) as e -> Raw (Printf.sprintf "`%s`" @@ to_markdown [ e ])
+  | Html _ as e -> Raw (Printf.sprintf "`%s`" @@ to_markdown [ e ])
+  | Html_comment _ -> Br
   | Html_block _ as e -> Code_block ("html", to_markdown [ e ])
   | Blockquote t -> Blockquote (transform_list t)
   | Img (alt, src, title) -> Url (src, [ Text alt ], title)
