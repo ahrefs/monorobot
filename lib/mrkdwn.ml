@@ -5,7 +5,7 @@ open Devkit
 let log = Log.from "mrkdwn"
 
 let escape_url_element_characters str =
-  let repl c = String.substr_replace_all ~pattern:(Printf.sprintf "%c" c) ~with_:(Printf.sprintf "\\%c" c) in
+  let repl c = String.substr_replace_all ~pattern:(Char.to_string c) ~with_:(Printf.sprintf "\\%c" c) in
   str |> repl '<' |> repl '>' |> repl '|'
 
 let rec transform e =
