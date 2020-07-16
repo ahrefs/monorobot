@@ -1,8 +1,5 @@
 open Omd
 open Base
-open Devkit
-
-let log = Log.from "mrkdwn"
 
 let escape_url_element_characters str =
   let repl c = String.substr_replace_all ~pattern:(Char.to_string c) ~with_:(Printf.sprintf "\\%c" c) in
