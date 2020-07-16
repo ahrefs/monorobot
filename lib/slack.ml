@@ -26,8 +26,9 @@ let empty_attachments =
     footer = None;
   }
 
-let mrkdwn_of_markdown_opt str_opt =
-  Option.bind ~f:(fun str -> Some (String.strip @@ Mrkdwn.mrkdwn_of_markdown str)) str_opt
+let mrkdwn_of_markdown str = String.strip @@ Mrkdwn.mrkdwn_of_markdown str
+
+let mrkdwn_of_markdown_opt str_opt = Option.map ~f:mrkdwn_of_markdown str_opt
 
 let generate_pull_request_notification notification =
   let { action; number; sender; pull_request; repository } = notification in
@@ -67,12 +68,11 @@ let generate_pull_request_notification notification =
             color = Some "#ccc";
             pretext = summary;
             text =
-              mrkdwn_of_markdown_opt
-                ( match action with
-                | Labeled -> label_str
-                | Closed -> None
-                | _ -> Some body
-                );
+              ( match action with
+              | Labeled -> label_str
+              | Closed -> None
+              | _ -> Some (mrkdwn_of_markdown body)
+              );
           };
         ];
     blocks = None;
@@ -150,7 +150,7 @@ let generate_pr_review_comment_notification notification =
             color = Some "#ccc";
             pretext = summary;
             footer = file;
-            text = mrkdwn_of_markdown_opt @@ Some comment.body;
+            text = Some (mrkdwn_of_markdown comment.body);
           };
         ];
     blocks = None;
@@ -186,7 +186,7 @@ let generate_issue_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            text = mrkdwn_of_markdown_opt @@ Some body;
+            text = Some (mrkdwn_of_markdown body);
           };
         ];
     blocks = None;
@@ -220,7 +220,7 @@ let generate_issue_comment_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            text = mrkdwn_of_markdown_opt @@ Some comment.body;
+            text = Some (mrkdwn_of_markdown comment.body);
           };
         ];
     blocks = None;
@@ -364,7 +364,7 @@ let generate_commit_comment_notification cfg notification =
                 color = Some "#ccc";
                 pretext = summary;
                 footer = path;
-                text = mrkdwn_of_markdown_opt @@ Some comment.body;
+                text = Some (mrkdwn_of_markdown comment.body);
               };
             ];
         blocks = None;
