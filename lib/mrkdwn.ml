@@ -35,7 +35,7 @@ and surround s t =
   let t = to_markdown @@ transform_list t in
   Raw (Printf.sprintf "%s%s%s" s t s)
 
-and of_doc (t : t) = transform_list t
+let of_doc (t : t) = transform_list t
 
 let to_mrkdwn doc = to_markdown @@ of_doc doc
 
