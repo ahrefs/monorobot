@@ -27,7 +27,7 @@ let empty_attachments =
   }
 
 let mrkdwn_of_markdown_opt str_opt =
-  Option.bind ~f:(fun str -> Some (String.drop_suffix (Mrkdwn.mrkdwn_of_markdown str) 1)) str_opt
+  Option.bind ~f:(fun str -> Some (Caml.String.trim @@ Mrkdwn.mrkdwn_of_markdown str)) str_opt
 
 let generate_pull_request_notification notification =
   let { action; number; sender; pull_request; repository } = notification in
