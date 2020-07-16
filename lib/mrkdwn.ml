@@ -10,7 +10,6 @@ let rec transform = function
   | H2 t -> H2 (transform_list t)
   | H3 t | H4 t | H5 t | H6 t -> Paragraph [ Bold (transform_list t) ]
   | Paragraph t -> Paragraph (transform_list t)
-  | Text _ as e -> e
   | Emph t -> surround "_" t
   | Bold t -> surround "*" t
   | Ul ts -> Ul (transform_flatten ts)
@@ -27,7 +26,7 @@ let rec transform = function
   | Html_block _ as e -> Code_block ("html", to_markdown [ e ])
   | Blockquote t -> Blockquote (transform_list t)
   | Img (alt, src, title) -> Url (src, [ Text alt ], title)
-  | (Code _ | Code_block _ | Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
+  | (Text _ | Code _ | Code_block _ | Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
 
 and transform_list = List.map ~f:transform
 
