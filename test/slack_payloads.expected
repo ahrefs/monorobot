@@ -31,6 +31,20 @@ will notify #all-push-events
   ]
 }
 ===== file ../mock_payloads/commit_comment.general_comment_multiple_path.json =====
+will notify #aa
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> xinyuluo commented on `<https://github.com/xinyuluo/pr_test/commit/1edcdf5e45a8b7ed01c247b981d8f42d426a7794#commitcomment-40398096|1edcdf5e>` Add files via upload",
+      "mrkdwn_in": [ "pretext", "text" ],
+      "color": "#ccc",
+      "pretext":
+        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> xinyuluo commented on `<https://github.com/xinyuluo/pr_test/commit/1edcdf5e45a8b7ed01c247b981d8f42d426a7794#commitcomment-40398096|1edcdf5e>` Add files via upload",
+      "text": "this is a test for general commit comment with multiple paths"
+    }
+  ]
+}
 will notify #all-push-events
 {
   "attachments": [
