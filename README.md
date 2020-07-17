@@ -23,25 +23,10 @@ and use resulting `_build/default/src/notabot.exe` binary.
 Configuration is read at startup from `notabot.json` and `secrets.json` files
 according to `lib/notabot.atd` schema.
 
-### Token generation
-
-Some event notifications (e.g., status, commit comment) require a personal token to be addded to the configuration. To create a personal token, take the following steps:
-1. Verify your email address, if needed.
-1. In the upper-right corner of any page, click your profile photo, then click **Settings**.
-1. In the left sidebar, click **Developer settings**.
-1. In the left sidebar, click **Personal access tokens**.
-1. Click **Generate new token**.
-1. Give your token a descriptive name in the **Note** section.
-1. Grant ***repo*** scope.
-1. Click **Generate token**.
-1. Copy the token to `secrets.json` file in a `gh_token` field.
-
-For more detailed instructions on token generation, refer to https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line.
-
 ### Documentation
 
-* [config](./documentation/config.md)
-* [secret](./documentation/secret.md)
+* [config](./documentation/config_docs.md)
+* [secret](./documentation/secret_docs.md)
 
 ## Testing (development)
 
