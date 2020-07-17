@@ -215,10 +215,7 @@ let partition_commit_comment cfg n =
   | None ->
     ( match%lwt Github.generate_commit_from_commit_comment cfg n with
     | None -> Lwt.return default
-    | Some commit ->
-    match partition_commit cfg commit.files with
-    | [ p ] -> Lwt.return [ p ]
-    | _ -> Lwt.return default
+    | Some commit -> Lwt.return (partition_commit cfg commit.files)
     )
   | Some p ->
   match filter_commit cfg.prefix_rules.rules p with
