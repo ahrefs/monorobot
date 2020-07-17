@@ -16,7 +16,7 @@ let set_branch_state name (branch_state : Notabot_t.branch_info) (state : Notabo
 
 let set_branch_last_build_state name build_state timestamp (state : Notabot_t.state) : Notabot_t.state =
   match get_branch_state name state with
-  | None -> { branches = (name, default_branch_state timestamp) :: state.branches }
+  | None -> { branches = (name, { last_build_state = build_state; updated_at = timestamp }) :: state.branches }
   | Some _ -> set_branch_state name { last_build_state = build_state; updated_at = timestamp } state
 
 let build_state_of_status_state = function
