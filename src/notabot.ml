@@ -5,23 +5,23 @@ module Arg = Caml.Arg
 
 let log = Log.from "notabot"
 
-let get_config config secrets =
-  let cfg = Config.load config secrets in
+let get_context state config secrets =
+  let ctx = Context.make ~state_path:state ~cfg_path:config ~secrets_path:secrets () in
+  let cfg = ctx.cfg in
   log#info "using prefix routing:";
   Action.print_prefix_routing cfg.prefix_rules.rules;
   log#info "using label routing:";
   Action.print_label_routing cfg.label_rules.rules;
-  cfg
+  ctx
 
 let update_state_at_path state_path state event = State.save state_path @@ State.update_state state event
 
 let http_server addr port config state_path secrets =
   log#info "notabot starting";
-  let cfg = get_config config secrets in
-  let load_state () = State.load state_path in
-  let update_state = update_state_at_path state_path in
+  let ctx = get_context state_path config secrets in
+  let cfg = ctx.cfg in
   log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
-  Lwt_main.run (Request_handler.start_http_server ~cfg ~load_state ~update_state ~addr ~port ())
+  Lwt_main.run (Request_handler.start_http_server ~ctx ~addr ~port ())
 
 let send_slack_notification webhook file =
   let data = Stdio.In_channel.read_all file in
@@ -30,9 +30,7 @@ let send_slack_notification webhook file =
   | data -> Lwt_main.run (Slack.send_notification webhook data)
 
 let check_common file print config secrets state_path =
-  let cfg = get_config config secrets in
-  let load_state () = State.load state_path in
-  let update_state = update_state_at_path state_path in
+  let ctx = get_context state_path config secrets in
   match Mock.kind file with
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
@@ -45,7 +43,7 @@ let check_common file print config secrets state_path =
       log#error ~exn "unable to parse payload";
       Lwt.return_unit
     | event ->
-      let%lwt notifs = Action.generate_notifications cfg load_state update_state event in
+      let%lwt notifs = Action.generate_notifications ctx event in
       List.iter ~f:print notifs;
       Lwt.return_unit
     )

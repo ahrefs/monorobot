@@ -165,18 +165,19 @@ let hide_cancelled (notification : status_notification) cfg =
   in
   is_cancelled_status && cfg.suppress_cancelled_events
 
-let hide_success (notification : status_notification) state =
-  match notification.state with
+let hide_success (n : status_notification) (ctx : Context.t) =
+  match n.state with
   | Success ->
     List.exists
       ~f:(fun b ->
-        match State.get_branch_state b.name state with
+        match State.get_branch_state b.name ctx.state with
         | None | Some { last_build_state = Failure; _ } -> false
         | Some { last_build_state = Success; _ } -> true)
-      notification.branches
+      n.branches
   | _ -> false
 
-let partition_status cfg load_state update_state (n : status_notification) =
+let partition_status (ctx : Context.t) (n : status_notification) =
+  let cfg = ctx.cfg in
   let get_commit_info () =
     match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
     | None ->
@@ -191,20 +192,22 @@ let partition_status cfg load_state update_state (n : status_notification) =
       Lwt.return []
     | false -> Lwt.return (partition_commit cfg commit.files)
   in
-  let state = load_state () in
-  update_state state (Github.Status n);
-  match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
-  | false -> Lwt.return []
-  | true ->
-  match List.exists ~f:id [ hide_cancelled n cfg; hide_success n state ] with
-  | true -> Lwt.return []
-  | false ->
-  match cfg.status_rules.title with
-  | None -> get_commit_info ()
-  | Some status_filter ->
-  match List.exists status_filter ~f:(String.equal n.context) with
-  | false -> Lwt.return []
-  | true -> get_commit_info ()
+  let res =
+    match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
+    | false -> Lwt.return []
+    | true ->
+    match List.exists ~f:id [ hide_cancelled n cfg; hide_success n ctx ] with
+    | true -> Lwt.return []
+    | false ->
+    match cfg.status_rules.title with
+    | None -> get_commit_info ()
+    | Some status_filter ->
+    match List.exists status_filter ~f:(String.equal n.context) with
+    | false -> Lwt.return []
+    | true -> get_commit_info ()
+  in
+  Context.update_state ctx (Github.Status n);
+  res
 
 let partition_commit_comment cfg n =
   match n.comment.path with
@@ -222,7 +225,8 @@ let partition_commit_comment cfg n =
     Lwt.return notifs
   | l -> Lwt.return l
 
-let generate_notifications cfg load_state update_state req =
+let generate_notifications (ctx : Context.t) req =
+  let cfg = ctx.cfg in
   match req with
   | Github.Push n ->
     partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return
@@ -246,7 +250,7 @@ let generate_notifications cfg load_state update_state req =
     let notifs = List.map ~f:(fun webhook -> webhook, notif) webhooks in
     Lwt.return notifs
   | Status n ->
-    let%lwt webhooks = partition_status cfg load_state update_state n in
+    let%lwt webhooks = partition_status ctx n in
     let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks in
     Lwt.return notifs
   | _ -> Lwt.return []
