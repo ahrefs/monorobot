@@ -30,25 +30,25 @@ type webhook = {
   The rule is considered matched if there is at least one file in commit that
   matches one of the [prefix] and does not match any of [ignore] *)
 type prefix_rule = {
-  prefix : string list; (* empty list means match any *)
-  ~ignore : string list;
-  chan : string;
+  prefix : string list; (* whitelist of strings that if prefixed in the filename matches the rule; empty list means match any *)
+  ~ignore : string list; (* blacklist of strings that if prefixed in the filename does not match the rule *)
+  chan : string; (* channel to use as webhook if matching this prefix rule *)
 }
 
 type label_rule = {
-  label_name : string list;
-  ~ignore : string list;
-  chan: string;
+  label_name : string list; (* whitelist of label values that match this rule; if list is empty it vacuously satisfies the rule *)
+  ~ignore : string list; (* blacklist of label values; any labels matching will not match the rule *)
+  chan: string; (* channel to use as webhook if matching this label rule *)
 }
 
 type prefix_config = {
-  ?default: string nullable; (* if none of the rules is matching *)
-  rules: prefix_rule list;
+  ?default: string nullable; (* the default channel to notify if none of the rules is matching *)
+  rules: prefix_rule list; (* list of prefix rules that notify webhooks based on filename prefix values *)
 }
 
 type label_config = {
-  ?default: string nullable; (* if none of the rules is matching *)
-  rules: label_rule list;
+  ?default: string nullable; (* the default channel to notify if none of the rules is matching *)
+  rules: label_rule list; (* list of label rules that notify webhooks based on label values *)
 }
 
 type status_state = {
@@ -60,7 +60,7 @@ type status_state = {
 
 type status_config = {
   ?title: string list option; (* keep only status events with a title matching this list *)
-  status: status_state;
+  status: status_state; (* event types with false will be suppressed *)
   ?suppress_cancelled_events : bool option; (* suppresses status cancelled events; if not specified - true *)
   ?suppress_consecutive_success : bool option; (* suppresses status success on branches whose last build branch state is also success; if not specified - true *)
 }
