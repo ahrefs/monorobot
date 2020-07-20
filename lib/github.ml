@@ -18,6 +18,17 @@ type t =
 
 (* all other events *)
 
+let get_repository = function
+  | Push n -> Some n.repository
+  | Pull_request n -> Some n.repository
+  | PR_review n -> Some n.repository
+  | PR_review_comment n -> Some n.repository
+  | Issue n -> Some n.repository
+  | Issue_comment n -> Some n.repository
+  | Commit_comment n -> Some n.repository
+  | Status n -> Some n.repository
+  | Event _ -> None
+
 let is_valid_signature ~secret headers_sig body =
   let request_hash =
     let key = Cstruct.of_string secret in
