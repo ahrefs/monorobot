@@ -31,10 +31,13 @@ For details about each field in the config, please refer to [notabot.atd](./lib/
 
 Here is an example of a [config file](./test/notabot.json).
 
-
 ### Secret file
 
 Secret file is where sensitive information such as the urls used for webhooks and other tokens are stored.
+
+Likewise for details about each field in the secret file, please refer to [notabot.atd](./lib/notabot.atd).
+
+Here is an example of a [secret file](./test/secrets.json).
 
 #### Token generation
 
