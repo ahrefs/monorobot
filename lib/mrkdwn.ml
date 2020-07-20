@@ -30,7 +30,7 @@ and transform = function
     Raw (Printf.sprintf "<%s%s|%s>" title label href)
   | Html _ as e -> Raw (Printf.sprintf "`%s`" @@ to_markdown [ e ])
   | Html_comment _ -> Br
-  | Html_block _ as e -> Code_block ("html", to_markdown [ e ])
+  | Html_block _ as e -> Code_block ("", to_markdown [ e ])
   | Blockquote t -> Blockquote (transform_list t)
   | Img (alt, src, title) -> Url (src, [ Text alt ], title)
   | Code_block (_, str) -> Code_block ("", str)
