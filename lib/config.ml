@@ -4,6 +4,8 @@ module Chan_map = Map.Make (String)
 type status_rules = {
   title : string list option;
   status : Github_t.status_state list;
+  suppress_cancelled_events : bool;
+  suppress_consecutive_success : bool;
 }
 
 type t = {
@@ -15,7 +17,6 @@ type t = {
   gh_token : string option;
   offline : string option;
   status_rules : status_rules;
-  suppress_cancelled_events : bool;
 }
 
 let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
@@ -59,6 +60,8 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     | None -> Exn.fail "default chan %s in label_rules is missing from slack_channels" d
     | Some _ -> ()
   in
+  let suppress_cancelled_events = Option.default true json_config.status_rules.suppress_cancelled_events in
+  let suppress_consecutive_success = Option.default true json_config.status_rules.suppress_consecutive_success in
   let status_rules =
     let status =
       let open Github_t in
@@ -71,9 +74,8 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
           (if j.error then Some Error else None);
         ]
     in
-    { title = json_config.status_rules.title; status }
+    { title = json_config.status_rules.title; status; suppress_cancelled_events; suppress_consecutive_success }
   in
-  let suppress_cancelled_events = Option.default true json_config.suppress_cancelled_events in
   {
     chans;
     prefix_rules = json_config.prefix_rules;
@@ -83,7 +85,6 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     gh_token = secrets.gh_token;
     offline = json_config.offline;
     status_rules;
-    suppress_cancelled_events;
   }
 
 let load path secrets =

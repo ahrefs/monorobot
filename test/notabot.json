@@ -11,7 +11,9 @@
             "success": true,
             "failure": true,
             "error": true
-        }
+        },
+        "suppress_cancelled_events": true,
+        "suppress_consecutive_success": true
     },
     "prefix_rules": {
         "default": "default",
@@ -72,6 +74,5 @@
                 "chan": "frontend-bot"
             }
         ]
-    },
-    "suppress_cancelled_events": true
+    }
 }

@@ -61,15 +61,16 @@ type status_state = {
 type status_config = {
   ?title: string list option; (* keep only status events with a title matching this list *)
   status: status_state;
+  ?suppress_cancelled_events : bool option; (* suppresses status cancelled events; if not specified - true *)
+  ?suppress_consecutive_success : bool option; (* suppresses status success on branches whose last build branch state is also success; if not specified - true *)
 }
 
 type config = {
   prefix_rules : prefix_config;
   label_rules : label_config;
   status_rules : status_config;
-  ?suppress_cancelled_events : bool option; (* supresses status cancelled events; if not specified - true *)
   ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)
-  ?offline: string option; (* where to find github api data when http calls are not allowed *)
+  ?offline: string option; (* where to find github api data when http calls are not allowed; used for testing *)
 }
 
 type secrets = {

@@ -163,11 +163,11 @@ let hide_cancelled (notification : status_notification) cfg =
     | Some s, Failure when Re.Str.string_match r s 0 -> true
     | _ -> false
   in
-  is_cancelled_status && cfg.suppress_cancelled_events
+  is_cancelled_status && cfg.status_rules.suppress_cancelled_events
 
 let hide_success (n : status_notification) (ctx : Context.t) =
-  match n.state with
-  | Success ->
+  match ctx.cfg.status_rules.suppress_consecutive_success, n.state with
+  | true, Success ->
     List.exists
       ~f:(fun b ->
         match State.get_branch_state b.name ctx.state with
