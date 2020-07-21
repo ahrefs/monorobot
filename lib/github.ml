@@ -18,7 +18,7 @@ type t =
 
 (* all other events *)
 
-let get_repository = function
+let to_repo = function
   | Push n -> Some n.repository
   | Pull_request n -> Some n.repository
   | PR_review n -> Some n.repository
@@ -28,6 +28,81 @@ let get_repository = function
   | Commit_comment n -> Some n.repository
   | Status n -> Some n.repository
   | Event _ -> None
+
+let api_url_of_repo (repo : repository) =
+  Option.map ~f:(fun host ->
+    match host with
+    | "api.github.com" -> Printf.sprintf "https://%s" host
+    | _ -> Printf.sprintf "https://%s/api/v3" host)
+  @@ Uri.host
+  @@ Uri.of_string repo.url
+
+let user_of_full_name_parts full_name_parts =
+  match full_name_parts with
+  | user :: _ -> Some user
+  | _ -> None
+
+let name_of_full_name_parts full_name_parts =
+  match full_name_parts with
+  | _ :: repo_name :: _ -> Some repo_name
+  | _ -> None
+
+let load_config req =
+  let token = "0000000000000000000000000000000000000000" in
+  let headers = Some [ "Accept: application/vnd.github.v3+json" ] in
+  match to_repo req with
+  | None ->
+    log#error "unable to resolve repository from request";
+    Lwt.return_none
+  | Some repo ->
+    let full_name_parts = String.split ~on:'/' repo.full_name in
+    ( match user_of_full_name_parts full_name_parts with
+    | None ->
+      log#error "unable to resolve repository owner";
+      Lwt.return_none
+    | Some owner ->
+    match name_of_full_name_parts full_name_parts with
+    | None ->
+      log#error "unable to resolve repository name";
+      Lwt.return_none
+    | Some repo_name ->
+    match api_url_of_repo repo with
+    | None ->
+      log#error "unable to resolve github api url from repository url";
+      Lwt.return_none
+    | Some base_url ->
+      let url = Printf.sprintf "%s/repos/%s/%s/contents/notabot.json?access_token=%s" base_url owner repo_name token in
+      ( match%lwt Web.http_request_lwt ?headers `GET url with
+      | `Error e ->
+        log#error "error while querying github api %s: %s" url e;
+        Lwt.return_none
+      | `Ok s ->
+        let response = Github_j.content_api_response_of_string s in
+        ( match response.encoding with
+        | "base64" -> Lwt.return_some @@ Base64.decode_exn @@ String.concat @@ String.split ~on:'\n' response.content
+        | e ->
+          log#error "unknown encoding format '%s'." e;
+          Lwt.return_none
+        )
+      )
+    )
+
+(*
+    ( match host_of_repo_url @@ repo_url_of_repo @@ to_repo req with
+    | None -> ()
+    | Some host ->
+      let base_url =
+        Printf.sprintf "https://%s/api%s" host (if String.equal host "api.github.com" then "" else "/v3")
+      in
+      Stdio.printf "%s\n" base_url
+    )*)
+
+(*let url = Printf.sprintf "%s/"
+  match%lwt Web.http_request_lwt ?headers `GET url with
+  | `Error e ->
+    log#error "error while querying github api %s: %s" url e;
+    Lwt.return_none
+  | `Ok s ->*)
 
 let is_valid_signature ~secret headers_sig body =
   let request_hash =

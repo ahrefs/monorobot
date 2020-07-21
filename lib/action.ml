@@ -73,14 +73,14 @@ let partition_push cfg n =
     | [] -> None
     | l -> Some (chan, { n with commits = l }))
 
-let filter_label rules label =
+let filter_label rules (label : Github_j.label) =
   rules
   |> List.filter_map ~f:(fun rule ->
        match touching_label rule label.name with
        | false -> None
        | true -> Some rule.chan)
 
-let partition_label cfg labels =
+let partition_label cfg (labels : Github_j.label list) =
   let default = Option.value_map cfg.label_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
   match labels with
   | [] -> default
@@ -88,7 +88,7 @@ let partition_label cfg labels =
     let rules = cfg.label_rules.rules in
     let channels =
       labels
-      |> List.map ~f:(fun label ->
+      |> List.map ~f:(fun (label : Github_j.label) ->
            match filter_label rules label with
            | [] -> default
            | l -> l)
