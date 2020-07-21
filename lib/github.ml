@@ -51,29 +51,29 @@ let load_config token req =
   let headers = Some [ "Accept: application/vnd.github.v3+json" ] in
   match to_repo req with
   | None ->
-    log#error "unable to resolve repository from request";
+    log#warn "unable to resolve repository from request";
     Lwt.return_none
   | Some repo ->
     let full_name_parts = String.split ~on:'/' repo.full_name in
     ( match user_of_full_name_parts full_name_parts with
     | None ->
-      log#error "unable to resolve repository owner";
+      log#warn "unable to resolve repository owner";
       Lwt.return_none
     | Some owner ->
     match name_of_full_name_parts full_name_parts with
     | None ->
-      log#error "unable to resolve repository name";
+      log#warn "unable to resolve repository name";
       Lwt.return_none
     | Some repo_name ->
     match api_url_of_repo repo with
     | None ->
-      log#error "unable to resolve github api url from repository url";
+      log#warn "unable to resolve github api url from repository url";
       Lwt.return_none
     | Some base_url ->
       let url = Printf.sprintf "%s/repos/%s/%s/contents/notabot.json?access_token=%s" base_url owner repo_name token in
       ( match%lwt Web.http_request_lwt ?headers `GET url with
       | `Error e ->
-        log#error "error while querying github api %s: %s" url e;
+        log#warn "error while querying github api %s: %s" url e;
         Lwt.return_none
       | `Ok s ->
         let response = Github_j.content_api_response_of_string s in
@@ -86,7 +86,7 @@ let load_config token req =
           @@ String.split ~on:'\n'
           @@ response.content
         | e ->
-          log#error "unknown encoding format '%s'." e;
+          log#warn "unknown encoding format '%s'." e;
           Lwt.return_none
         )
       )
