@@ -92,23 +92,6 @@ let load_config token req =
       )
     )
 
-(*
-    ( match host_of_repo_url @@ repo_url_of_repo @@ to_repo req with
-    | None -> ()
-    | Some host ->
-      let base_url =
-        Printf.sprintf "https://%s/api%s" host (if String.equal host "api.github.com" then "" else "/v3")
-      in
-      Stdio.printf "%s\n" base_url
-    )*)
-
-(*let url = Printf.sprintf "%s/"
-  match%lwt Web.http_request_lwt ?headers `GET url with
-  | `Error e ->
-    log#error "error while querying github api %s: %s" url e;
-    Lwt.return_none
-  | `Ok s ->*)
-
 let is_valid_signature ~secret headers_sig body =
   let request_hash =
     let key = Cstruct.of_string secret in
