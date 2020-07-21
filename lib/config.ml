@@ -86,7 +86,9 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     suppress_cancelled_events;
   }
 
+let load_secrets secrets = Notabot_j.secrets_of_string @@ Stdio.In_channel.read_all secrets
+
 let load path secrets =
   let config = Notabot_j.config_of_string @@ Stdio.In_channel.read_all path in
-  let secrets = Notabot_j.secrets_of_string @@ Stdio.In_channel.read_all secrets in
+  let secrets = load_secrets secrets in
   make config secrets
