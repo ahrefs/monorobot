@@ -1,8 +1,6 @@
 open Devkit
 module Chan_map = Map.Make (String)
 
-let log = Log.from "config"
-
 type status_rules = {
   title : string list option;
   status : Github_t.status_state list;
