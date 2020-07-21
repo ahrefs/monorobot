@@ -16,19 +16,25 @@ type t = {
   data : data;
 }
 
+(* order of resolution: remote, local file, failure *)
 let _resolve_cfg_json ?cfg_path ?gh_token ?req () =
+  let remote_resolution =
+    match gh_token with
+    | None -> None
+    | Some token ->
+    match req with
+    | None -> None
+    | Some r ->
+    match Lwt_main.run (Github.load_config token r) with
+    | Some cfg -> Some cfg
+    | None -> None
+  in
+  match remote_resolution with
+  | Some cfg -> Some cfg
+  | None ->
   match cfg_path with
   | Some path -> Some (Config.load_config_file path)
-  | None ->
-  match gh_token with
   | None -> None
-  | Some token ->
-  match req with
-  | None -> None
-  | Some r ->
-  match Lwt_main.run (Github.load_config token r) with
-  | None -> None
-  | Some cfg -> Some cfg
 
 let refresh_config ctx ?req () =
   match _resolve_cfg_json ?cfg_path:ctx.data.cfg ?gh_token:ctx.secrets.gh_token ?req () with
