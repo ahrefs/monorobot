@@ -78,7 +78,13 @@ let load_config token req =
       | `Ok s ->
         let response = Github_j.content_api_response_of_string s in
         ( match response.encoding with
-        | "base64" -> Lwt.return_some @@ Base64.decode_exn @@ String.concat @@ String.split ~on:'\n' response.content
+        | "base64" ->
+          Lwt.return_some
+          @@ Notabot_j.config_of_string
+          @@ Base64.decode_exn
+          @@ String.concat
+          @@ String.split ~on:'\n'
+          @@ response.content
         | e ->
           log#error "unknown encoding format '%s'." e;
           Lwt.return_none
