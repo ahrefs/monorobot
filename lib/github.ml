@@ -47,7 +47,7 @@ let name_of_full_name_parts full_name_parts =
   | _ :: repo_name :: _ -> Some repo_name
   | _ -> None
 
-let load_config token req =
+let load_config_json token req =
   let headers = Some [ "Accept: application/vnd.github.v3+json" ] in
   match to_repo req with
   | None ->

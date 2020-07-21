@@ -25,7 +25,7 @@ let _resolve_cfg_json ?cfg_path ?gh_token ?req () =
     match req with
     | None -> None
     | Some r ->
-    match Lwt_main.run (Github.load_config token r) with
+    match Lwt_main.run (Github.load_config_json token r) with
     | Some cfg -> Some cfg
     | None -> None
   in
