@@ -28,7 +28,7 @@ let _get_remote_cfg_json ?gh_token ?req () =
 let _get_local_cfg_json ?cfg_path () =
   match cfg_path with
   | None -> None
-  | Some path -> Some (Config.load_config_file path)
+  | Some path -> try Some (Config.load_config_file path) with Sys_error _ -> None
 
 let _resolve_cfg_json ?cfg_path ?gh_token ?req () =
   match _get_remote_cfg_json ?gh_token ?req () with
