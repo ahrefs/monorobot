@@ -1,9 +1,10 @@
-open Devkit
-
-let log = Log.from "context"
+let log = Devkit.Log.from "context"
 
 type data = {
-  cfg : string option;
+  mutable cfg_file_path : string option;
+  mutable cfg_remote_url : string option;
+  mutable cfg_current_source : Config.cfg_sources option;
+  action_after_cfg_refresh : Config.t -> unit;
   secrets : string;
   state : string;
   disable_write : bool;
@@ -11,38 +12,59 @@ type data = {
 
 type t = {
   mutable state : Notabot_t.state;
-  mutable cfg : Config.t;
+  mutable cfg : Config.t option;
   secrets : Notabot_t.secrets;
   data : data;
 }
 
-(* order of resolution: remote, local file, failure *)
-let _resolve_cfg_json ?cfg_path ?gh_token ?req () =
-  let remote_resolution =
-    match gh_token with
-    | None -> None
-    | Some token ->
-    match req with
-    | None -> None
-    | Some r ->
-    match Lwt_main.run (Github.load_config_json token r) with
-    | Some cfg -> Some cfg
-    | None -> None
-  in
-  match remote_resolution with
-  | Some cfg -> Some cfg
-  | None ->
-  match cfg_path with
-  | Some path -> Some (Config.load_config_file path)
+let _get_remote_cfg_json ?gh_token ?req () =
+  match gh_token with
   | None -> None
+  | Some token ->
+  match req with
+  | None -> None
+  | Some r -> Lwt_main.run (Github.load_config_json token r)
+
+let _get_local_cfg_json ?cfg_path () =
+  match cfg_path with
+  | None -> None
+  | Some path -> Some (Config.load_config_file path)
+
+let _resolve_cfg_json ?cfg_path ?gh_token ?req () =
+  match _get_remote_cfg_json ?gh_token ?req () with
+  | Some _ as cs -> cs
+  | None -> _get_local_cfg_json ?cfg_path ()
+
+let _update_ctx_cfg_data ctx = function
+  | Config.Local, path, _ ->
+    ctx.data.cfg_file_path <- Some path;
+    ctx.data.cfg_current_source <- Some Local
+  | Remote, url, _ ->
+    ctx.data.cfg_remote_url <- Some url;
+    ctx.data.cfg_current_source <- Some Remote
 
 let refresh_config ctx ?req () =
-  match _resolve_cfg_json ?cfg_path:ctx.data.cfg ?gh_token:ctx.secrets.gh_token ?req () with
-  | Some cfg_json -> ctx.cfg <- Config.make cfg_json ctx.secrets
-  | None -> log#error "context malformed unable to resolve config json"
+  match _resolve_cfg_json ?cfg_path:ctx.data.cfg_file_path ?gh_token:ctx.secrets.gh_token ?req () with
+  | Some cs ->
+    _update_ctx_cfg_data ctx cs;
+    let cfg_json = Config.cfg_json_of_cfg_source cs in
+    ctx.cfg <-
+      (let cfg = Config.make cfg_json ctx.secrets in
+       ctx.data.action_after_cfg_refresh cfg;
+       Some cfg)
+  | None -> log#warn "unable to resolve both local remote config json sources"
 
 let refresh_and_get_config ctx ?req () =
   refresh_config ctx ?req ();
+  ctx.cfg
+
+let init_remote_config ctx req =
+  match ctx.data.cfg_current_source with
+  | Some Remote -> ()
+  | None | Some Local -> refresh_config ctx ~req ()
+
+let init_and_get_remote_config ctx req =
+  init_remote_config ctx req;
   ctx.cfg
 
 let refresh_state ctx = ctx.state <- State.load ctx.data.state
@@ -61,12 +83,20 @@ let update_and_get_state ctx event =
   update_state ctx event;
   ctx.state
 
-let make ~state_path ?cfg_path ~secrets_path ?(disable_write = false) ?req () =
+let make ~state_path ?cfg_path ~secrets_path ?(disable_write = false) ?(action_after_cfg_refresh = fun _ -> ()) ?req () =
   let state = State.load state_path in
   let secrets = Config.load_secrets_file secrets_path in
-  let data = { cfg = cfg_path; secrets = secrets_path; state = state_path; disable_write } in
-  match _resolve_cfg_json ?cfg_path ?gh_token:secrets.gh_token ?req () with
-  | Some cfg_json ->
-    let cfg = Config.make cfg_json secrets in
-    Some { cfg; state; secrets; data }
-  | None -> None
+  let data =
+    {
+      cfg_file_path = cfg_path;
+      cfg_remote_url = None;
+      cfg_current_source = None;
+      action_after_cfg_refresh;
+      secrets = secrets_path;
+      state = state_path;
+      disable_write;
+    }
+  in
+  let ctx = { cfg = None; state; secrets; data } in
+  refresh_config ctx ?req ();
+  ctx

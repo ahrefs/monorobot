@@ -5,16 +5,22 @@ let log = Log.from "request_handler"
 
 let process_github_notification (ctx : Lib.Context.t) headers body =
   let open Lib in
-  let cfg = ctx.cfg in
-  match Github.parse_exn ~secret:cfg.Config.gh_webhook_secret headers body with
+  match Github.parse_exn ~secret:ctx.secrets.gh_webhook_secret headers body with
   | exception exn -> Exn_lwt.fail ~exn "unable to parse payload"
   | payload ->
-    let%lwt notifications = Action.generate_notifications ctx payload in
-    Lwt_list.iter_s
-      (fun (chan, msg) ->
-        let url = Config.Chan_map.find chan cfg.chans in
-        Slack.send_notification url msg)
-      notifications
+    Context.init_remote_config ctx payload;
+    ( match ctx.cfg with
+    | None ->
+      log#error "unable to load config, skipping `process_github_notification` call";
+      Lwt.return_unit
+    | Some cfg ->
+      let%lwt notifications = Action.generate_notifications ctx payload in
+      Lwt_list.iter_s
+        (fun (chan, msg) ->
+          let url = Config.Chan_map.find chan cfg.chans in
+          Slack.send_notification url msg)
+        notifications
+    )
 
 let setup_http ~ctx ~signature ~port ~ip =
   let open Httpev in

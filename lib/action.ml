@@ -177,37 +177,41 @@ let hide_success (n : status_notification) (ctx : Context.t) =
   | _ -> false
 
 let partition_status (ctx : Context.t) (n : status_notification) =
-  let cfg = ctx.cfg in
-  let get_commit_info () =
-    match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
-    | None ->
-      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-      Lwt.return default
-    | Some commit ->
-    match
-      List.exists n.branches ~f:(fun { name } -> is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
-    with
-    | true ->
-      log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
-      Lwt.return []
-    | false -> Lwt.return (partition_commit cfg commit.files)
-  in
-  let res =
-    match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
-    | false -> Lwt.return []
-    | true ->
-    match List.exists ~f:id [ hide_cancelled n cfg; hide_success n ctx ] with
-    | true -> Lwt.return []
-    | false ->
-    match cfg.status_rules.title with
-    | None -> get_commit_info ()
-    | Some status_filter ->
-    match List.exists status_filter ~f:(String.equal n.context) with
-    | false -> Lwt.return []
-    | true -> get_commit_info ()
-  in
-  Context.update_state ctx (Github.Status n);
-  res
+  match ctx.cfg with
+  | None ->
+    log#warn "unable to load config, skipping `partition_status` call";
+    Lwt.return []
+  | Some cfg ->
+    let get_commit_info () =
+      match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
+      | None ->
+        let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+        Lwt.return default
+      | Some commit ->
+      match
+        List.exists n.branches ~f:(fun { name } -> is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
+      with
+      | true ->
+        log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
+        Lwt.return []
+      | false -> Lwt.return (partition_commit cfg commit.files)
+    in
+    let res =
+      match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
+      | false -> Lwt.return []
+      | true ->
+      match List.exists ~f:id [ hide_cancelled n cfg; hide_success n ctx ] with
+      | true -> Lwt.return []
+      | false ->
+      match cfg.status_rules.title with
+      | None -> get_commit_info ()
+      | Some status_filter ->
+      match List.exists status_filter ~f:(String.equal n.context) with
+      | false -> Lwt.return []
+      | true -> get_commit_info ()
+    in
+    Context.update_state ctx (Github.Status n);
+    res
 
 let partition_commit_comment cfg n =
   let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
@@ -223,7 +227,11 @@ let partition_commit_comment cfg n =
   | l -> Lwt.return l
 
 let generate_notifications (ctx : Context.t) req =
-  let cfg = ctx.cfg in
+  match ctx.cfg with
+  | None ->
+    log#error "unable to load config, skipping `generate_notifications` call";
+    Lwt.return []
+  | Some cfg ->
   match req with
   | Github.Push n ->
     partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return

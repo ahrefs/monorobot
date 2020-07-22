@@ -5,27 +5,19 @@ module Arg = Caml.Arg
 
 let log = Log.from "notabot"
 
-let get_context state config secrets =
-  match Context.make ~state_path:state ~cfg_path:config ~secrets_path:secrets () with
-  | None -> None
-  | Some ctx ->
-    let cfg = ctx.cfg in
-    log#info "using prefix routing:";
-    Action.print_prefix_routing cfg.prefix_rules.rules;
-    log#info "using label routing:";
-    Action.print_label_routing cfg.label_rules.rules;
-    Some ctx
+let action_after_cfg_refresh (cfg : Config.t) =
+  log#info "using prefix routing:";
+  Action.print_prefix_routing cfg.prefix_rules.rules;
+  log#info "using label routing:";
+  Action.print_label_routing cfg.label_rules.rules;
+  log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled")
 
 let update_state_at_path state_path state event = State.save state_path @@ State.update_state state event
 
 let http_server addr port config secrets state_path =
   log#info "notabot starting";
-  match get_context state_path config secrets with
-  | None -> log#error "unable to create context"
-  | Some ctx ->
-    let cfg = ctx.cfg in
-    log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
-    Lwt_main.run (Request_handler.start_http_server ~ctx ~addr ~port ())
+  let ctx = Context.make ~state_path ~cfg_path:config ~secrets_path:secrets ~action_after_cfg_refresh () in
+  Lwt_main.run (Request_handler.start_http_server ~ctx ~addr ~port ())
 
 let send_slack_notification webhook file =
   let data = Stdio.In_channel.read_all file in
@@ -34,11 +26,7 @@ let send_slack_notification webhook file =
   | data -> Lwt_main.run (Slack.send_notification webhook data)
 
 let check_common file print config secrets state_path =
-  match get_context state_path config secrets with
-  | None ->
-    log#error "unable to create context";
-    Lwt.return_unit
-  | Some ctx ->
+  let ctx = Context.make ~state_path ~cfg_path:config ~secrets_path:secrets ~action_after_cfg_refresh () in
   match Mock.kind file with
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
@@ -51,6 +39,7 @@ let check_common file print config secrets state_path =
       log#error ~exn "unable to parse payload";
       Lwt.return_unit
     | event ->
+      Context.refresh_config ctx ~req:event ();
       let%lwt notifs = Action.generate_notifications ctx event in
       List.iter ~f:print notifs;
       Lwt.return_unit
