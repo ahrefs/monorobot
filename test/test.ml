@@ -21,15 +21,10 @@ let process ~state_dir ~cfg_path ~secrets_path file =
     | event ->
       Devkit.Log.set_loglevels "error";
       let state_path = Caml.Filename.concat state_dir @@ Caml.Filename.basename file in
-      ( match Context.make ~state_path ~cfg_path ~secrets_path ~disable_write:true ~req:event () with
-      | None ->
-        Stdio.printf "failed, unable to create context";
-        Lwt.return_unit
-      | Some ctx ->
-        let%lwt notifs = Action.generate_notifications ctx event in
-        List.iter notifs ~f:print_notif;
-        Lwt.return_unit
-      )
+      let ctx = Context.make ~state_path ~cfg_path ~secrets_path ~disable_write:true ~req:event () in
+      let%lwt notifs = Action.generate_notifications ctx event in
+      List.iter notifs ~f:print_notif;
+      Lwt.return_unit
     )
 
 let () =

@@ -80,11 +80,13 @@ let load_config_json token req =
         ( match response.encoding with
         | "base64" ->
           Lwt.return_some
-          @@ Notabot_j.config_of_string
-          @@ Base64.decode_exn
-          @@ String.concat
-          @@ String.split ~on:'\n'
-          @@ response.content
+            ( Config.Remote,
+              url,
+              Notabot_j.config_of_string
+              @@ Base64.decode_exn
+              @@ String.concat
+              @@ String.split ~on:'\n'
+              @@ response.content )
         | e ->
           log#warn "unknown encoding format '%s'." e;
           Lwt.return_none

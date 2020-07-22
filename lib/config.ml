@@ -6,6 +6,10 @@ type status_rules = {
   status : Github_t.status_state list;
 }
 
+type cfg_sources =
+  | Local
+  | Remote
+
 type t = {
   chans : string Chan_map.t;
   prefix_rules : Notabot_t.prefix_config;
@@ -86,11 +90,23 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     suppress_cancelled_events;
   }
 
-let load_config_file path = Notabot_j.config_of_string @@ Stdio.In_channel.read_all path
+let cfg_json_of_cfg_source = function
+  | Local, _, cfg -> cfg
+  | Remote, _, cfg -> cfg
+
+let source_of_cfg_source = function
+  | Local, path, _ -> path
+  | Remote, url, _ -> url
+
+let type_of_cfg_source = function
+  | Local, _, _ -> Local
+  | Remote, _, _ -> Remote
+
+let load_config_file path = Local, path, Notabot_j.config_of_string @@ Stdio.In_channel.read_all path
 
 let load_secrets_file path = Notabot_j.secrets_of_string @@ Stdio.In_channel.read_all path
 
 let load path secrets =
-  let config = load_config_file path in
+  let config = cfg_json_of_cfg_source @@ load_config_file path in
   let secrets = load_secrets_file secrets in
   make config secrets
