@@ -48,10 +48,9 @@ let refresh_config ctx ?req () =
   | Some cs ->
     _update_ctx_cfg_data ctx cs;
     let cfg_json = Config.cfg_json_of_cfg_source cs in
-    ctx.cfg <-
-      (let cfg = Config.make cfg_json ctx.secrets in
-       ctx.data.action_after_cfg_refresh cfg;
-       Some cfg)
+    let cfg = Config.make cfg_json ctx.secrets in
+    ctx.data.action_after_cfg_refresh cfg;
+    ctx.cfg <- Some cfg
   | None -> log#warn "unable to resolve both local remote config json sources"
 
 let refresh_and_get_config ctx ?req () =
