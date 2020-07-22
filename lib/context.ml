@@ -60,7 +60,12 @@ let refresh_and_get_config ctx ?req () =
 let init_remote_config ctx req =
   match ctx.data.cfg_current_source with
   | Some Remote -> ()
-  | None | Some Local -> refresh_config ctx ~req ()
+  | None | Some Local ->
+    refresh_config ctx ~req ();
+    ( match ctx.data.cfg_current_source with
+    | Some Local | None -> log#warn "failed to init_remote_config"
+    | Some Remote -> ()
+    )
 
 let init_and_get_remote_config ctx req =
   init_remote_config ctx req;
