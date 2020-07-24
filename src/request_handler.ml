@@ -17,8 +17,12 @@ let process_github_notification (ctx_thunk : Lib.Context.context_thunk) headers 
         let url = Config.Chan_map.find chan cfg.chans in
         Slack.send_notification url msg)
       notifications
-  with Lib.Context.Context_Error s ->
+  with
+  | Lib.Context.Context_Error s ->
     log#error "error creating context from payload: %s" s;
+    Lwt.return_unit
+  | Lib.Github.Remote_Config_Error s ->
+    log#error "error retrieving config from payload: %s" s;
     Lwt.return_unit
 
 let setup_http ~ctx_thunk ~signature ~port ~ip =
