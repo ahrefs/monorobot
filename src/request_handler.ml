@@ -8,6 +8,7 @@ let process_github_notification (ctx_thunk : Lib.Context.context_thunk) headers 
   match Github.parse_exn ~secret:ctx_thunk.secrets.gh_webhook_secret headers body with
   | exception exn -> Exn_lwt.fail ~exn "unable to parse payload"
   | payload ->
+  try
     let ctx = Context.resolve_ctx_in_thunk ctx_thunk payload in
     let cfg = ctx.cfg in
     let%lwt notifications = Action.generate_notifications ctx payload in
@@ -16,6 +17,9 @@ let process_github_notification (ctx_thunk : Lib.Context.context_thunk) headers 
         let url = Config.Chan_map.find chan cfg.chans in
         Slack.send_notification url msg)
       notifications
+  with Lib.Context.Context_Error s ->
+    log#error "error creating context from payload: %s" s;
+    Lwt.return_unit
 
 let setup_http ~ctx_thunk ~signature ~port ~ip =
   let open Httpev in
