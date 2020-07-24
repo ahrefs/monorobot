@@ -73,6 +73,7 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     in
     { title = json_config.status_rules.title; status }
   in
+  let suppress_cancelled_events = Option.default true json_config.suppress_cancelled_events in
   {
     chans;
     prefix_rules = json_config.prefix_rules;
