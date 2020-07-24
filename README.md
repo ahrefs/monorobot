@@ -31,17 +31,17 @@ For details about each field in the config, please refer to [notabot.atd](./lib/
 
 Here is an example of a [config file](./test/notabot.json).
 
-### Secret file
+### Secrets file
 
-Secret file is where sensitive information such as the urls used for webhooks and other tokens are stored.
+Secrets file is where sensitive information such as the urls used for webhooks and other tokens are stored.
 
-Likewise for details about each field in the secret file, please refer to [notabot.atd](./lib/notabot.atd).
+Likewise for details about each field in the secrets file, please refer to [notabot.atd](./lib/notabot.atd).
 
-Here is an example of a [secret file](./test/secrets.json).
+Here is an example of a [secrets file](./test/secrets.json).
 
 #### Token generation
 
-Some event notifications (e.g., status, commit comment) require a personal token to be addded to the configuration. To create a personal token, take the following steps:
+Some event notifications (e.g., status, commit comment) require a personal token to be added to the configuration. To create a personal token, take the following steps:
 1. Verify your email address, if needed.
 1. In the upper-right corner of any page, click your profile photo, then click **Settings**.
 1. In the left sidebar, click **Developer settings**.
