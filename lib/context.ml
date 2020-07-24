@@ -42,7 +42,8 @@ let _resolve_cfg_getter = function
 
 let refresh_config ctx =
   let cfg_json = (_resolve_cfg_getter ctx.data.cfg_source) ctx.data.cfg_path in
-  ctx.cfg <- Config.make cfg_json ctx.secrets
+  ctx.cfg <- Config.make cfg_json ctx.secrets;
+  ctx.data.cfg_action_after_refresh ctx.cfg
 
 let refresh_and_get_config ctx =
   refresh_config ctx;
