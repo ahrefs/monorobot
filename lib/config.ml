@@ -1,9 +1,14 @@
 open Devkit
 module Chan_map = Map.Make (String)
 
+type config_status_state =
+  | State of Github_t.status_state
+  | Cancelled
+  | ConsecutiveSuccess
+
 type status_rules = {
   title : string list option;
-  status : Github_t.status_state list;
+  status : config_status_state list;
 }
 
 type t = {
@@ -65,10 +70,12 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
       let j = json_config.status_rules.status in
       List.filter_map id
         [
-          (if j.success then Some Success else None);
-          (if j.failure then Some Failure else None);
-          (if j.pending then Some Pending else None);
-          (if j.error then Some Error else None);
+          (if j.success then Some (State Success) else None);
+          (if j.failure then Some (State Failure) else None);
+          (if j.pending then Some (State Pending) else None);
+          (if j.error then Some (State Error) else None);
+          (if j.cancelled then Some Cancelled else None);
+          (if j.consecutive_success then Some ConsecutiveSuccess else None);
         ]
     in
     { title = json_config.status_rules.title; status }

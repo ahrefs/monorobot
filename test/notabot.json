@@ -10,7 +10,9 @@
             "pending": false,
             "success": true,
             "failure": true,
-            "error": true
+            "error": true,
+            "cancelled": false,
+            "consecutive_success": false
         }
     },
     "prefix_rules": {
@@ -72,6 +74,5 @@
                 "chan": "frontend-bot"
             }
         ]
-    },
-    "suppress_cancelled_events": true
+    }
 }
