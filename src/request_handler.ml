@@ -3,26 +3,21 @@ open Devkit
 
 let log = Log.from "request_handler"
 
-let process_github_notification (ctx : Lib.Context.t) headers body =
+let process_github_notification (ctx_thunk : Lib.Context.context_thunk) headers body =
   let open Lib in
-  match Github.parse_exn ~secret:ctx.secrets.gh_webhook_secret headers body with
+  match Github.parse_exn ~secret:ctx_thunk.secrets.gh_webhook_secret headers body with
   | exception exn -> Exn_lwt.fail ~exn "unable to parse payload"
   | payload ->
-    Context.init_remote_config ctx payload;
-    ( match ctx.cfg with
-    | None ->
-      log#error "unable to load config, skipping `process_github_notification` call";
-      Lwt.return_unit
-    | Some cfg ->
-      let%lwt notifications = Action.generate_notifications ctx payload in
-      Lwt_list.iter_s
-        (fun (chan, msg) ->
-          let url = Config.Chan_map.find chan cfg.chans in
-          Slack.send_notification url msg)
-        notifications
-    )
+    let ctx = Context.resolve_ctx_in_thunk ctx_thunk payload in
+    let cfg = ctx.cfg in
+    let%lwt notifications = Action.generate_notifications ctx payload in
+    Lwt_list.iter_s
+      (fun (chan, msg) ->
+        let url = Config.Chan_map.find chan cfg.chans in
+        Slack.send_notification url msg)
+      notifications
 
-let setup_http ~ctx ~signature ~port ~ip =
+let setup_http ~ctx_thunk ~signature ~port ~ip =
   let open Httpev in
   let connection = Unix.ADDR_INET (ip, port) in
   let%lwt () =
@@ -53,7 +48,7 @@ let setup_http ~ctx ~signature ~port ~ip =
         | _, [ "stats" ] -> ret @@ Lwt.return (sprintf "%s %s uptime\n" signature Devkit.Action.uptime#get_str)
         | _, [ "github" ] ->
           log#info "%s" request.body;
-          let%lwt () = process_github_notification ctx request.headers request.body in
+          let%lwt () = process_github_notification ctx_thunk request.headers request.body in
           ret (Lwt.return "ok")
         | _, _ ->
           log#error "unknown path : %s" (Httpev.show_request request);
@@ -73,7 +68,7 @@ let setup_http ~ctx ~signature ~port ~ip =
   in
   Lwt.return_unit
 
-let start_http_server ~ctx ~addr ~port () =
+let start_http_server ~ctx_thunk ~addr ~port () =
   let ip = Unix.inet_addr_of_string addr in
   let signature = sprintf "listen %s:%d" (Unix.string_of_inet_addr ip) port in
-  setup_http ~ctx ~signature ~port ~ip
+  setup_http ~ctx_thunk ~signature ~port ~ip
