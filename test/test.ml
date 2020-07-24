@@ -22,7 +22,9 @@ let process ~state_dir ~cfg_path ~secrets_path file =
       Devkit.Log.set_loglevels "error";
       let state_path = Caml.Filename.concat state_dir @@ Caml.Filename.basename file in
       let ctx_partial = Context.make ~state_path ~cfg_path ~secrets_path ~disable_write:true in
-      let ctx = try ctx_partial ~req:event () with Github.Remote_Config_Error _ -> ctx_partial () in
+      let ctx =
+        try ctx_partial ~req:event () with Github.Remote_Config_Error _ | Context.Context_Error _ -> ctx_partial ()
+      in
       let%lwt notifs = Action.generate_notifications ctx event in
       List.iter notifs ~f:print_notif;
       Lwt.return_unit
