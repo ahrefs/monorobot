@@ -1,13 +1,13 @@
 let log = Devkit.Log.from "context"
 
-exception Context_Creation_Error of string
+exception Context_Error of string
 
 type cfg_sources =
   | Local
   | Remote
 
 type data = {
-  cfg_path : string;
+  mutable cfg_path : string;
   cfg_source : cfg_sources;
   cfg_action_after_refresh : Config.t -> unit;
   secrets_path : string;
@@ -48,6 +48,16 @@ let refresh_and_get_config ctx =
   refresh_config ctx;
   ctx.cfg
 
+let change_remote_url ctx req =
+  match ctx.data.cfg_source with
+  | Local -> raise @@ Context_Error "cant load remote config from a local context"
+  | Remote ->
+  match ctx.secrets.gh_token with
+  | None -> raise @@ Context_Error "context must have `gh_token` to load remote config"
+  | Some token ->
+    ctx.data.cfg_path <- Github.get_remote_config_json_url token req;
+    refresh_config ctx
+
 let refresh_state ctx = ctx.state <- State.load ctx.data.state_path
 
 let refresh_and_get_state ctx =
@@ -72,12 +82,12 @@ let make_with_secrets ~state_path ?cfg_path ~secrets_path ~(secrets : Notabot_t.
     | None ->
       ( match cfg_path with
       | Some p -> p, Local, _get_local_cfg_json p
-      | None -> raise @@ Context_Creation_Error "if ?req is not provided ?cfg_path must be provided"
+      | None -> raise @@ Context_Error "if ?req is not provided ?cfg_path must be provided"
       )
     | Some r ->
     match secrets.gh_token with
     | Some token -> Github.get_remote_config_json_url token r, Remote, _get_remote_cfg_json_req token r
-    | None -> raise @@ Context_Creation_Error "if ?req is provided secrets must provide gh_token"
+    | None -> raise @@ Context_Error "if ?req is provided secrets must provide gh_token"
   in
   let data =
     { cfg_path = data_cfg_path; cfg_source; cfg_action_after_refresh; secrets_path; state_path; disable_write }
