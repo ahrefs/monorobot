@@ -18,6 +18,8 @@ type t =
 
 (* all other events *)
 
+exception Remote_Config_Error of string
+
 let to_repo = function
   | Push n -> Some n.repository
   | Pull_request n -> Some n.repository
@@ -47,52 +49,39 @@ let name_of_full_name_parts full_name_parts =
   | _ :: repo_name :: _ -> Some repo_name
   | _ -> None
 
-let load_config_json token req =
-  let headers = Some [ "Accept: application/vnd.github.v3+json" ] in
+let get_remote_config_json_url token req =
   match to_repo req with
-  | None ->
-    log#warn "unable to resolve repository from request";
-    Lwt.return_none
+  | None -> raise @@ Remote_Config_Error "unable to resolve repository from request"
   | Some repo ->
     let full_name_parts = String.split ~on:'/' repo.full_name in
     ( match user_of_full_name_parts full_name_parts with
-    | None ->
-      log#warn "unable to resolve repository owner";
-      Lwt.return_none
+    | None -> raise @@ Remote_Config_Error "unable to resolve repository owner"
     | Some owner ->
     match name_of_full_name_parts full_name_parts with
-    | None ->
-      log#warn "unable to resolve repository name";
-      Lwt.return_none
+    | None -> raise @@ Remote_Config_Error "unable to resolve repository name"
     | Some repo_name ->
     match api_url_of_repo repo with
-    | None ->
-      log#warn "unable to resolve github api url from repository url";
-      Lwt.return_none
+    | None -> raise @@ Remote_Config_Error "unable to resolve github api url from repository url"
     | Some base_url ->
-      let url = Printf.sprintf "%s/repos/%s/%s/contents/notabot.json?access_token=%s" base_url owner repo_name token in
-      ( match%lwt Web.http_request_lwt ?headers `GET url with
-      | `Error e ->
-        log#warn "error while querying github api %s: %s" url e;
-        Lwt.return_none
-      | `Ok s ->
-        let response = Github_j.content_api_response_of_string s in
-        ( match response.encoding with
-        | "base64" ->
-          Lwt.return_some
-            ( Config.Remote,
-              url,
-              Notabot_j.config_of_string
-              @@ Base64.decode_exn
-              @@ String.concat
-              @@ String.split ~on:'\n'
-              @@ response.content )
-        | e ->
-          log#warn "unknown encoding format '%s'." e;
-          Lwt.return_none
-        )
-      )
+      Printf.sprintf "%s/repos/%s/%s/contents/notabot.json?access_token=%s" base_url owner repo_name token
     )
+
+let config_of_content_api_response response =
+  match response.encoding with
+  | "base64" ->
+    Lwt.return
+    @@ Notabot_j.config_of_string
+    @@ Base64.decode_exn
+    @@ String.concat
+    @@ String.split ~on:'\n'
+    @@ response.content
+  | e -> raise @@ Remote_Config_Error (Printf.sprintf "unknown encoding format '%s'." e)
+
+let load_config_json url =
+  let headers = Some [ "Accept: application/vnd.github.v3+json" ] in
+  match%lwt Web.http_request_lwt ?headers `GET url with
+  | `Error e -> raise @@ Remote_Config_Error (Printf.sprintf "error while querying github api %s: %s" url e)
+  | `Ok s -> config_of_content_api_response @@ Github_j.content_api_response_of_string s
 
 let is_valid_signature ~secret headers_sig body =
   let request_hash =
