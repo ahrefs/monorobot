@@ -1,5 +1,3 @@
-let log = Devkit.Log.from "context"
-
 exception Context_Error of string
 
 type cfg_sources =
@@ -28,20 +26,20 @@ type context_thunk = {
   mutable ctx : t option;
 }
 
-let _get_secrets secrets_path = Config.load_secrets_file ~secrets_path
+let get_secrets secrets_path = Config.load_secrets_file ~secrets_path
 
-let _get_remote_cfg_json_url url = Lwt_main.run (Github.load_config_json url)
+let get_remote_cfg_json_url url = Lwt_main.run (Github.load_config_json url)
 
-let _get_remote_cfg_json_req gh_token req = _get_remote_cfg_json_url @@ Github.get_remote_config_json_url gh_token req
+let get_remote_cfg_json_req gh_token req = get_remote_cfg_json_url @@ Github.get_remote_config_json_url gh_token req
 
-let _get_local_cfg_json config_path = Config.load_config_file ~config_path
+let get_local_cfg_json config_path = Config.load_config_file ~config_path
 
-let _resolve_cfg_getter = function
-  | Local -> _get_local_cfg_json
-  | Remote -> _get_remote_cfg_json_url
+let resolve_cfg_getter = function
+  | Local -> get_local_cfg_json
+  | Remote -> get_remote_cfg_json_url
 
 let refresh_config ctx =
-  let cfg_json = (_resolve_cfg_getter ctx.data.cfg_source) ctx.data.cfg_path in
+  let cfg_json = (resolve_cfg_getter ctx.data.cfg_source) ctx.data.cfg_path in
   ctx.cfg <- Config.make cfg_json ctx.secrets;
   ctx.data.cfg_action_after_refresh ctx.cfg
 
@@ -82,12 +80,12 @@ let make_with_secrets ~state_path ?cfg_path ~secrets_path ~(secrets : Notabot_t.
     match req with
     | None ->
       ( match cfg_path with
-      | Some p -> p, Local, _get_local_cfg_json p
+      | Some p -> p, Local, get_local_cfg_json p
       | None -> raise @@ Context_Error "if ?req is not provided ?cfg_path must be provided"
       )
     | Some r ->
     match secrets.gh_token with
-    | Some token -> Github.get_remote_config_json_url token r, Remote, _get_remote_cfg_json_req token r
+    | Some token -> Github.get_remote_config_json_url token r, Remote, get_remote_cfg_json_req token r
     | None -> raise @@ Context_Error "if ?req is provided secrets must provide gh_token"
   in
   let data =
@@ -98,12 +96,12 @@ let make_with_secrets ~state_path ?cfg_path ~secrets_path ~(secrets : Notabot_t.
   { cfg; state; secrets; data }
 
 let make ~state_path ?cfg_path ~secrets_path ?(disable_write = false) ?(cfg_action_after_refresh = fun _ -> ()) ?req () =
-  let secrets = _get_secrets secrets_path in
+  let secrets = get_secrets secrets_path in
   make_with_secrets ~state_path ?cfg_path ~secrets_path ~secrets ~disable_write ~cfg_action_after_refresh ?req ()
 
 let make_thunk ~state_path ?cfg_path ~secrets_path ?(disable_write = false) ?(cfg_action_after_refresh = fun _ -> ()) ()
   =
-  let secrets = _get_secrets secrets_path in
+  let secrets = get_secrets secrets_path in
   {
     secrets;
     thunk = make_with_secrets ~state_path ?cfg_path ~secrets_path ~secrets ~disable_write ~cfg_action_after_refresh;
