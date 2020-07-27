@@ -86,11 +86,11 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     suppress_cancelled_events;
   }
 
-let load_config_file path = Notabot_j.config_of_string @@ Stdio.In_channel.read_all path
+let load_config_file ~config_path = Notabot_j.config_of_string @@ Stdio.In_channel.read_all config_path
 
-let load_secrets_file path = Notabot_j.secrets_of_string @@ Stdio.In_channel.read_all path
+let load_secrets_file ~secrets_path = Notabot_j.secrets_of_string @@ Stdio.In_channel.read_all secrets_path
 
-let load path secrets =
-  let config = load_config_file path in
-  let secrets = load_secrets_file secrets in
+let load ~config_path ~secrets_path =
+  let config = load_config_file ~config_path in
+  let secrets = load_secrets_file ~secrets_path in
   make config secrets

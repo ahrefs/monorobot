@@ -28,13 +28,13 @@ type context_thunk = {
   mutable ctx : t option;
 }
 
-let _get_secrets secrets_path = Config.load_secrets_file secrets_path
+let _get_secrets secrets_path = Config.load_secrets_file ~secrets_path
 
 let _get_remote_cfg_json_url url = Lwt_main.run (Github.load_config_json url)
 
 let _get_remote_cfg_json_req gh_token req = _get_remote_cfg_json_url @@ Github.get_remote_config_json_url gh_token req
 
-let _get_local_cfg_json cfg_path = Config.load_config_file cfg_path
+let _get_local_cfg_json config_path = Config.load_config_file ~config_path
 
 let _resolve_cfg_getter = function
   | Local -> _get_local_cfg_json
