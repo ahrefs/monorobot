@@ -1,5 +1,9 @@
 exception Context_Error of string
 
+type cfg_make_args =
+  | LocalMake of string
+  | RemoteMake of string * Github.t
+
 type cfg_sources =
   | Local
   | Remote
@@ -43,31 +47,26 @@ val update_and_get_state : t -> Github.t -> Notabot_t.state
 
 val make_with_secrets
   :  state_path:string ->
-  ?cfg_path:string ->
-  ?cfg_remote_filename:string ->
+  cfg_args:cfg_make_args ->
   secrets_path:string ->
   secrets:Notabot_t.secrets ->
   ?disable_write:bool ->
   ?cfg_action_after_refresh:(Config.t -> unit) ->
-  ?req:Github.t ->
   unit ->
   t Lwt.t
 
 val make
   :  state_path:string ->
-  ?cfg_path:string ->
-  ?cfg_remote_filename:string ->
+  cfg_args:cfg_make_args ->
   secrets_path:string ->
   ?disable_write:bool ->
   ?cfg_action_after_refresh:(Config.t -> unit) ->
-  ?req:Github.t ->
   unit ->
   t Lwt.t
 
 val make_thunk
   :  state_path:string ->
-  ?cfg_path:string ->
-  ?cfg_remote_filename:string ->
+  cfg_path_or_remote_filename:string ->
   secrets_path:string ->
   ?disable_write:bool ->
   ?cfg_action_after_refresh:(Config.t -> unit) ->

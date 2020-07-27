@@ -1,5 +1,9 @@
 exception Context_Error of string
 
+type cfg_make_args =
+  | LocalMake of string
+  | RemoteMake of string * Github.t
+
 type cfg_sources =
   | Local
   | Remote
@@ -79,24 +83,17 @@ let update_and_get_state ctx event =
   update_state ctx event;
   ctx.state
 
-let make_with_secrets ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ~(secrets : Notabot_t.secrets)
-  ?(disable_write = false) ?(cfg_action_after_refresh = fun _ -> ()) ?req ()
+let make_with_secrets ~state_path ~cfg_args ~secrets_path ~(secrets : Notabot_t.secrets) ?(disable_write = false)
+  ?(cfg_action_after_refresh = fun _ -> ()) ()
   =
   let data_cfg_path, cfg_source, cfg_json, cfg_filename =
-    match req with
-    | None ->
-      ( match cfg_path with
-      | Some p -> p, Local, get_local_cfg_json p, p
-      | None -> raise @@ Context_Error "if ?req is not provided ?cfg_path must be provided"
-      )
-    | Some r ->
+    match cfg_args with
+    | LocalMake p -> p, Local, get_local_cfg_json p, p
+    | RemoteMake (filename, r) ->
     match secrets.gh_token with
-    | None -> raise @@ Context_Error "if ?req is provided secrets must provide gh_token"
+    | None -> raise @@ Context_Error "if RemoteMake cfg_args is provided secrets must provide gh_token"
     | Some token ->
-    match cfg_remote_filename with
-    | Some filename ->
       Github.get_remote_config_json_url filename token r, Remote, get_remote_cfg_json_req filename token r, filename
-    | None -> raise @@ Context_Error "if ?req is provided cfg_remote_filename must be provided"
   in
   let%lwt cfg_json = cfg_json in
   let data =
@@ -114,24 +111,22 @@ let make_with_secrets ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ~
   let state = State.load state_path in
   Lwt.return { cfg; state; secrets; data }
 
-let make ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ?(disable_write = false)
-  ?(cfg_action_after_refresh = fun _ -> ()) ?req ()
-  =
+let make ~state_path ~cfg_args ~secrets_path ?disable_write ?cfg_action_after_refresh () =
   let secrets = get_secrets secrets_path in
-  make_with_secrets ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ~secrets ~disable_write
-    ~cfg_action_after_refresh ?req ()
+  make_with_secrets ~state_path ~cfg_args ~secrets_path ~secrets ?disable_write ?cfg_action_after_refresh ()
 
-let make_thunk ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ?(disable_write = false)
-  ?(cfg_action_after_refresh = fun _ -> ()) ()
-  =
+let make_thunk ~state_path ~cfg_path_or_remote_filename ~secrets_path ?disable_write ?cfg_action_after_refresh () =
   let secrets = get_secrets secrets_path in
-  {
-    secrets;
-    thunk =
-      make_with_secrets ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ~secrets ~disable_write
-        ~cfg_action_after_refresh;
-    ctx = None;
-  }
+  let make_args ?req () =
+    match req with
+    | None -> LocalMake cfg_path_or_remote_filename
+    | Some r -> RemoteMake (cfg_path_or_remote_filename, r)
+  in
+  let thunk ?req () =
+    make_with_secrets ~state_path ~cfg_args:(make_args ?req ()) ~secrets_path ~secrets ?disable_write
+      ?cfg_action_after_refresh ()
+  in
+  { secrets; thunk; ctx = None }
 
 let resolve_ctx_in_thunk ctx_thunk req =
   match ctx_thunk.ctx with
