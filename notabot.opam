@@ -23,5 +23,6 @@ depends: [
  "uri"
  "ocamlformat" {dev & = "0.13.0"}
  "base64"
+ "omd" {< "2.0.0"}
 ]
 build: ["dune" "build" "-p" name]
