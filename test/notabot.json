@@ -8,11 +8,10 @@
         ],
         "status": {
             "pending": false,
-            "success": true,
             "failure": true,
             "error": true,
             "cancelled": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$",
-            "consecutive_success": false
+            "success": "HideConsecutive"
         }
     },
     "prefix_rules": {

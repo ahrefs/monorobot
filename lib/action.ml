@@ -176,9 +176,9 @@ let hide_cancelled (notification : status_notification) cfg =
     )
 
 let hide_success (n : status_notification) (ctx : Context.t) =
-  match List.exists ctx.cfg.status_rules.status ~f:(Poly.equal ConsecutiveSuccess) with
-  | true -> false
-  | false ->
+  match List.exists ctx.cfg.status_rules.status ~f:(Poly.equal HideConsecutiveSuccess) with
+  | false -> false
+  | true ->
   match n.state with
   | Success ->
     List.exists
@@ -206,7 +206,13 @@ let partition_status (ctx : Context.t) (n : status_notification) =
     | false -> Lwt.return (partition_commit cfg commit.files)
   in
   let res =
-    match List.exists cfg.status_rules.status ~f:(Poly.equal (State n.state)) with
+    match
+      List.exists cfg.status_rules.status ~f:(fun x ->
+        match x with
+        | State _ as s -> Poly.equal s (State n.state)
+        | HideConsecutiveSuccess -> Poly.equal Success n.state
+        | _ -> false)
+    with
     | false -> Lwt.return []
     | true ->
     match List.exists ~f:id [ hide_cancelled n cfg; hide_success n ctx ] with

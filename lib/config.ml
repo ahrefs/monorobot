@@ -4,7 +4,7 @@ module Chan_map = Map.Make (String)
 type config_status_state =
   | State of Github_t.status_state
   | Cancelled of string
-  | ConsecutiveSuccess
+  | HideConsecutiveSuccess
 
 type status_rules = {
   title : string list option;
@@ -69,7 +69,11 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
       let j = json_config.status_rules.status in
       List.filter_map id
         [
-          (if j.success then Some (State Success) else None);
+          ( match j.success with
+          | ShowAll -> Some (State Success)
+          | HideAll -> None
+          | HideConsecutive -> Some HideConsecutiveSuccess
+          );
           (if j.failure then Some (State Failure) else None);
           (if j.pending then Some (State Pending) else None);
           (if j.error then Some (State Error) else None);
@@ -77,7 +81,6 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
           | Some r -> Some (Cancelled r)
           | None -> None
           );
-          (if j.consecutive_success then Some ConsecutiveSuccess else None);
         ]
     in
     { title = json_config.status_rules.title; status }
