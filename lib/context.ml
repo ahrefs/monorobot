@@ -22,30 +22,32 @@ type t = {
 
 type context_thunk = {
   secrets : Notabot_j.secrets;
-  thunk : ?req:Github.t -> unit -> t;
+  thunk : ?req:Github.t -> unit -> t Lwt.t;
   mutable ctx : t option;
 }
 
 let get_secrets secrets_path = Config.load_secrets_file ~secrets_path
 
-let get_remote_cfg_json_url url = Lwt_main.run (Github.load_config_json url)
+let get_remote_cfg_json_url url = Github.load_config_json url
 
 let get_remote_cfg_json_req gh_token req = get_remote_cfg_json_url @@ Github.get_remote_config_json_url gh_token req
 
-let get_local_cfg_json config_path = Config.load_config_file ~config_path
+let get_local_cfg_json config_path = Lwt.return @@ Config.load_config_file ~config_path
 
 let resolve_cfg_getter = function
   | Local -> get_local_cfg_json
   | Remote -> get_remote_cfg_json_url
 
 let refresh_config ctx =
-  let cfg_json = (resolve_cfg_getter ctx.data.cfg_source) ctx.data.cfg_path in
+  let getter = resolve_cfg_getter ctx.data.cfg_source in
+  let%lwt cfg_json = getter ctx.data.cfg_path in
   ctx.cfg <- Config.make cfg_json ctx.secrets;
-  ctx.data.cfg_action_after_refresh ctx.cfg
+  ctx.data.cfg_action_after_refresh ctx.cfg;
+  Lwt.return_unit
 
 let refresh_and_get_config ctx =
-  refresh_config ctx;
-  ctx.cfg
+  let%lwt () = refresh_config ctx in
+  Lwt.return ctx.cfg
 
 let change_remote_url ctx req =
   match ctx.data.cfg_source with
@@ -54,7 +56,8 @@ let change_remote_url ctx req =
   match ctx.secrets.gh_token with
   | None -> raise @@ Context_Error "context must have `gh_token` to load remote config"
   | Some token ->
-    ctx.data.cfg_path <- Github.get_remote_config_json_url token req;
+    let url = Github.get_remote_config_json_url token req in
+    ctx.data.cfg_path <- url;
     refresh_config ctx
 
 let refresh_state ctx = ctx.state <- State.load ctx.data.state_path
@@ -88,12 +91,13 @@ let make_with_secrets ~state_path ?cfg_path ~secrets_path ~(secrets : Notabot_t.
     | Some token -> Github.get_remote_config_json_url token r, Remote, get_remote_cfg_json_req token r
     | None -> raise @@ Context_Error "if ?req is provided secrets must provide gh_token"
   in
+  let%lwt cfg_json = cfg_json in
   let data =
     { cfg_path = data_cfg_path; cfg_source; cfg_action_after_refresh; secrets_path; state_path; disable_write }
   in
   let cfg = Config.make cfg_json secrets in
   let state = State.load state_path in
-  { cfg; state; secrets; data }
+  Lwt.return { cfg; state; secrets; data }
 
 let make ~state_path ?cfg_path ~secrets_path ?(disable_write = false) ?(cfg_action_after_refresh = fun _ -> ()) ?req () =
   let secrets = get_secrets secrets_path in
@@ -110,8 +114,8 @@ let make_thunk ~state_path ?cfg_path ~secrets_path ?(disable_write = false) ?(cf
 
 let resolve_ctx_in_thunk ctx_thunk req =
   match ctx_thunk.ctx with
-  | Some ctx -> ctx
+  | Some ctx -> Lwt.return ctx
   | None ->
-    let ctx = ctx_thunk.thunk ~req () in
-    ctx_thunk.ctx <- Some ctx;
-    ctx
+    let%lwt ctx = ctx_thunk.thunk ~req () in
+    let%lwt () = Lwt.return @@ (ctx_thunk.ctx <- Some ctx) in
+    Lwt.return ctx

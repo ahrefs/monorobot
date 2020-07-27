@@ -28,7 +28,7 @@ let send_slack_notification webhook file =
   | data -> Lwt_main.run (Slack.send_notification webhook data)
 
 let check_common file print config secrets state_path =
-  let ctx = Context.make ~state_path ~cfg_path:config ~secrets_path:secrets ~cfg_action_after_refresh () in
+  let%lwt ctx = Context.make ~state_path ~cfg_path:config ~secrets_path:secrets ~cfg_action_after_refresh () in
   match Mock.kind file with
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
@@ -41,7 +41,7 @@ let check_common file print config secrets state_path =
       log#error ~exn "unable to parse payload";
       Lwt.return_unit
     | event ->
-      Context.refresh_config ctx;
+      let%lwt () = Context.refresh_config ctx in
       let%lwt notifs = Action.generate_notifications ctx event in
       List.iter ~f:print notifs;
       Lwt.return_unit

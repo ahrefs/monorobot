@@ -9,7 +9,7 @@ let process_github_notification (ctx_thunk : Lib.Context.context_thunk) headers 
   | exception exn -> Exn_lwt.fail ~exn "unable to parse payload"
   | payload ->
   try
-    let ctx = Context.resolve_ctx_in_thunk ctx_thunk payload in
+    let%lwt ctx = Context.resolve_ctx_in_thunk ctx_thunk payload in
     let cfg = ctx.cfg in
     let%lwt notifications = Action.generate_notifications ctx payload in
     Lwt_list.iter_s

@@ -22,15 +22,15 @@ type t = {
 
 type context_thunk = {
   secrets : Notabot_j.secrets;
-  thunk : ?req:Github.t -> unit -> t;
+  thunk : ?req:Github.t -> unit -> t Lwt.t;
   mutable ctx : t option;
 }
 
-val refresh_config : t -> unit
+val refresh_config : t -> unit Lwt.t
 
-val refresh_and_get_config : t -> Config.t
+val refresh_and_get_config : t -> Config.t Lwt.t
 
-val change_remote_url : t -> Github.t -> unit
+val change_remote_url : t -> Github.t -> unit Lwt.t
 
 val refresh_state : t -> unit
 
@@ -49,7 +49,7 @@ val make_with_secrets
   ?cfg_action_after_refresh:(Config.t -> unit) ->
   ?req:Github.t ->
   unit ->
-  t
+  t Lwt.t
 
 val make
   :  state_path:string ->
@@ -59,7 +59,7 @@ val make
   ?cfg_action_after_refresh:(Config.t -> unit) ->
   ?req:Github.t ->
   unit ->
-  t
+  t Lwt.t
 
 val make_thunk
   :  state_path:string ->
@@ -70,4 +70,4 @@ val make_thunk
   unit ->
   context_thunk
 
-val resolve_ctx_in_thunk : context_thunk -> Github.t -> t
+val resolve_ctx_in_thunk : context_thunk -> Github.t -> t Lwt.t
