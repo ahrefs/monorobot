@@ -49,7 +49,7 @@ let name_of_full_name_parts full_name_parts =
   | _ :: repo_name :: _ -> Some repo_name
   | _ -> None
 
-let get_remote_config_json_url token req =
+let get_remote_config_json_url filename token req =
   match to_repo req with
   | None -> raise @@ Remote_Config_Error "unable to resolve repository from request"
   | Some repo ->
@@ -63,7 +63,7 @@ let get_remote_config_json_url token req =
     match api_url_of_repo repo with
     | None -> raise @@ Remote_Config_Error "unable to resolve github api url from repository url"
     | Some base_url ->
-      Printf.sprintf "%s/repos/%s/%s/contents/notabot.json?access_token=%s" base_url owner repo_name token
+      Printf.sprintf "%s/repos/%s/%s/contents/%s?access_token=%s" base_url owner repo_name filename token
     )
 
 let config_of_content_api_response response =

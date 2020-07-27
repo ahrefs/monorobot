@@ -6,6 +6,7 @@ type cfg_sources =
 
 type data = {
   mutable cfg_path : string;
+  mutable cfg_filename : string;
   cfg_source : cfg_sources;
   cfg_action_after_refresh : Config.t -> unit;
   secrets_path : string;
@@ -30,7 +31,8 @@ let get_secrets secrets_path = Config.load_secrets_file ~secrets_path
 
 let get_remote_cfg_json_url url = Github.load_config_json url
 
-let get_remote_cfg_json_req gh_token req = get_remote_cfg_json_url @@ Github.get_remote_config_json_url gh_token req
+let get_remote_cfg_json_req filename gh_token req =
+  get_remote_cfg_json_url @@ Github.get_remote_config_json_url filename gh_token req
 
 let get_local_cfg_json config_path = Lwt.return @@ Config.load_config_file ~config_path
 
@@ -49,14 +51,15 @@ let refresh_and_get_config ctx =
   let%lwt () = refresh_config ctx in
   Lwt.return ctx.cfg
 
-let change_remote_url ctx req =
+let change_remote_url filename ctx req =
   match ctx.data.cfg_source with
   | Local -> raise @@ Context_Error "cant load remote config from a local context"
   | Remote ->
   match ctx.secrets.gh_token with
   | None -> raise @@ Context_Error "context must have `gh_token` to load remote config"
   | Some token ->
-    let url = Github.get_remote_config_json_url token req in
+    ctx.data.cfg_filename <- filename;
+    let url = Github.get_remote_config_json_url filename token req in
     ctx.data.cfg_path <- url;
     refresh_config ctx
 
@@ -76,39 +79,57 @@ let update_and_get_state ctx event =
   update_state ctx event;
   ctx.state
 
-let make_with_secrets ~state_path ?cfg_path ~secrets_path ~(secrets : Notabot_t.secrets) ?(disable_write = false)
-  ?(cfg_action_after_refresh = fun _ -> ()) ?req ()
+let make_with_secrets ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ~(secrets : Notabot_t.secrets)
+  ?(disable_write = false) ?(cfg_action_after_refresh = fun _ -> ()) ?req ()
   =
-  let data_cfg_path, cfg_source, cfg_json =
+  let data_cfg_path, cfg_source, cfg_json, cfg_filename =
     match req with
     | None ->
       ( match cfg_path with
-      | Some p -> p, Local, get_local_cfg_json p
+      | Some p -> p, Local, get_local_cfg_json p, p
       | None -> raise @@ Context_Error "if ?req is not provided ?cfg_path must be provided"
       )
     | Some r ->
     match secrets.gh_token with
-    | Some token -> Github.get_remote_config_json_url token r, Remote, get_remote_cfg_json_req token r
     | None -> raise @@ Context_Error "if ?req is provided secrets must provide gh_token"
+    | Some token ->
+    match cfg_remote_filename with
+    | Some filename ->
+      Github.get_remote_config_json_url filename token r, Remote, get_remote_cfg_json_req filename token r, filename
+    | None -> raise @@ Context_Error "if ?req is provided cfg_remote_filename must be provided"
   in
   let%lwt cfg_json = cfg_json in
   let data =
-    { cfg_path = data_cfg_path; cfg_source; cfg_action_after_refresh; secrets_path; state_path; disable_write }
+    {
+      cfg_path = data_cfg_path;
+      cfg_source;
+      cfg_action_after_refresh;
+      secrets_path;
+      state_path;
+      disable_write;
+      cfg_filename;
+    }
   in
   let cfg = Config.make cfg_json secrets in
   let state = State.load state_path in
   Lwt.return { cfg; state; secrets; data }
 
-let make ~state_path ?cfg_path ~secrets_path ?(disable_write = false) ?(cfg_action_after_refresh = fun _ -> ()) ?req () =
+let make ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ?(disable_write = false)
+  ?(cfg_action_after_refresh = fun _ -> ()) ?req ()
+  =
   let secrets = get_secrets secrets_path in
-  make_with_secrets ~state_path ?cfg_path ~secrets_path ~secrets ~disable_write ~cfg_action_after_refresh ?req ()
+  make_with_secrets ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ~secrets ~disable_write
+    ~cfg_action_after_refresh ?req ()
 
-let make_thunk ~state_path ?cfg_path ~secrets_path ?(disable_write = false) ?(cfg_action_after_refresh = fun _ -> ()) ()
+let make_thunk ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ?(disable_write = false)
+  ?(cfg_action_after_refresh = fun _ -> ()) ()
   =
   let secrets = get_secrets secrets_path in
   {
     secrets;
-    thunk = make_with_secrets ~state_path ?cfg_path ~secrets_path ~secrets ~disable_write ~cfg_action_after_refresh;
+    thunk =
+      make_with_secrets ~state_path ?cfg_path ?cfg_remote_filename ~secrets_path ~secrets ~disable_write
+        ~cfg_action_after_refresh;
     ctx = None;
   }
 

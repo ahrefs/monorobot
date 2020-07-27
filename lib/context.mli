@@ -6,6 +6,7 @@ type cfg_sources =
 
 type data = {
   mutable cfg_path : string;
+  mutable cfg_filename : string;
   cfg_source : cfg_sources;
   cfg_action_after_refresh : Config.t -> unit;
   secrets_path : string;
@@ -30,7 +31,7 @@ val refresh_config : t -> unit Lwt.t
 
 val refresh_and_get_config : t -> Config.t Lwt.t
 
-val change_remote_url : t -> Github.t -> unit Lwt.t
+val change_remote_url : string -> t -> Github.t -> unit Lwt.t
 
 val refresh_state : t -> unit
 
@@ -43,6 +44,7 @@ val update_and_get_state : t -> Github.t -> Notabot_t.state
 val make_with_secrets
   :  state_path:string ->
   ?cfg_path:string ->
+  ?cfg_remote_filename:string ->
   secrets_path:string ->
   secrets:Notabot_t.secrets ->
   ?disable_write:bool ->
@@ -54,6 +56,7 @@ val make_with_secrets
 val make
   :  state_path:string ->
   ?cfg_path:string ->
+  ?cfg_remote_filename:string ->
   secrets_path:string ->
   ?disable_write:bool ->
   ?cfg_action_after_refresh:(Config.t -> unit) ->
@@ -64,6 +67,7 @@ val make
 val make_thunk
   :  state_path:string ->
   ?cfg_path:string ->
+  ?cfg_remote_filename:string ->
   secrets_path:string ->
   ?disable_write:bool ->
   ?cfg_action_after_refresh:(Config.t -> unit) ->
