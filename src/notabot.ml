@@ -17,7 +17,7 @@ let update_state_at_path state_path state event = State.save state_path @@ State
 let http_server ~addr ~port ~config ~secrets ~state =
   log#info "notabot starting";
   let ctx_thunk =
-    Context.make_thunk ~state_path:state ~cfg_path:config ~secrets_path:secrets ~cfg_action_after_refresh ()
+    Context.make_thunk ~state_path:state ~cfg_remote_filename:config ~secrets_path:secrets ~cfg_action_after_refresh ()
   in
   Lwt_main.run (Request_handler.start_http_server ~ctx_thunk ~addr ~port ())
 
@@ -28,7 +28,9 @@ let send_slack_notification webhook file =
   | data -> Lwt_main.run (Slack.send_notification webhook data)
 
 let check_common file print config secrets state_path =
-  let%lwt ctx = Context.make ~state_path ~cfg_path:config ~secrets_path:secrets ~cfg_action_after_refresh () in
+  let%lwt ctx =
+    Context.make ~state_path ~cfg_remote_filename:config ~secrets_path:secrets ~cfg_action_after_refresh ()
+  in
   match Mock.kind file with
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
@@ -84,7 +86,7 @@ let port =
   Arg.(value & opt int 8080 & info [ "p"; "port" ] ~docv:"PORT" ~doc)
 
 let config =
-  let doc = "configuration file" in
+  let doc = "remote configuration file name" in
   Arg.(value & opt file "notabot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
 
 let secrets =

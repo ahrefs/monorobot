@@ -3,6 +3,18 @@ open Devkit
 
 let log = Log.from "request_handler"
 
+let update_config (ctx : Lib.Context.t) = function
+  | Lib.Github.Push n ->
+    let is_config_file f = String.equal f ctx.data.cfg_filename in
+    let commit_contains_config_file (c : Lib.Github_t.commit) =
+      List.exists (List.exists is_config_file) [ c.added; c.modified ]
+    in
+    ( match List.exists commit_contains_config_file n.commits with
+    | true -> Lib.Context.refresh_config ctx
+    | false -> Lwt.return_unit
+    )
+  | _ -> Lwt.return_unit
+
 let process_github_notification (ctx_thunk : Lib.Context.context_thunk) headers body =
   let open Lib in
   match Github.parse_exn ~secret:ctx_thunk.secrets.gh_webhook_secret headers body with
@@ -10,6 +22,7 @@ let process_github_notification (ctx_thunk : Lib.Context.context_thunk) headers 
   | payload ->
   try
     let%lwt ctx = Context.resolve_ctx_in_thunk ctx_thunk payload in
+    let%lwt () = update_config ctx payload in
     let cfg = ctx.cfg in
     let%lwt notifications = Action.generate_notifications ctx payload in
     Lwt_list.iter_s
