@@ -156,11 +156,20 @@ let partition_commit cfg files =
     List.dedup_and_sort ~compare:String.compare (List.concat channels)
 
 let hide_cancelled (notification : status_notification) cfg =
-  match List.exists cfg.status_rules.status ~f:(Poly.equal Cancelled) with
-  | true -> false
-  | false ->
+  let f a x =
+    match a with
+    | Some _ as v -> v
+    | None ->
+    match x with
+    | Cancelled r -> Some r
+    | _ -> None
+  in
+  let regexp_opt = List.fold cfg.status_rules.status ~init:None ~f in
+  match regexp_opt with
+  | None -> false
+  | Some regexp ->
     let { state; description; _ } = notification in
-    let r = Re.Str.regexp_case_fold "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$" in
+    let r = Re.Str.regexp_case_fold regexp in
     ( match description, state with
     | Some s, Failure when Re.Str.string_match r s 0 -> true
     | _ -> false
