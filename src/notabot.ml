@@ -14,9 +14,11 @@ let cfg_action_after_refresh (cfg : Config.t) =
 
 let update_state_at_path state_path state event = State.save state_path @@ State.update_state state event
 
-let http_server addr port config secrets state_path =
+let http_server ~addr ~port ~config ~secrets ~state =
   log#info "notabot starting";
-  let ctx_thunk = Context.make_thunk ~state_path ~cfg_path:config ~secrets_path:secrets ~cfg_action_after_refresh () in
+  let ctx_thunk =
+    Context.make_thunk ~state_path:state ~cfg_path:config ~secrets_path:secrets ~cfg_action_after_refresh ()
+  in
   Lwt_main.run (Request_handler.start_http_server ~ctx_thunk ~addr ~port ())
 
 let send_slack_notification webhook file =
@@ -112,6 +114,7 @@ let json =
 let run =
   let doc = "launch the http server" in
   let info = Term.info "run" ~doc in
+  let http_server addr port config secrets state = http_server ~addr ~port ~config ~secrets ~state in
   let term = Term.(const http_server $ addr $ port $ config $ secrets $ state) in
   term, info
 
