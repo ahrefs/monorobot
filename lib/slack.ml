@@ -26,6 +26,10 @@ let empty_attachments =
     footer = None;
   }
 
+let mrkdwn_of_markdown str = String.strip @@ Mrkdwn.mrkdwn_of_markdown str
+
+let mrkdwn_of_markdown_opt str_opt = Option.map ~f:mrkdwn_of_markdown str_opt
+
 let generate_pull_request_notification notification =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; _ } : pull_request) = pull_request in
@@ -67,7 +71,7 @@ let generate_pull_request_notification notification =
               ( match action with
               | Labeled -> label_str
               | Closed -> None
-              | _ -> Some body
+              | _ -> Some (mrkdwn_of_markdown body)
               );
           };
         ];
@@ -107,7 +111,7 @@ let generate_pr_review_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            text = review.body;
+            text = mrkdwn_of_markdown_opt review.body;
           };
         ];
     blocks = None;
@@ -146,7 +150,7 @@ let generate_pr_review_comment_notification notification =
             color = Some "#ccc";
             pretext = summary;
             footer = file;
-            text = Some comment.body;
+            text = Some (mrkdwn_of_markdown comment.body);
           };
         ];
     blocks = None;
@@ -182,7 +186,7 @@ let generate_issue_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            text = Some body;
+            text = Some (mrkdwn_of_markdown body);
           };
         ];
     blocks = None;
@@ -216,7 +220,7 @@ let generate_issue_comment_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            text = Some comment.body;
+            text = Some (mrkdwn_of_markdown comment.body);
           };
         ];
     blocks = None;
@@ -356,7 +360,7 @@ let generate_commit_comment_notification cfg notification =
                 color = Some "#ccc";
                 pretext = summary;
                 footer = path;
-                text = Some comment.body;
+                text = Some (mrkdwn_of_markdown comment.body);
               };
             ];
         blocks = None;

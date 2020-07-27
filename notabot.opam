@@ -22,5 +22,6 @@ depends: [
  "stdio"
  "uri"
  "ocamlformat" {dev & = "0.13.0"}
+ "omd" {< "2.0.0"}
 ]
 build: ["dune" "build" "-p" name]
