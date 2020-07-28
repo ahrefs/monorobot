@@ -209,7 +209,7 @@ let partition_status (ctx : Context.t) (n : status_notification) =
     match
       List.exists cfg.status_rules.status ~f:(fun x ->
         match x with
-        | State _ as s -> Poly.equal s (State n.state)
+        | State s -> Poly.equal s n.state
         | HideConsecutiveSuccess -> Poly.equal Success n.state
         | _ -> false)
     with
