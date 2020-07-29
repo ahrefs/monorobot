@@ -16,7 +16,7 @@ let get_context state config secrets =
 
 let update_state_at_path state_path state event = State.save state_path @@ State.update_state state event
 
-let http_server addr port config state_path secrets =
+let http_server addr port config secrets state_path =
   log#info "notabot starting";
   let ctx = get_context state_path config secrets in
   let cfg = ctx.cfg in
