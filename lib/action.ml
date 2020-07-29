@@ -13,7 +13,7 @@ type prefix_match =
   | Match of int
   | NoMatch
 
-let chan_of_prefix_rule (r : prefix_rule) = Some r.chan
+let chan_of_prefix_rule (r : prefix_rule) = r.chan
 
 let touching_prefix (rule : Notabot_t.prefix_rule) name =
   let match_lengths s ps =
@@ -50,7 +50,7 @@ let longest_touching_prefix_rule rules name =
   | _, NoMatch -> None
   | r, Match _ -> Some r
 
-let chan_of_file rules file = Option.bind ~f:chan_of_prefix_rule @@ longest_touching_prefix_rule rules file
+let chan_of_file rules file = Option.(longest_touching_prefix_rule rules file >>| chan_of_prefix_rule)
 
 let unique_chans_of_files rules files =
   List.dedup_and_sort ~compare:String.compare @@ List.filter_map files ~f:(chan_of_file rules)
