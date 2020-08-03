@@ -16,10 +16,12 @@ type prefix_match =
 let chan_of_prefix_rule (r : prefix_rule) = r.chan
 
 let touching_prefix (rule : Notabot_t.prefix_rule) name =
-  let match_lengths s ps =
-    List.filter_map ~f:(fun prefix -> if String.is_prefix s ~prefix then Some (String.length prefix) else None) ps
+  let match_lengths filename prefixes =
+    List.filter_map
+      ~f:(fun prefix -> if String.is_prefix filename ~prefix then Some (String.length prefix) else None)
+      prefixes
   in
-  let has_prefix s ps = not @@ List.is_empty @@ match_lengths s ps in
+  let has_prefix filename prefixes = not @@ List.is_empty @@ match_lengths filename prefixes in
   match has_prefix name rule.ignore with
   | true -> NoMatch
   | false ->
