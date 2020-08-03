@@ -62,7 +62,7 @@ type status_state = {
   failure: bool;
   pending: bool;
   error: bool;
-  ?cancelled: string option;
+  ?cancelled: string option; (* if specified, it will use the string as regex to match the description from the payload to determine if the status_state is cancelled *)
 }
 
 type status_config = {
