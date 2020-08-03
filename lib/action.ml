@@ -21,8 +21,8 @@ let touching_prefix (rule : Notabot_t.prefix_rule) name =
   in
   let has_prefix s ps = not @@ List.is_empty @@ match_lengths s ps in
   match has_prefix name rule.ignore with
-  | false -> NoMatch
-  | true ->
+  | true -> NoMatch
+  | false ->
   match List.is_empty rule.prefix with
   | true -> Match 0
   | false ->
@@ -45,7 +45,7 @@ let longest_touching_prefix_rule rules name =
   in
   match rules with
   | [] -> None
-  | x :: xs ->
+  | (x : prefix_rule) :: xs ->
   match List.fold_left xs ~init:(x, get_m x) ~f:reduce_to_longest_match with
   | _, NoMatch -> None
   | r, Match _ -> Some r
