@@ -51,7 +51,7 @@ let longest_touching_prefix_rule rules name =
   | _, NoMatch -> None
   | r, Match _ -> Some r
 
-let chan_of_file rules file = Option.(longest_touching_prefix_rule rules file >>| chan_of_prefix_rule)
+let chan_of_file rules file = Option.map ~f:chan_of_prefix_rule @@ longest_touching_prefix_rule rules file
 
 let unique_chans_of_files rules files =
   List.dedup_and_sort ~compare:String.compare @@ List.filter_map files ~f:(chan_of_file rules)
