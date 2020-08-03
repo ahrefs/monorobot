@@ -21,10 +21,9 @@ let touching_prefix (rule : Notabot_t.prefix_rule) name =
       ~f:(fun prefix -> if String.is_prefix filename ~prefix then Some (String.length prefix) else None)
       prefixes
   in
-  let has_prefix filename prefixes = not @@ List.is_empty @@ match_lengths filename prefixes in
-  match has_prefix name rule.ignore with
-  | true -> NoMatch
-  | false ->
+  match match_lengths name rule.ignore with
+  | _ :: _ -> NoMatch
+  | [] ->
   match rule.prefix with
   | [] -> Match 0
   | _ ->
