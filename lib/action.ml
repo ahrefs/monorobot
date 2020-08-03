@@ -27,7 +27,7 @@ let touching_prefix (rule : Notabot_t.prefix_rule) name =
   match rule.prefix with
   | [] -> Match 0
   | _ ->
-  match List.max_elt (match_lengths name rule.prefix) ~compare:( - ) with
+  match List.max_elt (match_lengths name rule.prefix) ~compare:Int.compare with
   | Some x -> Match x
   | None -> NoMatch
 
