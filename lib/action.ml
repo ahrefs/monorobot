@@ -156,15 +156,12 @@ let partition_commit cfg files =
     List.dedup_and_sort ~compare:String.compare (List.concat channels)
 
 let hide_cancelled (notification : status_notification) cfg =
-  let f a x =
-    match a with
-    | Some _ as v -> v
-    | None ->
-    match x with
-    | Cancelled r -> Some r
+  let find_cancelled status_state =
+    match status_state with
+    | Config.Cancelled r -> Some r
     | _ -> None
   in
-  let regexp_opt = List.fold cfg.status_rules.status ~init:None ~f in
+  let regexp_opt = List.find_map cfg.status_rules.status ~f:find_cancelled in
   match regexp_opt with
   | None -> false
   | Some regexp ->
@@ -176,7 +173,7 @@ let hide_cancelled (notification : status_notification) cfg =
     )
 
 let hide_success (n : status_notification) (ctx : Context.t) =
-  match List.exists ctx.cfg.status_rules.status ~f:(Poly.equal HideConsecutiveSuccess) with
+  match List.exists ctx.cfg.status_rules.status ~f:(Poly.equal Config.HideConsecutiveSuccess) with
   | false -> false
   | true ->
   match n.state with
