@@ -33,16 +33,16 @@ let touching_prefix (rule : Notabot_t.prefix_rule) name =
 
 let longest_touching_prefix_rule rules name =
   let get_m rule = touching_prefix rule name in
-  let reduce_to_longest_match acc r' =
-    let _, m = acc in
-    let m' = get_m r' in
-    let acc' = r', m' in
-    match m with
-    | NoMatch -> acc'
+  let reduce_to_longest_match longest_rule_match_pair current_rule =
+    let _, longest_match = longest_rule_match_pair in
+    let current_match = get_m current_rule in
+    let current_rule_match_pair = current_rule, current_match in
+    match longest_match with
+    | NoMatch -> current_rule_match_pair
     | Match x ->
-    match m' with
-    | NoMatch -> acc
-    | Match y -> if y > x then acc' else acc
+    match current_match with
+    | NoMatch -> longest_rule_match_pair
+    | Match y -> if y > x then current_rule_match_pair else longest_rule_match_pair
   in
   match rules with
   | [] -> None
