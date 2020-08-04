@@ -4,14 +4,14 @@ type cfg_make_args =
   | LocalMake of string
   | RemoteMake of string * Github.t
 
-type cfg_sources =
+type cfg_origin =
   | Local
   | Remote
 
 type data = {
   mutable cfg_path : string;
   mutable cfg_filename : string;
-  cfg_source : cfg_sources;
+  cfg_source : cfg_origin;
   cfg_action_after_refresh : Config.t -> unit;
   secrets_path : string;
   state_path : string;

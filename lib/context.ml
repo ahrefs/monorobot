@@ -1,17 +1,21 @@
+open Devkit
+
+let log = Log.from "context"
+
 exception Context_Error of string
 
 type cfg_make_args =
   | LocalMake of string
   | RemoteMake of string * Github.t
 
-type cfg_sources =
+type cfg_origin =
   | Local
   | Remote
 
 type data = {
   mutable cfg_path : string;
   mutable cfg_filename : string;
-  cfg_source : cfg_sources;
+  cfg_source : cfg_origin;
   cfg_action_after_refresh : Config.t -> unit;
   secrets_path : string;
   state_path : string;
@@ -45,6 +49,13 @@ let resolve_cfg_getter = function
   | Remote -> get_remote_cfg_json_url
 
 let refresh_config ctx =
+  ( match ctx.data.cfg_source with
+  | Local -> log#info "attempting to retrieve config locally"
+  | Remote ->
+  match ctx.secrets.gh_token with
+  | None -> log#info "attempting to retrieve config remotely without gh_token"
+  | Some _ -> log#info "attempting to retrieve config remotely with gh_token"
+  );
   let getter = resolve_cfg_getter ctx.data.cfg_source in
   let%lwt cfg_json = getter ctx.data.cfg_path in
   ctx.cfg <- Config.make cfg_json ctx.secrets;
