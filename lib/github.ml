@@ -49,22 +49,26 @@ let name_of_full_name_parts full_name_parts =
   | _ :: repo_name :: _ -> Some repo_name
   | _ -> None
 
-let get_remote_config_json_url filename token req =
+let get_remote_config_json_url filename ?token req =
   match to_repo req with
   | None -> raise @@ Remote_Config_Error "unable to resolve repository from request"
   | Some repo ->
-    let full_name_parts = String.split ~on:'/' repo.full_name in
-    ( match user_of_full_name_parts full_name_parts with
-    | None -> raise @@ Remote_Config_Error "unable to resolve repository owner"
-    | Some owner ->
-    match name_of_full_name_parts full_name_parts with
-    | None -> raise @@ Remote_Config_Error "unable to resolve repository name"
-    | Some repo_name ->
-    match api_url_of_repo repo with
-    | None -> raise @@ Remote_Config_Error "unable to resolve github api url from repository url"
-    | Some base_url ->
-      Printf.sprintf "%s/repos/%s/%s/contents/%s?access_token=%s" base_url owner repo_name filename token
-    )
+  match String.split ~on:'/' repo.full_name with
+  | full_name_parts ->
+  match user_of_full_name_parts full_name_parts with
+  | None -> raise @@ Remote_Config_Error "unable to resolve repository owner"
+  | Some owner ->
+  match name_of_full_name_parts full_name_parts with
+  | None -> raise @@ Remote_Config_Error "unable to resolve repository name"
+  | Some repo_name ->
+  match api_url_of_repo repo with
+  | None -> raise @@ Remote_Config_Error "unable to resolve github api url from repository url"
+  | Some base_url ->
+  match Printf.sprintf "%s/repos/%s/%s/contents/%s" base_url owner repo_name filename with
+  | url ->
+  match token with
+  | None -> url
+  | Some token -> Printf.sprintf "%s?access_token=%s" url token
 
 let config_of_content_api_response response =
   match response.encoding with
