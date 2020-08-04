@@ -23,8 +23,10 @@ let process ~state_dir ~cfg_path ~secrets_path file =
       let state_path = Caml.Filename.concat state_dir @@ Caml.Filename.basename file in
       let ctx_partial = Context.make ~state_path ~secrets_path ~disable_write:true in
       let%lwt ctx =
-        try ctx_partial ~cfg_args:(RemoteMake (cfg_path, event)) ()
-        with Github.Remote_Config_Error _ | Context.Context_Error _ -> ctx_partial ~cfg_args:(LocalMake cfg_path) ()
+        Lwt.catch
+          (fun () -> ctx_partial ~cfg_args:(RemoteMake (cfg_path, event)) ())
+          (function
+            | _ -> ctx_partial ~cfg_args:(LocalMake cfg_path) ())
       in
       let%lwt notifs = Action.generate_notifications ctx event in
       List.iter notifs ~f:print_notif;

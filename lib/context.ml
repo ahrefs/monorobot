@@ -35,8 +35,8 @@ let get_secrets secrets_path = Config.load_secrets_file ~secrets_path
 
 let get_remote_cfg_json_url url = Github.load_config_json url
 
-let get_remote_cfg_json_req filename gh_token req =
-  get_remote_cfg_json_url @@ Github.get_remote_config_json_url filename gh_token req
+let get_remote_cfg_json_req filename ?token req =
+  get_remote_cfg_json_url @@ Github.get_remote_config_json_url filename ?token req
 
 let get_local_cfg_json config_path = Lwt.return @@ Config.load_config_file ~config_path
 
@@ -59,11 +59,8 @@ let change_remote_url filename ctx req =
   match ctx.data.cfg_source with
   | Local -> raise @@ Context_Error "cant load remote config from a local context"
   | Remote ->
-  match ctx.secrets.gh_token with
-  | None -> raise @@ Context_Error "context must have `gh_token` to load remote config"
-  | Some token ->
     ctx.data.cfg_filename <- filename;
-    let url = Github.get_remote_config_json_url filename token req in
+    let url = Github.get_remote_config_json_url filename ?token:ctx.secrets.gh_token req in
     ctx.data.cfg_path <- url;
     refresh_config ctx
 
@@ -91,9 +88,8 @@ let make_with_secrets ~state_path ~cfg_args ~secrets_path ~(secrets : Notabot_t.
     | LocalMake p -> p, Local, get_local_cfg_json p, p
     | RemoteMake (filename, r) ->
     match secrets.gh_token with
-    | None -> raise @@ Context_Error "if RemoteMake cfg_args is provided secrets must provide gh_token"
-    | Some token ->
-      Github.get_remote_config_json_url filename token r, Remote, get_remote_cfg_json_req filename token r, filename
+    | token ->
+      Github.get_remote_config_json_url filename ?token r, Remote, get_remote_cfg_json_req filename ?token r, filename
   in
   let%lwt cfg_json = cfg_json in
   let data =
