@@ -6,9 +6,7 @@ let log = Log.from "request_handler"
 let update_config (ctx : Lib.Context.t) = function
   | Lib.Github.Push n ->
     let is_config_file f = String.equal f ctx.data.cfg_filename in
-    let commit_contains_config_file (c : Lib.Github_t.commit) =
-      List.exists (List.exists is_config_file) [ c.added; c.modified ]
-    in
+    let commit_contains_config_file (c : Lib.Github_t.commit) = List.exists is_config_file (c.added @ c.modified) in
     ( match List.exists commit_contains_config_file n.commits with
     | true -> Lib.Context.refresh_config ctx
     | false -> Lwt.return_unit
