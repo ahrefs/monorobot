@@ -89,7 +89,7 @@ will notify #all-push-events
       "pretext":
         "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> xinyuluo commented on `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39729580|cd5b85af>` add new line at EOF",
       "text":
-        "*bold*, _italic_\n\n> blockquote\n\n\n- list-element 1\n- list-element 2\n    - list-element2.1\n    - <list-element2.2|www.google.com>\n\n\n```\n<div>html block</div>\n```\n```\nStdio.printf \"hello ocaml\"\n```",
+        "*bold*, _italic_\n\n> blockquote\n\n\n- list-element 1\n- list-element 2\n    - list-element2.1\n    - <www.google.com|list-element2.2>\n\n\n```\n<div>html block</div>\n```\n```\nStdio.printf \"hello ocaml\"\n```",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39729580|runner/chat.ml>"
     }
