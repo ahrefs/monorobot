@@ -51,14 +51,9 @@ type label_config = {
   rules: label_rule list;
 }
 
-type success_status_rule = [
-  | ShowAll
-  | HideAll
-  | HideConsecutive
-] <ocaml repr="classic">
-
 type status_state = {
-  success: success_status_rule;
+  success: bool;
+  ?success_once: bool option;
   failure: bool;
   pending: bool;
   error: bool;
