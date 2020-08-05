@@ -70,9 +70,11 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
       List.filter_map id
         [
           ( match j.success with
-          | ShowAll -> Some (State Success)
-          | HideAll -> None
-          | HideConsecutive -> Some HideConsecutiveSuccess
+          | false -> None
+          | true ->
+          match j.success_once with
+          | Some true -> Some HideConsecutiveSuccess
+          | _ -> Some (State Success)
           );
           (if j.failure then Some (State Failure) else None);
           (if j.pending then Some (State Pending) else None);
