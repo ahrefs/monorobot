@@ -25,6 +25,13 @@
             },
             {
                 "prefix": [
+                    "backend/api/longest"
+                ],
+                "ignore": [],
+                "chan": "longest-aa"
+            },
+            {
+                "prefix": [
                     "backend/megaindex",
                     "backend/ahrefskit"
                 ],

@@ -9,9 +9,52 @@ open Github_j
 
 let log = Log.from "action"
 
-let touching_prefix rule name =
-  let has_prefix s = List.exists ~f:(fun prefix -> String.is_prefix s ~prefix) in
-  (List.is_empty rule.prefix || has_prefix name rule.prefix) && not (has_prefix name rule.ignore)
+type prefix_match =
+  | Match of int
+  | NoMatch
+
+let chan_of_prefix_rule (r : prefix_rule) = r.chan
+
+let touching_prefix (rule : Notabot_t.prefix_rule) name =
+  let match_lengths filename prefixes =
+    List.filter_map
+      ~f:(fun prefix -> if String.is_prefix filename ~prefix then Some (String.length prefix) else None)
+      prefixes
+  in
+  match match_lengths name rule.ignore with
+  | _ :: _ -> NoMatch
+  | [] ->
+  match rule.prefix with
+  | [] -> Match 0
+  | _ ->
+  match List.max_elt (match_lengths name rule.prefix) ~compare:Int.compare with
+  | Some x -> Match x
+  | None -> NoMatch
+
+let longest_touching_prefix_rule rules name =
+  let get_m rule = touching_prefix rule name in
+  let reduce_to_longest_match longest_rule_match_pair current_rule =
+    let _, longest_match = longest_rule_match_pair in
+    let current_match = get_m current_rule in
+    let current_rule_match_pair = current_rule, current_match in
+    match longest_match with
+    | NoMatch -> current_rule_match_pair
+    | Match x ->
+    match current_match with
+    | NoMatch -> longest_rule_match_pair
+    | Match y -> if y > x then current_rule_match_pair else longest_rule_match_pair
+  in
+  match rules with
+  | [] -> None
+  | (x : prefix_rule) :: xs ->
+  match List.fold_left xs ~init:(x, get_m x) ~f:reduce_to_longest_match with
+  | _, NoMatch -> None
+  | r, Match _ -> Some r
+
+let chan_of_file rules file = Option.map ~f:chan_of_prefix_rule @@ longest_touching_prefix_rule rules file
+
+let unique_chans_of_files rules files =
+  List.dedup_and_sort ~compare:String.compare @@ List.filter_map files ~f:(chan_of_file rules)
 
 let touching_label rule name =
   let name_lc = String.lowercase name in
@@ -31,14 +74,8 @@ let is_main_merge_message ~msg:message ~branch cfg =
   | _ -> false
 
 let filter_push rules commit =
-  let matching_push rule files = List.exists files ~f:(fun file -> touching_prefix rule file) in
-  List.filter_map rules ~f:(fun rule ->
-    let filter =
-      matching_push rule commit.added || matching_push rule commit.removed || matching_push rule commit.modified
-    in
-    match filter with
-    | false -> None
-    | true -> Some (rule.chan, commit))
+  let files = List.concat [ commit.added; commit.removed; commit.modified ] in
+  List.map ~f:(fun chan -> chan, commit) @@ unique_chans_of_files rules files
 
 let group_commit webhook l =
   List.filter_map l ~f:(fun (chan, commit) ->
@@ -131,29 +168,14 @@ let partition_pr_review cfg (n : pr_review_notification) =
   | Submitted, _, _ -> partition_label cfg n.pull_request.labels
   | _ -> []
 
-let filter_commit rules filename =
-  rules
-  |> List.filter_map ~f:(fun rule ->
-       match touching_prefix rule filename with
-       | false -> None
-       | true -> Some rule.chan)
-
 let partition_commit cfg files =
-  let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-  match files with
+  let names = List.map ~f:(fun f -> f.filename) files in
+  match unique_chans_of_files cfg.prefix_rules.rules names with
+  | _ :: _ as xs -> xs
   | [] ->
-    log#error "this commit contains no files";
-    []
-  | files ->
-    let rules = cfg.prefix_rules.rules in
-    let channels =
-      files
-      |> List.map ~f:(fun file ->
-           match filter_commit rules file.filename with
-           | [] -> default
-           | l -> l)
-    in
-    List.dedup_and_sort ~compare:String.compare (List.concat channels)
+  match cfg.prefix_rules.default with
+  | Some webhook -> [ webhook ]
+  | None -> []
 
 let hide_cancelled (notification : status_notification) cfg =
   let is_cancelled_status =
@@ -218,9 +240,9 @@ let partition_commit_comment cfg n =
     | Some commit -> Lwt.return (partition_commit cfg commit.files)
     )
   | Some p ->
-  match filter_commit cfg.prefix_rules.rules p with
-  | [] -> Lwt.return default
-  | l -> Lwt.return l
+  match chan_of_file cfg.prefix_rules.rules p with
+  | None -> Lwt.return default
+  | Some chan -> Lwt.return [ chan ]
 
 let generate_notifications (ctx : Context.t) req =
   let cfg = ctx.cfg in
