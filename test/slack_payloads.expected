@@ -429,6 +429,43 @@ will notify #all-push-events
     }
   ]
 }
+===== file ../mock_payloads/push.two_commits_longest_match.json =====
+will notify #all-push-events
+{
+  "text":
+    "<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
+  "attachments": [
+    {
+      "fallback": "Commit pushed notification",
+      "mrkdwn_in": [ "fields" ],
+      "color": "#ccc",
+      "fields": [
+        {
+          "value":
+            "`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira"
+        }
+      ]
+    }
+  ]
+}
+will notify #longest-a1
+{
+  "text":
+    "<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|1 commit> pushed by thatportugueseguy",
+  "attachments": [
+    {
+      "fallback": "Commit pushed notification",
+      "mrkdwn_in": [ "fields" ],
+      "color": "#ccc",
+      "fields": [
+        {
+          "value":
+            "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira"
+        }
+      ]
+    }
+  ]
+}
 ===== file ../mock_payloads/status.cancelled_test.json =====
 ===== file ../mock_payloads/status.failure_test.json =====
 will notify #all-push-events

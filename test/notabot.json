@@ -25,6 +25,13 @@
             },
             {
                 "prefix": [
+                    "backend/a1/longest"
+                ],
+                "ignore": [],
+                "chan": "longest-a1"
+            },
+            {
+                "prefix": [
                     "backend/a5",
                     "backend/a4"
                 ],
