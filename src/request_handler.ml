@@ -13,7 +13,9 @@ let process_github_notification (ctx : Lib.Context.t) headers body =
     Lwt_list.iter_s
       (fun (chan, msg) ->
         let url = Config.Chan_map.find chan cfg.chans in
-        Slack.send_notification url msg)
+        let data = Slack_j.string_of_webhook_notification msg in
+        log#info "sending to %s : %s" chan data;
+        Slack.send_notification url data)
       notifications
 
 let setup_http ~ctx ~signature ~port ~ip =
@@ -36,7 +38,6 @@ let setup_http ~ctx ~signature ~port ~ip =
         body @@ serve ~status ?extra request typ r
       in
       let ret_err status s = body @@ serve_text ~status request s in
-      log#info "http: %s" (show_request request);
       try%lwt
         let path =
           match Stre.nsplitc request.path '/' with
@@ -46,7 +47,7 @@ let setup_http ~ctx ~signature ~port ~ip =
         match request.meth, List.map Web.urldecode path with
         | _, [ "stats" ] -> ret @@ Lwt.return (sprintf "%s %s uptime\n" signature Devkit.Action.uptime#get_str)
         | _, [ "github" ] ->
-          log#info "%s" request.body;
+          log#info "body: %s" request.body;
           let%lwt () = process_github_notification ctx request.headers request.body in
           ret (Lwt.return "ok")
         | _, _ ->
