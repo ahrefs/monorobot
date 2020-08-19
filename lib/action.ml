@@ -66,6 +66,15 @@ let touching_label rule name =
 
 let is_main_merge_message ~msg:message ~branch cfg =
   match cfg.main_branch_name with
+  | Some main_branch when String.equal branch main_branch ->
+    (*
+      handle "Merge <main branch> into <feature branch>" commits when they are merged into main branch
+      we should have already seen these commits on the feature branch but for some reason they are distinct:true
+    *)
+    let prefix = sprintf "Merge branch '%s' into " main_branch in
+    let prefix2 = sprintf "Merge remote-tracking branch 'origin/%s' into " main_branch in
+    let title = first_line message in
+    String.is_prefix title ~prefix || String.is_prefix title ~prefix:prefix2
   | Some main_branch ->
     let expect = sprintf "Merge branch '%s' into %s" main_branch branch in
     let expect2 = sprintf "Merge remote-tracking branch 'origin/%s' into %s" main_branch branch in
@@ -77,9 +86,9 @@ let filter_push rules commit =
   let files = List.concat [ commit.added; commit.removed; commit.modified ] in
   List.map ~f:(fun chan -> chan, commit) @@ unique_chans_of_files rules files
 
-let group_commit webhook l =
-  List.filter_map l ~f:(fun (chan, commit) ->
-    match String.equal webhook chan with
+let group_commit chan l =
+  List.filter_map l ~f:(fun (chan', commit) ->
+    match String.equal chan chan' with
     | false -> None
     | true -> Some commit)
 
@@ -98,15 +107,15 @@ let partition_push cfg n =
          match filter_push rules commit with
          | [] -> default commit
          | l -> l)
+    |> List.concat
   in
-  let concat_chan = List.concat channels in
   let prefix_chans =
     let chans = List.map rules ~f:(fun (rule : prefix_rule) -> rule.chan) in
     let chans = Option.value_map cfg.prefix_rules.default ~default:chans ~f:(fun default -> default :: chans) in
     List.dedup_and_sort chans ~compare:String.compare
   in
   List.filter_map prefix_chans ~f:(fun chan ->
-    match group_commit chan concat_chan with
+    match group_commit chan channels with
     | [] -> None
     | l -> Some (chan, { n with commits = l }))
 
