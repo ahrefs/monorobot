@@ -295,7 +295,7 @@ let generate_notifications (ctx : Context.t) req =
     Lwt.return notifs
   | Status n ->
     let%lwt webhooks = partition_status ctx n in
-    let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks in
+    let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification cfg n) webhooks in
     Lwt.return notifs
   | _ -> Lwt.return []
 

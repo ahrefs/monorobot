@@ -267,7 +267,7 @@ let generate_push_notification notification =
     blocks = None;
   }
 
-let generate_status_notification (notification : status_notification) =
+let generate_status_notification (cfg : Config.t) (notification : status_notification) =
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
@@ -295,11 +295,14 @@ let generate_status_notification (notification : status_notification) =
     [ sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message) author.login ]
   in
   let branches_info =
-    match notification.branches with
+    match List.map ~f:(fun { name } -> name) notification.branches with
     | [] -> [] (* happens when branch is force-pushed by the time CI notification arrives *)
     | branches ->
-      let branches = List.map branches ~f:(fun ({ name } : branch) -> name) |> String.concat ~sep:", " in
-      [ sprintf "*Branches*: %s" branches ]
+    match cfg.main_branch_name with
+    | Some main when List.mem branches main ~equal:String.equal ->
+      (* happens when new branches are branched before CI finishes *)
+      [ sprintf "*Branch*: %s" main ]
+    | _ -> [ sprintf "*Branches*: %s" (String.concat ~sep:", " branches) ]
   in
   let summary =
     match target_url with
