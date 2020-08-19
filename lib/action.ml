@@ -178,16 +178,26 @@ let partition_commit cfg files =
   | None -> []
 
 let hide_cancelled (notification : status_notification) cfg =
-  let is_cancelled_status =
+  let find_cancelled status_state =
+    match status_state with
+    | Config.Cancelled r -> Some r
+    | _ -> None
+  in
+  let regexp_opt = List.find_map cfg.status_rules.status ~f:find_cancelled in
+  match regexp_opt with
+  | None -> false
+  | Some regexp ->
     let { state; description; _ } = notification in
-    let r = Re.Str.regexp_case_fold "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$" in
-    match description, state with
+    let r = Re.Str.regexp_case_fold regexp in
+    ( match description, state with
     | Some s, Failure when Re.Str.string_match r s 0 -> true
     | _ -> false
-  in
-  is_cancelled_status && cfg.suppress_cancelled_events
+    )
 
 let hide_success (n : status_notification) (ctx : Context.t) =
+  match List.exists ctx.cfg.status_rules.status ~f:(Poly.equal Config.HideConsecutiveSuccess) with
+  | false -> false
+  | true ->
   match n.state with
   | Success ->
     List.exists
@@ -215,7 +225,13 @@ let partition_status (ctx : Context.t) (n : status_notification) =
     | false -> Lwt.return (partition_commit cfg commit.files)
   in
   let res =
-    match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
+    match
+      List.exists cfg.status_rules.status ~f:(fun x ->
+        match x with
+        | State s -> Poly.equal s n.state
+        | HideConsecutiveSuccess -> Poly.equal Success n.state
+        | _ -> false)
+    with
     | false -> Lwt.return []
     | true ->
     match List.exists ~f:id [ hide_cancelled n cfg; hide_success n ctx ] with
