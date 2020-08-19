@@ -8,9 +8,10 @@
         ],
         "status": {
             "pending": false,
-            "success": true,
             "failure": true,
-            "error": true
+            "error": true,
+            "cancelled": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$",
+            "success": "once"
         }
     },
     "prefix_rules": {
@@ -79,6 +80,5 @@
                 "chan": "frontend-bot"
             }
         ]
-    },
-    "suppress_cancelled_events": true
+    }
 }
