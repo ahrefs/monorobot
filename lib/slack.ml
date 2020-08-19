@@ -369,10 +369,7 @@ let generate_commit_comment_notification cfg notification =
     Lwt.return notifs
 
 let send_notification webhook_url data =
-  let data = Slack_j.string_of_webhook_notification data in
   let body = `Raw ("application/json", data) in
   match%lwt Web.http_request_lwt ~verbose:true ~body `POST webhook_url with
   | `Ok _ -> Lwt.return_unit
-  | `Error e ->
-    log#error "error when posting notification to slack: %s" e;
-    Exn_lwt.fail "unable to send notification to slack"
+  | `Error e -> Exn_lwt.fail "failed to send notification to slack : %s" e
