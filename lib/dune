@@ -15,7 +15,7 @@
  (targets github_j.ml github_j.mli)
  (deps github.atd)
  (action
-  (run atdgen -j %{deps})))
+  (run atdgen -j -j-std %{deps})))
 
 (rule
  (targets slack_t.ml slack_t.mli)
@@ -27,7 +27,7 @@
  (targets slack_j.ml slack_j.mli)
  (deps slack.atd)
  (action
-  (run atdgen -j %{deps})))
+  (run atdgen -j -j-std %{deps})))
 
 (rule
  (targets notabot_t.ml notabot_t.mli)
@@ -39,4 +39,4 @@
  (targets notabot_j.ml notabot_j.mli)
  (deps notabot.atd)
  (action
-  (run atdgen -j %{deps})))
+  (run atdgen -j -j-std %{deps})))
