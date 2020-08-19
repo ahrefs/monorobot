@@ -11,8 +11,7 @@
             "failure": true,
             "error": true,
             "cancelled": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$",
-            "success": true,
-            "success_once": true
+            "success": "once"
         }
     },
     "prefix_rules": {
