@@ -199,9 +199,7 @@ will notify #backend
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> closed by xinyuluo",
-      "text":
-        "consider multiple cases including labeled/opened/closed/reopened"
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> closed by xinyuluo"
     }
   ]
 }
@@ -216,8 +214,7 @@ will notify #backend
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> labeled by xinyuluo",
-      "text":
-        "consider multiple cases including labeled/opened/closed/reopened"
+      "text": "Labels: backend"
     }
   ]
 }
@@ -247,9 +244,7 @@ will notify #backend
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> reopened by xinyuluo",
-      "text":
-        "consider multiple cases including labeled/opened/closed/reopened"
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> reopened by xinyuluo"
     }
   ]
 }

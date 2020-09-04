@@ -13,6 +13,7 @@ and surround s t =
   let t = to_markdown @@ transform_list t in
   Raw (Printf.sprintf "%s%s%s" s t s)
 
+(** massage markdown AST so that rendered result looks like slack mrkdwn *)
 and transform = function
   | H1 t | H2 t | H3 t | H4 t | H5 t | H6 t -> Paragraph (transform_list [ Bold t ])
   | Paragraph t -> Paragraph (transform_list t)
@@ -34,8 +35,4 @@ and transform = function
   | Code_block (_, str) -> Code_block ("", str)
   | (Text _ | Code _ | Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
 
-let of_doc t = transform_list t
-
-let to_mrkdwn doc = to_markdown @@ of_doc doc
-
-let mrkdwn_of_markdown str = to_mrkdwn @@ of_string str
+let mrkdwn_of_markdown str = to_markdown @@ transform_list @@ of_string str

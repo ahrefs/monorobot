@@ -28,24 +28,21 @@ let empty_attachments =
 
 let mrkdwn_of_markdown str = String.strip @@ Mrkdwn.mrkdwn_of_markdown str
 
-let mrkdwn_of_markdown_opt str_opt = Option.map ~f:mrkdwn_of_markdown str_opt
+let mrkdwn_of_markdown_opt = Option.map ~f:mrkdwn_of_markdown
+
+let show_labels = function
+  | [] -> None
+  | labels -> Some (sprintf "Labels: %s" @@ String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels))
 
 let generate_pull_request_notification notification =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; _ } : pull_request) = pull_request in
-  let label_str =
-    match labels with
-    | [] -> None
-    | labels ->
-      let value = String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels) in
-      Some (sprintf "Labels: %s" value)
-  in
-  let action_str =
+  let action, body =
     match action with
-    | Opened -> "opened"
-    | Closed -> "closed"
-    | Reopened -> "reopened"
-    | Labeled -> "labeled"
+    | Opened -> "opened", Some body
+    | Closed -> "closed", None
+    | Reopened -> "reopened", None
+    | Labeled -> "labeled", show_labels labels
     | _ ->
       invalid_arg
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
@@ -54,7 +51,7 @@ let generate_pull_request_notification notification =
   let summary =
     Some
       (sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by %s" repository.url repository.full_name number html_url title
-         action_str sender.login)
+         action sender.login)
   in
   {
     text = None;
@@ -67,12 +64,7 @@ let generate_pull_request_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            text =
-              ( match action with
-              | Labeled -> label_str
-              | Closed -> None
-              | _ -> Some (mrkdwn_of_markdown body)
-              );
+            text = mrkdwn_of_markdown_opt body;
           };
         ];
     blocks = None;
@@ -158,13 +150,13 @@ let generate_pr_review_comment_notification notification =
 
 let generate_issue_notification notification =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
-  let { number; body; title; html_url; _ } = issue in
-  let action_str =
+  let { number; body; title; html_url; labels; _ } = issue in
+  let action, body =
     match action with
-    | Opened -> "opened"
-    | Closed -> "closed"
-    | Reopened -> "reopened"
-    | Labeled -> "labeled"
+    | Opened -> "opened", Some body
+    | Closed -> "closed", None
+    | Reopened -> "reopened", None
+    | Labeled -> "labeled", show_labels labels
     | _ ->
       invalid_arg
         (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
@@ -172,8 +164,8 @@ let generate_issue_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by %s" repository.url repository.full_name number html_url title
-         action_str sender.login)
+      (sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by %s" repository.url repository.full_name number html_url title action
+         sender.login)
   in
   {
     text = None;
@@ -186,7 +178,7 @@ let generate_issue_notification notification =
             fallback = summary;
             color = Some "#ccc";
             pretext = summary;
-            text = Some (mrkdwn_of_markdown body);
+            text = mrkdwn_of_markdown_opt body;
           };
         ];
     blocks = None;
