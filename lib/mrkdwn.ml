@@ -31,7 +31,7 @@ and transform = function
   | Html_comment _ -> Br
   | Html_block _ as e -> Code_block ("", to_markdown [ e ])
   | Blockquote t -> Blockquote (transform_list t)
-  | Img (alt, src, title) -> Url (src, [ Text alt ], title)
+  | Img (alt, src, title) -> transform @@ Url (src, [ Text alt ], title)
   | Code_block (_, str) -> Code_block ("", str)
   | (Text _ | Code _ | Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
 
