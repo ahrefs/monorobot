@@ -1,9 +1,21 @@
 open Omd
 open Base
 
-let escape_url_chars str =
-  let repl c = String.substr_replace_all ~pattern:(Char.to_string c) ~with_:(Printf.sprintf "\\%c" c) in
-  str |> repl '<' |> repl '>' |> repl '|'
+let escape_url_chars = Staged.unstage @@ String.Escaping.escape ~escapeworthy:[ '<'; '>'; '|' ] ~escape_char:'\\'
+
+(* https://api.slack.com/reference/surfaces/formatting#escaping *)
+let escape_mrkdwn =
+  String.concat_map ~f:(function
+    | '<' -> "&lt;"
+    | '>' -> "&gt;"
+    | '&' -> "&amp;"
+    | c -> String.make 1 c)
+
+(* omd escapes parentheses in text (bug?) *)
+let unescape_omd =
+  Staged.unstage @@ String.Escaping.unescape_gen_exn ~escapeworthy_map:[ '(', '('; ')', ')' ] ~escape_char:'\\'
+
+let transform_text s = escape_mrkdwn @@ unescape_omd s
 
 let rec transform_list = List.map ~f:transform
 
@@ -33,6 +45,7 @@ and transform = function
   | Blockquote t -> Blockquote (transform_list t)
   | Img (alt, src, title) -> transform @@ Url (src, [ Text alt ], title)
   | Code_block (_, str) -> Code_block ("", str)
-  | (Text _ | Code _ | Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
+  | Text s -> Text (transform_text s)
+  | (Code _ | Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
 
 let mrkdwn_of_markdown str = to_markdown @@ transform_list @@ of_string str
