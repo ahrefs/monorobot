@@ -11,11 +11,10 @@ let escape_mrkdwn =
     | '&' -> "&amp;"
     | c -> String.make 1 c)
 
-(* omd escapes parentheses in text (bug?) *)
 let unescape_omd =
   Staged.unstage @@ String.Escaping.unescape_gen_exn ~escapeworthy_map:[ '(', '('; ')', ')' ] ~escape_char:'\\'
 
-let transform_text s = escape_mrkdwn @@ unescape_omd s
+let transform_text = escape_mrkdwn
 
 let rec transform_list = List.map ~f:transform
 
@@ -48,4 +47,5 @@ and transform = function
   | Text s -> Text (transform_text s)
   | (Code _ | Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
 
-let mrkdwn_of_markdown str = to_markdown @@ transform_list @@ of_string str
+(* unescaping here is a workaround of to_markdown escaping parentheses in text (bug?) *)
+let mrkdwn_of_markdown str = unescape_omd @@ to_markdown @@ transform_list @@ of_string str
