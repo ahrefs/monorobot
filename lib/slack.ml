@@ -50,7 +50,7 @@ let generate_pull_request_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by %s" repository.url repository.full_name number html_url title
+      (sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title
          action sender.login)
   in
   {
@@ -89,7 +89,7 @@ let generate_pr_review_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login review.html_url
+      (sprintf "<%s|[%s]> *%s* <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login review.html_url
          action_str number html_url title)
   in
   {
@@ -122,7 +122,7 @@ let generate_pr_review_comment_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s %s on #%d <%s|%s>" repository.url repository.full_name sender.login action_str number
+      (sprintf "<%s|[%s]> *%s* %s on #%d <%s|%s>" repository.url repository.full_name sender.login action_str number
          html_url title)
   in
   let file =
@@ -164,7 +164,7 @@ let generate_issue_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by %s" repository.url repository.full_name number html_url title action
+      (sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title action
          sender.login)
   in
   {
@@ -198,7 +198,7 @@ let generate_issue_comment_notification notification =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> %s <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login comment.html_url
+      (sprintf "<%s|[%s]> *%s* <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login comment.html_url
          action_str number issue.html_url title)
   in
   {
@@ -338,7 +338,7 @@ let generate_commit_comment_notification cfg notification =
     in
     let summary =
       Some
-        (sprintf "<%s|[%s]> %s commented on `<%s|%s>` %s" repository.url repository.full_name sender.login
+        (sprintf "<%s|[%s]> *%s* commented on `<%s|%s>` %s" repository.url repository.full_name sender.login
            comment.html_url (git_short_sha_hash commit_id) (first_line commit.message))
     in
     let path =
