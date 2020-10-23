@@ -216,16 +216,28 @@ let hide_success (n : status_notification) (ctx : Context.t) =
 let partition_status (ctx : Context.t) (n : status_notification) =
   let cfg = ctx.cfg in
   let get_commit_info () =
-    match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
-    | None -> Lwt.return @@ Option.to_list cfg.prefix_rules.default
-    | Some commit ->
-    match
-      List.exists n.branches ~f:(fun { name } -> is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
-    with
+    let default () = Lwt.return @@ Option.to_list cfg.prefix_rules.default in
+    match cfg.main_branch_name with
+    | None -> default ()
+    | Some main_branch_name ->
+    (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
+    match List.exists n.branches ~f:(fun { name } -> String.equal name main_branch_name) with
+    | false -> default ()
     | true ->
-      log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
-      Lwt.return []
-    | false -> Lwt.return (partition_commit cfg commit.files)
+      ( match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
+      | None -> default ()
+      | Some commit ->
+        (*
+      match
+        List.exists n.branches ~f:(fun { name } -> is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
+      with
+      | true ->
+        log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
+        Lwt.return []
+      | false ->
+*)
+        Lwt.return (partition_commit cfg commit.files)
+      )
   in
   let res =
     match
