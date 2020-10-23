@@ -110,8 +110,7 @@ let partition_push cfg n =
     |> List.concat
   in
   let prefix_chans =
-    let chans = List.map rules ~f:(fun (rule : prefix_rule) -> rule.chan) in
-    let chans = Option.value_map cfg.prefix_rules.default ~default:chans ~f:(fun default -> default :: chans) in
+    let chans = Option.to_list cfg.prefix_rules.default @ List.map rules ~f:(fun (rule : prefix_rule) -> rule.chan) in
     List.dedup_and_sort chans ~compare:String.compare
   in
   List.filter_map prefix_chans ~f:(fun chan ->
@@ -127,7 +126,7 @@ let filter_label rules label =
        | true -> Some rule.chan)
 
 let partition_label cfg labels =
-  let default = Option.value_map cfg.label_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+  let default = Option.to_list cfg.label_rules.default in
   match labels with
   | [] -> default
   | labels ->
@@ -181,10 +180,7 @@ let partition_commit cfg files =
   let names = List.map ~f:(fun f -> f.filename) files in
   match unique_chans_of_files cfg.prefix_rules.rules names with
   | _ :: _ as xs -> xs
-  | [] ->
-  match cfg.prefix_rules.default with
-  | Some webhook -> [ webhook ]
-  | None -> []
+  | [] -> Option.to_list cfg.prefix_rules.default
 
 let hide_cancelled (notification : status_notification) cfg =
   let find_cancelled status_state =
@@ -221,9 +217,7 @@ let partition_status (ctx : Context.t) (n : status_notification) =
   let cfg = ctx.cfg in
   let get_commit_info () =
     match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
-    | None ->
-      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-      Lwt.return default
+    | None -> Lwt.return @@ Option.to_list cfg.prefix_rules.default
     | Some commit ->
     match
       List.exists n.branches ~f:(fun { name } -> is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
@@ -257,7 +251,7 @@ let partition_status (ctx : Context.t) (n : status_notification) =
   res
 
 let partition_commit_comment cfg n =
-  let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+  let default = Option.to_list cfg.prefix_rules.default in
   match n.comment.path with
   | None ->
     ( match%lwt Github.generate_commit_from_commit_comment cfg n with
