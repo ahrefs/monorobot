@@ -13,15 +13,19 @@ depends: [
  "dune" {>= "2.5.0"}
  "atdgen"
  "base"
+ "biniou"
  "cmdliner"
+ "cstruct"
  "devkit"
  "hex"
  "lwt"
  "lwt_ppx"
  "nocrypto"
+ "re"
  "stdio"
  "uri"
  "ocamlformat" {dev & = "0.13.0"}
  "omd" {< "2.0.0"}
+ "yojson"
 ]
 build: ["dune" "build" "-p" name]
