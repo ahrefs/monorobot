@@ -463,7 +463,7 @@ will notify #longest-aa
 }
 ===== file ../mock_payloads/status.cancelled_test.json =====
 ===== file ../mock_payloads/status.failure_test.json =====
-will notify #all-push-events
+will notify #default
 {
   "attachments": [
     {
@@ -487,7 +487,7 @@ will notify #all-push-events
 ===== file ../mock_payloads/status.pending_test.json =====
 ===== file ../mock_payloads/status.state_hide_success_test.json =====
 ===== file ../mock_payloads/status.success_public_repo_no_buildkite.json =====
-will notify #all-push-events
+will notify #default
 {
   "attachments": [
     {
@@ -507,7 +507,7 @@ will notify #all-push-events
   ]
 }
 ===== file ../mock_payloads/status.success_test.json =====
-will notify #all-push-events
+will notify #default
 {
   "attachments": [
     {
