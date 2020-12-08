@@ -32,7 +32,8 @@ let mrkdwn_of_markdown_opt = Option.map ~f:mrkdwn_of_markdown
 
 let show_labels = function
   | [] -> None
-  | (labels: label list) -> Some (sprintf "Labels: %s" @@ String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels))
+  | (labels : label list) ->
+    Some (sprintf "Labels: %s" @@ String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels))
 
 let generate_pull_request_notification notification =
   let { action; number; sender; pull_request; repository } = notification in

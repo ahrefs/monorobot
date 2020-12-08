@@ -75,7 +75,7 @@ let config_of_content_api_response response =
   | "base64" ->
     Lwt.return
     @@ Notabot_j.config_of_string
-    @@ Base64.decode_exn
+    @@ Base64.decode_string
     @@ String.concat
     @@ String.split ~on:'\n'
     @@ response.content
