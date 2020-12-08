@@ -1,7 +1,7 @@
 (library
  (name lib)
- (libraries cstruct curl curl.lwt nocrypto hex atdgen atdgen-runtime biniou yojson base base.caml re stdio lwt lwt.unix uri
-   devkit omd)
+ (libraries atdgen atdgen-runtime base base.caml biniou cstruct curl curl.lwt
+   devkit devkit.core hex lwt lwt.unix nocrypto omd re stdio uri yojson)
  (preprocess
   (pps lwt_ppx)))
 
