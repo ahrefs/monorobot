@@ -26,7 +26,7 @@ let send_slack_notification webhook file =
   let data = Stdio.In_channel.read_all file in
   match Slack_j.webhook_notification_of_string data with
   | exception exn -> log#error ~exn "unable to parse notification"
-  | data -> Lwt_main.run (Slack.send_notification webhook data)
+  | _ -> Lwt_main.run (Slack.send_notification webhook data)
 
 let check_common file print config secrets state_path =
   let ctx_thunk =

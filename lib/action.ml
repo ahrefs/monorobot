@@ -9,9 +9,52 @@ open Github_j
 
 let log = Log.from "action"
 
-let touching_prefix rule name =
-  let has_prefix s = List.exists ~f:(fun prefix -> String.is_prefix s ~prefix) in
-  (List.is_empty rule.prefix || has_prefix name rule.prefix) && not (has_prefix name rule.ignore)
+type prefix_match =
+  | Match of int
+  | NoMatch
+
+let chan_of_prefix_rule (r : prefix_rule) = r.chan
+
+let touching_prefix (rule : Notabot_t.prefix_rule) name =
+  let match_lengths filename prefixes =
+    List.filter_map
+      ~f:(fun prefix -> if String.is_prefix filename ~prefix then Some (String.length prefix) else None)
+      prefixes
+  in
+  match match_lengths name rule.ignore with
+  | _ :: _ -> NoMatch
+  | [] ->
+  match rule.prefix with
+  | [] -> Match 0
+  | _ ->
+  match List.max_elt (match_lengths name rule.prefix) ~compare:Int.compare with
+  | Some x -> Match x
+  | None -> NoMatch
+
+let longest_touching_prefix_rule rules name =
+  let get_m rule = touching_prefix rule name in
+  let reduce_to_longest_match longest_rule_match_pair current_rule =
+    let _, longest_match = longest_rule_match_pair in
+    let current_match = get_m current_rule in
+    let current_rule_match_pair = current_rule, current_match in
+    match longest_match with
+    | NoMatch -> current_rule_match_pair
+    | Match x ->
+    match current_match with
+    | NoMatch -> longest_rule_match_pair
+    | Match y -> if y > x then current_rule_match_pair else longest_rule_match_pair
+  in
+  match rules with
+  | [] -> None
+  | (x : prefix_rule) :: xs ->
+  match List.fold_left xs ~init:(x, get_m x) ~f:reduce_to_longest_match with
+  | _, NoMatch -> None
+  | r, Match _ -> Some r
+
+let chan_of_file rules file = Option.map ~f:chan_of_prefix_rule @@ longest_touching_prefix_rule rules file
+
+let unique_chans_of_files rules files =
+  List.dedup_and_sort ~compare:String.compare @@ List.filter_map files ~f:(chan_of_file rules)
 
 let touching_label rule name =
   let name_lc = String.lowercase name in
@@ -23,6 +66,15 @@ let touching_label rule name =
 
 let is_main_merge_message ~msg:message ~branch cfg =
   match cfg.main_branch_name with
+  | Some main_branch when String.equal branch main_branch ->
+    (*
+      handle "Merge <main branch> into <feature branch>" commits when they are merged into main branch
+      we should have already seen these commits on the feature branch but for some reason they are distinct:true
+    *)
+    let prefix = sprintf "Merge branch '%s' into " main_branch in
+    let prefix2 = sprintf "Merge remote-tracking branch 'origin/%s' into " main_branch in
+    let title = first_line message in
+    String.is_prefix title ~prefix || String.is_prefix title ~prefix:prefix2
   | Some main_branch ->
     let expect = sprintf "Merge branch '%s' into %s" main_branch branch in
     let expect2 = sprintf "Merge remote-tracking branch 'origin/%s' into %s" main_branch branch in
@@ -31,18 +83,12 @@ let is_main_merge_message ~msg:message ~branch cfg =
   | _ -> false
 
 let filter_push rules commit =
-  let matching_push rule files = List.exists files ~f:(fun file -> touching_prefix rule file) in
-  List.filter_map rules ~f:(fun rule ->
-    let filter =
-      matching_push rule commit.added || matching_push rule commit.removed || matching_push rule commit.modified
-    in
-    match filter with
-    | false -> None
-    | true -> Some (rule.chan, commit))
+  let files = List.concat [ commit.added; commit.removed; commit.modified ] in
+  List.map ~f:(fun chan -> chan, commit) @@ unique_chans_of_files rules files
 
-let group_commit webhook l =
-  List.filter_map l ~f:(fun (chan, commit) ->
-    match String.equal webhook chan with
+let group_commit chan l =
+  List.filter_map l ~f:(fun (chan', commit) ->
+    match String.equal chan chan' with
     | false -> None
     | true -> Some commit)
 
@@ -61,15 +107,14 @@ let partition_push cfg n =
          match filter_push rules commit with
          | [] -> default commit
          | l -> l)
+    |> List.concat
   in
-  let concat_chan = List.concat channels in
   let prefix_chans =
-    let chans = List.map rules ~f:(fun (rule : prefix_rule) -> rule.chan) in
-    let chans = Option.value_map cfg.prefix_rules.default ~default:chans ~f:(fun default -> default :: chans) in
+    let chans = Option.to_list cfg.prefix_rules.default @ List.map rules ~f:(fun (rule : prefix_rule) -> rule.chan) in
     List.dedup_and_sort chans ~compare:String.compare
   in
   List.filter_map prefix_chans ~f:(fun chan ->
-    match group_commit chan concat_chan with
+    match group_commit chan channels with
     | [] -> None
     | l -> Some (chan, { n with commits = l }))
 
@@ -81,7 +126,7 @@ let filter_label rules (label : Github_j.label) =
        | true -> Some rule.chan)
 
 let partition_label cfg (labels : Github_j.label list) =
-  let default = Option.value_map cfg.label_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+  let default = Option.to_list cfg.label_rules.default in
   match labels with
   | [] -> default
   | labels ->
@@ -131,41 +176,33 @@ let partition_pr_review cfg (n : pr_review_notification) =
   | Submitted, _, _ -> partition_label cfg n.pull_request.labels
   | _ -> []
 
-let filter_commit rules filename =
-  rules
-  |> List.filter_map ~f:(fun rule ->
-       match touching_prefix rule filename with
-       | false -> None
-       | true -> Some rule.chan)
-
 let partition_commit cfg files =
-  let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-  match files with
-  | [] ->
-    log#error "this commit contains no files";
-    []
-  | files ->
-    let rules = cfg.prefix_rules.rules in
-    let channels =
-      files
-      |> List.map ~f:(fun file ->
-           match filter_commit rules file.filename with
-           | [] -> default
-           | l -> l)
-    in
-    List.dedup_and_sort ~compare:String.compare (List.concat channels)
+  let names = List.map ~f:(fun f -> f.filename) files in
+  match unique_chans_of_files cfg.prefix_rules.rules names with
+  | _ :: _ as xs -> xs
+  | [] -> Option.to_list cfg.prefix_rules.default
 
 let hide_cancelled (notification : status_notification) cfg =
-  let is_cancelled_status =
+  let find_cancelled status_state =
+    match status_state with
+    | Config.Cancelled r -> Some r
+    | _ -> None
+  in
+  let regexp_opt = List.find_map cfg.status_rules.status ~f:find_cancelled in
+  match regexp_opt with
+  | None -> false
+  | Some regexp ->
     let { state; description; _ } = notification in
-    let r = Re.Str.regexp_case_fold "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$" in
-    match description, state with
+    let r = Re.Str.regexp_case_fold regexp in
+    ( match description, state with
     | Some s, Failure when Re.Str.string_match r s 0 -> true
     | _ -> false
-  in
-  is_cancelled_status && cfg.suppress_cancelled_events
+    )
 
 let hide_success (n : status_notification) (ctx : Context.t) =
+  match List.exists ctx.cfg.status_rules.status ~f:(Poly.equal Config.HideConsecutiveSuccess) with
+  | false -> false
+  | true ->
   match n.state with
   | Success ->
     List.exists
@@ -179,21 +216,37 @@ let hide_success (n : status_notification) (ctx : Context.t) =
 let partition_status (ctx : Context.t) (n : status_notification) =
   let cfg = ctx.cfg in
   let get_commit_info () =
-    match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
-    | None ->
-      let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
-      Lwt.return default
-    | Some commit ->
-    match
-      List.exists n.branches ~f:(fun { name } -> is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
-    with
+    let default () = Lwt.return @@ Option.to_list cfg.prefix_rules.default in
+    match cfg.main_branch_name with
+    | None -> default ()
+    | Some main_branch_name ->
+    (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
+    match List.exists n.branches ~f:(fun { name } -> String.equal name main_branch_name) with
+    | false -> default ()
     | true ->
-      log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
-      Lwt.return []
-    | false -> Lwt.return (partition_commit cfg commit.files)
+      ( match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
+      | None -> default ()
+      | Some commit ->
+        (*
+      match
+        List.exists n.branches ~f:(fun { name } -> is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
+      with
+      | true ->
+        log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
+        Lwt.return []
+      | false ->
+*)
+        Lwt.return (partition_commit cfg commit.files)
+      )
   in
   let res =
-    match List.exists cfg.status_rules.status ~f:(Poly.equal n.state) with
+    match
+      List.exists cfg.status_rules.status ~f:(fun x ->
+        match x with
+        | State s -> Poly.equal s n.state
+        | HideConsecutiveSuccess -> Poly.equal Success n.state
+        | _ -> false)
+    with
     | false -> Lwt.return []
     | true ->
     match List.exists ~f:id [ hide_cancelled n cfg; hide_success n ctx ] with
@@ -210,7 +263,7 @@ let partition_status (ctx : Context.t) (n : status_notification) =
   res
 
 let partition_commit_comment cfg n =
-  let default = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook ]) in
+  let default = Option.to_list cfg.prefix_rules.default in
   match n.comment.path with
   | None ->
     ( match%lwt Github.generate_commit_from_commit_comment cfg n with
@@ -218,9 +271,9 @@ let partition_commit_comment cfg n =
     | Some commit -> Lwt.return (partition_commit cfg commit.files)
     )
   | Some p ->
-  match filter_commit cfg.prefix_rules.rules p with
-  | [] -> Lwt.return default
-  | l -> Lwt.return l
+  match chan_of_file cfg.prefix_rules.rules p with
+  | None -> Lwt.return default
+  | Some chan -> Lwt.return [ chan ]
 
 let generate_notifications (ctx : Context.t) req =
   let cfg = ctx.cfg in
@@ -248,7 +301,7 @@ let generate_notifications (ctx : Context.t) req =
     Lwt.return notifs
   | Status n ->
     let%lwt webhooks = partition_status ctx n in
-    let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification n) webhooks in
+    let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification cfg n) webhooks in
     Lwt.return notifs
   | _ -> Lwt.return []
 

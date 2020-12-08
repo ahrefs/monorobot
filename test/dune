@@ -1,6 +1,7 @@
 (executable
  (name test)
- (libraries lib)
+ (libraries lib base base.caml base64 devkit devkit.core lwt.unix stdio
+   yojson)
  (preprocess
   (pps lwt_ppx)))
 
