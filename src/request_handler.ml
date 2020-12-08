@@ -26,7 +26,9 @@ let process_github_notification (ctx_thunk : Lib.Context.context_thunk) headers 
     Lwt_list.iter_s
       (fun (chan, msg) ->
         let url = Config.Chan_map.find chan cfg.chans in
-        Slack.send_notification url msg)
+        let data = Slack_j.string_of_webhook_notification msg in
+        log#info "sending to %s : %s" chan data;
+        Slack.send_notification url data)
       notifications
   with
   | Lib.Context.Context_Error s ->
@@ -56,7 +58,6 @@ let setup_http ~ctx_thunk ~signature ~port ~ip =
         body @@ serve ~status ?extra request typ r
       in
       let ret_err status s = body @@ serve_text ~status request s in
-      log#info "http: %s" (show_request request);
       try%lwt
         let path =
           match Stre.nsplitc request.path '/' with

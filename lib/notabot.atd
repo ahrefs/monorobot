@@ -51,11 +51,14 @@ type label_config = {
   rules: label_rule list;
 }
 
+type tristate = [ True | False | Once <json name="once"> ] <ocaml repr="classic"> <json adapter.ocaml="Common.Tristate">
+
 type status_state = {
-  success: bool;
+  success: tristate;
   failure: bool;
   pending: bool;
   error: bool;
+  ?cancelled: string option; (* if specified, it will use the string as regex to match the description from the payload to determine if the status_state is cancelled *)
 }
 
 type status_config = {
@@ -67,7 +70,6 @@ type config = {
   prefix_rules : prefix_config;
   label_rules : label_config;
   status_rules : status_config;
-  ?suppress_cancelled_events : bool option; (* supresses status cancelled events; if not specified - true *)
   ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)
   ?offline: string option; (* where to find github api data when http calls are not allowed *)
 }

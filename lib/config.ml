@@ -1,9 +1,14 @@
 open Devkit
 module Chan_map = Map.Make (String)
 
+type config_status_state =
+  | State of Github_t.status_state
+  | Cancelled of string
+  | HideConsecutiveSuccess
+
 type status_rules = {
   title : string list option;
-  status : Github_t.status_state list;
+  status : config_status_state list;
 }
 
 type t = {
@@ -15,7 +20,6 @@ type t = {
   gh_token : string option;
   offline : string option;
   status_rules : status_rules;
-  suppress_cancelled_events : bool;
 }
 
 let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
@@ -65,15 +69,22 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
       let j = json_config.status_rules.status in
       List.filter_map id
         [
-          (if j.success then Some Success else None);
-          (if j.failure then Some Failure else None);
-          (if j.pending then Some Pending else None);
-          (if j.error then Some Error else None);
+          ( match j.success with
+          | False -> None
+          | True -> Some (State Success)
+          | Once -> Some HideConsecutiveSuccess
+          );
+          (if j.failure then Some (State Failure) else None);
+          (if j.pending then Some (State Pending) else None);
+          (if j.error then Some (State Error) else None);
+          ( match j.cancelled with
+          | Some r -> Some (Cancelled r)
+          | None -> None
+          );
         ]
     in
     { title = json_config.status_rules.title; status }
   in
-  let suppress_cancelled_events = Option.default true json_config.suppress_cancelled_events in
   {
     chans;
     prefix_rules = json_config.prefix_rules;
@@ -83,7 +94,6 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     gh_token = secrets.gh_token;
     offline = json_config.offline;
     status_rules;
-    suppress_cancelled_events;
   }
 
 let load_config_file ~config_path = Notabot_j.config_of_string @@ Stdio.In_channel.read_all config_path
