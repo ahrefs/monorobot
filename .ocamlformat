@@ -1,3 +1,4 @@
+version=0.13.0
 break-cases=toplevel
 break-infix-before-func=false
 break-infix=fit-or-vertical
