@@ -1,4 +1,4 @@
-exception Context_Error of string
+exception Context_error of string
 
 type cfg_make_args =
   | LocalMake of string

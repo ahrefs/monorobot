@@ -2,7 +2,7 @@ open Devkit
 
 let log = Log.from "context"
 
-exception Context_Error of string
+exception Context_error of string
 
 type cfg_make_args =
   | LocalMake of string
@@ -37,16 +37,11 @@ type context_thunk = {
 
 let get_secrets secrets_path = Config.load_secrets_file ~secrets_path
 
-let get_remote_cfg_json_url url = Github.load_config_json url
-
-let get_remote_cfg_json_req filename ?token req =
-  get_remote_cfg_json_url @@ Github.get_remote_config_json_url filename ?token req
-
-let get_local_cfg_json config_path = Lwt.return @@ Config.load_config_file ~config_path
+let load_config_json_local config_path = Lwt.return @@ Config.load_config_file ~config_path
 
 let resolve_cfg_getter = function
-  | Local -> get_local_cfg_json
-  | Remote -> get_remote_cfg_json_url
+  | Local -> load_config_json_local
+  | Remote -> Github.load_config_json
 
 let refresh_config ctx =
   ( match ctx.data.cfg_source with
@@ -68,7 +63,7 @@ let refresh_and_get_config ctx =
 
 let change_remote_url filename ctx req =
   match ctx.data.cfg_source with
-  | Local -> raise @@ Context_Error "cant load remote config from a local context"
+  | Local -> raise @@ Context_error "can't load remote config from a local context"
   | Remote ->
     ctx.data.cfg_filename <- filename;
     let url = Github.get_remote_config_json_url filename ?token:ctx.secrets.gh_token req in
@@ -96,11 +91,12 @@ let make_with_secrets ~state_path ~cfg_args ~secrets_path ~(secrets : Notabot_t.
   =
   let data_cfg_path, cfg_source, cfg_json, cfg_filename =
     match cfg_args with
-    | LocalMake p -> p, Local, get_local_cfg_json p, p
+    | LocalMake p -> p, Local, load_config_json_local p, p
     | RemoteMake (filename, r) ->
-    match secrets.gh_token with
-    | token ->
-      Github.get_remote_config_json_url filename ?token r, Remote, get_remote_cfg_json_req filename ?token r, filename
+      let token = secrets.gh_token in
+      let url = Github.get_remote_config_json_url filename ?token r in
+      let cfg_json = Github.load_config_json @@ Github.get_remote_config_json_url filename ?token r in
+      url, Remote, cfg_json, filename
   in
   let%lwt cfg_json = cfg_json in
   let data =
