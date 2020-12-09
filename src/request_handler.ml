@@ -7,10 +7,7 @@ let update_config (ctx : Lib.Context.t) = function
   | Lib.Github.Push n ->
     let is_config_file f = String.equal f ctx.data.cfg_filename in
     let commit_contains_config_file (c : Lib.Github_t.commit) = List.exists is_config_file (c.added @ c.modified) in
-    ( match List.exists commit_contains_config_file n.commits with
-    | true -> Lib.Context.refresh_config ctx
-    | false -> Lwt.return_unit
-    )
+    if List.exists commit_contains_config_file n.commits then Lib.Context.refresh_config ctx else Lwt.return_unit
   | _ -> Lwt.return_unit
 
 let process_github_notification (ctx_thunk : Lib.Context.context_thunk) headers body =
@@ -31,10 +28,10 @@ let process_github_notification (ctx_thunk : Lib.Context.context_thunk) headers 
         Slack.send_notification url data)
       notifications
   with
-  | Lib.Context.Context_Error s ->
+  | Context.Context_error s ->
     log#error "error creating context from payload: %s" s;
     Lwt.return_unit
-  | Lib.Github.Remote_Config_Error s ->
+  | Github.Remote_config_error s ->
     log#error "error retrieving config from payload: %s" s;
     Lwt.return_unit
 

@@ -1,6 +1,8 @@
 open Base
 open Lib
 
+let log = Devkit.Log.from "test"
+
 let print_notif (chan, msg) =
   let json =
     msg |> Slack_j.string_of_webhook_notification |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string
@@ -23,10 +25,10 @@ let process ~state_dir ~cfg_path ~secrets_path file =
       let state_path = Caml.Filename.concat state_dir @@ Caml.Filename.basename file in
       let ctx_partial = Context.make ~state_path ~secrets_path ~disable_write:true in
       let%lwt ctx =
-        Lwt.catch
-          (fun () -> ctx_partial ~cfg_args:(RemoteMake (cfg_path, event)) ())
-          (function
-            | _ -> ctx_partial ~cfg_args:(LocalMake cfg_path) ())
+        try%lwt ctx_partial ~cfg_args:(RemoteMake (cfg_path, event)) ()
+        with exn ->
+          log#info ~exn "unable to find a remote configuration %s" cfg_path;
+          ctx_partial ~cfg_args:(LocalMake cfg_path) ()
       in
       let%lwt notifs = Action.generate_notifications ctx event in
       List.iter notifs ~f:print_notif;

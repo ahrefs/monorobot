@@ -224,7 +224,7 @@ let partition_status (ctx : Context.t) (n : status_notification) =
     match List.exists n.branches ~f:(fun { name } -> String.equal name main_branch_name) with
     | false -> default ()
     | true ->
-      ( match%lwt Github.generate_query_commmit cfg ~url:n.commit.url ~sha:n.commit.sha with
+      ( match%lwt Github.generate_query_commit cfg ~url:n.commit.url ~sha:n.commit.sha with
       | None -> default ()
       | Some commit ->
         (*
