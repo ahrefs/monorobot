@@ -74,15 +74,30 @@ let get_remote_config_json_url filename ?token req =
     end
 
 let config_of_content_api_response response =
-  match response.encoding with
-  | "base64" ->
-    Lwt.return
-    @@ Notabot_j.config_of_string
-    @@ Base64.decode_string
-    @@ String.concat
-    @@ String.split ~on:'\n'
-    @@ response.content
-  | e -> remote_config_error "unknown encoding format '%s'" e
+  let decode_string_pad s =
+    let rec strip_padding i =
+      if i < 0 then ""
+      else (
+        match s.[i] with
+        | '=' | '\n' | '\r' | '\t' | ' ' -> strip_padding (i - 1)
+        | _ -> String.sub s ~pos:0 ~len:(i + 1)
+      )
+    in
+    Base64.decode_string @@ strip_padding (String.length s - 1)
+  in
+  try%lwt
+    match response.encoding with
+    | "base64" ->
+      Lwt.return
+      @@ Notabot_j.config_of_string
+      @@ decode_string_pad
+      @@ String.concat
+      @@ String.split_lines
+      @@ response.content
+    | e -> remote_config_error "unknown encoding format '%s'" e
+  with
+  | Base64.Invalid_char -> remote_config_error "unable to decode configuration file from base64"
+  | Yojson.Json_error msg -> remote_config_error "unable to parse configuration file as valid JSON (%s)" msg
 
 let load_config_json url =
   let headers = [ "Accept: application/vnd.github.v3+json" ] in
