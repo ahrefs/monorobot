@@ -1,5 +1,6 @@
 (executable
- (libraries lib base base.caml cmdliner devkit devkit.core lwt.unix stdio uri)
+ (libraries lib base base.caml cmdliner devkit devkit.core extlib lwt.unix
+   stdio uri)
  (preprocess
   (pps lwt_ppx))
  (public_name notabot))

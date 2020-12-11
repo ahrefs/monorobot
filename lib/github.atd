@@ -231,3 +231,11 @@ type commit_comment_notification = {
   comment: comment;
   sender: user;
 }
+
+type content_api_response = {
+  name : string;
+  path : string;
+  size : int;
+  encoding : string;
+  content : string;
+}

@@ -36,15 +36,16 @@ Config file is where the variables affecting the behaviour of notabot are define
 **example**
 ```json
 "status_rules": {
-    "name": [
+    "title": [
         "default",
         "buildkite/notabot-test"
     ],
     "status": {
         "pending": false,
-        "success": true,
+        "success": "once",
         "failure": true,
-        "error": true
+        "error": true,
+        "cancelled": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$"
     }
 },
 ```
@@ -56,7 +57,16 @@ Config file is where the variables affecting the behaviour of notabot are define
 
 ### Status State
 
-A json object with fields of bools for each status type. Set them to true to suppress status of that type.
+A json object with fields of bools for each status type.
+
+| value | description | optional | default |
+|-|-|-|-|
+| `pending` | `true` to notify; `false` to ignore | No | - |
+| `success` | `true` to notify; `false` to notify all; `"once"` to notify the first and ignore subsequent consecutive successes| No | - |
+| `failure` | `true` to notify; `false` to ignore | No | - |
+| `error` | `true` to notify; `false` to ignore | No | - |
+| `cancelled` | provide regex to ignore `failure` notifications with a description that matches it | Yes | - |
+
 
 ## Label Config
 
