@@ -20,8 +20,7 @@ and use resulting `_build/default/src/notabot.exe` binary.
 
 ## Running
 
-Configuration is read at startup from `notabot.json` and `secrets.json` files
-according to `lib/notabot.atd` schema.
+At startup time, secrets are read from the local `secrets.json` file. The main configuration is read remotely from a `notabot.json` file in the default branch, and its schema is defined in `lib/notabot.atd`.
 
 ### Documentation
 

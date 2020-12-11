@@ -5,23 +5,22 @@ module Arg = Caml.Arg
 
 let log = Log.from "notabot"
 
-let get_context state config secrets =
-  let ctx = Context.make ~state_path:state ~cfg_path:config ~secrets_path:secrets () in
-  let cfg = ctx.cfg in
+let cfg_action_after_refresh (cfg : Config.t) =
   log#info "using prefix routing:";
   Action.print_prefix_routing cfg.prefix_rules.rules;
   log#info "using label routing:";
   Action.print_label_routing cfg.label_rules.rules;
-  ctx
+  log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled")
 
 let update_state_at_path state_path state event = State.save state_path @@ State.update_state state event
 
-let http_server addr port config secrets state_path =
+let http_server ~addr ~port ~config ~secrets ~state =
   log#info "notabot starting";
-  let ctx = get_context state_path config secrets in
-  let cfg = ctx.cfg in
-  log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled");
-  Lwt_main.run (Request_handler.start_http_server ~ctx ~addr ~port ())
+  let ctx_thunk =
+    Context.make_thunk ~state_path:state ~cfg_path_or_remote_filename:config ~secrets_path:secrets
+      ~cfg_action_after_refresh ()
+  in
+  Lwt_main.run (Request_handler.start_http_server ~ctx_thunk ~addr ~port ())
 
 let send_slack_notification webhook file =
   let data = Stdio.In_channel.read_all file in
@@ -30,7 +29,10 @@ let send_slack_notification webhook file =
   | _ -> Lwt_main.run (Slack.send_notification webhook data)
 
 let check_common file print config secrets state_path =
-  let ctx = get_context state_path config secrets in
+  let ctx_thunk =
+    Context.make_thunk ~state_path ~cfg_path_or_remote_filename:config ~secrets_path:secrets ~cfg_action_after_refresh
+      ()
+  in
   match Mock.kind file with
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
@@ -43,6 +45,7 @@ let check_common file print config secrets state_path =
       log#error ~exn "unable to parse payload";
       Lwt.return_unit
     | event ->
+      let%lwt ctx = Context.resolve_ctx_in_thunk ctx_thunk event in
       let%lwt notifs = Action.generate_notifications ctx event in
       List.iter ~f:print notifs;
       Lwt.return_unit
@@ -85,7 +88,7 @@ let port =
   Arg.(value & opt int 8080 & info [ "p"; "port" ] ~docv:"PORT" ~doc)
 
 let config =
-  let doc = "configuration file" in
+  let doc = "remote configuration file name" in
   Arg.(value & opt file "notabot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
 
 let secrets =
@@ -115,6 +118,7 @@ let json =
 let run =
   let doc = "launch the http server" in
   let info = Term.info "run" ~doc in
+  let http_server addr port config secrets state = http_server ~addr ~port ~config ~secrets ~state in
   let term = Term.(const http_server $ addr $ port $ config $ secrets $ state) in
   term, info
 

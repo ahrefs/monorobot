@@ -18,13 +18,100 @@ type t =
 
 (* all other events *)
 
+exception Remote_config_error of string
+
+let remote_config_error fmt = ksprintf (fun s -> raise (Remote_config_error s)) fmt
+
+let to_repo = function
+  | Push n -> Some n.repository
+  | Pull_request n -> Some n.repository
+  | PR_review n -> Some n.repository
+  | PR_review_comment n -> Some n.repository
+  | Issue n -> Some n.repository
+  | Issue_comment n -> Some n.repository
+  | Commit_comment n -> Some n.repository
+  | Status n -> Some n.repository
+  | Event _ -> None
+
+let api_url_of_repo (repo : repository) =
+  Option.map ~f:(fun host ->
+    match host with
+    | "api.github.com" -> sprintf "https://%s" host
+    | _ -> sprintf "https://%s/api/v3" host)
+  @@ Uri.host
+  @@ Uri.of_string repo.url
+
+let user_of_full_name_parts full_name_parts =
+  match full_name_parts with
+  | user :: _ -> Some user
+  | _ -> None
+
+let name_of_full_name_parts full_name_parts =
+  match full_name_parts with
+  | _ :: repo_name :: _ -> Some repo_name
+  | _ -> None
+
+let get_remote_config_json_url filename ?token req =
+  match to_repo req with
+  | None -> remote_config_error "unable to resolve repository from request"
+  | Some repo ->
+  match String.split ~on:'/' repo.full_name with
+  | full_name_parts ->
+  match user_of_full_name_parts full_name_parts with
+  | None -> remote_config_error "unable to resolve repository owner"
+  | Some owner ->
+  match name_of_full_name_parts full_name_parts with
+  | None -> remote_config_error "unable to resolve repository name"
+  | Some repo_name ->
+  match api_url_of_repo repo with
+  | None -> remote_config_error "unable to resolve github api url from repository url"
+  | Some base_url ->
+    let url = sprintf "%s/repos/%s/%s/contents/%s" base_url owner repo_name filename in
+    begin
+      match token with
+      | None -> url
+      | Some token -> sprintf "%s?access_token=%s" url token
+    end
+
+let config_of_content_api_response response =
+  let decode_string_pad s =
+    let rec strip_padding i =
+      if i < 0 then ""
+      else (
+        match s.[i] with
+        | '=' | '\n' | '\r' | '\t' | ' ' -> strip_padding (i - 1)
+        | _ -> String.sub s ~pos:0 ~len:(i + 1)
+      )
+    in
+    Base64.decode_string @@ strip_padding (String.length s - 1)
+  in
+  try%lwt
+    match response.encoding with
+    | "base64" ->
+      Lwt.return
+      @@ Notabot_j.config_of_string
+      @@ decode_string_pad
+      @@ String.concat
+      @@ String.split_lines
+      @@ response.content
+    | e -> remote_config_error "unknown encoding format '%s'" e
+  with
+  | Base64.Invalid_char -> remote_config_error "unable to decode configuration file from base64"
+  | Yojson.Json_error msg -> remote_config_error "unable to parse configuration file as valid JSON (%s)" msg
+
+let load_config_json url =
+  let headers = [ "Accept: application/vnd.github.v3+json" ] in
+  match%lwt Web.http_request_lwt ~headers `GET url with
+  | `Error e -> remote_config_error "error while querying github api %s: %s" url e
+  | `Ok s -> config_of_content_api_response @@ Github_j.content_api_response_of_string s
+
 let is_valid_signature ~secret headers_sig body =
   let request_hash =
     let key = Cstruct.of_string secret in
     Cstruct.to_string @@ Nocrypto.Hash.SHA1.hmac ~key (Cstruct.of_string body)
   in
   let (`Hex request_hash) = Hex.of_string request_hash in
-  String.equal headers_sig (Printf.sprintf "sha1=%s" request_hash)
+  String.equal headers_sig (sprintf "sha1=%s" request_hash)
 
 (* Parse a payload. The type of the payload is detected from the headers. *)
 let parse_exn ~secret headers body =
@@ -66,7 +153,7 @@ let query_api ?token ~url parse =
     log#error ~exn "impossible to parse github api answer to %s" url;
     Lwt.return_none
 
-let generate_query_commmit cfg ~url ~sha =
+let generate_query_commit cfg ~url ~sha =
   (* the expected output is a payload containing content about commits *)
   match cfg.Config.offline with
   | None -> query_api ?token:cfg.Config.gh_token ~url api_commit_of_string
@@ -99,4 +186,4 @@ let generate_commit_from_commit_comment cfg n =
   in
   let commit_url = String.sub ~pos:0 ~len:url_length url ^ "/" ^ sha in
   (* add sha hash to get the full api link *)
-  generate_query_commmit cfg ~url:commit_url ~sha
+  generate_query_commit cfg ~url:commit_url ~sha
