@@ -7,7 +7,7 @@ Secret file is where sensitive information such as the urls used for webhooks an
 **example**
 ```json
 {
-    "slack_channels": [
+    "slack_hooks": [
         {
             "url": "https://slack_webhook_url",
             "channel": "default"
@@ -42,7 +42,7 @@ Secret file is where sensitive information such as the urls used for webhooks an
 
 | value | description | optional | default |
 |-|-|-|-|
-| `slack_channels` | list of webhook config objects | No | - |
+| `slack_hooks` | list of webhook config objects | No | - |
 | `gh_token` | must not be specified for public repositories | Yes | - |
 | `gh_webhook_secret` | if not specified signatures will not be checked | Yes | - |
 

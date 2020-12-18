@@ -30,24 +30,24 @@ type webhook = {
   The rule is considered matched if there is at least one file in commit that
   matches one of the [prefix] and does not match any of [ignore] *)
 type prefix_rule = {
-  prefix : string list; (* empty list means match any *)
+  allow : string list; (* empty list means match any *)
   ~ignore : string list;
-  chan : string;
+  channel_name <json name="channel"> : string;
 }
 
 type label_rule = {
-  label_name : string list;
+  allow : string list;
   ~ignore : string list;
-  chan: string;
+  channel_name <json name="channel"> : string;
 }
 
-type prefix_config = {
-  ?default: string nullable; (* if none of the rules is matching *)
+type prefix_rules = {
+  ?default_channel: string nullable; (* if none of the rules is matching *)
   rules: prefix_rule list;
 }
 
-type label_config = {
-  ?default: string nullable; (* if none of the rules is matching *)
+type label_rules = {
+  ?default_channel: string nullable; (* if none of the rules is matching *)
   rules: label_rule list;
 }
 
@@ -61,21 +61,21 @@ type status_state = {
   ?cancelled: string option; (* if specified, it will use the string as regex to match the description from the payload to determine if the status_state is cancelled *)
 }
 
-type status_config = {
-  ?title: string list option; (* keep only status events with a title matching this list *)
-  status: status_state;
+type status_rules = {
+  ?allowed_pipelines: string list option; (* keep only status events with a title matching this list *)
+  rules: status_state;
 }
 
 type config = {
-  prefix_rules : prefix_config;
-  label_rules : label_config;
-  status_rules : status_config;
+  prefix_rules : prefix_rules;
+  label_rules : label_rules;
+  status_rules : status_rules;
   ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)
   ?offline: string option; (* where to find github api data when http calls are not allowed *)
 }
 
 type secrets = {
-  slack_channels : webhook list;
+  slack_hooks : webhook list;
   ?gh_token: string option; (* must not be specified for public repositories *)
   ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
 }
@@ -91,5 +91,5 @@ type branch_info = {
 }
 
 type state = {
-  branches : (string * branch_info) list;
+  pipeline_statuses : (string * branch_info) list;
 }

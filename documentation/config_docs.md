@@ -10,13 +10,13 @@ Config file is where the variables affecting the behaviour of notabot are define
     "offline": "github-api-cache",
     "main_branch_name": "develop",
     "status_rules": {
-      ...
+        ...
     },
     "prefix_rules": {
-      ...
+        ...
     },
     "label_rules": {
-      ...
+        ...
     },
     "suppress_cancelled_events": true
 }
@@ -36,7 +36,7 @@ Config file is where the variables affecting the behaviour of notabot are define
 **example**
 ```json
 "status_rules": {
-    "title": [
+    "allowed_pipelines": [
         "default",
         "buildkite/pipeline2"
     ],
@@ -75,37 +75,37 @@ Label rules apply to PR and issues notifications.
 **example**
 ```json
 "label_rules": {
-    "default": "default",
+    "default_channel": "default",
     "rules": [
         {
-            "label_name": [
+            "allow": [
                 "backend"
             ],
             "ignore": [],
-            "chan": "backend"
+            "channel": "backend"
         },
         {
-            "label_name": [
+            "allow": [
                 "a1"
             ],
             "ignore": [],
-            "chan": "a1-bot"
+            "channel": "a1-bot"
         },
         {
-            "label_name": [
+            "allow": [
                 "a3"
             ],
             "ignore": [],
-            "chan": "a3"
+            "channel": "a3"
         },
         {
-            "label_name": [],
+            "allow": [],
             "ignore": [
                 "backend",
                 "a1",
                 "a3"
             ],
-            "chan": "frontend-bot"
+            "channel": "frontend-bot"
         }
     ]
 },
@@ -113,16 +113,16 @@ Label rules apply to PR and issues notifications.
 
 | value | description | optional | default |
 |-|-|-|-|
-| `default` | default channel to notify if no rules match | Yes | no channels will be notified on default |
+| `default_channel` | default channel to notify if no rules match | Yes | no channels will be notified on default |
 | `rules` | list of `label_rule` objects | No | - |
 
 ### Label Rule
 
 | value | description | optional | default |
 |-|-|-|-|
-| `label_name` | whitelist of label values that match this rule; if list is empty it vacuously satisfies the rule | No | - |
+| `allow` | whitelist of label values that match this rule; if list is empty it vacuously satisfies the rule | No | - |
 | `ignore` | blacklist of label values; any labels matching will not match the rule | No | - |
-| `chan` | channel to use as webhook if matching this label rule | No | - |
+| `channel` | channel to use as webhook if matching this label rule | No | - |
 
 ## Prefix Config
 
@@ -133,27 +133,27 @@ The prefix config object is exactly the same as **Label Config** except its `rul
 **example**
 ```json
 "prefix_rules": {
-    "default": "default",
+    "default_channel": "default",
     "rules": [
         {
-            "prefix": [
+            "allow": [
                 "backend/a1"
             ],
             "ignore": [],
-            "chan": "a1"
+            "channel": "a1"
         },
         {
-            "prefix": [
+            "allow": [
                 "backend/a5",
                 "backend/a4"
             ],
             "ignore": [],
-            "chan": "backend"
+            "channel": "backend"
         },
         {
-            "prefix": [],
+            "allow": [],
             "ignore": [],
-            "chan": "all-push-events"
+            "channel": "all-push-events"
         }
     ]
 },
@@ -164,6 +164,6 @@ The prefix config object is exactly the same as **Label Config** except its `rul
 
 | value | description | optional | default |
 |-|-|-|-|
-| `prefix` | whitelist of strings that if prefixed in the filename matches the rule | No | - |
+| `allow` | whitelist of strings that if prefixed in the filename matches the rule | No | - |
 | `ignore` | blacklist of strings that if prefixed in the filename does not match the rule | No | - |
-| `chan` | channel to use as webhook if matching this prefix rule | No | - |
+| `channel` | channel to use as webhook if matching this prefix rule | No | - |
