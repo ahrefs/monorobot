@@ -2,8 +2,11 @@ open Devkit
 open Base
 open Lib
 module Arg = Caml.Arg
+open Cmdliner
 
-let log = Log.from "notabot"
+let log = Log.from "monorobot"
+
+(* entrypoints *)
 
 let cfg_action_after_refresh (cfg : Config.t) =
   log#info "using prefix routing:";
@@ -14,15 +17,15 @@ let cfg_action_after_refresh (cfg : Config.t) =
 
 let update_state_at_path state_path state event = State.save state_path @@ State.update_state state event
 
-let http_server ~addr ~port ~config ~secrets ~state =
-  log#info "notabot starting";
+let http_server_action addr port config secrets state =
+  log#info "monorobot starting";
   let ctx_thunk =
     Context.make_thunk ~state_path:state ~cfg_path_or_remote_filename:config ~secrets_path:secrets
       ~cfg_action_after_refresh ()
   in
   Lwt_main.run (Request_handler.start_http_server ~ctx_thunk ~addr ~port ())
 
-let send_slack_notification webhook file =
+let check_slack_action webhook file =
   let data = Stdio.In_channel.read_all file in
   match Slack_j.webhook_notification_of_string data with
   | exception exn -> log#error ~exn "unable to parse notification"
@@ -68,16 +71,14 @@ let print_json_message (chan, msg) =
   log#info "%s" (Uri.to_string url);
   log#info "%s" json
 
-let check file json config secrets state =
+let check_gh_action file json config secrets state =
   Lwt_main.run
     ( match json with
     | false -> check_common file print_simplified_message config secrets state
     | true -> check_common file print_json_message config secrets state
     )
 
-(** {2 cli} *)
-
-open Cmdliner
+(* flags *)
 
 let addr =
   let doc = "http listen addr" in
@@ -89,55 +90,56 @@ let port =
 
 let config =
   let doc = "remote configuration file name" in
-  Arg.(value & opt file "notabot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
+  Arg.(value & opt file "monorobot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
 
 let secrets =
   let doc = "configuration file containing secrets" in
-  Arg.(value & opt file "secrets.json" & info [ "secrets" ] ~docv:"secrets" ~doc)
+  Arg.(value & opt file "secrets.json" & info [ "secrets" ] ~docv:"SECRETS" ~doc)
 
 let state =
   let doc = "state file" in
   Arg.(value & opt file "notabot_state.json" & info [ "state" ] ~docv:"STATE" ~doc)
 
-let mock_payload =
-  let doc = "mock github webhook payload" in
-  Arg.(required & pos 0 (some file) None & info [] ~docv:"MOCK_PAYLOAD" ~doc)
+let gh_payload =
+  let doc = "JSON file containing a github webhook payload" in
+  Arg.(required & pos 0 (some file) None & info [] ~docv:"GH_PAYLOAD" ~doc)
 
 let slack_webhook_url =
   let doc = "slack webhook url" in
   Arg.(required & pos 0 (some string) None & info [] ~docv:"SLACK_WEBHOOK" ~doc)
 
-let slack_notif =
-  let doc = "file containing a slack notification as a json" in
-  Arg.(required & pos 1 (some file) None & info [] ~docv:"SLACK_NOTIF" ~doc)
+let slack_payload =
+  let doc = "JSON file containing a slack notification" in
+  Arg.(required & pos 1 (some file) None & info [] ~docv:"SLACK_PAYLOAD" ~doc)
 
 let json =
   let doc = "display output as json" in
   Arg.(value & flag & info [ "j"; "json" ] ~docv:"JSON" ~doc)
 
+(* commands *)
+
 let run =
   let doc = "launch the http server" in
   let info = Term.info "run" ~doc in
-  let http_server addr port config secrets state = http_server ~addr ~port ~config ~secrets ~state in
-  let term = Term.(const http_server $ addr $ port $ config $ secrets $ state) in
+  let term = Term.(const http_server_action $ addr $ port $ config $ secrets $ state) in
   term, info
 
-let check =
-  let doc = "read github notification payload from file and show actions to be taken" in
-  let info = Term.info "check" ~doc in
-  let term = Term.(const check $ mock_payload $ json $ config $ secrets $ state) in
+let check_gh =
+  let doc = "read a Github notification from a file and display the actions that will be taken; used for testing" in
+  let info = Term.info "check_gh" ~doc in
+  let term = Term.(const check_gh_action $ gh_payload $ json $ config $ secrets $ state) in
   term, info
 
-let slack_notif =
-  let doc = "read github notification payload from file and show actions to be taken" in
-  let info = Term.info "send-slack-notif" ~doc in
-  let term = Term.(const send_slack_notification $ slack_webhook_url $ slack_notif) in
+let check_slack =
+  let doc = "read a Slack notification from a file and send it to a webhook; used for testing" in
+  let info = Term.info "check_slack" ~doc in
+  let term = Term.(const check_slack_action $ slack_webhook_url $ slack_payload) in
   term, info
 
 let default_cmd =
   let doc = "the notification bot" in
-  Term.(ret (const (`Help (`Pager, None)))), Term.info "notabot" ~doc
+  Term.(ret (const (`Help (`Pager, None)))), Term.info "monorobot" ~doc
 
-let cmds = [ run; check; slack_notif ]
+let cmds = [ run; check_gh; check_slack ]
 
 let () = Term.(exit @@ eval_choice default_cmd cmds)

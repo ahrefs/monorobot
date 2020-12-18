@@ -2,21 +2,21 @@ open Devkit
 
 let log = Log.from "state"
 
-let default_state : Notabot_t.state = { branches = [] }
+let default_state : Notabot_t.state = { pipeline_statuses = [] }
 
 let default_branch_state timestamp =
   let branch_info : Notabot_t.branch_info = { last_build_state = Failure; updated_at = timestamp } in
   branch_info
 
-let get_branch_state name (state : Notabot_t.state) = List.assoc_opt name state.branches
+let get_branch_state name (state : Notabot_t.state) = List.assoc_opt name state.pipeline_statuses
 
 let set_branch_state name (branch_state : Notabot_t.branch_info) (state : Notabot_t.state) : Notabot_t.state =
-  let removed_list = List.remove_assoc name state.branches in
-  { branches = (name, branch_state) :: removed_list }
+  let removed_list = List.remove_assoc name state.pipeline_statuses in
+  { pipeline_statuses = (name, branch_state) :: removed_list }
 
 let set_branch_last_build_state name build_state timestamp (state : Notabot_t.state) : Notabot_t.state =
   match get_branch_state name state with
-  | None -> { branches = (name, { last_build_state = build_state; updated_at = timestamp }) :: state.branches }
+  | None -> { pipeline_statuses = (name, { last_build_state = build_state; updated_at = timestamp }) :: state.pipeline_statuses }
   | Some _ -> set_branch_state name { last_build_state = build_state; updated_at = timestamp } state
 
 let build_state_of_status_state = function

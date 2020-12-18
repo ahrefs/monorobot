@@ -2,11 +2,11 @@
     "offline": "github-api-cache",
     "main_branch_name": "develop",
     "status_rules": {
-        "title": [
+        "allowed_pipelines": [
             "default",
             "buildkite/notabot-test"
         ],
-        "status": {
+        "rules": {
             "pending": false,
             "failure": true,
             "error": true,
@@ -15,69 +15,69 @@
         }
     },
     "prefix_rules": {
-        "default": "default",
+        "default_channel": "default",
         "rules": [
             {
-                "prefix": [
+                "allow": [
                     "backend/api"
                 ],
                 "ignore": [],
-                "chan": "aa"
+                "channel": "aa"
             },
             {
-                "prefix": [
+                "allow": [
                     "backend/api/longest"
                 ],
                 "ignore": [],
-                "chan": "longest-aa"
+                "channel": "longest-aa"
             },
             {
-                "prefix": [
+                "allow": [
                     "backend/megaindex",
                     "backend/ahrefskit"
                 ],
                 "ignore": [],
-                "chan": "backend"
+                "channel": "backend"
             },
             {
-                "prefix": [],
+                "allow": [],
                 "ignore": [],
-                "chan": "all-push-events"
+                "channel": "all-push-events"
             }
         ]
     },
     "label_rules": {
-        "default": "default",
+        "default_channel": "default",
         "rules": [
             {
-                "label_name": [
+                "allow": [
                     "backend"
                 ],
                 "ignore": [],
-                "chan": "backend"
+                "channel": "backend"
             },
             {
-                "label_name": [
+                "allow": [
                     "aa"
                 ],
                 "ignore": [],
-                "chan": "aa-git"
+                "channel": "aa-git"
             },
             {
-                "label_name": [
+                "allow": [
                     "siren"
                 ],
                 "ignore": [],
-                "chan": "siren"
+                "channel": "siren"
             },
             {
-                "label_name": [],
+                "allow": [],
                 "ignore": [
                     "backend",
                     "aa",
                     "siren"
                 ],
-                "chan": "frontend-bot"
+                "channel": "frontend-bot"
             }
         ]
     }

@@ -13,7 +13,7 @@ type prefix_match =
   | Match of int
   | NoMatch
 
-let chan_of_prefix_rule (r : prefix_rule) = r.chan
+let chan_of_prefix_rule (r : prefix_rule) = r.channel_name
 
 let touching_prefix (rule : Notabot_t.prefix_rule) name =
   let match_lengths filename prefixes =
@@ -24,10 +24,10 @@ let touching_prefix (rule : Notabot_t.prefix_rule) name =
   match match_lengths name rule.ignore with
   | _ :: _ -> NoMatch
   | [] ->
-  match rule.prefix with
+  match rule.allow with
   | [] -> Match 0
   | _ ->
-  match List.max_elt (match_lengths name rule.prefix) ~compare:Int.compare with
+  match List.max_elt (match_lengths name rule.allow) ~compare:Int.compare with
   | Some x -> Match x
   | None -> NoMatch
 
@@ -58,7 +58,7 @@ let unique_chans_of_files rules files =
 
 let touching_label rule name =
   let name_lc = String.lowercase name in
-  let label_lc = List.map rule.label_name ~f:(fun l -> String.lowercase l) in
+  let label_lc = List.map rule.allow ~f:(fun l -> String.lowercase l) in
   let ignore_lc = List.map rule.ignore ~f:(fun l -> String.lowercase l) in
   (* convert both labels and config into lowe-case to make label matching case-insensitive *)
   (List.is_empty label_lc || List.mem ~equal:String.equal label_lc name_lc)
@@ -93,7 +93,9 @@ let group_commit chan l =
     | true -> Some commit)
 
 let partition_push cfg n =
-  let default commit = Option.value_map cfg.prefix_rules.default ~default:[] ~f:(fun webhook -> [ webhook, commit ]) in
+  let default commit =
+    Option.value_map cfg.prefix_rules.default_channel ~default:[] ~f:(fun webhook -> [ webhook, commit ])
+  in
   let rules = cfg.prefix_rules.rules in
   let channels =
     n.commits
@@ -110,7 +112,10 @@ let partition_push cfg n =
     |> List.concat
   in
   let prefix_chans =
-    let chans = Option.to_list cfg.prefix_rules.default @ List.map rules ~f:(fun (rule : prefix_rule) -> rule.chan) in
+    let chans =
+      Option.to_list cfg.prefix_rules.default_channel
+      @ List.map rules ~f:(fun (rule : prefix_rule) -> rule.channel_name)
+    in
     List.dedup_and_sort chans ~compare:String.compare
   in
   List.filter_map prefix_chans ~f:(fun chan ->
@@ -123,10 +128,10 @@ let filter_label rules (label : Github_j.label) =
   |> List.filter_map ~f:(fun rule ->
        match touching_label rule label.name with
        | false -> None
-       | true -> Some rule.chan)
+       | true -> Some rule.channel_name)
 
 let partition_label cfg (labels : Github_j.label list) =
-  let default = Option.to_list cfg.label_rules.default in
+  let default = Option.to_list cfg.label_rules.default_channel in
   match labels with
   | [] -> default
   | labels ->
@@ -180,7 +185,7 @@ let partition_commit cfg files =
   let names = List.map ~f:(fun f -> f.filename) files in
   match unique_chans_of_files cfg.prefix_rules.rules names with
   | _ :: _ as xs -> xs
-  | [] -> Option.to_list cfg.prefix_rules.default
+  | [] -> Option.to_list cfg.prefix_rules.default_channel
 
 let hide_cancelled (notification : status_notification) cfg =
   let find_cancelled status_state =
@@ -216,7 +221,7 @@ let hide_success (n : status_notification) (ctx : Context.t) =
 let partition_status (ctx : Context.t) (n : status_notification) =
   let cfg = ctx.cfg in
   let get_commit_info () =
-    let default () = Lwt.return @@ Option.to_list cfg.prefix_rules.default in
+    let default () = Lwt.return @@ Option.to_list cfg.prefix_rules.default_channel in
     match cfg.main_branch_name with
     | None -> default ()
     | Some main_branch_name ->
@@ -263,7 +268,7 @@ let partition_status (ctx : Context.t) (n : status_notification) =
   res
 
 let partition_commit_comment cfg n =
-  let default = Option.to_list cfg.prefix_rules.default in
+  let default = Option.to_list cfg.prefix_rules.default_channel in
   match n.comment.path with
   | None ->
     ( match%lwt Github.generate_commit_from_commit_comment cfg n with
@@ -308,25 +313,25 @@ let generate_notifications (ctx : Context.t) req =
 let print_prefix_routing rules =
   let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
   rules
-  |> List.iter ~f:(fun rule ->
+  |> List.iter ~f:(fun (rule : prefix_rule) ->
        begin
-         match rule.prefix, rule.ignore with
+         match rule.allow, rule.ignore with
          | [], [] -> Stdio.printf "  any"
          | l, [] -> Stdio.printf "  %s" (show_match l)
          | [], l -> Stdio.printf "  not %s" (show_match l)
          | l, i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
        end;
-       Stdio.printf " -> #%s\n%!" rule.chan)
+       Stdio.printf " -> #%s\n%!" rule.channel_name)
 
 let print_label_routing rules =
   let show_match l = String.concat ~sep:" or " l in
   rules
-  |> List.iter ~f:(fun rule ->
+  |> List.iter ~f:(fun (rule : label_rule) ->
        begin
-         match rule.label_name, rule.ignore with
+         match rule.allow, rule.ignore with
          | [], [] -> Stdio.printf "  any"
          | l, [] -> Stdio.printf "  %s" (show_match l)
          | [], l -> Stdio.printf "  not %s" (show_match l)
          | l, i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
        end;
-       Stdio.printf " -> #%s\n%!" rule.chan)
+       Stdio.printf " -> #%s\n%!" rule.channel_name)

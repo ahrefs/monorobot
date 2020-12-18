@@ -1,6 +1,6 @@
 type basic_json <ocaml module="Yojson.Basic" t="t"> = abstract
 
-type author = {
+type git_user = {
   name: string;
   email: string;
   ?username: string option;
@@ -14,14 +14,14 @@ type commit = {
   message: string;
   timestamp: string;
   url: string;
-  author:  author;
-  committer: author;
+  author:  git_user;
+  committer: git_user;
   added: string list;
   removed: string list;
   modified: string list;
 }
 
-type user = {
+type github_user = {
   login: string;
   id: int;
 }
@@ -43,8 +43,8 @@ type commit_pushed_notification = {
  ?head_commit: commit option;
  repository: repository;
  compare: string;
- pusher: author;
- sender: user;
+ pusher: git_user;
+ sender: github_user;
 }
 
 type label = {
@@ -52,7 +52,7 @@ type label = {
 }
 
 type pull_request = {
-  user: user;
+  user: github_user;
   number: int;
   body: string;
   title: string;
@@ -61,7 +61,7 @@ type pull_request = {
 }
 
 type issue = {
-  user: user;
+  user: github_user;
   number: int;
   body: string;
   title: string;
@@ -115,7 +115,7 @@ type issue_action = [
 type pr_notification = {
   action: pr_action;
   number: int;
-  sender: user;
+  sender: github_user;
   pull_request: pull_request;
   repository: repository;
 }
@@ -128,7 +128,7 @@ type review = {
 
 type pr_review_notification = {
   action: pr_review_action;
-  sender: user;
+  sender: github_user;
   pull_request: pull_request;
   review: review;
   repository: repository;
@@ -136,7 +136,7 @@ type pr_review_notification = {
 
 type issue_notification = {
   action: issue_action;
-  sender: user;
+  sender: github_user;
   issue: issue;
   repository: repository;
 }
@@ -158,7 +158,7 @@ type comment = {
 type issue_comment_notification = {
   action: comment_action;
   issue: issue;
-  sender: user;
+  sender: github_user;
   comment: comment;
   repository: repository;
 }
@@ -166,7 +166,7 @@ type issue_comment_notification = {
 type pr_review_comment_notification = {
   action: comment_action;
   pull_request: pull_request;
-  sender: user;
+  sender: github_user;
   comment: comment;
   repository: repository;
 }
@@ -179,7 +179,7 @@ type status_state = [
 ] <ocaml repr="classic">
 
 type inner_commit = {
-  author: author;
+  author: git_user;
   message: string;
 }
 
@@ -191,7 +191,7 @@ type status_commit = {
   sha: commit_hash;
   commit: inner_commit;
   url: string;
-  author: user;
+  author: github_user;
   html_url: string;
 }
 
@@ -221,7 +221,7 @@ type api_commit = {
   sha: commit_hash;
   commit: inner_commit;
   html_url <ocaml name="url"> : string;
-  author: user;
+  author: github_user;
   files: file list;
 }
 
@@ -229,7 +229,7 @@ type commit_comment_notification = {
   action: string;
   repository: repository;
   comment: comment;
-  sender: user;
+  sender: github_user;
 }
 
 type content_api_response = {

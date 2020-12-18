@@ -13,8 +13,8 @@ type status_rules = {
 
 type t = {
   chans : string Chan_map.t;
-  prefix_rules : Notabot_t.prefix_config;
-  label_rules : Notabot_t.label_config;
+  prefix_rules : Notabot_t.prefix_rules;
+  label_rules : Notabot_t.label_rules;
   gh_webhook_secret : string option;
   main_branch_name : string option;
   gh_token : string option;
@@ -29,44 +29,44 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
         match Chan_map.find_opt webhook.channel acc with
         | None -> Chan_map.add webhook.channel webhook.url acc
         | Some c -> Exn.fail "chan %s is defined multiple time in the config" c)
-      Chan_map.empty secrets.slack_channels
+      Chan_map.empty secrets.slack_hooks
   in
   let () =
     List.iteri
-      (fun i ({ chan; _ } : Notabot_t.prefix_rule) ->
-        match Chan_map.find_opt chan chans with
-        | None -> Exn.fail "chan %s in prefix_rules %d is missing from slack_channels" chan i
+      (fun i ({ channel_name; _ } : Notabot_t.prefix_rule) ->
+        match Chan_map.find_opt channel_name chans with
+        | None -> Exn.fail "chan %s in prefix_rules %d is missing from slack_hooks" channel_name i
         | Some _ -> ())
       json_config.prefix_rules.rules
   in
   let () =
     List.iteri
-      (fun i ({ chan; _ } : Notabot_t.label_rule) ->
-        match Chan_map.find_opt chan chans with
-        | None -> Exn.fail "chan %s in labels_rules %d is missing from slack_channels" chan i
+      (fun i ({ channel_name; _ } : Notabot_t.label_rule) ->
+        match Chan_map.find_opt channel_name chans with
+        | None -> Exn.fail "chan %s in labels_rules %d is missing from slack_hooks" channel_name i
         | Some _ -> ())
       json_config.label_rules.rules
   in
   let () =
-    match json_config.prefix_rules.default with
+    match json_config.prefix_rules.default_channel with
     | None -> ()
     | Some d ->
     match Chan_map.find_opt d chans with
-    | None -> Exn.fail "default chan %s in prefix_rules is missing from slack_channels" d
+    | None -> Exn.fail "default chan %s in prefix_rules is missing from slack_hooks" d
     | Some _ -> ()
   in
   let () =
-    match json_config.label_rules.default with
+    match json_config.label_rules.default_channel with
     | None -> ()
     | Some d ->
     match Chan_map.find_opt d chans with
-    | None -> Exn.fail "default chan %s in label_rules is missing from slack_channels" d
+    | None -> Exn.fail "default chan %s in label_rules is missing from slack_hooks" d
     | Some _ -> ()
   in
   let status_rules =
     let status =
       let open Github_t in
-      let j = json_config.status_rules.status in
+      let j = json_config.status_rules.rules in
       List.filter_map id
         [
           ( match j.success with
@@ -83,7 +83,7 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
           );
         ]
     in
-    { title = json_config.status_rules.title; status }
+    { title = json_config.status_rules.allowed_pipelines; status }
   in
   {
     chans;
