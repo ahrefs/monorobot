@@ -1,9 +1,10 @@
 open Printf
 open Devkit
 open Lib
-open Action
 
 let log = Log.from "request_handler"
+
+module Action = Action.Action (Api_remote.Github) (Api_remote.Slack)
 
 let setup_http ~ctx ~signature ~port ~ip =
   let open Httpev in
