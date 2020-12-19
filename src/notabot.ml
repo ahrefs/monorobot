@@ -25,59 +25,48 @@ let http_server_action addr port config secrets state =
       )
     )
 
-(* let check_slack_action webhook file =
-  let data = Stdio.In_channel.read_all file in
-  match Slack_j.webhook_notification_of_string data with
-  | exception exn -> log#error ~exn "unable to parse notification"
-  | _ -> Lwt_main.run (Slack.send_notification webhook data)
-
-let check_common file print config secrets state_path =
-  let ctx_thunk =
-    Context.make_thunk ~state_path ~cfg_path_or_remote_filename:config ~secrets_path:secrets ~cfg_action_after_refresh
-      ()
-  in
-  let filename = Caml.Filename.basename file in
-  match Github.event_of_filename filename with
-  | None ->
-    log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
-    Lwt.return_unit
-  | Some kind ->
-    let headers = [ "x-github-event", kind ] in
-    (* read the event from a file and try to parse it *)
-    ( match Github.parse_exn ~secret:None headers (Stdio.In_channel.read_all file) with
-    | exception exn ->
-      log#error ~exn "unable to parse payload";
-      Lwt.return_unit
-    | event ->
-      let%lwt ctx = Context.resolve_ctx_in_thunk ctx_thunk event in
-      let%lwt notifs = Action.generate_notifications ctx event in
-      List.iter ~f:print notifs;
-      Lwt.return_unit
-    )
-
-let print_simplified_message (chan, msg) =
-  (* In check mode, instead of actually sending the message to slack, we
-     simply print it in the console *)
-  log#info "will notify %s%s" chan
-    ( match msg.Slack_t.text with
-    | None -> ""
-    | Some s -> Printf.sprintf " with %S" s
-    )
-
-let print_json_message (chan, msg) =
-  let json = Slack_j.string_of_webhook_notification msg in
-  log#info "will notify %s" chan;
-  let url = Uri.of_string "https://api.slack.com/docs/messages/builder" in
-  let url = Uri.add_query_param url ("msg", [ json ]) in
-  log#info "%s" (Uri.to_string url);
-  log#info "%s" json
-
+(** In check mode, instead of actually sending the message to slack, we
+    simply print it in the console *)
 let check_gh_action file json config secrets state =
   Lwt_main.run
-    ( match json with
-    | false -> check_common file print_simplified_message config secrets state
-    | true -> check_common file print_json_message config secrets state
-    ) *)
+    begin
+      match Github.event_of_filename file with
+      | None ->
+        log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
+        Lwt.return_unit
+      | Some kind ->
+        let headers = [ "x-github-event", kind ] in
+        ( match%lwt Common.get_local_file file with
+        | Error e ->
+          log#error "%s" e;
+          Lwt.return_unit
+        | Ok body ->
+          let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
+          let%lwt () =
+            if json then
+              let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_json) in
+              Action.process_github_notification ctx headers body
+            else
+              let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_simple) in
+              Action.process_github_notification ctx headers body
+          in
+          Lwt.return_unit
+        )
+    end
+
+let check_slack_action url file =
+  let data = Stdio.In_channel.read_all file in
+  let chan = Printf.sprintf "webhook %s" url in
+  match Slack_j.webhook_notification_of_string data with
+  | exception exn -> log#error ~exn "unable to parse notification"
+  | msg ->
+    Lwt_main.run
+      ( match%lwt Api_remote.Slack.send_notification ~chan ~msg ~url with
+      | Error e ->
+        log#error "%s" e;
+        Lwt.return_unit
+      | Ok () -> Lwt.return_unit
+      )
 
 (* flags *)
 
@@ -91,7 +80,7 @@ let port =
 
 let config =
   let doc = "remote configuration file name" in
-  Arg.(value & opt file "monorobot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
+  Arg.(value & opt string "monorobot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
 
 let secrets =
   let doc = "configuration file containing secrets" in
@@ -125,7 +114,7 @@ let run =
   let term = Term.(const http_server_action $ addr $ port $ config $ secrets $ state) in
   term, info
 
-(* let check_gh =
+let check_gh =
   let doc = "read a Github notification from a file and display the actions that will be taken; used for testing" in
   let info = Term.info "check_gh" ~doc in
   let term = Term.(const check_gh_action $ gh_payload $ json $ config $ secrets $ state) in
@@ -135,13 +124,12 @@ let check_slack =
   let doc = "read a Slack notification from a file and send it to a webhook; used for testing" in
   let info = Term.info "check_slack" ~doc in
   let term = Term.(const check_slack_action $ slack_webhook_url $ slack_payload) in
-  term, info *)
+  term, info
 
 let default_cmd =
   let doc = "the notification bot" in
   Term.(ret (const (`Help (`Pager, None)))), Term.info "monorobot" ~doc
 
-(* let cmds = [ run; check_gh; check_slack ] *)
-let cmds = [ run ]
+let cmds = [ run; check_gh; check_slack ]
 
 let () = Term.(exit @@ eval_choice default_cmd cmds)

@@ -12,10 +12,7 @@ let action_error msg = raise (Action_error msg)
 
 let log = Log.from "action"
 
-module Github_api = Api_remote.Github
-module Slack_api = Api_remote.Slack
-
-module Action = struct
+module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let partition_push cfg n =
     let default = Option.to_list cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in

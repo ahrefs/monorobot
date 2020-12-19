@@ -1,5 +1,4 @@
 {
-    "offline": "github-api-cache",
     "main_branch_name": "develop",
     "status_rules": {
         "allowed_pipelines": [
@@ -14,21 +13,19 @@
             "success": "once"
         }
     },
-    "prefix_rules": {
+"prefix_rules": {
         "default_channel": "default",
         "rules": [
             {
                 "allow": [
                     "backend/api"
                 ],
-                "ignore": [],
                 "channel": "aa"
             },
             {
                 "allow": [
                     "backend/api/longest"
                 ],
-                "ignore": [],
                 "channel": "longest-aa"
             },
             {
@@ -36,12 +33,9 @@
                     "backend/megaindex",
                     "backend/ahrefskit"
                 ],
-                "ignore": [],
                 "channel": "backend"
             },
             {
-                "allow": [],
-                "ignore": [],
                 "channel": "all-push-events"
             }
         ]
@@ -53,25 +47,21 @@
                 "allow": [
                     "backend"
                 ],
-                "ignore": [],
                 "channel": "backend"
             },
             {
                 "allow": [
                     "aa"
                 ],
-                "ignore": [],
                 "channel": "aa-git"
             },
             {
                 "allow": [
                     "siren"
                 ],
-                "ignore": [],
                 "channel": "siren"
             },
             {
-                "allow": [],
                 "ignore": [
                     "backend",
                     "aa",
