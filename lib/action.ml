@@ -213,7 +213,7 @@ module Action = struct
     | _ -> Lwt.return_unit
 
   let process_github_notification (ctx_thunk : Context.context_thunk) headers body =
-    match Github.parse_exn ~secret:ctx_thunk.secrets.gh_hook_token headers body with
+    match Github.parse_exn ~secret:ctx_thunk.secrets.gh_webhook_secret headers body with
     | exception exn -> Exn_lwt.fail ~exn "unable to parse payload"
     | payload ->
     try
