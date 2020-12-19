@@ -477,7 +477,7 @@ will notify #default
       "fields": [
         {
           "value":
-            "*Commit*: `<https://git.ahrefs.com/ahrefs/notabot_test/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - louis\n*Branches*: master"
+            "*Commit*: `<https://git.ahrefs.com/ahrefs/notabot_test/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - louis\n*Branch*: master"
         }
       ]
     }
@@ -543,7 +543,7 @@ will notify #default
       "fields": [
         {
           "value":
-            "*Commit*: `<https://git.ahrefs.com/ahrefs/notabot_test/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - louis\n*Branches*: master"
+            "*Commit*: `<https://git.ahrefs.com/ahrefs/notabot_test/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - louis\n*Branch*: master"
         }
       ]
     }
