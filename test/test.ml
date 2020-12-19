@@ -22,7 +22,7 @@ let get_mock_payloads () =
 let process ~(ctx : Context.t) (kind, path, state_path) =
   let%lwt ctx =
     match state_path with
-    | None -> Lwt.return { ctx with state = State.empty }
+    | None -> Lwt.return ctx
     | Some state_path ->
     match Common.get_local_file state_path with
     | Error e ->
@@ -50,8 +50,6 @@ let () =
       log#error "%s" e;
       Lwt.return_unit
     | Ok config ->
-      (* can remove this wrapper once status_rules doesn't depend on Config.t *)
-      let config = Config.make config in
       let ctx = { ctx with config = Some config } in
       ( match Context.refresh_secrets ctx with
       | Ok ctx -> Lwt_list.iter_s (process ~ctx) payloads

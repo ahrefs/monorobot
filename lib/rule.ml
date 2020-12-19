@@ -1,41 +1,34 @@
 open Base
 open Rule_t
-open Github_t
 
 module Status = struct
-  let hide_cancelled (notification : status_notification) (cfg : Config.t) =
-    let find_cancelled status_state =
-      match status_state with
-      | Config.Cancelled r -> Some r
-      | _ -> None
+  (** `match_rules n rs` returns the policy declared by the first rule in `rs`
+      to match status notification `n`, if one exists. A rule `r` matches `n`
+      if `n.state` is in `r.trigger` and `n` meets `r.condition`. *)
+  let match_rules (notification : Github_t.status_notification) ~rules =
+    let match_rule rule =
+      let value_of_field = function
+        | Context -> Some notification.context
+        | Description -> notification.description
+        | Sha -> Some notification.sha
+        | Target_url -> notification.target_url
+      in
+      let rec match_condition = function
+        | Match { field; re } ->
+          value_of_field field
+          |> Option.map ~f:(fun f -> Re.Str.string_match (Re.Str.regexp_case_fold re) f 0)
+          |> Option.value ~default:false
+        | All_of conditions -> List.for_all conditions ~f:match_condition
+        | One_of conditions -> List.exists conditions ~f:match_condition
+        | Not condition -> not @@ match_condition condition
+      in
+      if
+        List.exists ~f:(Poly.equal notification.state) rule.trigger
+        && rule.condition |> Option.map ~f:match_condition |> Option.value ~default:true
+      then Some rule.policy
+      else None
     in
-    let regexp_opt = List.find_map cfg.status_rules.status ~f:find_cancelled in
-    match regexp_opt with
-    | None -> false
-    | Some regexp ->
-      let { state; description; _ } = notification in
-      let r = Re.Str.regexp_case_fold regexp in
-      ( match description, state with
-      | Some s, Failure when Re.Str.string_match r s 0 -> true
-      | _ -> false
-      )
-
-  let hide_success (n : status_notification) (ctx : Context.t) =
-    match ctx.config with
-    | None -> raise @@ Failure "no config file defined"
-    | Some cfg ->
-    match List.exists cfg.status_rules.status ~f:(Poly.equal Config.HideConsecutiveSuccess) with
-    | false -> false
-    | true ->
-    match n.state with
-    | Success ->
-      List.exists
-        ~f:(fun b ->
-          match State.get_branch_state b.name ctx.state with
-          | None | Some { last_build_state = Failure; _ } -> false
-          | Some { last_build_state = Success; _ } -> true)
-        n.branches
-    | _ -> false
+    List.find_map rules ~f:match_rule
 end
 
 module Prefix = struct

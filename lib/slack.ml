@@ -262,7 +262,7 @@ let generate_push_notification notification =
     blocks = None;
   }
 
-let generate_status_notification (cfg : Config.t) (notification : status_notification) =
+let generate_status_notification (cfg : Config_t.config) (notification : status_notification) =
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in

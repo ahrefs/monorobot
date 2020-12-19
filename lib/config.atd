@@ -1,11 +1,11 @@
-type status_state <ocaml from="Rule"> = abstract
+type status_rule <ocaml from="Rule"> = abstract
 type prefix_rule <ocaml from="Rule"> = abstract
 type label_rule <ocaml from="Rule"> = abstract
 
 (* This type of rule is used for CI build notifications. *)
 type status_rules = {
   ?allowed_pipelines : string list nullable; (* keep only status events with a title matching this list *)
-  rules: status_state;
+  rules: status_rule list;
 }
 
 (* This type of rule is used for events that must be routed based on the

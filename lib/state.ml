@@ -1,33 +1,23 @@
+open Base
+open Common
 open Devkit
+
+let empty : State_t.state = { pipeline_statuses = StringMap.empty }
+
+let refresh_pipeline_status (state : State_t.state) ~pipeline ~(branches : Github_t.branch list) ~status =
+  let update_pipeline_status branch_statuses =
+    let new_statuses = List.map branches ~f:(fun b -> b.name, status) in
+    let init = Option.value branch_statuses ~default:(Map.empty (module String)) in
+    List.fold_left new_statuses ~init ~f:(fun m (key, data) -> Map.set m ~key ~data)
+  in
+  state.pipeline_statuses <- Map.update state.pipeline_statuses pipeline ~f:update_pipeline_status
 
 let log = Log.from "state"
 
-let empty : State_t.state = { pipeline_statuses = [] }
-
-let get_branch_state name (state : State_t.state) = List.assoc_opt name state.pipeline_statuses
-
-let set_branch_state name (branch_state : State_t.branch_info) (state : State_t.state) : State_t.state =
-  let removed_list = List.remove_assoc name state.pipeline_statuses in
-  { pipeline_statuses = (name, branch_state) :: removed_list }
-
-let set_branch_last_build_state name build_state timestamp (state : State_t.state) : State_t.state =
-  match get_branch_state name state with
-  | None ->
-    {
-      pipeline_statuses = (name, { last_build_state = build_state; updated_at = timestamp }) :: state.pipeline_statuses;
-    }
-  | Some _ -> set_branch_state name { last_build_state = build_state; updated_at = timestamp } state
-
-let build_state_of_status_state = function
-  | Github_t.Success -> State_t.Success
-  | Failure | Pending | Error -> Failure
-
-let refresh_pipeline_status (state : State_t.state) ~pipeline:_ ~(branches : Github_t.branch list) ~status ~updated_at =
-  let last_build_state = build_state_of_status_state status in
-  List.fold_left
-    (fun state (b : Github_t.branch) -> set_branch_last_build_state b.name last_build_state updated_at state)
-    state branches
-
-let save path state =
-  let str = State_j.string_of_state state in
-  Stdio.Out_channel.write_all path ~data:str
+let save state path =
+  let data = State_j.string_of_state state in
+  match write_to_local_file ~data path with
+  | Ok () -> Lwt.return @@ Ok ()
+  | Error e ->
+    log#error "failed to write to local file %s: %s" path e;
+    Lwt.return @@ fmt_error "failed to save state"
