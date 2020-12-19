@@ -15,7 +15,7 @@ type t = {
   chans : string Chan_map.t;
   prefix_rules : Config_t.prefix_rules;
   label_rules : Config_t.label_rules;
-  gh_webhook_secret : string option;
+  gh_hook_token : string option;
   main_branch_name : string option;
   gh_token : string option;
   offline : string option;
@@ -89,7 +89,7 @@ let make (json_config : Config_t.config) (secrets : Config_t.secrets) =
     chans;
     prefix_rules = json_config.prefix_rules;
     label_rules = json_config.label_rules;
-    gh_webhook_secret = secrets.gh_webhook_secret;
+    gh_hook_token = secrets.gh_hook_token;
     main_branch_name = json_config.main_branch_name;
     gh_token = secrets.gh_token;
     offline = json_config.offline;

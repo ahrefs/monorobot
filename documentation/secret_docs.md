@@ -43,8 +43,8 @@ Secret file is where sensitive information such as the urls used for webhooks an
 | value | description | optional | default |
 |-|-|-|-|
 | `slack_hooks` | list of webhook config objects | No | - |
-| `gh_token` | must not be specified for public repositories | Yes | - |
-| `gh_webhook_secret` | if not specified signatures will not be checked | Yes | - |
+| `gh_token` | specify to grant the bot access to private repositories; omit for public repositories | Yes | - |
+| `gh_hook_token` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
 
 ## `gh_token`
 
@@ -64,8 +64,8 @@ Some event notifications (e.g., status, commit comment) require a personal token
 For more detailed instructions on token generation, refer to https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line.
 
 
-## `gh_webhook_secret`
-For more information on `gh_webhook_secret` see [developer.github.com/webhooks/securing](https://developer.github.com/webhooks/securing/)
+## `gh_hook_token`
+For more information on `gh_hook_token` see [developer.github.com/webhooks/securing](https://developer.github.com/webhooks/securing/)
 
 ## Webhook Config
 
