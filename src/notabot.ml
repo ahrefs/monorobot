@@ -1,7 +1,6 @@
 open Devkit
 open Base
 open Lib
-open Action
 module Arg = Caml.Arg
 open Cmdliner
 
@@ -9,24 +8,24 @@ let log = Log.from "monorobot"
 
 (* entrypoints *)
 
-let cfg_action_after_refresh (cfg : Config.t) =
-  log#info "using prefix routing:";
-  (* Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules; *)
-  log#info "using label routing:";
-  (* Rule.Label.print_label_routing cfg.label_rules.rules; *)
-  log#info "signature checking %s" (if Option.is_some cfg.gh_hook_token then "enabled" else "disabled")
-
-let update_state_at_path state_path state event = State.save state_path @@ State.update_state state event
-
 let http_server_action addr port config secrets state =
   log#info "monorobot starting";
-  let ctx_thunk =
-    Context.make_thunk ~state_path:state ~cfg_path_or_remote_filename:config ~secrets_path:secrets
-      ~cfg_action_after_refresh ()
-  in
-  Lwt_main.run (Request_handler.start_http_server ~ctx_thunk ~addr ~port ())
+  let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
+  Lwt_main.run
+    ( match%lwt Context.refresh_secrets ctx with
+    | Error e ->
+      log#error "%s" e;
+      Lwt.return_unit
+    | Ok ctx ->
+      ( match%lwt Context.refresh_state ctx with
+      | Error e ->
+        log#error "%s" e;
+        Lwt.return_unit
+      | Ok ctx -> Request_handler.run ~ctx ~addr ~port
+      )
+    )
 
-let check_slack_action webhook file =
+(* let check_slack_action webhook file =
   let data = Stdio.In_channel.read_all file in
   match Slack_j.webhook_notification_of_string data with
   | exception exn -> log#error ~exn "unable to parse notification"
@@ -78,7 +77,7 @@ let check_gh_action file json config secrets state =
     ( match json with
     | false -> check_common file print_simplified_message config secrets state
     | true -> check_common file print_json_message config secrets state
-    )
+    ) *)
 
 (* flags *)
 
@@ -100,7 +99,7 @@ let secrets =
 
 let state =
   let doc = "state file" in
-  Arg.(value & opt file "notabot_state.json" & info [ "state" ] ~docv:"STATE" ~doc)
+  Arg.(value & opt (some file) None & info [ "state" ] ~docv:"STATE" ~doc)
 
 let gh_payload =
   let doc = "JSON file containing a github webhook payload" in
@@ -126,7 +125,7 @@ let run =
   let term = Term.(const http_server_action $ addr $ port $ config $ secrets $ state) in
   term, info
 
-let check_gh =
+(* let check_gh =
   let doc = "read a Github notification from a file and display the actions that will be taken; used for testing" in
   let info = Term.info "check_gh" ~doc in
   let term = Term.(const check_gh_action $ gh_payload $ json $ config $ secrets $ state) in
@@ -136,12 +135,13 @@ let check_slack =
   let doc = "read a Slack notification from a file and send it to a webhook; used for testing" in
   let info = Term.info "check_slack" ~doc in
   let term = Term.(const check_slack_action $ slack_webhook_url $ slack_payload) in
-  term, info
+  term, info *)
 
 let default_cmd =
   let doc = "the notification bot" in
   Term.(ret (const (`Help (`Pager, None)))), Term.info "monorobot" ~doc
 
-let cmds = [ run; check_gh; check_slack ]
+(* let cmds = [ run; check_gh; check_slack ] *)
+let cmds = [ run ]
 
 let () = Term.(exit @@ eval_choice default_cmd cmds)

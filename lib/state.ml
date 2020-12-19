@@ -2,11 +2,7 @@ open Devkit
 
 let log = Log.from "state"
 
-let default_state : State_t.state = { pipeline_statuses = [] }
-
-let default_branch_state timestamp =
-  let branch_info : State_t.branch_info = { last_build_state = Failure; updated_at = timestamp } in
-  branch_info
+let empty : State_t.state = { pipeline_statuses = [] }
 
 let get_branch_state name (state : State_t.state) = List.assoc_opt name state.pipeline_statuses
 
@@ -26,26 +22,11 @@ let build_state_of_status_state = function
   | Github_t.Success -> State_t.Success
   | Failure | Pending | Error -> Failure
 
-let update_state_status (state : State_t.state) (n : Github_t.status_notification) =
-  let last_build_state = build_state_of_status_state n.state in
+let refresh_pipeline_status (state : State_t.state) ~pipeline:_ ~(branches : Github_t.branch list) ~status ~updated_at =
+  let last_build_state = build_state_of_status_state status in
   List.fold_left
-    (fun state (b : Github_t.branch) -> set_branch_last_build_state b.name last_build_state n.updated_at state)
-    state n.branches
-
-let update_state (state : State_t.state) event =
-  match event with
-  | Github.Push _ | Pull_request _ | PR_review _ | PR_review_comment _ | Issue _ | Issue_comment _ | Commit_comment _
-  | Event _ ->
-    state
-  | Status n -> update_state_status state n
-
-let load_unsafe path = State_j.state_of_string @@ Stdio.In_channel.read_all path
-
-let load path =
-  try load_unsafe path
-  with Sys_error _ ->
-    log#warn "unable to load state at '%s', falling back to default" path;
-    default_state
+    (fun state (b : Github_t.branch) -> set_branch_last_build_state b.name last_build_state updated_at state)
+    state branches
 
 let save path state =
   let str = State_j.string_of_state state in

@@ -1,6 +1,20 @@
 open Base
 open Devkit
 
+module StringMap = struct
+  type 'a t = 'a Map.M(String).t
+
+  let empty : 'a t = Map.empty (module String)
+
+  let to_list (l : 'a t) : (string * 'a) list = Map.to_alist l
+
+  let of_list (m : (string * 'a) list) : 'a t = Map.of_alist_exn (module String) m
+
+  let wrap = of_list
+
+  let unwrap = to_list
+end
+
 let fmt_error fmt = Printf.ksprintf (fun s -> Error s) fmt
 
 let first_line s =

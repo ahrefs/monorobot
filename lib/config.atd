@@ -4,7 +4,7 @@ type label_rule <ocaml from="Rule"> = abstract
 
 (* This type of rule is used for CI build notifications. *)
 type status_rules = {
-  ?allowed_pipelines : string list option; (* keep only status events with a title matching this list *)
+  ?allowed_pipelines: string list nullable; (* keep only status events with a title matching this list *)
   rules: status_state;
 }
 
@@ -27,8 +27,7 @@ type config = {
   prefix_rules : prefix_rules;
   label_rules : label_rules;
   status_rules : status_rules;
-  ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)
-  ?offline: string option; (* where to find github api data when http calls are not allowed *)
+  ?main_branch_name : string nullable; (* the name of the main branch; used to filter out notifications about merges of main branch into other branches *)
 }
 
 (* This specifies the Slack webhook to query to post to the channel with the given name *)

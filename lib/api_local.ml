@@ -10,7 +10,7 @@ module Github : Api.Github = struct
   let log = Log.from "github"
 
   let get_config ~(ctx : Context.t) ~repo:_ =
-    let url = Caml.Filename.concat cwd ctx.data.cfg_filename in
+    let url = Caml.Filename.concat cwd ctx.config_filename in
     match%lwt get_local_file url with
     | Error e ->
       log#error "error while getting local file %s: %s" url e;

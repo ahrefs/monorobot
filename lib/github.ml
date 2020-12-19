@@ -19,18 +19,18 @@ type t =
   | Commit_comment of commit_comment_notification
   | Status of status_notification
   (* all other events *)
-  | Event of string
+  | Event of event_notification
 
-let to_repo = function
-  | Push n -> Some n.repository
-  | Pull_request n -> Some n.repository
-  | PR_review n -> Some n.repository
-  | PR_review_comment n -> Some n.repository
-  | Issue n -> Some n.repository
-  | Issue_comment n -> Some n.repository
-  | Commit_comment n -> Some n.repository
-  | Status n -> Some n.repository
-  | Event _ -> None
+let repo_of_notification = function
+  | Push n -> n.repository
+  | Pull_request n -> n.repository
+  | PR_review n -> n.repository
+  | PR_review_comment n -> n.repository
+  | Issue n -> n.repository
+  | Issue_comment n -> n.repository
+  | Commit_comment n -> n.repository
+  | Status n -> n.repository
+  | Event n -> n.repository
 
 let commits_branch_of_ref ref =
   match String.split ~on:'/' ref with
@@ -61,9 +61,7 @@ let name_of_full_name_parts full_name_parts =
   | _ -> None
 
 let get_remote_config_json_url filename ?token req =
-  match to_repo req with
-  | None -> remote_config_error "unable to resolve repository from request"
-  | Some repo ->
+  let repo = repo_of_notification req in
   match String.split ~on:'/' repo.full_name with
   | full_name_parts ->
   match user_of_full_name_parts full_name_parts with
@@ -143,41 +141,6 @@ let query_api ?token ~url parse =
     log#error ~exn "impossible to parse github api answer to %s" url;
     Lwt.return_none
 
-let generate_query_commit cfg ~url ~sha =
-  (* the expected output is a payload containing content about commits *)
-  match cfg.Config.offline with
-  | None -> query_api ?token:cfg.Config.gh_token ~url api_commit_of_string
-  | Some path ->
-    let f = Caml.Filename.concat path sha in
-    ( match Caml.Sys.file_exists f with
-    | false ->
-      log#error "unable to find offline file %s, try fetching it from %s" f url;
-      Lwt.return_none
-    | true ->
-      Stdio.In_channel.with_file f ~f:(fun ic ->
-        try
-          let content = Stdio.In_channel.input_all ic in
-          Lwt.return_some (api_commit_of_string content)
-        with exn ->
-          log#error ~exn "unable to read offline file %s" f;
-          Lwt.return_none)
-    )
-
-let generate_commit_from_commit_comment cfg n =
-  let url = n.repository.commits_url in
-  let url_length = String.length url - 6 in
-  (* remove {\sha} from the string *)
-  let sha =
-    match n.comment.commit_id with
-    | None ->
-      log#error "unable to find commit id for this commit comment event";
-      ""
-    | Some id -> id
-  in
-  let commit_url = String.sub ~pos:0 ~len:url_length url ^ "/" ^ sha in
-  (* add sha hash to get the full api link *)
-  generate_query_commit cfg ~url:commit_url ~sha
-
 (* Parse a payload. The type of the payload is detected from the headers. *)
 let parse_exn ~secret headers body =
   begin
@@ -198,5 +161,5 @@ let parse_exn ~secret headers body =
   | "issue_comment" -> Issue_comment (issue_comment_notification_of_string body)
   | "status" -> Status (status_notification_of_string body)
   | "commit_comment" -> Commit_comment (commit_comment_notification_of_string body)
-  | ("member" | "create" | "delete" | "release") as event -> Event event
+  | "member" | "create" | "delete" | "release" -> Event (event_notification_of_string body)
   | event -> failwith @@ sprintf "unsupported event : %s" event
