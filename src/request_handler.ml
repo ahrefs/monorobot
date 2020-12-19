@@ -5,7 +5,7 @@ open Action
 
 let log = Log.from "request_handler"
 
-let setup_http ~ctx_thunk ~signature ~port ~ip =
+let setup_http ~ctx ~signature ~port ~ip =
   let open Httpev in
   let connection = Unix.ADDR_INET (ip, port) in
   let%lwt () =
@@ -35,7 +35,7 @@ let setup_http ~ctx_thunk ~signature ~port ~ip =
         | _, [ "stats" ] -> ret @@ Lwt.return (sprintf "%s %s uptime\n" signature Devkit.Action.uptime#get_str)
         | _, [ "github" ] ->
           log#info "%s" request.body;
-          let%lwt () = Action.process_github_notification ctx_thunk request.headers request.body in
+          let%lwt () = Action.process_github_notification ctx request.headers request.body in
           ret (Lwt.return "ok")
         | _, _ ->
           log#error "unknown path : %s" (Httpev.show_request request);
@@ -55,7 +55,7 @@ let setup_http ~ctx_thunk ~signature ~port ~ip =
   in
   Lwt.return_unit
 
-let start_http_server ~ctx_thunk ~addr ~port () =
+let run ~ctx ~addr ~port =
   let ip = Unix.inet_addr_of_string addr in
   let signature = sprintf "listen %s:%d" (Unix.string_of_inet_addr ip) port in
-  setup_http ~ctx_thunk ~signature ~port ~ip
+  setup_http ~ctx ~signature ~port ~ip

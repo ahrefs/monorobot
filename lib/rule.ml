@@ -21,7 +21,10 @@ module Status = struct
       )
 
   let hide_success (n : status_notification) (ctx : Context.t) =
-    match List.exists ctx.cfg.status_rules.status ~f:(Poly.equal Config.HideConsecutiveSuccess) with
+    match ctx.config with
+    | None -> raise @@ Failure "no config file defined"
+    | Some cfg ->
+    match List.exists cfg.status_rules.status ~f:(Poly.equal Config.HideConsecutiveSuccess) with
     | false -> false
     | true ->
     match n.state with

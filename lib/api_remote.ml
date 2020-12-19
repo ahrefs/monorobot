@@ -17,8 +17,8 @@ module Github : Api.Github = struct
     Option.value_map token ~default:headers ~f:(fun v -> sprintf "Authorization: token %s" v :: headers)
 
   let get_config ~(ctx : Context.t) ~repo =
-    let url = contents_url ~repo ~path:ctx.data.cfg_filename in
-    let headers = build_headers ?token:ctx.secrets.gh_token () in
+    let url = contents_url ~repo ~path:ctx.config_filename in
+    let headers = build_headers ?token:ctx.gh_token () in
     match%lwt http_get ~headers url with
     | Error e ->
       log#error "error while querying %s: %s" url e;
@@ -42,7 +42,7 @@ module Github : Api.Github = struct
 
   let get_api_commit ~(ctx : Context.t) ~repo ~sha =
     let url = commits_url ~repo ~sha in
-    let headers = build_headers ?token:ctx.secrets.gh_token () in
+    let headers = build_headers ?token:ctx.gh_token () in
     match%lwt http_get ~headers url with
     | Ok res -> Lwt.return @@ Ok (Github_j.api_commit_of_string res)
     | Error e ->

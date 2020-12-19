@@ -13,6 +13,7 @@ let action_error msg = raise (Action_error msg)
 let log = Log.from "action"
 
 module Github_api = Api_remote.Github
+module Slack_api = Api_remote.Slack
 
 module Action = struct
   let partition_push cfg n =
@@ -90,56 +91,60 @@ module Action = struct
     if List.is_empty matched_channel_names then default else matched_channel_names
 
   let partition_status (ctx : Context.t) (n : status_notification) =
-    let cfg = ctx.cfg in
-    let get_commit_info () =
-      let default () = Lwt.return @@ Option.to_list cfg.prefix_rules.default_channel in
-      match cfg.main_branch_name with
-      | None -> default ()
-      | Some main_branch_name ->
-      (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
-      match List.exists n.branches ~f:(fun { name } -> String.equal name main_branch_name) with
-      | false -> default ()
-      | true ->
-        ( match%lwt Github.generate_query_commit cfg ~url:n.commit.url ~sha:n.commit.sha with
-        | None -> default ()
-        | Some commit ->
-          (*
-      match
-        List.exists n.branches ~f:(fun { name } -> Github.is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
-      with
-      | true ->
-        log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
-        Lwt.return []
-      | false ->
-*)
-          Lwt.return (partition_commit cfg commit.files)
-        )
-    in
-    let res =
-      match
-        List.exists cfg.status_rules.status ~f:(fun x ->
-          match x with
-          | State s -> Poly.equal s n.state
-          | HideConsecutiveSuccess -> Poly.equal Success n.state
-          | _ -> false)
-      with
-      | false -> Lwt.return []
-      | true ->
-      match List.exists ~f:id [ Rule.Status.hide_cancelled n cfg; Rule.Status.hide_success n ctx ] with
-      | true -> Lwt.return []
-      | false ->
-      match cfg.status_rules.title with
-      | None -> get_commit_info ()
-      | Some status_filter ->
-      match List.exists status_filter ~f:(String.equal n.context) with
-      | false -> Lwt.return []
-      | true -> get_commit_info ()
-    in
-    Context.update_state ctx (Github.Status n);
-    res
+    match ctx.config with
+    | None -> action_error "missing configuration file"
+    | Some cfg ->
+      let pipeline = n.context in
+      let current_status = n.state in
+      let updated_at = n.updated_at in
+      let get_commit_info () =
+        let default = Option.to_list cfg.prefix_rules.default_channel in
+        let () =
+          Context.refresh_pipeline_status ~pipeline ~branches:n.branches ~status:current_status ~updated_at ctx
+        in
+        match List.is_empty n.branches with
+        | true -> Lwt.return []
+        | false ->
+        match cfg.main_branch_name with
+        | None -> Lwt.return default
+        | Some main_branch_name ->
+        (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
+        match List.exists n.branches ~f:(fun { name } -> String.equal name main_branch_name) with
+        | false -> Lwt.return default
+        | true ->
+          let sha = n.commit.sha in
+          let repo = n.repository in
+          ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
+          | Error e -> action_error e
+          | Ok commit -> Lwt.return @@ partition_commit cfg commit.files
+          )
+      in
+      let res =
+        match
+          List.exists cfg.status_rules.status ~f:(fun x ->
+            match x with
+            | State s -> Poly.equal s n.state
+            | HideConsecutiveSuccess -> Poly.equal Success n.state
+            | _ -> false)
+        with
+        | false -> Lwt.return []
+        | true ->
+        match List.exists ~f:id [ Rule.Status.hide_cancelled n cfg; Rule.Status.hide_success n ctx ] with
+        | true -> Lwt.return []
+        | false ->
+        match cfg.status_rules.title with
+        | None -> get_commit_info ()
+        | Some status_filter ->
+        match List.exists status_filter ~f:(String.equal n.context) with
+        | false -> Lwt.return []
+        | true -> get_commit_info ()
+      in
+      res
 
   let partition_commit_comment (ctx : Context.t) n =
-    let cfg = ctx.cfg in
+    match ctx.config with
+    | None -> action_error "missing configuration file"
+    | Some cfg ->
     match n.comment.commit_id with
     | None -> action_error "unable to find commit id for this commit comment event"
     | Some sha ->
@@ -158,7 +163,9 @@ module Action = struct
       )
 
   let generate_notifications (ctx : Context.t) req =
-    let cfg = ctx.cfg in
+    match ctx.config with
+    | None -> action_error "missing configuration file"
+    | Some cfg ->
     match req with
     | Github.Push n ->
       partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return
@@ -187,37 +194,64 @@ module Action = struct
       Lwt.return notifs
     | _ -> Lwt.return []
 
-  let send_notifications (cfg : Config.t) notifications =
-    Lwt_list.iter_s
-      (fun (chan, msg) ->
-        let url = Config.Chan_map.find chan cfg.chans in
-        let data = Slack_j.string_of_webhook_notification msg in
-        log#info "sending to %s : %s" chan data;
-        Slack.send_notification url data)
-      notifications
+  let send_notifications (ctx : Context.t) notifications =
+    let notify (chan, msg) =
+      match Context.hook_of_channel ctx chan with
+      | None ->
+        log#error "webhook not defined for Slack channel '%s'" chan;
+        Lwt.return_unit
+      | Some url ->
+        ( match%lwt Slack_api.send_notification ~chan ~msg ~url with
+        | Ok () -> Lwt.return_unit
+        | Error e -> action_error e
+        )
+    in
+    Lwt_list.iter_s notify notifications
 
-  let update_config (ctx : Context.t) = function
-    | Github.Push n ->
-      let is_config_file f = String.equal f ctx.data.cfg_filename in
-      let commit_contains_config_file (c : Github_t.commit) = List.exists ~f:is_config_file (c.added @ c.modified) in
-      if List.exists ~f:commit_contains_config_file n.commits then Context.refresh_config ctx else Lwt.return_unit
-    | _ -> Lwt.return_unit
+  (** `refresh_config_of_context ctx n` updates the current context if the configuration
+      hasn't been loaded yet, or if the incoming request `n` is a push
+      notification containing commits that touched the config file. *)
+  let refresh_config_of_context (ctx : Context.t) notification =
+    let fetch_config () =
+      let repo = Github.repo_of_notification notification in
+      match%lwt Github_api.get_config ~ctx ~repo with
+      | Ok config ->
+        (* can remove this wrapper once status_rules doesn't depend on Config.t *)
+        ctx.config <- Some (Config.make config);
+        Lwt.return @@ Ok ()
+      | Error e -> action_error e
+    in
+    match ctx.config with
+    | None -> fetch_config ()
+    | Some _ ->
+    match notification with
+    | Github.Push commit_pushed_notification ->
+      let commits = commit_pushed_notification.commits in
+      let modified_files = List.concat_map commits ~f:Github.modified_files_of_commit in
+      let config_was_modified = List.exists modified_files ~f:(String.equal ctx.config_filename) in
+      if config_was_modified then fetch_config () else Lwt.return @@ Ok ()
+    | _ -> Lwt.return @@ Ok ()
 
-  let process_github_notification (ctx_thunk : Context.context_thunk) headers body =
-    match Github.parse_exn ~secret:ctx_thunk.secrets.gh_webhook_secret headers body with
-    | exception exn -> Exn_lwt.fail ~exn "unable to parse payload"
-    | payload ->
-    try
-      let%lwt ctx = Context.resolve_ctx_in_thunk ctx_thunk payload in
-      let%lwt () = update_config ctx payload in
-      let cfg = ctx.cfg in
-      let%lwt notifications = generate_notifications ctx payload in
-      send_notifications cfg notifications
+  let process_github_notification (ctx : Context.t) headers body =
+    try%lwt
+      match Github.parse_exn ~secret:ctx.gh_hook_token headers body with
+      | exception exn -> Exn_lwt.fail ~exn "failed to parse payload"
+      | payload ->
+        ( match%lwt refresh_config_of_context ctx payload with
+        | Error e -> action_error e
+        | Ok () ->
+          let%lwt notifications = generate_notifications ctx payload in
+          let%lwt () = send_notifications ctx notifications in
+          ( match ctx.state_filepath with
+          | None -> Lwt.return_unit
+          | Some path -> Lwt.return @@ State.save path ctx.state
+          )
+        )
     with
-    | Context.Context_error s ->
-      log#error "error creating context from payload: %s" s;
+    | Yojson.Json_error msg ->
+      log#error "failed to parse file as valid JSON (%s)" msg;
       Lwt.return_unit
-    | Github.Remote_config_error s ->
-      log#error "error retrieving config from payload: %s" s;
+    | Action_error msg ->
+      log#error "%s" msg;
       Lwt.return_unit
 end

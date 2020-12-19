@@ -7,6 +7,8 @@ open Slack_j
 
 let log = Log.from "slack"
 
+type channel_hook = string
+
 let empty_attachments =
   {
     mrkdwn_in = None;
