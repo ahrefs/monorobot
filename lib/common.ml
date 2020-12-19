@@ -1,4 +1,7 @@
 open Base
+open Devkit
+
+let fmt_error fmt = Printf.ksprintf (fun s -> Error s) fmt
 
 let first_line s =
   match String.split ~on:'\n' s with
@@ -18,12 +21,29 @@ module Tristate : Atdgen_runtime.Json_adapter.S = struct
 end
 
 let decode_string_pad s =
-  let rec strip_padding i =
-    if i < 0 then ""
-    else (
-      match s.[i] with
-      | '=' | '\n' | '\r' | '\t' | ' ' -> strip_padding (i - 1)
-      | _ -> String.sub s ~pos:0 ~len:(i + 1)
-    )
-  in
-  Base64.decode_string @@ strip_padding (String.length s - 1)
+  String.rstrip ~drop:(List.mem [ '='; ' '; '\n'; '\r'; '\t' ] ~equal:Char.equal) s |> Base64.decode_string
+
+let http_get ?headers path =
+  match%lwt Web.http_request_lwt ~ua:"monorobot" ~verbose:true ?headers `GET path with
+  | `Ok s -> Lwt.return @@ Ok s
+  | `Error e -> Lwt.return @@ Error e
+
+let http_post ~path ~data =
+  let body = `Raw ("application/json", data) in
+  match%lwt Web.http_request_lwt ~verbose:true ~body `POST path with
+  | `Ok res -> Lwt.return @@ Ok res
+  | `Error e -> Lwt.return @@ Error e
+
+let get_local_file path =
+  try%lwt
+    let%lwt data = Lwt_io.with_file ~mode:Lwt_io.input path (fun ic -> Lwt_io.read ic) in
+    Lwt.return @@ Ok data
+  with exn -> Lwt.return @@ Error (Exn.str exn)
+
+let write_to_local_file ~path ~data =
+  try%lwt
+    let%lwt () =
+      Lwt_io.with_file ~flags:[ O_CREAT; O_WRONLY; O_TRUNC ] ~mode:Lwt_io.output path (fun oc -> Lwt_io.write oc data)
+    in
+    Lwt.return @@ Ok ()
+  with exn -> Lwt.return @@ Error (Exn.str exn)

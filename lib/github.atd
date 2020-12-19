@@ -31,6 +31,7 @@ type repository = {
   full_name: string;
   html_url <ocaml name="url"> : string;
   commits_url: string;
+  contents_url: string;
 }
 
 type commit_pushed_notification = {
