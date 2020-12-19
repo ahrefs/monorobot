@@ -1,10 +1,11 @@
-# About
+# Secrets
 
-Secret file is where sensitive information such as the urls used for webhooks and other tokens are stored.
+A secrets file stores sensitive information. Unlike the repository configuration file, it should not be checked into the monorepo's version control. Instead, store it locally at a location accessible by the bot.
 
-# Secret Values
+# Options
 
-**example**
+**Example**
+
 ```json
 {
     "slack_hooks": [
@@ -42,36 +43,14 @@ Secret file is where sensitive information such as the urls used for webhooks an
 
 | value | description | optional | default |
 |-|-|-|-|
-| `slack_hooks` | list of webhook config objects | No | - |
+| `slack_hooks` | list of channel names (`channel`) and their corresponding webhook endpoint (`url`) | No | - |
 | `gh_token` | specify to grant the bot access to private repositories; omit for public repositories | Yes | - |
-| `gh_hook_token` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
+| `gh_webhook_secret` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
 
 ## `gh_token`
 
-### Token generation
+Some operations, such as fetching a config file from a private repository, or the commit corresponding to a commit comment event, require a personal access token. Refer [here](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) for detailed instructions on token generation.
 
-Some event notifications (e.g., status, commit comment) require a personal token to be addded to the configuration. To create a personal token, take the following steps:
-1. Verify your email address, if needed.
-1. In the upper-right corner of any page, click your profile photo, then click **Settings**.
-1. In the left sidebar, click **Developer settings**.
-1. In the left sidebar, click **Personal access tokens**.
-1. Click **Generate new token**.
-1. Give your token a descriptive name in the **Note** section.
-1. Grant ***repo*** scope.
-1. Click **Generate token**.
-1. Copy the token to `secrets.json` file in a `gh_token` field.
+## `gh_webhook_secret`
 
-For more detailed instructions on token generation, refer to https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line.
-
-
-## `gh_hook_token`
-For more information on `gh_hook_token` see [developer.github.com/webhooks/securing](https://developer.github.com/webhooks/securing/)
-
-## Webhook Config
-
-Channels that are defined in rules in config will be mapped to urls defined in the webhook
-
-| value | description | optional | default |
-|-|-|-|-|
-| `url` | url to call to send the message | No | - |
-| `channel` | name of the channel where the message will be posted as used in config | No | - |
+Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/securing-your-webhooks) for more information on securing webhooks with a token.

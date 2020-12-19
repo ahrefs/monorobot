@@ -1,13 +1,18 @@
-# About
+# Repository Configuration
 
-Config file is where the variables affecting the behaviour of notabot are defined.
+A repository configuration file specifies how notifications should be handled for a given repository. It should be at the root of your monorepo in the main branch. The bot will look for a `notabot.json` file by default, but you can change this behavior with the `--config` flag.
+
+When the bot receives its first incoming GitHub notification, it will query the repository URL to retrieve its configuration file. For subsequent notifications, it will use the cached configuration unless an update is detected.
+
+To update the configuration, simply edit the configuration file and push your changes to GitHub. The bot will detect and apply those changes to the configuration, and will be reflected in the next request onwards.
+
+Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/webhook-events-and-payloads) for more information on GitHub event payload structure.
 
 # Configuration values
 
 **example**
 ```json
 {
-    "offline": "github-api-cache",
     "main_branch_name": "develop",
     "status_rules": {
         ...
@@ -17,16 +22,13 @@ Config file is where the variables affecting the behaviour of notabot are define
     },
     "label_rules": {
         ...
-    },
-    "suppress_cancelled_events": true
+    }
 }
 ```
 
 | value | description | optional | default |
 |-|-|-|-|
 | `main_branch_name` | main branch used for the repo; filtering notifications about merges of main into other branches | Yes | - |
-| `offline` | path to github api data when http calls are not allowed; used for testing | Yes | - |
-| `suppress_cancelled_events` | supresses status cancelled events | Yes | `true` |
 | `status_rules` | status rules config object | No | - |
 | `label_rules` | label rules config object | No | - |
 | `prefix_rules` | prefix rules config object | No | - |
@@ -68,38 +70,28 @@ A json object with fields of bools for each status type.
 | `cancelled` | provide regex to ignore `failure` notifications with a description that matches it | Yes | - |
 
 
-## Label Config
+## Label Options
 
-Label rules apply to PR and issues notifications.
+**Label rules** apply to PR and issue notifications. If a payload matches multiple rules, they are all included.
 
-**example**
+**Example**
 ```json
 "label_rules": {
     "default_channel": "default",
     "rules": [
         {
-            "allow": [
-                "backend"
-            ],
-            "ignore": [],
+            "allow": ["backend"],
             "channel": "backend"
         },
         {
-            "allow": [
-                "a1"
-            ],
-            "ignore": [],
+            "allow": ["a1"],
             "channel": "a1-bot"
         },
         {
-            "allow": [
-                "a3"
-            ],
-            "ignore": [],
+            "allow": ["a3"],
             "channel": "a3"
         },
         {
-            "allow": [],
             "ignore": [
                 "backend",
                 "a1",
@@ -113,33 +105,30 @@ Label rules apply to PR and issues notifications.
 
 | value | description | optional | default |
 |-|-|-|-|
-| `default_channel` | default channel to notify if no rules match | Yes | no channels will be notified on default |
+| `default_channel` | default channel to notify if no rules match | Yes | None |
 | `rules` | list of `label_rule` objects | No | - |
 
 ### Label Rule
 
+A **label rule** specifies whether or not a Slack channel should be notified, based on the labels present in the given payload. For each rule, `ignore` is a blacklist of labels that should not notify the rule's channel, and `allow` is a whitelist of labels that should. The `ignore` list takes precedence over the `allow` list. Both are optional; if neither are provided, the rule will always generate a notification for its channel.
+
 | value | description | optional | default |
 |-|-|-|-|
-| `allow` | whitelist of label values that match this rule; if list is empty it vacuously satisfies the rule | No | - |
-| `ignore` | blacklist of label values; any labels matching will not match the rule | No | - |
-| `channel` | channel to use as webhook if matching this label rule | No | - |
+| `allow` | whitelist of label values; if not provided, the rule is vacuously satisfied | Yes | - |
+| `ignore` | blacklist of label values; any labels matching will not match the rule | Yes | - |
+| `channel` | channel to use as webhook if the rule is matched | No | - |
 
-## Prefix Config
+## Prefix Options
 
-Prefix rules apply to filenames. If a filename satisfies a prefix rule, the rule's channel will be notified.
+**Prefix rules** apply to push, commit comment, and status notifications. If a filename satisfies a prefix rule, the rule's channel will be notified. If a filename matches multiple rules, only the one that is matched by the *longest prefix* is included.
 
-The prefix config object is exactly the same as **Label Config** except its `rules` are list of `prefix_rule` objects.
-
-**example**
+**Example**
 ```json
 "prefix_rules": {
     "default_channel": "default",
     "rules": [
         {
-            "allow": [
-                "backend/a1"
-            ],
-            "ignore": [],
+            "allow": ["backend/a1"],
             "channel": "a1"
         },
         {
@@ -147,23 +136,21 @@ The prefix config object is exactly the same as **Label Config** except its `rul
                 "backend/a5",
                 "backend/a4"
             ],
-            "ignore": [],
             "channel": "backend"
         },
         {
-            "allow": [],
-            "ignore": [],
             "channel": "all-push-events"
         }
     ]
 },
 ```
 
-
 ### Prefix Rule
+
+A **prefix rule** specifies whether or not a Slack channel should be notified, based on the filenames present in the commits associated with the given payload. The semantics for the `allow` and `ignore` fields are the same as those for label rules (see above).
 
 | value | description | optional | default |
 |-|-|-|-|
-| `allow` | whitelist of strings that if prefixed in the filename matches the rule | No | - |
-| `ignore` | blacklist of strings that if prefixed in the filename does not match the rule | No | - |
-| `channel` | channel to use as webhook if matching this prefix rule | No | - |
+| `allow` | whitelist of file prefixes that match the rule | Yes | - |
+| `ignore` | blacklist of file prefixes that do not match the rule | Yes | - |
+| `channel` | channel to use as webhook if the rule is matched | No | - |
