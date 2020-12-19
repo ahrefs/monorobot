@@ -1,14 +1,18 @@
-type build_state = [
-  | Success
-  | Failure
-] <ocaml repr="classic">
+type status_state <ocaml from="Github"> = abstract
 
-type branch_info = {
-  last_build_state : build_state; (* if unknown or not built before, set to 'Failure' *)
-  updated_at : string;
-}
+type 'v map_as_object =
+  (string * 'v) list <json repr="object">
+    wrap <ocaml module="Common.StringMap" t="'v Common.StringMap.t">
+
+(* A map from branch names to build statuses *)
+type branch_statuses = status_state map_as_object
+
+(* A map from pipeline names to `branch_statuses` maps. This tracks the
+   last build state matched by the status_rules for each pipeline and
+   branch *)
+type pipeline_statuses = branch_statuses map_as_object
 
 (* The serializable runtime state of the bot *)
 type state = {
-  pipeline_statuses : (string * branch_info) list;
+  pipeline_statuses <ocaml mutable>: pipeline_statuses
 }

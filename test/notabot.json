@@ -5,13 +5,21 @@
             "default",
             "buildkite/notabot-test"
         ],
-        "rules": {
-            "pending": false,
-            "failure": true,
-            "error": true,
-            "cancelled": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$",
-            "success": "once"
-        }
+        "rules": [
+            {
+                "on": ["failure"],
+                "when": {
+                    "match": {
+                        "field": "description",
+                        "re": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$"
+                    }
+                },
+                "policy": "ignore"
+            },
+            { "on": ["pending"], "policy": "ignore"},
+            { "on": ["failure", "error"], "policy": "allow"},
+            { "on": ["success"], "policy": "allow_once"}
+        ]
     },
     "prefix_rules": {
         "default_channel": "default",

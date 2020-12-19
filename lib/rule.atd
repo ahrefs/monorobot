@@ -1,11 +1,41 @@
-type tristate = [ True | False | Once <json name="once"> ] <ocaml repr="classic"> <json adapter.ocaml="Common.Tristate">
+(* Text fields from the GitHub payload that can be used in a condition *)
+type comparable_field = [
+| Context <json name="context">
+| Description <json name="description">
+| Sha <json name="sha">
+| Target_url <json name="target_url">
+] <ocaml repr="classic">
 
-type status_state = {
-  success: tristate;
-  failure: bool;
-  pending: bool;
-  error: bool;
-  ?cancelled: string option; (* if specified, it will use the string as regex to match the description from the payload to determine if the status_state is cancelled *)
+(* Checks whether a payload field matches the provided regex pattern *)
+type match_condition = {
+  field : comparable_field;
+  re : string; (* expects a regex pattern *)
+}
+
+(* Specifies additional conditions the payload must meet for the status rule to match *)
+type status_condition = [
+| Match <json name="match"> of match_condition
+| All_of <json name="all_of"> of status_condition list (* match all conditions in list *)
+| One_of <json name="one_of"> of status_condition list (* match at least one condition in list *)
+| Not <json name="not"> of status_condition (* don't match the sub-condition *)
+] <ocaml repr="classic"> <json adapter.ocaml="Atdgen_runtime.Json_adapter.One_field">
+
+(* Filtering options; allow_once matches if the last matched status differs
+  from the current one *)
+type status_policy = [
+| Allow <json name="allow">
+| Allow_once <json name="allow_once">
+| Ignore <json name="ignore">
+] <ocaml repr="classic"> <json adapter.ocaml="Atdgen_runtime.Json_adapter.One_field">
+
+type build_status <ocaml from="Github" t="status_state"> = abstract
+
+(* A status matches a status rule with the policy with the build status is in
+   the list, and the condition is true *)
+type status_rule = {
+  trigger <json name="on"> : build_status list;
+  ?condition <json name="when"> : status_condition nullable;
+  policy : status_policy;
 }
 
 (* A filename matches a prefix rule with the channel name if it isn't in the ignore
