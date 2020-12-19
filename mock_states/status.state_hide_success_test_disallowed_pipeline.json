@@ -1,0 +1,7 @@
+{
+  "pipeline_statuses": {
+    "buildkite/notabot-test": {
+      "master": "failure"
+    }
+  }
+}

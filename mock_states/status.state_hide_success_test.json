@@ -1,5 +1,9 @@
+
 {
   "pipeline_statuses": {
+    "default": {
+      "master": "failure"
+    },
     "buildkite/notabot-test": {
       "master": "success"
     }
