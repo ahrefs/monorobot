@@ -11,9 +11,9 @@ let log = Log.from "monorobot"
 
 let cfg_action_after_refresh (cfg : Config.t) =
   log#info "using prefix routing:";
-  Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules;
+  (* Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules; *)
   log#info "using label routing:";
-  Rule.Label.print_label_routing cfg.label_rules.rules;
+  (* Rule.Label.print_label_routing cfg.label_rules.rules; *)
   log#info "signature checking %s" (if Option.is_some cfg.gh_hook_token then "enabled" else "disabled")
 
 let update_state_at_path state_path state event = State.save state_path @@ State.update_state state event

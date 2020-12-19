@@ -115,6 +115,8 @@ let is_main_merge_message ~msg:message ~branch (cfg : Config.t) =
     String.equal title expect || String.equal title expect2
   | _ -> false
 
+let modified_files_of_commit commit = List.concat [ commit.added; commit.removed; commit.modified ]
+
 let is_valid_signature ~secret headers_sig body =
   let request_hash =
     let key = Cstruct.of_string secret in

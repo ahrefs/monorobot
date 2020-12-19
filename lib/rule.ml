@@ -36,97 +36,48 @@ module Status = struct
 end
 
 module Prefix = struct
-  type prefix_match =
-    | Match of int
-    | NoMatch
-
-  let chan_of_prefix_rule (r : prefix_rule) = r.channel_name
-
-  let touching_prefix (rule : prefix_rule) name =
-    let match_lengths filename prefixes =
-      List.filter_map
-        ~f:(fun prefix -> if String.is_prefix filename ~prefix then Some (String.length prefix) else None)
-        prefixes
+  (** `match_rules f rs` returns the channel name of a rule in `rs` that matches
+      file name `f` with the longest prefix, if one exists. A rule `r` matches
+      `f` with prefix length `l`, if `f` has no prefix in `r.ignore` and `l` is
+      the length of the longest prefix of `f` in `r.allow`. An undefined allow
+      list is considered a prefix match of length 0. The ignore list is
+      evaluated before the allow list. *)
+  let match_rules filename ~rules =
+    let compare a b = Int.compare (snd a) (snd b) in
+    let is_prefix prefix = String.is_prefix filename ~prefix in
+    let match_rule (rule : prefix_rule) =
+      match rule.ignore with
+      | Some ignore_list when List.exists ignore_list ~f:is_prefix -> None
+      | _ ->
+      match rule.allow with
+      | None -> Some (rule, 0)
+      | Some allow_list ->
+        allow_list
+        |> List.filter_map ~f:(fun p -> if is_prefix p then Some (rule, String.length p) else None)
+        |> List.max_elt ~compare
     in
-    match match_lengths name rule.ignore with
-    | _ :: _ -> NoMatch
-    | [] ->
-    match rule.allow with
-    | [] -> Match 0
-    | _ ->
-    match List.max_elt (match_lengths name rule.allow) ~compare:Int.compare with
-    | Some x -> Match x
-    | None -> NoMatch
-
-  let longest_touching_prefix_rule rules name =
-    let get_m rule = touching_prefix rule name in
-    let reduce_to_longest_match longest_rule_match_pair current_rule =
-      let _, longest_match = longest_rule_match_pair in
-      let current_match = get_m current_rule in
-      let current_rule_match_pair = current_rule, current_match in
-      match longest_match with
-      | NoMatch -> current_rule_match_pair
-      | Match x ->
-      match current_match with
-      | NoMatch -> longest_rule_match_pair
-      | Match y -> if y > x then current_rule_match_pair else longest_rule_match_pair
-    in
-    match rules with
-    | [] -> None
-    | (x : prefix_rule) :: xs ->
-    match List.fold_left xs ~init:(x, get_m x) ~f:reduce_to_longest_match with
-    | _, NoMatch -> None
-    | r, Match _ -> Some r
-
-  let chan_of_file rules file = Option.map ~f:chan_of_prefix_rule @@ longest_touching_prefix_rule rules file
-
-  let unique_chans_of_files rules files =
-    List.dedup_and_sort ~compare:String.compare @@ List.filter_map files ~f:(chan_of_file rules)
-
-  let filter_push rules (commit : Github_t.commit) =
-    let files = List.concat [ commit.added; commit.removed; commit.modified ] in
-    List.map ~f:(fun chan -> chan, commit) @@ unique_chans_of_files rules files
-
-  let print_prefix_routing rules =
-    let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
     rules
-    |> List.iter ~f:(fun (rule : prefix_rule) ->
-         begin
-           match rule.allow, rule.ignore with
-           | [], [] -> Stdio.printf "  any"
-           | l, [] -> Stdio.printf "  %s" (show_match l)
-           | [], l -> Stdio.printf "  not %s" (show_match l)
-           | l, i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
-         end;
-         Stdio.printf " -> #%s\n%!" rule.channel_name)
+    |> List.filter_map ~f:match_rule
+    |> List.max_elt ~compare
+    |> Option.map ~f:(fun (res : prefix_rule * int) -> (fst res).channel_name)
 end
 
 module Label = struct
-  let touching_label rule name =
-    let name_lc = String.lowercase name in
-    let label_lc = List.map rule.allow ~f:(fun l -> String.lowercase l) in
-    let ignore_lc = List.map rule.ignore ~f:(fun l -> String.lowercase l) in
-    (* convert both labels and config into lowe-case to make label matching case-insensitive *)
-    (List.is_empty label_lc || List.mem ~equal:String.equal label_lc name_lc)
-    && not (List.mem ~equal:String.equal ignore_lc name_lc)
-
-  let filter_label rules (label : Github_j.label) =
-    rules
-    |> List.filter_map ~f:(fun rule ->
-         match touching_label rule label.name with
-         | false -> None
-         | true -> Some rule.channel_name)
-
-  let print_label_routing rules =
-    let show_match l = String.concat ~sep:" or " l in
-    rules
-    |> List.iter ~f:(fun (rule : label_rule) ->
-         begin
-           match rule.allow, rule.ignore with
-           | [], [] -> Stdio.printf "  any"
-           | l, [] -> Stdio.printf "  %s" (show_match l)
-           | [], l -> Stdio.printf "  not %s" (show_match l)
-           | l, i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
-         end;
-         Stdio.printf " -> #%s\n%!" rule.channel_name)
+  (** `match_rules l rs` returns the channel names of the rules in `rs` that
+      allow label `l`, if one exists. A rule `r` matches label `l`, if `l` is
+      not a member of `r.ignore` and is a member of `r.allow`. The label name
+      comparison is case insensitive. An undefined allow list is considered a
+      match. The ignore list is evaluated before the allow list. *)
+  let match_rules (label : Github_t.label) ~rules =
+    let label_name = String.lowercase label.name in
+    let label_name_equal name = String.equal label_name (String.lowercase name) in
+    let match_rule rule =
+      match rule.ignore with
+      | Some ignore_list when List.exists ignore_list ~f:label_name_equal -> None
+      | _ ->
+      match rule.allow with
+      | None -> Some rule.channel_name
+      | Some allow_list -> if List.exists allow_list ~f:label_name_equal then Some rule.channel_name else None
+    in
+    rules |> List.filter_map ~f:match_rule |> List.dedup_and_sort ~compare:String.compare
 end
