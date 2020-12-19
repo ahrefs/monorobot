@@ -3,6 +3,10 @@ open Devkit
 open Printf
 open Github_j
 
+exception Remote_config_error of string
+
+let remote_config_error fmt = ksprintf (fun s -> raise (Remote_config_error s)) fmt
+
 let log = Log.from "github"
 
 type t =
@@ -14,13 +18,8 @@ type t =
   | Issue_comment of issue_comment_notification
   | Commit_comment of commit_comment_notification
   | Status of status_notification
+  (* all other events *)
   | Event of string
-
-(* all other events *)
-
-exception Remote_config_error of string
-
-let remote_config_error fmt = ksprintf (fun s -> raise (Remote_config_error s)) fmt
 
 let to_repo = function
   | Push n -> Some n.repository
@@ -32,6 +31,16 @@ let to_repo = function
   | Commit_comment n -> Some n.repository
   | Status n -> Some n.repository
   | Event _ -> None
+
+let commits_branch_of_ref ref =
+  match String.split ~on:'/' ref with
+  | "refs" :: "heads" :: l -> String.concat ~sep:"/" l
+  | _ -> ref
+
+let event_of_filename filename =
+  match String.split_on_chars filename ~on:[ '.' ] with
+  | [ kind; _name; ext ] when String.equal ext "json" -> Some kind
+  | _ -> None
 
 let api_url_of_repo (repo : repository) =
   Option.map ~f:(fun host ->
@@ -74,23 +83,12 @@ let get_remote_config_json_url filename ?token req =
     end
 
 let config_of_content_api_response response =
-  let decode_string_pad s =
-    let rec strip_padding i =
-      if i < 0 then ""
-      else (
-        match s.[i] with
-        | '=' | '\n' | '\r' | '\t' | ' ' -> strip_padding (i - 1)
-        | _ -> String.sub s ~pos:0 ~len:(i + 1)
-      )
-    in
-    Base64.decode_string @@ strip_padding (String.length s - 1)
-  in
   try%lwt
     match response.encoding with
     | "base64" ->
       Lwt.return
       @@ Config_j.config_of_string
-      @@ decode_string_pad
+      @@ Common.decode_string_pad
       @@ String.concat
       @@ String.split_lines
       @@ response.content
@@ -99,11 +97,23 @@ let config_of_content_api_response response =
   | Base64.Invalid_char -> remote_config_error "unable to decode configuration file from base64"
   | Yojson.Json_error msg -> remote_config_error "unable to parse configuration file as valid JSON (%s)" msg
 
-let load_config_json url =
-  let headers = [ "Accept: application/vnd.github.v3+json" ] in
-  match%lwt Web.http_request_lwt ~headers `GET url with
-  | `Error e -> remote_config_error "error while querying github api %s: %s" url e
-  | `Ok s -> config_of_content_api_response @@ Github_j.content_api_response_of_string s
+let is_main_merge_message ~msg:message ~branch (cfg : Config.t) =
+  match cfg.main_branch_name with
+  | Some main_branch when String.equal branch main_branch ->
+    (*
+      handle "Merge <main branch> into <feature branch>" commits when they are merged into main branch
+      we should have already seen these commits on the feature branch but for some reason they are distinct:true
+    *)
+    let prefix = sprintf "Merge branch '%s' into " main_branch in
+    let prefix2 = sprintf "Merge remote-tracking branch 'origin/%s' into " main_branch in
+    let title = Common.first_line message in
+    String.is_prefix title ~prefix || String.is_prefix title ~prefix:prefix2
+  | Some main_branch ->
+    let expect = sprintf "Merge branch '%s' into %s" main_branch branch in
+    let expect2 = sprintf "Merge remote-tracking branch 'origin/%s' into %s" main_branch branch in
+    let title = Common.first_line message in
+    String.equal title expect || String.equal title expect2
+  | _ -> false
 
 let is_valid_signature ~secret headers_sig body =
   let request_hash =
@@ -113,33 +123,11 @@ let is_valid_signature ~secret headers_sig body =
   let (`Hex request_hash) = Hex.of_string request_hash in
   String.equal headers_sig (sprintf "sha1=%s" request_hash)
 
-(* Parse a payload. The type of the payload is detected from the headers. *)
-let parse_exn ~secret headers body =
-  begin
-    match secret with
-    | None -> ()
-    | Some secret ->
-    match List.Assoc.find headers "x-hub-signature" ~equal:String.equal with
-    | None -> Exn.fail "unable to find header x-hub-signature"
-    | Some req_sig -> if not @@ is_valid_signature ~secret req_sig body then failwith "request signature invalid"
-  end;
-  match List.Assoc.find_exn headers "x-github-event" ~equal:String.equal with
-  | exception exn -> Exn.fail ~exn "unable to read x-github-event"
-  | "push" -> Push (commit_pushed_notification_of_string body)
-  | "pull_request" -> Pull_request (pr_notification_of_string body)
-  | "pull_request_review" -> PR_review (pr_review_notification_of_string body)
-  | "pull_request_review_comment" -> PR_review_comment (pr_review_comment_notification_of_string body)
-  | "issues" -> Issue (issue_notification_of_string body)
-  | "issue_comment" -> Issue_comment (issue_comment_notification_of_string body)
-  | "status" -> Status (status_notification_of_string body)
-  | "commit_comment" -> Commit_comment (commit_comment_notification_of_string body)
-  | ("member" | "create" | "delete" | "release") as event -> Event event
-  | event -> failwith @@ sprintf "unsupported event : %s" event
-
-let get_commits_branch ref =
-  match String.split ~on:'/' ref with
-  | "refs" :: "heads" :: l -> String.concat ~sep:"/" l
-  | _ -> ref
+let load_config_json url =
+  let headers = [ "Accept: application/vnd.github.v3+json" ] in
+  match%lwt Web.http_request_lwt ~headers `GET url with
+  | `Error e -> remote_config_error "error while querying github api %s: %s" url e
+  | `Ok s -> config_of_content_api_response @@ Github_j.content_api_response_of_string s
 
 let query_api ?token ~url parse =
   let headers = Option.map token ~f:(fun t -> [ sprintf "Authorization: token %s" t ]) in
@@ -187,3 +175,26 @@ let generate_commit_from_commit_comment cfg n =
   let commit_url = String.sub ~pos:0 ~len:url_length url ^ "/" ^ sha in
   (* add sha hash to get the full api link *)
   generate_query_commit cfg ~url:commit_url ~sha
+
+(* Parse a payload. The type of the payload is detected from the headers. *)
+let parse_exn ~secret headers body =
+  begin
+    match secret with
+    | None -> ()
+    | Some secret ->
+    match List.Assoc.find headers "x-hub-signature" ~equal:String.equal with
+    | None -> Exn.fail "unable to find header x-hub-signature"
+    | Some req_sig -> if not @@ is_valid_signature ~secret req_sig body then failwith "request signature invalid"
+  end;
+  match List.Assoc.find_exn headers "x-github-event" ~equal:String.equal with
+  | exception exn -> Exn.fail ~exn "unable to read x-github-event"
+  | "push" -> Push (commit_pushed_notification_of_string body)
+  | "pull_request" -> Pull_request (pr_notification_of_string body)
+  | "pull_request_review" -> PR_review (pr_review_notification_of_string body)
+  | "pull_request_review_comment" -> PR_review_comment (pr_review_comment_notification_of_string body)
+  | "issues" -> Issue (issue_notification_of_string body)
+  | "issue_comment" -> Issue_comment (issue_comment_notification_of_string body)
+  | "status" -> Status (status_notification_of_string body)
+  | "commit_comment" -> Commit_comment (commit_comment_notification_of_string body)
+  | ("member" | "create" | "delete" | "release") as event -> Event event
+  | event -> failwith @@ sprintf "unsupported event : %s" event

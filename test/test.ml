@@ -1,5 +1,6 @@
 open Base
 open Lib
+open Action
 
 let log = Devkit.Log.from "test"
 
@@ -12,7 +13,8 @@ let print_notif (chan, msg) =
 
 let process ~state_dir ~cfg_path ~secrets_path file =
   Stdio.printf "===== file %s =====\n" file;
-  match Mock.kind file with
+  let filename = Caml.Filename.basename file in
+  match Github.event_of_filename filename with
   | None -> Lwt.return_unit
   | Some kind ->
     let headers = [ "x-github-event", kind ] in
