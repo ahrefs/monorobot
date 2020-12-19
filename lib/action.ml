@@ -2,65 +2,46 @@ open Devkit
 open Base
 open Slack
 open Config_t
-open Rule_t
 open Config
 open Common
 open Github_j
 
+exception Action_error of string
+
+let action_error msg = raise (Action_error msg)
+
 let log = Log.from "action"
+
+module Github_api = Api_remote.Github
 
 module Action = struct
   let partition_push cfg n =
-    let group_commit chan l =
-      List.filter_map l ~f:(fun (chan', commit) ->
-        match String.equal chan chan' with
-        | false -> None
-        | true -> Some commit)
-    in
-    let default commit =
-      Option.value_map cfg.prefix_rules.default_channel ~default:[] ~f:(fun webhook -> [ webhook, commit ])
-    in
+    let default = Option.to_list cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in
-    let channels =
-      n.commits
-      |> List.filter ~f:(fun c -> c.distinct)
-      |> List.filter ~f:(fun c ->
-           let branch = Github.commits_branch_of_ref n.ref in
-           let skip = Github.is_main_merge_message ~msg:c.message ~branch cfg in
-           if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
-           not skip)
-      |> List.map ~f:(fun commit ->
-           match Rule.Prefix.filter_push rules commit with
-           | [] -> default commit
-           | l -> l)
-      |> List.concat
-    in
-    let prefix_chans =
-      let chans =
-        Option.to_list cfg.prefix_rules.default_channel
-        @ List.map rules ~f:(fun (rule : prefix_rule) -> rule.channel_name)
-      in
-      List.dedup_and_sort chans ~compare:String.compare
-    in
-    List.filter_map prefix_chans ~f:(fun chan ->
-      match group_commit chan channels with
-      | [] -> None
-      | l -> Some (chan, { n with commits = l }))
+    n.commits
+    |> List.filter ~f:(fun c -> c.distinct)
+    |> List.filter ~f:(fun c ->
+         let branch = Github.commits_branch_of_ref n.ref in
+         let skip = Github.is_main_merge_message ~msg:c.message ~branch cfg in
+         if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
+         not skip)
+    |> List.concat_map ~f:(fun commit ->
+         let matched_channel_names =
+           Github.modified_files_of_commit commit
+           |> List.filter_map ~f:(Rule.Prefix.match_rules ~rules)
+           |> List.dedup_and_sort ~compare:String.compare
+         in
+         let channel_names = if List.is_empty matched_channel_names then default else matched_channel_names in
+         List.map channel_names ~f:(fun n -> n, commit))
+    |> Map.of_alist_multi (module String)
+    |> Map.map ~f:(fun commits -> { n with commits })
+    |> Map.to_alist
 
-  let partition_label cfg (labels : Github_j.label list) =
-    let default = Option.to_list cfg.label_rules.default_channel in
-    match labels with
-    | [] -> default
-    | labels ->
-      let rules = cfg.label_rules.rules in
-      let channels =
-        labels
-        |> List.map ~f:(fun (label : Github_j.label) ->
-             match Rule.Label.filter_label rules label with
-             | [] -> default
-             | l -> l)
-      in
-      List.dedup_and_sort ~compare:String.compare (List.concat channels)
+  let partition_label (cfg : Config.t) (labels : label list) =
+    let default = cfg.label_rules.default_channel in
+    let rules = cfg.label_rules.rules in
+    labels |> List.concat_map ~f:(Rule.Label.match_rules ~rules) |> List.dedup_and_sort ~compare:String.compare
+    |> fun channel_names -> if List.is_empty channel_names then Option.to_list default else channel_names
 
   let partition_pr cfg (n : pr_notification) =
     match n.action with
@@ -98,11 +79,15 @@ module Action = struct
     | Submitted, _, _ -> partition_label cfg n.pull_request.labels
     | _ -> []
 
-  let partition_commit cfg files =
-    let names = List.map ~f:(fun f -> f.filename) files in
-    match Rule.Prefix.unique_chans_of_files cfg.prefix_rules.rules names with
-    | _ :: _ as xs -> xs
-    | [] -> Option.to_list cfg.prefix_rules.default_channel
+  let partition_commit (cfg : Config.t) files =
+    let default = Option.to_list cfg.prefix_rules.default_channel in
+    let rules = cfg.prefix_rules.rules in
+    let matched_channel_names =
+      List.map ~f:(fun f -> f.filename) files
+      |> List.filter_map ~f:(Rule.Prefix.match_rules ~rules)
+      |> List.dedup_and_sort ~compare:String.compare
+    in
+    if List.is_empty matched_channel_names then default else matched_channel_names
 
   let partition_status (ctx : Context.t) (n : status_notification) =
     let cfg = ctx.cfg in
@@ -153,18 +138,24 @@ module Action = struct
     Context.update_state ctx (Github.Status n);
     res
 
-  let partition_commit_comment cfg n =
-    let default = Option.to_list cfg.prefix_rules.default_channel in
-    match n.comment.path with
-    | None ->
-      ( match%lwt Github.generate_commit_from_commit_comment cfg n with
-      | None -> Lwt.return default
-      | Some commit -> Lwt.return (partition_commit cfg commit.files)
+  let partition_commit_comment (ctx : Context.t) n =
+    let cfg = ctx.cfg in
+    match n.comment.commit_id with
+    | None -> action_error "unable to find commit id for this commit comment event"
+    | Some sha ->
+      ( match%lwt Github_api.get_api_commit ~ctx ~repo:n.repository ~sha with
+      | Error e -> action_error e
+      | Ok commit ->
+        let default = Option.to_list cfg.prefix_rules.default_channel in
+        let rules = cfg.prefix_rules.rules in
+        ( match n.comment.path with
+        | None -> Lwt.return @@ (partition_commit cfg commit.files, commit)
+        | Some filename ->
+        match Rule.Prefix.match_rules filename ~rules with
+        | None -> Lwt.return (default, commit)
+        | Some chan -> Lwt.return ([ chan ], commit)
+        )
       )
-    | Some p ->
-    match Rule.Prefix.chan_of_file cfg.prefix_rules.rules p with
-    | None -> Lwt.return default
-    | Some chan -> Lwt.return [ chan ]
 
   let generate_notifications (ctx : Context.t) req =
     let cfg = ctx.cfg in
@@ -186,8 +177,8 @@ module Action = struct
       |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
       |> Lwt.return
     | Commit_comment n ->
-      let%lwt webhooks = partition_commit_comment cfg n in
-      let%lwt notif = generate_commit_comment_notification cfg n in
+      let%lwt webhooks, api_commit = partition_commit_comment ctx n in
+      let%lwt notif = generate_commit_comment_notification api_commit n in
       let notifs = List.map ~f:(fun webhook -> webhook, notif) webhooks in
       Lwt.return notifs
     | Status n ->

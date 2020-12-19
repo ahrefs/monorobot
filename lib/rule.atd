@@ -10,7 +10,9 @@ type status_state = {
 
 (* A filename matches a prefix rule with the channel name if it isn't in the ignore
    list and it is in the allow list. If multiple prefix rules match for a given
-   file, the one to match with the longest prefix is used.
+   file, the one to match with the longest prefix is used. Both `allow` and
+   `ignore` are optional. If `allow` is undefined, then the rule matches all
+   payloads.
 
    If a commit affects 3 files:
    - some/dir/a
@@ -26,15 +28,16 @@ type status_state = {
    ignore should be ["some/other"] 
 *)
 type prefix_rule = {
-  allow : string list; (* empty list means match any *)
-  ~ignore : string list;
-  channel_name <json name="channel"> : string;
+  ?allow : string list nullable;
+  ?ignore : string list nullable;
+  channel_name <json name="channel">: string;
 }
 
 (* A payload matches a label rule with a channel name if absent from the ignore list
-   and present in the allow list. *)
+   and present in the allow list. Both `allow` and `ignore` are optional. If `allow`
+   is undefined, then the rule matches all payloads. *)
 type label_rule = {
-  allow : string list;
-  ~ignore : string list;
-  channel_name <json name="channel"> : string;
+  ?allow : string list nullable;
+  ?ignore : string list nullable;
+  channel_name <json name="channel">: string;
 }
