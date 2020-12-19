@@ -1,0 +1,46 @@
+type status_state <ocaml from="Rule"> = abstract
+type prefix_rule <ocaml from="Rule"> = abstract
+type label_rule <ocaml from="Rule"> = abstract
+
+(* This type of rule is used for CI build notifications. *)
+type status_rules = {
+  ?allowed_pipelines: string list option; (* keep only status events with a title matching this list *)
+  rules: status_state;
+}
+
+(* This type of rule is used for CI build notifications. *)
+type prefix_rules = {
+  ?default_channel: string nullable; (* if none of the rules is matching *)
+  rules: prefix_rule list;
+}
+
+(* This type of rule is used for events that must be routed based on the
+  files they are related to. *)
+type label_rules = {
+  ?default_channel: string nullable; (* if none of the rules is matching *)
+  rules: label_rule list;
+}
+
+(* This is the structure of the repository configuration file. It should be at the
+   root of the monorepo, on the main branch. *)
+type config = {
+  prefix_rules : prefix_rules;
+  label_rules : label_rules;
+  status_rules : status_rules;
+  ?main_branch_name: string option; (* used to filter out notifications about merges of main branch into other branches *)
+  ?offline: string option; (* where to find github api data when http calls are not allowed *)
+}
+
+(* This specifies the Slack webhook to query to post to the channel with the given name *)
+type webhook = {
+  url : string; (* url to call to send the message *)
+  channel : string; (* name of the channel where the message will be posted *)
+}
+
+(* This is the structure of the secrets file which stores sensitive information, and
+   shouldn't be checked into version control.  *)
+type secrets = {
+  slack_hooks : webhook list;
+  ?gh_token: string option; (* must not be specified for public repositories *)
+  ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
+}

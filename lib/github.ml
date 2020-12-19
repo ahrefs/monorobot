@@ -89,7 +89,7 @@ let config_of_content_api_response response =
     match response.encoding with
     | "base64" ->
       Lwt.return
-      @@ Notabot_j.config_of_string
+      @@ Config_j.config_of_string
       @@ decode_string_pad
       @@ String.concat
       @@ String.split_lines

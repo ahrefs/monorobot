@@ -1,0 +1,14 @@
+type build_state = [
+  | Success
+  | Failure
+] <ocaml repr="classic">
+
+type branch_info = {
+  last_build_state : build_state; (* if unknown or not built before, set to 'Failure' *)
+  updated_at : string;
+}
+
+(* The serializable runtime state of the bot *)
+type state = {
+  pipeline_statuses : (string * branch_info) list;
+}
