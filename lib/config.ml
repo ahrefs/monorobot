@@ -13,8 +13,8 @@ type status_rules = {
 
 type t = {
   chans : string Chan_map.t;
-  prefix_rules : Notabot_t.prefix_rules;
-  label_rules : Notabot_t.label_rules;
+  prefix_rules : Config_t.prefix_rules;
+  label_rules : Config_t.label_rules;
   gh_webhook_secret : string option;
   main_branch_name : string option;
   gh_token : string option;
@@ -22,10 +22,10 @@ type t = {
   status_rules : status_rules;
 }
 
-let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
+let make (json_config : Config_t.config) (secrets : Config_t.secrets) =
   let chans =
     List.fold_left
-      (fun acc (webhook : Notabot_t.webhook) ->
+      (fun acc (webhook : Config_t.webhook) ->
         match Chan_map.find_opt webhook.channel acc with
         | None -> Chan_map.add webhook.channel webhook.url acc
         | Some c -> Exn.fail "chan %s is defined multiple time in the config" c)
@@ -33,7 +33,7 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
   in
   let () =
     List.iteri
-      (fun i ({ channel_name; _ } : Notabot_t.prefix_rule) ->
+      (fun i ({ channel_name; _ } : Config_t.prefix_rule) ->
         match Chan_map.find_opt channel_name chans with
         | None -> Exn.fail "chan %s in prefix_rules %d is missing from slack_hooks" channel_name i
         | Some _ -> ())
@@ -41,7 +41,7 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
   in
   let () =
     List.iteri
-      (fun i ({ channel_name; _ } : Notabot_t.label_rule) ->
+      (fun i ({ channel_name; _ } : Config_t.label_rule) ->
         match Chan_map.find_opt channel_name chans with
         | None -> Exn.fail "chan %s in labels_rules %d is missing from slack_hooks" channel_name i
         | Some _ -> ())
@@ -96,9 +96,9 @@ let make (json_config : Notabot_t.config) (secrets : Notabot_t.secrets) =
     status_rules;
   }
 
-let load_config_file ~config_path = Notabot_j.config_of_string @@ Stdio.In_channel.read_all config_path
+let load_config_file ~config_path = Config_j.config_of_string @@ Stdio.In_channel.read_all config_path
 
-let load_secrets_file ~secrets_path = Notabot_j.secrets_of_string @@ Stdio.In_channel.read_all secrets_path
+let load_secrets_file ~secrets_path = Config_j.secrets_of_string @@ Stdio.In_channel.read_all secrets_path
 
 let load ~config_path ~secrets_path =
   let config = load_config_file ~config_path in

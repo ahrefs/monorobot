@@ -1,0 +1,40 @@
+type tristate = [ True | False | Once <json name="once"> ] <ocaml repr="classic"> <json adapter.ocaml="Common.Tristate">
+
+type status_state = {
+  success: tristate;
+  failure: bool;
+  pending: bool;
+  error: bool;
+  ?cancelled: string option; (* if specified, it will use the string as regex to match the description from the payload to determine if the status_state is cancelled *)
+}
+
+(* A filename matches a prefix rule with the channel name if it isn't in the ignore
+   list and it is in the allow list. If multiple prefix rules match for a given
+   file, the one to match with the longest prefix is used.
+
+   If a commit affects 3 files:
+   - some/dir/a
+   - some/dir/b
+   - some/other/dir/c
+
+   And we are only interested by commits affecting files in some/dir
+
+   allow should be ["some/dir"]
+
+   or
+
+   ignore should be ["some/other"] 
+*)
+type prefix_rule = {
+  allow : string list; (* empty list means match any *)
+  ~ignore : string list;
+  channel_name <json name="channel"> : string;
+}
+
+(* A payload matches a label rule with a channel name if absent from the ignore list
+   and present in the allow list. *)
+type label_rule = {
+  allow : string list;
+  ~ignore : string list;
+  channel_name <json name="channel"> : string;
+}

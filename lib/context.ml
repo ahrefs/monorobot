@@ -23,14 +23,14 @@ type data = {
 }
 
 type t = {
-  mutable state : Notabot_t.state;
+  mutable state : State_t.state;
   mutable cfg : Config.t;
-  secrets : Notabot_t.secrets;
+  secrets : Config_t.secrets;
   data : data;
 }
 
 type context_thunk = {
-  secrets : Notabot_j.secrets;
+  secrets : Config_t.secrets;
   thunk : ?req:Github.t -> unit -> t Lwt.t;
   mutable ctx : t option;
 }
@@ -86,7 +86,7 @@ let update_and_get_state ctx event =
   update_state ctx event;
   ctx.state
 
-let make_with_secrets ~state_path ~cfg_args ~secrets_path ~(secrets : Notabot_t.secrets) ?(disable_write = false)
+let make_with_secrets ~state_path ~cfg_args ~secrets_path ~(secrets : Config_t.secrets) ?(disable_write = false)
   ?(cfg_action_after_refresh = fun _ -> ()) ()
   =
   let data_cfg_path, cfg_source, cfg_json, cfg_filename =

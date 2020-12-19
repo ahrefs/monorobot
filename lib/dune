@@ -31,13 +31,37 @@
   (run atdgen -j -j-std %{deps})))
 
 (rule
- (targets notabot_t.ml notabot_t.mli)
- (deps notabot.atd)
+ (targets rule_t.ml rule_t.mli)
+ (deps rule.atd)
  (action
   (run atdgen -t %{deps})))
 
 (rule
- (targets notabot_j.ml notabot_j.mli)
- (deps notabot.atd)
+ (targets rule_j.ml rule_j.mli)
+ (deps rule.atd)
+ (action
+  (run atdgen -j -j-std %{deps})))
+
+(rule
+ (targets config_t.ml config_t.mli)
+ (deps config.atd)
+ (action
+  (run atdgen -t %{deps})))
+
+(rule
+ (targets config_j.ml config_j.mli)
+ (deps config.atd)
+ (action
+  (run atdgen -j -j-std %{deps})))
+
+(rule
+ (targets state_t.ml state_t.mli)
+ (deps state.atd)
+ (action
+  (run atdgen -t %{deps})))
+
+(rule
+ (targets state_j.ml state_j.mli)
+ (deps state.atd)
  (action
   (run atdgen -j -j-std %{deps})))

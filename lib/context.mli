@@ -19,14 +19,14 @@ type data = {
 }
 
 type t = {
-  mutable state : Notabot_t.state;
+  mutable state : State_t.state;
   mutable cfg : Config.t;
-  secrets : Notabot_t.secrets;
+  secrets : Config_t.secrets;
   data : data;
 }
 
 type context_thunk = {
-  secrets : Notabot_j.secrets;
+  secrets : Config_t.secrets;
   thunk : ?req:Github.t -> unit -> t Lwt.t;
   mutable ctx : t option;
 }
@@ -39,17 +39,17 @@ val change_remote_url : string -> t -> Github.t -> unit Lwt.t
 
 val refresh_state : t -> unit
 
-val refresh_and_get_state : t -> Notabot_t.state
+val refresh_and_get_state : t -> State_t.state
 
 val update_state : t -> Github.t -> unit
 
-val update_and_get_state : t -> Github.t -> Notabot_t.state
+val update_and_get_state : t -> Github.t -> State_t.state
 
 val make_with_secrets
   :  state_path:string ->
   cfg_args:cfg_make_args ->
   secrets_path:string ->
-  secrets:Notabot_t.secrets ->
+  secrets:Config_t.secrets ->
   ?disable_write:bool ->
   ?cfg_action_after_refresh:(Config.t -> unit) ->
   unit ->

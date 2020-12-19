@@ -2,7 +2,8 @@ open Devkit
 open Printf
 open Base
 open Slack
-open Notabot_t
+open Config_t
+open Rule_t
 open Config
 open Common
 open Github_j
@@ -15,7 +16,7 @@ type prefix_match =
 
 let chan_of_prefix_rule (r : prefix_rule) = r.channel_name
 
-let touching_prefix (rule : Notabot_t.prefix_rule) name =
+let touching_prefix (rule : prefix_rule) name =
   let match_lengths filename prefixes =
     List.filter_map
       ~f:(fun prefix -> if String.is_prefix filename ~prefix then Some (String.length prefix) else None)
