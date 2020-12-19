@@ -4,20 +4,20 @@ type label_rule <ocaml from="Rule"> = abstract
 
 (* This type of rule is used for CI build notifications. *)
 type status_rules = {
-  ?allowed_pipelines: string list option; (* keep only status events with a title matching this list *)
+  ?allowed_pipelines : string list option; (* keep only status events with a title matching this list *)
   rules: status_state;
 }
 
 (* This type of rule is used for CI build notifications. *)
 type prefix_rules = {
-  ?default_channel: string nullable; (* if none of the rules is matching *)
+  ?default_channel : string nullable; (* if none of the rules is matching *)
   rules: prefix_rule list;
 }
 
 (* This type of rule is used for events that must be routed based on the
   files they are related to. *)
 type label_rules = {
-  ?default_channel: string nullable; (* if none of the rules is matching *)
+  ?default_channel : string nullable; (* if none of the rules is matching *)
   rules: label_rule list;
 }
 
@@ -41,6 +41,6 @@ type webhook = {
    shouldn't be checked into version control.  *)
 type secrets = {
   slack_hooks : webhook list;
-  ?gh_token: string option; (* must not be specified for public repositories *)
-  ?gh_webhook_secret: string option; (* if not specified - signatures will not be checked *)
+  ?gh_token : string option; (* must not be specified for public repositories *)
+  ?gh_webhook_secret : string option; (* if not specified - signatures will not be checked *)
 }

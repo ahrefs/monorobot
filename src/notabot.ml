@@ -1,6 +1,7 @@
 open Devkit
 open Base
 open Lib
+open Action
 module Arg = Caml.Arg
 open Cmdliner
 
@@ -10,9 +11,9 @@ let log = Log.from "monorobot"
 
 let cfg_action_after_refresh (cfg : Config.t) =
   log#info "using prefix routing:";
-  Action.print_prefix_routing cfg.prefix_rules.rules;
+  Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules;
   log#info "using label routing:";
-  Action.print_label_routing cfg.label_rules.rules;
+  Rule.Label.print_label_routing cfg.label_rules.rules;
   log#info "signature checking %s" (if Option.is_some cfg.gh_webhook_secret then "enabled" else "disabled")
 
 let update_state_at_path state_path state event = State.save state_path @@ State.update_state state event
@@ -36,7 +37,8 @@ let check_common file print config secrets state_path =
     Context.make_thunk ~state_path ~cfg_path_or_remote_filename:config ~secrets_path:secrets ~cfg_action_after_refresh
       ()
   in
-  match Mock.kind file with
+  let filename = Caml.Filename.basename file in
+  match Github.event_of_filename filename with
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
     Lwt.return_unit

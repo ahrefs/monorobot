@@ -223,7 +223,7 @@ let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
 let generate_push_notification notification =
   let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in
-  let commits_branch = Github.get_commits_branch notification.ref in
+  let commits_branch = Github.commits_branch_of_ref notification.ref in
   let tree_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode commits_branch ] in
   let title =
     if deleted then

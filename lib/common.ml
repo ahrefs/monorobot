@@ -16,3 +16,14 @@ module Tristate : Atdgen_runtime.Json_adapter.S = struct
     | `String "false" -> `Bool false
     | x -> x
 end
+
+let decode_string_pad s =
+  let rec strip_padding i =
+    if i < 0 then ""
+    else (
+      match s.[i] with
+      | '=' | '\n' | '\r' | '\t' | ' ' -> strip_padding (i - 1)
+      | _ -> String.sub s ~pos:0 ~len:(i + 1)
+    )
+  in
+  Base64.decode_string @@ strip_padding (String.length s - 1)
