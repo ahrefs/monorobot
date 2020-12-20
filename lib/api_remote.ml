@@ -17,9 +17,10 @@ module Github : Api.Github = struct
     Option.value_map token ~default:headers ~f:(fun v -> sprintf "Authorization: token %s" v :: headers)
 
   let get_config ~(ctx : Context.t) ~repo =
+    let secrets = Context.get_secrets_exn ctx in
     let url = contents_url ~repo ~path:ctx.config_filename in
-    let headers = build_headers ?token:ctx.gh_token () in
-    match%lwt http_get ~headers url with
+    let headers = build_headers ?token:secrets.gh_token () in
+    match%lwt http_request ~headers `GET url with
     | Error e ->
       log#error "error while querying %s: %s" url e;
       Lwt.return @@ fmt_error "failed to get config from file %s" url
@@ -41,9 +42,10 @@ module Github : Api.Github = struct
       )
 
   let get_api_commit ~(ctx : Context.t) ~repo ~sha =
+    let secrets = Context.get_secrets_exn ctx in
     let url = commits_url ~repo ~sha in
-    let headers = build_headers ?token:ctx.gh_token () in
-    match%lwt http_get ~headers url with
+    let headers = build_headers ?token:secrets.gh_token () in
+    match%lwt http_request ~headers `GET url with
     | Ok res -> Lwt.return @@ Ok (Github_j.api_commit_of_string res)
     | Error e ->
       log#error "error while querying %s: %s" url e;
@@ -55,8 +57,9 @@ module Slack : Api.Slack = struct
 
   let send_notification ~chan ~msg ~url =
     let data = Slack_j.string_of_webhook_notification msg in
+    let body = `Raw ("application/json", data) in
     log#info "sending to %s : %s" chan data;
-    match%lwt http_post ~path:url ~data with
+    match%lwt http_request ~body `POST url with
     | Ok _ -> Lwt.return @@ Ok ()
     | Error e ->
       log#error "error while querying %s: %s" url e;
