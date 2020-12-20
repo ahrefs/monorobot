@@ -4,7 +4,7 @@ type label_rule <ocaml from="Rule"> = abstract
 
 (* This type of rule is used for CI build notifications. *)
 type status_rules = {
-  ?allowed_pipelines: string list nullable; (* keep only status events with a title matching this list *)
+  ?allowed_pipelines : string list nullable; (* keep only status events with a title matching this list *)
   rules: status_state;
 }
 
