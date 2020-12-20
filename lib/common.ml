@@ -37,15 +37,9 @@ end
 let decode_string_pad s =
   String.rstrip ~drop:(List.mem [ '='; ' '; '\n'; '\r'; '\t' ] ~equal:Char.equal) s |> Base64.decode_string
 
-let http_get ?headers path =
-  match%lwt Web.http_request_lwt ~ua:"monorobot" ~verbose:true ?headers `GET path with
+let http_request ?headers ?body meth path =
+  match%lwt Web.http_request_lwt ~ua:"monorobot" ~verbose:true ?headers ?body meth path with
   | `Ok s -> Lwt.return @@ Ok s
-  | `Error e -> Lwt.return @@ Error e
-
-let http_post ~path ~data =
-  let body = `Raw ("application/json", data) in
-  match%lwt Web.http_request_lwt ~verbose:true ~body `POST path with
-  | `Ok res -> Lwt.return @@ Ok res
   | `Error e -> Lwt.return @@ Error e
 
 let get_local_file path =
@@ -54,7 +48,7 @@ let get_local_file path =
     Lwt.return @@ Ok data
   with exn -> Lwt.return @@ Error (Exn.str exn)
 
-let write_to_local_file ~path ~data =
+let write_to_local_file ~data path =
   try%lwt
     let%lwt () =
       Lwt_io.with_file ~flags:[ O_CREAT; O_WRONLY; O_TRUNC ] ~mode:Lwt_io.output path (fun oc -> Lwt_io.write oc data)
