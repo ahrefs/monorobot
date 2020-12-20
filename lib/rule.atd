@@ -30,7 +30,7 @@ type status_state = {
 type prefix_rule = {
   ?allow : string list nullable;
   ?ignore : string list nullable;
-  channel_name <json name="channel">: string;
+  channel_name <json name="channel"> : string;
 }
 
 (* A payload matches a label rule with a channel name if absent from the ignore list
@@ -39,5 +39,5 @@ type prefix_rule = {
 type label_rule = {
   ?allow : string list nullable;
   ?ignore : string list nullable;
-  channel_name <json name="channel">: string;
+  channel_name <json name="channel"> : string;
 }

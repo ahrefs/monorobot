@@ -13,7 +13,7 @@
             "success": "once"
         }
     },
-"prefix_rules": {
+    "prefix_rules": {
         "default_channel": "default",
         "rules": [
             {

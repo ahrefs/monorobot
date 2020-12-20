@@ -45,12 +45,12 @@ A secrets file stores sensitive information. Unlike the repository configuration
 |-|-|-|-|
 | `slack_hooks` | list of channel names (`channel`) and their corresponding webhook endpoint (`url`) | No | - |
 | `gh_token` | specify to grant the bot access to private repositories; omit for public repositories | Yes | - |
-| `gh_webhook_secret` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
+| `gh_hook_token` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
 
 ## `gh_token`
 
 Some operations, such as fetching a config file from a private repository, or the commit corresponding to a commit comment event, require a personal access token. Refer [here](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) for detailed instructions on token generation.
 
-## `gh_webhook_secret`
+## `gh_hook_token`
 
 Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/securing-your-webhooks) for more information on securing webhooks with a token.

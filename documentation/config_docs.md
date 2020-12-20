@@ -105,7 +105,7 @@ A json object with fields of bools for each status type.
 
 | value | description | optional | default |
 |-|-|-|-|
-| `default_channel` | default channel to notify if no rules match | Yes | None |
+| `default_channel` | default channel to notify if no rules match | Yes | don't notify any channel |
 | `rules` | list of `label_rule` objects | No | - |
 
 ### Label Rule
@@ -114,8 +114,8 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
 
 | value | description | optional | default |
 |-|-|-|-|
-| `allow` | whitelist of label values; if not provided, the rule is vacuously satisfied | Yes | - |
-| `ignore` | blacklist of label values; any labels matching will not match the rule | Yes | - |
+| `allow` | whitelist of labels that should match the rule | Yes | all labels allowed if no list provided |
+| `ignore` | blacklist of labels that shouldn't match the rule | Yes | - |
 | `channel` | channel to use as webhook if the rule is matched | No | - |
 
 ## Prefix Options
@@ -151,6 +151,6 @@ A **prefix rule** specifies whether or not a Slack channel should be notified, b
 
 | value | description | optional | default |
 |-|-|-|-|
-| `allow` | whitelist of file prefixes that match the rule | Yes | - |
-| `ignore` | blacklist of file prefixes that do not match the rule | Yes | - |
+| `allow` | whitelist of file prefixes that should match the rule | Yes | all prefixes allowed if no list provided |
+| `ignore` | blacklist of file prefixes that shouldn't match the rule | Yes | - |
 | `channel` | channel to use as webhook if the rule is matched | No | - |
