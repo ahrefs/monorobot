@@ -15,7 +15,7 @@ let refresh_pipeline_status (state : State_t.state) ~pipeline ~(branches : Githu
 let log = Log.from "state"
 
 let save state path =
-  let data = State_j.string_of_state state in
+  let data = State_j.string_of_state state |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
   match write_to_local_file ~data path with
   | Ok () -> Lwt.return @@ Ok ()
   | Error e ->
