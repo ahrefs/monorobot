@@ -57,9 +57,7 @@ let refresh_secrets ctx =
   | Ok res ->
     ctx.secrets <- Some (Config_j.secrets_of_string res);
     Lwt.return @@ Ok ctx
-  | Error e ->
-    log#error "error while getting local file %s: %s" path e;
-    Lwt.return @@ fmt_error "failed to get secrets from file %s" path
+  | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get secrets from file %s" e path
 
 let refresh_state ctx =
   match ctx.state_filepath with
@@ -70,7 +68,5 @@ let refresh_state ctx =
       log#info "loading saved state from file %s" path;
       let state = State_j.state_of_string res in
       Lwt.return @@ Ok { ctx with state }
-    | Error e ->
-      log#error "error while getting local file %s: %s" path e;
-      Lwt.return @@ fmt_error "failed to get state from file %s" path
+    | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path
     )

@@ -186,9 +186,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let send_notifications (ctx : Context.t) notifications =
     let notify (chan, msg) =
       match Context.hook_of_channel ctx chan with
-      | None ->
-        log#error "webhook not defined for Slack channel '%s'" chan;
-        Lwt.return_unit
+      | None -> Printf.ksprintf action_error "webhook not defined for Slack channel '%s'" chan
       | Some url ->
         ( match%lwt Slack_api.send_notification ~chan ~msg ~url with
         | Ok () -> Lwt.return_unit

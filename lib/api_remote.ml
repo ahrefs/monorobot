@@ -4,8 +4,6 @@ open Devkit
 open Common
 
 module Github : Api.Github = struct
-  let log = Log.from "github"
-
   let commits_url ~(repo : Github_t.repository) ~sha =
     String.substr_replace_first ~pattern:"{/sha}" ~with_:sha repo.commits_url
 
@@ -21,9 +19,7 @@ module Github : Api.Github = struct
     let url = contents_url ~repo ~path:ctx.config_filename in
     let headers = build_headers ?token:secrets.gh_token () in
     match%lwt http_request ~headers `GET url with
-    | Error e ->
-      log#error "error while querying %s: %s" url e;
-      Lwt.return @@ fmt_error "failed to get config from file %s" url
+    | Error e -> Lwt.return @@ fmt_error "error while querying remote: %s\nfailed to get config from file %s" e url
     | Ok res ->
       let response = Github_j.content_api_response_of_string res in
       ( match response.encoding with
@@ -33,12 +29,13 @@ module Github : Api.Github = struct
             response.content |> String.split_lines |> String.concat |> decode_string_pad |> Config_j.config_of_string
             |> fun res -> Lwt.return @@ Ok res
           with Base64.Invalid_char as exn ->
-            log#error ~exn "failed to decode base64 in Github response";
-            Lwt.return @@ fmt_error "failed to get config from file %s" url
+            let e = Exn.to_string exn in
+            Lwt.return
+            @@ fmt_error "error while decoding base64 in GitHub response: %s\nfailed to get config from file %s" e url
         end
       | encoding ->
-        log#error "unexpected encoding '%s' in Github response" encoding;
-        Lwt.return @@ fmt_error "failed to get config from file %s" url
+        Lwt.return
+        @@ fmt_error "unexpected encoding '%s' in Github response\nfailed to get config from file %s" encoding url
       )
 
   let get_api_commit ~(ctx : Context.t) ~repo ~sha =
@@ -47,9 +44,7 @@ module Github : Api.Github = struct
     let headers = build_headers ?token:secrets.gh_token () in
     match%lwt http_request ~headers `GET url with
     | Ok res -> Lwt.return @@ Ok (Github_j.api_commit_of_string res)
-    | Error e ->
-      log#error "error while querying %s: %s" url e;
-      Lwt.return @@ fmt_error "failed to get api commit %s" sha
+    | Error e -> Lwt.return @@ fmt_error "error while querying remote: %s\nfailed to get api commit from file %s" e url
 end
 
 module Slack : Api.Slack = struct
@@ -62,6 +57,5 @@ module Slack : Api.Slack = struct
     match%lwt http_request ~body `POST url with
     | Ok _ -> Lwt.return @@ Ok ()
     | Error e ->
-      log#error "error while querying %s: %s" url e;
-      Lwt.return @@ fmt_error "failed to send Slack notification"
+      Lwt.return @@ fmt_error "error while querying remote: %s\nfailed to send Slack notification to %s" e url
 end

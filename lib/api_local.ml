@@ -7,22 +7,16 @@ let cwd = Caml.Sys.getcwd ()
 let cache_dir = Caml.Filename.concat cwd "github-api-cache"
 
 module Github : Api.Github = struct
-  let log = Log.from "github"
-
   let get_config ~(ctx : Context.t) ~repo:_ =
     let url = Caml.Filename.concat cwd ctx.config_filename in
     match%lwt get_local_file url with
-    | Error e ->
-      log#error "error while getting local file %s: %s" url e;
-      Lwt.return @@ fmt_error "failed to get config from file %s" url
+    | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get config %s" e url
     | Ok res -> Lwt.return @@ Ok (Config_j.config_of_string res)
 
   let get_api_commit ~ctx:_ ~repo:_ ~sha =
     let url = Caml.Filename.concat cache_dir sha in
     match%lwt get_local_file url with
-    | Error e ->
-      log#error "error while getting local file %s: %s" url e;
-      Lwt.return @@ fmt_error "failed to get api commit from file %s" url
+    | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get api commit %s" e url
     | Ok res -> Lwt.return @@ Ok (Github_j.api_commit_of_string res)
 end
 
