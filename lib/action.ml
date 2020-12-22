@@ -13,6 +13,16 @@ let action_error msg = raise (Action_error msg)
 let log = Log.from "action"
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
+  (* this should move to context.ml once rule.ml is refactored to not depend on it *)
+  let print_config ctx =
+    let cfg = Context.get_config_exn ctx in
+    let secrets = Context.get_secrets_exn ctx in
+    log#info "using prefix routing:";
+    Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules;
+    log#info "using label routing:";
+    Rule.Label.print_label_routing cfg.label_rules.rules;
+    log#info "signature checking %s" (if Option.is_some secrets.gh_hook_token then "enabled" else "disabled")
+
   let partition_push cfg n =
     let default = Option.to_list cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in
@@ -203,6 +213,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       let repo = Github.repo_of_notification notification in
       match%lwt Github_api.get_config ~ctx ~repo with
       | Ok config ->
+        print_config ctx;
         (* can remove this wrapper once status_rules doesn't depend on Config.t *)
         ctx.config <- Some (Config.make config);
         Lwt.return @@ Ok ()

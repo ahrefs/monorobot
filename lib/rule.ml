@@ -63,6 +63,21 @@ module Prefix = struct
     |> List.filter_map ~f:match_rule
     |> List.max_elt ~compare
     |> Option.map ~f:(fun (res : prefix_rule * int) -> (fst res).channel_name)
+
+  let print_prefix_routing rules =
+    let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
+    rules
+    |> List.iter ~f:(fun (rule : prefix_rule) ->
+         begin
+           match rule.allow, rule.ignore with
+           | None, None -> Stdio.printf "  any"
+           | None, Some [] -> Stdio.printf "  any"
+           | None, Some l -> Stdio.printf "  not %s" (show_match l)
+           | Some l, None -> Stdio.printf "  %s" (show_match l)
+           | Some l, Some [] -> Stdio.printf "  %s" (show_match l)
+           | Some l, Some i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
+         end;
+         Stdio.printf " -> #%s\n%!" rule.channel_name)
 end
 
 module Label = struct
@@ -83,4 +98,19 @@ module Label = struct
       | Some allow_list -> if List.exists allow_list ~f:label_name_equal then Some rule.channel_name else None
     in
     rules |> List.filter_map ~f:match_rule |> List.dedup_and_sort ~compare:String.compare
+
+  let print_label_routing rules =
+    let show_match l = String.concat ~sep:" or " l in
+    rules
+    |> List.iter ~f:(fun (rule : label_rule) ->
+         begin
+           match rule.allow, rule.ignore with
+           | None, None -> Stdio.printf "  any"
+           | None, Some [] -> Stdio.printf "  any"
+           | None, Some l -> Stdio.printf "  not %s" (show_match l)
+           | Some l, None -> Stdio.printf "  %s" (show_match l)
+           | Some l, Some [] -> Stdio.printf "  %s" (show_match l)
+           | Some l, Some i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
+         end;
+         Stdio.printf " -> #%s\n%!" rule.channel_name)
 end
