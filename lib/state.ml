@@ -18,6 +18,4 @@ let save state path =
   let data = State_j.string_of_state state |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
   match write_to_local_file ~data path with
   | Ok () -> Lwt.return @@ Ok ()
-  | Error e ->
-    log#error "failed to write to local file %s: %s" path e;
-    Lwt.return @@ fmt_error "failed to save state"
+  | Error e -> Lwt.return @@ fmt_error "error while writing to local file %s: %s\nfailed to save state" path e
