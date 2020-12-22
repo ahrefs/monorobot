@@ -19,7 +19,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     |> List.filter ~f:(fun c -> c.distinct)
     |> List.filter ~f:(fun c ->
          let branch = Github.commits_branch_of_ref n.ref in
-         let skip = Github.is_main_merge_message ~msg:c.message ?main_branch:cfg.main_branch_name ~branch in
+         let skip = Github.is_main_merge_message ~msg:c.message ~branch cfg in
          if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
          not skip)
     |> List.concat_map ~f:(fun commit ->
@@ -217,7 +217,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let process_github_notification (ctx : Context.t) headers body =
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
-      match Github.parse_exn ?hook_token:secrets.gh_hook_token headers body with
+      match Github.parse_exn ~secret:secrets.gh_hook_token headers body with
       | exception exn -> Exn_lwt.fail ~exn "failed to parse payload"
       | payload ->
         ( match%lwt refresh_config_of_context ctx payload with
