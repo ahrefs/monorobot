@@ -136,7 +136,11 @@ Monorobot supports additional behavior for GitHub status notifications, which ar
 
 The following takes place when a status notification is received.
 
-1. Check whether a status notification should be *allowed* for further processing or *ignored*, according to a list of **status rules**. The bot will check the list *in order*, and use the policy defined by the first rule that the notification satisfies. If no rule matches, the default behavior is to allow the notification.
+1. Check whether a status notification should be *allowed* for further processing or *ignored*, according to a list of **status rules**. The bot will check the list *in order*, and use the policy defined by the first rule that the notification satisfies. If no rule matches, the default behavior of the status state is used:
+   - `pending`: `ignore`
+   - `failure`: `allow`
+   - `error`: `allow`
+   - `success`: `allow_once`
 1. For those payloads allowed by step 1, if it isn't a main branch build notification, route to the default channel to reduce spam in topic channels. Otherwise, check the notification commit's files according to the prefix rules.
 
 Internally, the bot keeps track of the status of the last allowed payload, for a given pipeline and branch. This information is used to evaluate the status rules (see below).
