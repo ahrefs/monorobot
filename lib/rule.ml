@@ -2,9 +2,17 @@ open Base
 open Rule_t
 
 module Status = struct
+  let default_rules =
+    [
+      { trigger = [ Pending ]; condition = None; policy = Ignore };
+      { trigger = [ Failure; Error ]; condition = None; policy = Allow };
+      { trigger = [ Success ]; condition = None; policy = Allow_once };
+    ]
+
   (** `match_rules n rs` returns the policy declared by the first rule in `rs`
-      to match status notification `n`, if one exists. A rule `r` matches `n`
-      if `n.state` is in `r.trigger` and `n` meets `r.condition`. *)
+      to match status notification `n` if one exists, falling back to
+      the default rules otherwise. A rule `r` matches `n` if `n.state` is in
+      `r.trigger` and `n` meets `r.condition`. *)
   let match_rules (notification : Github_t.status_notification) ~rules =
     let match_rule rule =
       let value_of_field = function
@@ -27,7 +35,7 @@ module Status = struct
       then Some rule.policy
       else None
     in
-    List.find_map rules ~f:match_rule
+    List.find_map (List.append rules default_rules) ~f:match_rule
 end
 
 module Prefix = struct

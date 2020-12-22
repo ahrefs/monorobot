@@ -15,10 +15,7 @@
                     }
                 },
                 "policy": "ignore"
-            },
-            { "on": ["pending"], "policy": "ignore"},
-            { "on": ["failure", "error"], "policy": "allow"},
-            { "on": ["success"], "policy": "allow_once"}
+            }
         ]
     },
     "prefix_rules": {

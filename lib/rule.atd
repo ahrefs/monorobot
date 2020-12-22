@@ -30,7 +30,14 @@ type status_policy = [
 type build_status <ocaml from="Github" t="status_state"> = abstract
 
 (* A status matches a status rule with the policy with the build status is in
-   the list, and the condition is true *)
+   the list, and the condition is true.
+
+   The default behavior for each status state is:
+   - pending: ignore
+   - failure: allow
+   - error: allow
+   - success: allow_once
+*)
 type status_rule = {
   trigger <json name="on"> : build_status list;
   ?condition <json name="when"> : status_condition nullable;
