@@ -10,7 +10,6 @@ module Status = struct
       let value_of_field = function
         | Context -> Some notification.context
         | Description -> notification.description
-        | Sha -> Some notification.sha
         | Target_url -> notification.target_url
       in
       let rec match_condition = function

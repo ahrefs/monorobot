@@ -215,7 +215,7 @@ You can optionally provide a **status condition** to specify additional requirem
 ```json
 {
     "match": {
-        "field": "context" | "description" | "sha" | "target_url",
+        "field": "context" | "description" | "target_url",
         "re": string // a regular expression
     }
 }

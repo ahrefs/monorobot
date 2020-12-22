@@ -2,7 +2,6 @@
 type comparable_field = [
 | Context <json name="context">
 | Description <json name="description">
-| Sha <json name="sha">
 | Target_url <json name="target_url">
 ] <ocaml repr="classic">
 
