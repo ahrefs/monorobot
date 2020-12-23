@@ -20,12 +20,14 @@
                 "allow": [
                     "backend/a1"
                 ],
+                "ignore": [],
                 "channel": "a1"
             },
             {
                 "allow": [
                     "backend/a1/longest"
                 ],
+                "ignore": [],
                 "channel": "longest-a1"
             },
             {
@@ -33,9 +35,12 @@
                     "backend/a5",
                     "backend/a4"
                 ],
+                "ignore": [],
                 "channel": "backend"
             },
             {
+                "allow": [],
+                "ignore": [],
                 "channel": "all-push-events"
             }
         ]
@@ -47,21 +52,25 @@
                 "allow": [
                     "backend"
                 ],
+                "ignore": [],
                 "channel": "backend"
             },
             {
                 "allow": [
                     "a1"
                 ],
+                "ignore": [],
                 "channel": "a1-bot"
             },
             {
                 "allow": [
                     "a3"
                 ],
+                "ignore": [],
                 "channel": "a3"
             },
             {
+                "allow": [],
                 "ignore": [
                     "backend",
                     "a1",
