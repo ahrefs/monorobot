@@ -42,16 +42,6 @@ let http_request ?headers ?body meth path =
   | `Ok s -> Lwt.return @@ Ok s
   | `Error e -> Lwt.return @@ Error e
 
-let get_local_file path =
-  try%lwt
-    let%lwt data = Lwt_io.with_file ~mode:Lwt_io.input path (fun ic -> Lwt_io.read ic) in
-    Lwt.return @@ Ok data
-  with exn -> Lwt.return @@ Error (Exn.str exn)
+let get_local_file path = Std.input_file path
 
-let write_to_local_file ~data path =
-  try%lwt
-    let%lwt () =
-      Lwt_io.with_file ~flags:[ O_CREAT; O_WRONLY; O_TRUNC ] ~mode:Lwt_io.output path (fun oc -> Lwt_io.write oc data)
-    in
-    Lwt.return @@ Ok ()
-  with exn -> Lwt.return @@ Error (Exn.str exn)
+let write_to_local_file ~data path = Devkit.Files.save_as path (fun oc -> Stdio.Out_channel.fprintf oc "%s" data)

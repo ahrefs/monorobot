@@ -11,48 +11,31 @@ let log = Log.from "monorobot"
 let http_server_action addr port config secrets state =
   log#info "monorobot starting";
   let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
-  Lwt_main.run
-    ( match%lwt Context.refresh_secrets ctx with
-    | Error e ->
-      log#error "%s" e;
-      Lwt.return_unit
-    | Ok ctx ->
-      ( match%lwt Context.refresh_state ctx with
-      | Error e ->
-        log#error "%s" e;
-        Lwt.return_unit
-      | Ok ctx -> Request_handler.run ~ctx ~addr ~port
-      )
-    )
+  match Context.refresh_secrets ctx with
+  | Error e -> log#error "%s" e
+  | Ok ctx ->
+  match Context.refresh_state ctx with
+  | Error e -> log#error "%s" e
+  | Ok ctx -> Lwt_main.run (Request_handler.run ~ctx ~addr ~port)
 
 (** In check mode, instead of actually sending the message to slack, we
     simply print it in the console *)
 let check_gh_action file json config secrets state =
-  Lwt_main.run
-    begin
-      match Github.event_of_filename file with
-      | None ->
-        log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file;
-        Lwt.return_unit
-      | Some kind ->
-        let headers = [ "x-github-event", kind ] in
-        ( match%lwt Common.get_local_file file with
-        | Error e ->
-          log#error "%s" e;
-          Lwt.return_unit
-        | Ok body ->
-          let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
-          let%lwt () =
-            if json then
-              let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_json) in
-              Action.process_github_notification ctx headers body
-            else
-              let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_simple) in
-              Action.process_github_notification ctx headers body
-          in
-          Lwt.return_unit
-        )
-    end
+  match Github.event_of_filename file with
+  | None ->
+    log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file
+  | Some kind ->
+    let headers = [ "x-github-event", kind ] in
+    let body = Common.get_local_file file in
+    let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
+    Lwt_main.run
+      ( if json then
+        let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_json) in
+        Action.process_github_notification ctx headers body
+      else
+        let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_simple) in
+        Action.process_github_notification ctx headers body
+      )
 
 let check_slack_action url file =
   let data = Stdio.In_channel.read_all file in

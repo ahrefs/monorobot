@@ -53,20 +53,17 @@ let log = Log.from "context"
 
 let refresh_secrets ctx =
   let path = ctx.secrets_filepath in
-  match%lwt get_local_file path with
-  | Ok res ->
-    ctx.secrets <- Some (Config_j.secrets_of_string res);
-    Lwt.return @@ Ok ctx
-  | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get secrets from file %s" e path
+  try
+    ctx.secrets <- Some (path |> get_local_file |> Config_j.secrets_of_string);
+    Ok ctx
+  with Sys_error e -> fmt_error "error while getting local file: %s\nfailed to get secrets from file %s" e path
 
 let refresh_state ctx =
   match ctx.state_filepath with
-  | None -> Lwt.return @@ Ok ctx
+  | None -> Ok ctx
   | Some path ->
-    ( match%lwt get_local_file path with
-    | Ok res ->
-      log#info "loading saved state from file %s" path;
-      let state = State_j.state_of_string res in
-      Lwt.return @@ Ok { ctx with state }
-    | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path
-    )
+  try
+    log#info "loading saved state from file %s" path;
+    let state = path |> get_local_file |> State_j.state_of_string in
+    Ok { ctx with state }
+  with Sys_error e -> fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path

@@ -24,24 +24,20 @@ let process ~(ctx : Context.t) (kind, path, state_path) =
     match state_path with
     | None -> Lwt.return { ctx with state = State.empty }
     | Some state_path ->
-      ( match%lwt Common.get_local_file state_path with
-      | Error e ->
-        log#error "failed to read %s: %s" state_path e;
-        Lwt.return ctx
-      | Ok file ->
-        let state = State_j.state_of_string file in
-        Lwt.return { ctx with state }
-      )
+    try
+      let state = state_path |> Common.get_local_file |> State_j.state_of_string in
+      Lwt.return { ctx with state }
+    with Sys_error e ->
+      log#error "failed to read %s: %s" state_path e;
+      Lwt.return ctx
   in
   Stdio.printf "===== file %s =====\n" path;
   let headers = [ "x-github-event", kind ] in
-  match%lwt Common.get_local_file path with
-  | Error e ->
-    log#error "failed to read %s: %s" path e;
-    Lwt.return_unit
-  | Ok event ->
+  try
+    let event = Common.get_local_file path in
     let%lwt _ctx = Action_local.process_github_notification ctx headers event in
     Lwt.return_unit
+  with Sys_error e -> Lwt.return @@ log#error "failed to read %s: %s" path e
 
 let () =
   let payloads = get_mock_payloads () in
@@ -56,7 +52,7 @@ let () =
       (* can remove this wrapper once status_rules doesn't depend on Config.t *)
       let config = Config.make config in
       let ctx = { ctx with config = Some config } in
-      ( match%lwt Context.refresh_secrets ctx with
+      ( match Context.refresh_secrets ctx with
       | Ok ctx -> Lwt_list.iter_s (process ~ctx) payloads
       | Error e ->
         log#error "failed to read secrets:";
