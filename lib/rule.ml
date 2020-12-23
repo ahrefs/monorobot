@@ -42,8 +42,8 @@ module Prefix = struct
   (** `match_rules f rs` returns the channel name of a rule in `rs` that matches
       file name `f` with the longest prefix, if one exists. A rule `r` matches
       `f` with prefix length `l`, if `f` has no prefix in `r.ignore` and `l` is
-      the length of the longest prefix of `f` in `r.allow`. An undefined allow
-      list is considered a prefix match of length 0. The ignore list is
+      the length of the longest prefix of `f` in `r.allow`. An undefined or empty
+      allow list is considered a prefix match of length 0. The ignore list is
       evaluated before the allow list. *)
   let match_rules filename ~rules =
     let compare a b = Int.compare (snd a) (snd b) in
@@ -53,7 +53,7 @@ module Prefix = struct
       | Some ignore_list when List.exists ignore_list ~f:is_prefix -> None
       | _ ->
       match rule.allow with
-      | None -> Some (rule, 0)
+      | None | Some [] -> Some (rule, 0)
       | Some allow_list ->
         allow_list
         |> List.filter_map ~f:(fun p -> if is_prefix p then Some (rule, String.length p) else None)
@@ -94,7 +94,7 @@ module Label = struct
       | Some ignore_list when List.exists ignore_list ~f:label_name_equal -> None
       | _ ->
       match rule.allow with
-      | None -> Some rule.channel_name
+      | None | Some [] -> Some rule.channel_name
       | Some allow_list -> if List.exists allow_list ~f:label_name_equal then Some rule.channel_name else None
     in
     rules |> List.filter_map ~f:match_rule |> List.dedup_and_sort ~compare:String.compare

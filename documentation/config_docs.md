@@ -80,18 +80,28 @@ A json object with fields of bools for each status type.
     "default_channel": "default",
     "rules": [
         {
-            "allow": ["backend"],
+            "allow": [
+                "backend"
+            ],
+            "ignore": [],
             "channel": "backend"
         },
         {
-            "allow": ["aa"],
+            "allow": [
+                "aa"
+            ],
+            "ignore": [],
             "channel": "aa-git"
         },
         {
-            "allow": ["siren"],
+            "allow": [
+                "siren"
+            ],
+            "ignore": [],
             "channel": "siren"
         },
         {
+            "allow": [],
             "ignore": [
                 "backend",
                 "aa",
@@ -110,12 +120,12 @@ A json object with fields of bools for each status type.
 
 ### Label Rule
 
-A **label rule** specifies whether or not a Slack channel should be notified, based on the labels present in the given payload. For each rule, `ignore` is a blacklist of labels that should not notify the rule's channel, and `allow` is a whitelist of labels that should. The `ignore` list takes precedence over the `allow` list. Both are optional; if neither are provided, the rule will always generate a notification for its channel.
+A **label rule** specifies whether or not a Slack channel should be notified, based on the labels present in the given payload. For each rule, `ignore` is a blacklist of labels that should not notify the rule's channel, and `allow` is a whitelist of labels that should. If a label exists in both lists, the `ignore` list takes precedence. If an empty `ignore` list is provided, nothing is ignored. If an empty `allow` list is provided, everything is allowed. Both are optional; if neither are provided, the rule will always generate a notification for its channel.
 
 | value | description | optional | default |
 |-|-|-|-|
-| `allow` | whitelist of labels that should match the rule | Yes | all labels allowed if no list provided |
-| `ignore` | blacklist of labels that shouldn't match the rule | Yes | - |
+| `allow` | if notifications match any label in this list, they should be routed to the channel | Yes | all labels allowed if no list provided |
+| `ignore` | if notifications match any label in this list, they shouldn't be routed to the channel (even if they match any allow labels) | Yes | - |
 | `channel` | channel to use as webhook if the rule is matched | No | - |
 
 ## Prefix Options
@@ -128,7 +138,10 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
     "default_channel": "default",
     "rules": [
         {
-            "allow": ["backend/api"],
+            "allow": [
+                "backend/api"
+            ],
+            "ignore": [],
             "channel": "aa"
         },
         {
@@ -136,9 +149,12 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
                 "backend/megaindex",
                 "backend/ahrefskit"
             ],
+            "ignore": [],
             "channel": "backend"
         },
         {
+            "allow": [],
+            "ignore": [],
             "channel": "all-push-events"
         }
     ]
@@ -151,6 +167,6 @@ A **prefix rule** specifies whether or not a Slack channel should be notified, b
 
 | value | description | optional | default |
 |-|-|-|-|
-| `allow` | whitelist of file prefixes that should match the rule | Yes | all prefixes allowed if no list provided |
-| `ignore` | blacklist of file prefixes that shouldn't match the rule | Yes | - |
+| `allow` | if commit files match any prefix in this list, they should be routed to the channel | Yes | all prefixes allowed if no list provided |
+| `ignore` | if commit files match any prefix in this list, they shouldn't be routed to the channel (even if they match any allow prefixes) | Yes | - |
 | `channel` | channel to use as webhook if the rule is matched | No | - |
