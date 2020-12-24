@@ -43,25 +43,25 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
     "default_channel": "default",
     "rules": [
         {
-            "allow": [
+            "match": [
                 "backend"
             ],
             "channel": "backend"
         },
         {
-            "allow": [
+            "match": [
                 "a1"
             ],
             "channel": "a1-bot"
         },
         {
-            "allow": [
+            "match": [
                 "a3"
             ],
             "channel": "a3"
         },
         {
-            "allow": [],
+            "match": [],
             "ignore": [
                 "backend",
                 "a1",
@@ -80,12 +80,12 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 
 ### Label Rule
 
-A **label rule** specifies whether or not a Slack channel should be notified, based on the labels present in the given payload. For each rule, `ignore` is a blacklist of labels that should not notify the rule's channel, and `allow` is a whitelist of labels that should. If a label exists in both lists, the `ignore` list takes precedence. If an empty `ignore` list is provided, nothing is ignored. If an empty `allow` list is provided, everything is allowed. Both are optional; if neither are provided, the rule will always generate a notification for its channel.
+A **label rule** specifies whether or not a Slack channel should be notified, based on the labels present in the given payload. For each rule, `ignore` is a blacklist of labels that should not notify the rule's channel, and `match` is a whitelist of labels that should. If a label exists in both lists, the `ignore` list takes precedence. If an empty `ignore` list is provided, nothing is ignored. If an empty `match` list is provided, everything is matched. Both are optional; if neither are provided, the rule will always generate a notification for its channel.
 
 | value | description | optional | default |
 |-|-|-|-|
-| `allow` | if notifications match any label in this list, they should be routed to the channel | Yes | all labels allowed if no list provided |
-| `ignore` | if notifications match any label in this list, they shouldn't be routed to the channel (even if they match any allow labels) | Yes | - |
+| `match` | if notifications have any label in this list, they should be routed to the channel | Yes | all labels matched if no list provided |
+| `ignore` | if notifications have any label in this list, they shouldn't be routed to the channel (even if they have any `match` labels) | Yes | - |
 | `channel` | channel to use as webhook if the rule is matched | No | - |
 
 ## Prefix Options
@@ -98,13 +98,13 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
     "default_channel": "default",
     "rules": [
         {
-            "allow": [
+            "match": [
                 "backend/a1"
             ],
             "channel": "a1"
         },
         {
-            "allow": [
+            "match": [
                 "backend/a5",
                 "backend/a4"
             ],
@@ -119,12 +119,12 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
 
 ### Prefix Rule
 
-A **prefix rule** specifies whether or not a Slack channel should be notified, based on the filenames present in the commits associated with the given payload. The semantics for the `allow` and `ignore` fields are the same as those for label rules (see above).
+A **prefix rule** specifies whether or not a Slack channel should be notified, based on the filenames present in the commits associated with the given payload. The semantics for the `match` and `ignore` fields are the same as those for label rules (see above).
 
 | value | description | optional | default |
 |-|-|-|-|
-| `allow` | if commit files match any prefix in this list, they should be routed to the channel | Yes | all prefixes allowed if no list provided |
-| `ignore` | if commit files match any prefix in this list, they shouldn't be routed to the channel (even if they match any allow prefixes) | Yes | - |
+| `match` | if commit files have any prefix in this list, they should be routed to the channel | Yes | all prefixes matched if no list provided |
+| `ignore` | if commit files have any prefix in this list, they shouldn't be routed to the channel (even if they have any `match` prefixes) | Yes | - |
 | `channel` | channel to use as webhook if the rule is matched | No | - |
 
 ## Status Options

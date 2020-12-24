@@ -64,7 +64,7 @@ type status_rule = {
    ignore should be ["some/other"] 
 *)
 type prefix_rule = {
-  ?allow : string list nullable;
+  ?allow <json name="match"> : string list nullable;
   ?ignore : string list nullable;
   channel_name <json name="channel"> : string;
 }
@@ -73,7 +73,7 @@ type prefix_rule = {
    and present in the allow list. Both `allow` and `ignore` are optional. If `allow`
    is undefined, then the rule matches all payloads. *)
 type label_rule = {
-  ?allow : string list nullable;
+  ?allow <json name="match"> : string list nullable;
   ?ignore : string list nullable;
   channel_name <json name="channel"> : string;
 }

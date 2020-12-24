@@ -22,19 +22,19 @@
         "default_channel": "default",
         "rules": [
             {
-                "allow": [
+                "match": [
                     "backend/a1"
                 ],
                 "channel": "a1"
             },
             {
-                "allow": [
+                "match": [
                     "backend/a1/longest"
                 ],
                 "channel": "longest-a1"
             },
             {
-                "allow": [
+                "match": [
                     "backend/a5",
                     "backend/a4"
                 ],
@@ -49,19 +49,19 @@
         "default_channel": "default",
         "rules": [
             {
-                "allow": [
+                "match": [
                     "backend"
                 ],
                 "channel": "backend"
             },
             {
-                "allow": [
+                "match": [
                     "a1"
                 ],
                 "channel": "a1-bot"
             },
             {
-                "allow": [
+                "match": [
                     "a3"
                 ],
                 "channel": "a3"
