@@ -2,65 +2,54 @@ open Devkit
 open Base
 open Slack
 open Config_t
-open Rule_t
 open Config
 open Common
 open Github_j
 
+exception Action_error of string
+
+let action_error msg = raise (Action_error msg)
+
 let log = Log.from "action"
 
-module Action = struct
-  let partition_push cfg n =
-    let group_commit chan l =
-      List.filter_map l ~f:(fun (chan', commit) ->
-        match String.equal chan chan' with
-        | false -> None
-        | true -> Some commit)
-    in
-    let default commit =
-      Option.value_map cfg.prefix_rules.default_channel ~default:[] ~f:(fun webhook -> [ webhook, commit ])
-    in
-    let rules = cfg.prefix_rules.rules in
-    let channels =
-      n.commits
-      |> List.filter ~f:(fun c -> c.distinct)
-      |> List.filter ~f:(fun c ->
-           let branch = Github.commits_branch_of_ref n.ref in
-           let skip = Github.is_main_merge_message ~msg:c.message ~branch cfg in
-           if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
-           not skip)
-      |> List.map ~f:(fun commit ->
-           match Rule.Prefix.filter_push rules commit with
-           | [] -> default commit
-           | l -> l)
-      |> List.concat
-    in
-    let prefix_chans =
-      let chans =
-        Option.to_list cfg.prefix_rules.default_channel
-        @ List.map rules ~f:(fun (rule : prefix_rule) -> rule.channel_name)
-      in
-      List.dedup_and_sort chans ~compare:String.compare
-    in
-    List.filter_map prefix_chans ~f:(fun chan ->
-      match group_commit chan channels with
-      | [] -> None
-      | l -> Some (chan, { n with commits = l }))
+module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
+  (* this should move to context.ml once rule.ml is refactored to not depend on it *)
+  let print_config ctx =
+    let cfg = Context.get_config_exn ctx in
+    let secrets = Context.get_secrets_exn ctx in
+    log#info "using prefix routing:";
+    Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules;
+    log#info "using label routing:";
+    Rule.Label.print_label_routing cfg.label_rules.rules;
+    log#info "signature checking %s" (if Option.is_some secrets.gh_hook_token then "enabled" else "disabled")
 
-  let partition_label cfg (labels : Github_j.label list) =
-    let default = Option.to_list cfg.label_rules.default_channel in
-    match labels with
-    | [] -> default
-    | labels ->
-      let rules = cfg.label_rules.rules in
-      let channels =
-        labels
-        |> List.map ~f:(fun (label : Github_j.label) ->
-             match Rule.Label.filter_label rules label with
-             | [] -> default
-             | l -> l)
-      in
-      List.dedup_and_sort ~compare:String.compare (List.concat channels)
+  let partition_push cfg n =
+    let default = Option.to_list cfg.prefix_rules.default_channel in
+    let rules = cfg.prefix_rules.rules in
+    n.commits
+    |> List.filter ~f:(fun c -> c.distinct)
+    |> List.filter ~f:(fun c ->
+         let branch = Github.commits_branch_of_ref n.ref in
+         let skip = Github.is_main_merge_message ~msg:c.message ~branch cfg in
+         if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
+         not skip)
+    |> List.concat_map ~f:(fun commit ->
+         let matched_channel_names =
+           Github.modified_files_of_commit commit
+           |> List.filter_map ~f:(Rule.Prefix.match_rules ~rules)
+           |> List.dedup_and_sort ~compare:String.compare
+         in
+         let channel_names = if List.is_empty matched_channel_names then default else matched_channel_names in
+         List.map channel_names ~f:(fun n -> n, commit))
+    |> Map.of_alist_multi (module String)
+    |> Map.map ~f:(fun commits -> { n with commits })
+    |> Map.to_alist
+
+  let partition_label (cfg : Config.t) (labels : label list) =
+    let default = cfg.label_rules.default_channel in
+    let rules = cfg.label_rules.rules in
+    labels |> List.concat_map ~f:(Rule.Label.match_rules ~rules) |> List.dedup_and_sort ~compare:String.compare
+    |> fun channel_names -> if List.is_empty channel_names then Option.to_list default else channel_names
 
   let partition_pr cfg (n : pr_notification) =
     match n.action with
@@ -98,36 +87,39 @@ module Action = struct
     | Submitted, _, _ -> partition_label cfg n.pull_request.labels
     | _ -> []
 
-  let partition_commit cfg files =
-    let names = List.map ~f:(fun f -> f.filename) files in
-    match Rule.Prefix.unique_chans_of_files cfg.prefix_rules.rules names with
-    | _ :: _ as xs -> xs
-    | [] -> Option.to_list cfg.prefix_rules.default_channel
+  let partition_commit (cfg : Config.t) files =
+    let default = Option.to_list cfg.prefix_rules.default_channel in
+    let rules = cfg.prefix_rules.rules in
+    let matched_channel_names =
+      List.map ~f:(fun f -> f.filename) files
+      |> List.filter_map ~f:(Rule.Prefix.match_rules ~rules)
+      |> List.dedup_and_sort ~compare:String.compare
+    in
+    if List.is_empty matched_channel_names then default else matched_channel_names
 
   let partition_status (ctx : Context.t) (n : status_notification) =
-    let cfg = ctx.cfg in
+    let cfg = Context.get_config_exn ctx in
+    let pipeline = n.context in
+    let current_status = n.state in
+    let updated_at = n.updated_at in
     let get_commit_info () =
-      let default () = Lwt.return @@ Option.to_list cfg.prefix_rules.default_channel in
+      let default = Option.to_list cfg.prefix_rules.default_channel in
+      let () = Context.refresh_pipeline_status ~pipeline ~branches:n.branches ~status:current_status ~updated_at ctx in
+      match List.is_empty n.branches with
+      | true -> Lwt.return []
+      | false ->
       match cfg.main_branch_name with
-      | None -> default ()
+      | None -> Lwt.return default
       | Some main_branch_name ->
       (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
       match List.exists n.branches ~f:(fun { name } -> String.equal name main_branch_name) with
-      | false -> default ()
+      | false -> Lwt.return default
       | true ->
-        ( match%lwt Github.generate_query_commit cfg ~url:n.commit.url ~sha:n.commit.sha with
-        | None -> default ()
-        | Some commit ->
-          (*
-      match
-        List.exists n.branches ~f:(fun { name } -> Github.is_main_merge_message ~msg:commit.commit.message ~branch:name cfg)
-      with
-      | true ->
-        log#info "main branch merge, ignoring status event %s: %s" n.context (first_line commit.commit.message);
-        Lwt.return []
-      | false ->
-*)
-          Lwt.return (partition_commit cfg commit.files)
+        let sha = n.commit.sha in
+        let repo = n.repository in
+        ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
+        | Error e -> action_error e
+        | Ok commit -> Lwt.return @@ partition_commit cfg commit.files
         )
     in
     let res =
@@ -150,24 +142,29 @@ module Action = struct
       | false -> Lwt.return []
       | true -> get_commit_info ()
     in
-    Context.update_state ctx (Github.Status n);
     res
 
-  let partition_commit_comment cfg n =
-    let default = Option.to_list cfg.prefix_rules.default_channel in
-    match n.comment.path with
-    | None ->
-      ( match%lwt Github.generate_commit_from_commit_comment cfg n with
-      | None -> Lwt.return default
-      | Some commit -> Lwt.return (partition_commit cfg commit.files)
+  let partition_commit_comment (ctx : Context.t) n =
+    let cfg = Context.get_config_exn ctx in
+    match n.comment.commit_id with
+    | None -> action_error "unable to find commit id for this commit comment event"
+    | Some sha ->
+      ( match%lwt Github_api.get_api_commit ~ctx ~repo:n.repository ~sha with
+      | Error e -> action_error e
+      | Ok commit ->
+        let default = Option.to_list cfg.prefix_rules.default_channel in
+        let rules = cfg.prefix_rules.rules in
+        ( match n.comment.path with
+        | None -> Lwt.return @@ (partition_commit cfg commit.files, commit)
+        | Some filename ->
+        match Rule.Prefix.match_rules filename ~rules with
+        | None -> Lwt.return (default, commit)
+        | Some chan -> Lwt.return ([ chan ], commit)
+        )
       )
-    | Some p ->
-    match Rule.Prefix.chan_of_file cfg.prefix_rules.rules p with
-    | None -> Lwt.return default
-    | Some chan -> Lwt.return [ chan ]
 
   let generate_notifications (ctx : Context.t) req =
-    let cfg = ctx.cfg in
+    let cfg = Context.get_config_exn ctx in
     match req with
     | Github.Push n ->
       partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return
@@ -186,8 +183,8 @@ module Action = struct
       |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
       |> Lwt.return
     | Commit_comment n ->
-      let%lwt webhooks = partition_commit_comment cfg n in
-      let%lwt notif = generate_commit_comment_notification cfg n in
+      let%lwt webhooks, api_commit = partition_commit_comment ctx n in
+      let%lwt notif = generate_commit_comment_notification api_commit n in
       let notifs = List.map ~f:(fun webhook -> webhook, notif) webhooks in
       Lwt.return notifs
     | Status n ->
@@ -196,37 +193,67 @@ module Action = struct
       Lwt.return notifs
     | _ -> Lwt.return []
 
-  let send_notifications (cfg : Config.t) notifications =
-    Lwt_list.iter_s
-      (fun (chan, msg) ->
-        let url = Config.Chan_map.find chan cfg.chans in
-        let data = Slack_j.string_of_webhook_notification msg in
-        log#info "sending to %s : %s" chan data;
-        Slack.send_notification url data)
-      notifications
+  let send_notifications (ctx : Context.t) notifications =
+    let notify (chan, msg) =
+      match Context.hook_of_channel ctx chan with
+      | None -> Printf.ksprintf action_error "webhook not defined for Slack channel '%s'" chan
+      | Some url ->
+        ( match%lwt Slack_api.send_notification ~chan ~msg ~url with
+        | Ok () -> Lwt.return_unit
+        | Error e -> action_error e
+        )
+    in
+    Lwt_list.iter_s notify notifications
 
-  let update_config (ctx : Context.t) = function
-    | Github.Push n ->
-      let is_config_file f = String.equal f ctx.data.cfg_filename in
-      let commit_contains_config_file (c : Github_t.commit) = List.exists ~f:is_config_file (c.added @ c.modified) in
-      if List.exists ~f:commit_contains_config_file n.commits then Context.refresh_config ctx else Lwt.return_unit
-    | _ -> Lwt.return_unit
+  (** `refresh_config_of_context ctx n` updates the current context if the configuration
+      hasn't been loaded yet, or if the incoming request `n` is a push
+      notification containing commits that touched the config file. *)
+  let refresh_config_of_context (ctx : Context.t) notification =
+    let fetch_config () =
+      let repo = Github.repo_of_notification notification in
+      match%lwt Github_api.get_config ~ctx ~repo with
+      | Ok config ->
+        print_config ctx;
+        (* can remove this wrapper once status_rules doesn't depend on Config.t *)
+        ctx.config <- Some (Config.make config);
+        Lwt.return @@ Ok ()
+      | Error e -> action_error e
+    in
+    match ctx.config with
+    | None -> fetch_config ()
+    | Some _ ->
+    match notification with
+    | Github.Push commit_pushed_notification ->
+      let commits = commit_pushed_notification.commits in
+      let modified_files = List.concat_map commits ~f:Github.modified_files_of_commit in
+      let config_was_modified = List.exists modified_files ~f:(String.equal ctx.config_filename) in
+      if config_was_modified then fetch_config () else Lwt.return @@ Ok ()
+    | _ -> Lwt.return @@ Ok ()
 
-  let process_github_notification (ctx_thunk : Context.context_thunk) headers body =
-    match Github.parse_exn ~secret:ctx_thunk.secrets.gh_hook_token headers body with
-    | exception exn -> Exn_lwt.fail ~exn "unable to parse payload"
-    | payload ->
-    try
-      let%lwt ctx = Context.resolve_ctx_in_thunk ctx_thunk payload in
-      let%lwt () = update_config ctx payload in
-      let cfg = ctx.cfg in
-      let%lwt notifications = generate_notifications ctx payload in
-      send_notifications cfg notifications
+  let process_github_notification (ctx : Context.t) headers body =
+    try%lwt
+      let secrets = Context.get_secrets_exn ctx in
+      match Github.parse_exn ~secret:secrets.gh_hook_token headers body with
+      | exception exn -> Exn_lwt.fail ~exn "failed to parse payload"
+      | payload ->
+        ( match%lwt refresh_config_of_context ctx payload with
+        | Error e -> action_error e
+        | Ok () ->
+          let%lwt notifications = generate_notifications ctx payload in
+          let%lwt () = send_notifications ctx notifications in
+          ( match ctx.state_filepath with
+          | None -> Lwt.return_unit
+          | Some path -> Lwt.return @@ State.save path ctx.state
+          )
+        )
     with
-    | Context.Context_error s ->
-      log#error "error creating context from payload: %s" s;
+    | Yojson.Json_error msg ->
+      log#error "failed to parse file as valid JSON (%s)" msg;
       Lwt.return_unit
-    | Github.Remote_config_error s ->
-      log#error "error retrieving config from payload: %s" s;
+    | Action_error msg ->
+      log#error "%s" msg;
+      Lwt.return_unit
+    | Context.Context_error msg ->
+      log#error "%s" msg;
       Lwt.return_unit
 end
