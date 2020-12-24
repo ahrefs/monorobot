@@ -198,8 +198,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       let repo = Github.repo_of_notification notification in
       match%lwt Github_api.get_config ~ctx ~repo with
       | Ok config ->
-        Context.print_config ctx;
         ctx.config <- Some config;
+        Context.print_config ctx;
         Lwt.return @@ Ok ()
       | Error e -> action_error e
     in
