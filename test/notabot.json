@@ -22,19 +22,19 @@
         "default_channel": "default",
         "rules": [
             {
-                "allow": [
+                "match": [
                     "backend/api"
                 ],
                 "channel": "aa"
             },
             {
-                "allow": [
+                "match": [
                     "backend/api/longest"
                 ],
                 "channel": "longest-aa"
             },
             {
-                "allow": [
+                "match": [
                     "backend/megaindex",
                     "backend/ahrefskit"
                 ],
@@ -49,19 +49,19 @@
         "default_channel": "default",
         "rules": [
             {
-                "allow": [
+                "match": [
                     "backend"
                 ],
                 "channel": "backend"
             },
             {
-                "allow": [
+                "match": [
                     "aa"
                 ],
                 "channel": "aa-git"
             },
             {
-                "allow": [
+                "match": [
                     "siren"
                 ],
                 "channel": "siren"
