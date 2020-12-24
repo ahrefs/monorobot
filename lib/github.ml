@@ -36,7 +36,7 @@ let event_of_filename filename =
   | [ kind; _; "json" ] -> Some kind
   | _ -> None
 
-let is_main_merge_message ~msg:message ~branch (cfg : Config.t) =
+let is_main_merge_message ~msg:message ~branch (cfg : Config_t.config) =
   match cfg.main_branch_name with
   | Some main_branch when String.equal branch main_branch ->
     (*

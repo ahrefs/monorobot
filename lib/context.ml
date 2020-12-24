@@ -11,8 +11,8 @@ type t = {
   secrets_filepath : string;
   state_filepath : string option;
   mutable secrets : Config_t.secrets option;
-  mutable config : Config.t option;
-  mutable state : State_t.state;
+  mutable config : Config_t.config option;
+  state : State_t.state;
 }
 
 let default : t =
@@ -46,8 +46,19 @@ let hook_of_channel ctx channel_name =
   | Some hook -> Some hook.url
   | None -> None
 
-let refresh_pipeline_status ctx ~pipeline ~(branches : Github_t.branch list) ~status ~updated_at =
-  ctx.state <- State.refresh_pipeline_status ctx.state ~pipeline ~branches ~status ~updated_at
+(** `is_pipeline_allowed ctx p` returns `true` if ctx.config.status_rules
+    doesn't define a whitelist of allowed pipelines, or if the list
+    contains pipeline `p`; returns `false` otherwise. *)
+let is_pipeline_allowed ctx ~pipeline =
+  match ctx.config with
+  | None -> false
+  | Some config ->
+  match config.status_rules.allowed_pipelines with
+  | Some allowed_pipelines when not @@ List.exists allowed_pipelines ~f:(String.equal pipeline) -> false
+  | _ -> true
+
+let refresh_pipeline_status ctx ~pipeline ~(branches : Github_t.branch list) ~status =
+  if is_pipeline_allowed ctx ~pipeline then State.refresh_pipeline_status ctx.state ~pipeline ~branches ~status else ()
 
 let log = Log.from "context"
 
@@ -70,3 +81,12 @@ let refresh_state ctx =
       let state = State_j.state_of_string file in
       Ok { ctx with state }
     )
+
+let print_config ctx =
+  let cfg = get_config_exn ctx in
+  let secrets = get_secrets_exn ctx in
+  log#info "using prefix routing:";
+  Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules;
+  log#info "using label routing:";
+  Rule.Label.print_label_routing cfg.label_rules.rules;
+  log#info "signature checking %s" (if Option.is_some secrets.gh_hook_token then "enabled" else "disabled")

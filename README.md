@@ -1,31 +1,35 @@
-# Notabot
+# Monorobot
 
-Notifications bot server to receive notifications from webhooks and post them to slack
+A Slackbot for GitHub monorepos. Configure how repo notifications should be routed to specified Slack channels based on file prefixes, issue/PR labels, and CI build statuses.
 
 ## Setting Up
 
-Install dependencies, if needed:
+Install dependencies via OPAM.
 
 ```sh
 opam install --deps-only .
 ```
 
-Build with
+Then, build with Dune.
 
 ```sh
 make
 ```
 
-and use resulting `_build/default/src/notabot.exe` binary.
-
 ## Running
 
-At startup time, secrets are read from the local `secrets.json` file. The main configuration is read remotely from a `notabot.json` file in the default branch, and its schema is defined in `lib/notabot.atd`.
+Run the `_build/default/src/notabot.exe` binary. The following commands are supported.
+
+- `run`: Launch the HTTP server
+- `check_gh <GH_PAYLOAD>`: read a Github notification from a file and display the actions that will be taken (used for testing)
+- `check_slack <SLACK_PAYLOAD> <SLACK_WEBHOOK>`: read a Slack notification from a file and send it to a webhook (used for testing)
 
 ### Documentation
 
-* [config](./documentation/config_docs.md)
-* [secret](./documentation/secret_docs.md)
+The bot expects two configuration files to be present.
+
+* [Repository configuration](./documentation/config_docs.md)
+* [Secrets](./documentation/secret_docs.md)
 
 ## Testing (development)
 

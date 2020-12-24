@@ -477,7 +477,7 @@ will notify #default
       "fields": [
         {
           "value":
-            "*Commit*: `<https://git.ahrefs.com/ahrefs/notabot_test/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - louis\n*Branches*: master"
+            "*Commit*: `<https://git.ahrefs.com/ahrefs/notabot_test/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - louis\n*Branch*: master"
         }
       ]
     }
@@ -486,6 +486,7 @@ will notify #default
 ===== file ../mock_payloads/status.merge_develop.json =====
 ===== file ../mock_payloads/status.pending_test.json =====
 ===== file ../mock_payloads/status.state_hide_success_test.json =====
+===== file ../mock_payloads/status.state_hide_success_test_disallowed_pipeline.json =====
 ===== file ../mock_payloads/status.success_public_repo_no_buildkite.json =====
 will notify #default
 {
@@ -506,7 +507,28 @@ will notify #default
     }
   ]
 }
-===== file ../mock_payloads/status.success_test.json =====
+===== file ../mock_payloads/status.success_test_main_branch.json =====
+will notify #all-push-events
+{
+  "attachments": [
+    {
+      "fallback":
+        "<https://git.ahrefs.com/ahrefs/notabot_test|[ahrefs/notabot_test]> CI Build Status notification for <https://buildkite.com/ahrefs/notabot-test/builds/2|buildkite/notabot-test>: success",
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "good",
+      "pretext":
+        "<https://git.ahrefs.com/ahrefs/notabot_test|[ahrefs/notabot_test]> CI Build Status notification for <https://buildkite.com/ahrefs/notabot-test/builds/2|buildkite/notabot-test>: success",
+      "text": "*Description*: Build #2 passed (5 minutes, 19 seconds).",
+      "fields": [
+        {
+          "value":
+            "*Commit*: `<https://git.ahrefs.com/ahrefs/notabot_test/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - louis\n*Branch*: develop"
+        }
+      ]
+    }
+  ]
+}
+===== file ../mock_payloads/status.success_test_non_main_branch.json =====
 will notify #default
 {
   "attachments": [
@@ -521,7 +543,7 @@ will notify #default
       "fields": [
         {
           "value":
-            "*Commit*: `<https://git.ahrefs.com/ahrefs/notabot_test/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - louis\n*Branches*: master"
+            "*Commit*: `<https://git.ahrefs.com/ahrefs/notabot_test/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - louis\n*Branch*: master"
         }
       ]
     }

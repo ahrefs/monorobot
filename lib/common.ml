@@ -22,18 +22,6 @@ let first_line s =
   | x :: _ -> x
   | [] -> s
 
-module Tristate : Atdgen_runtime.Json_adapter.S = struct
-  let normalize = function
-    | `Bool true -> `String "true"
-    | `Bool false -> `String "false"
-    | x -> x
-
-  let restore = function
-    | `String "true" -> `Bool true
-    | `String "false" -> `Bool false
-    | x -> x
-end
-
 let decode_string_pad s =
   String.rstrip ~drop:(List.mem [ '='; ' '; '\n'; '\r'; '\t' ] ~equal:Char.equal) s |> Base64.decode_string
 
