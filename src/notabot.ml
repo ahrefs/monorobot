@@ -73,7 +73,7 @@ let secrets =
 
 let state =
   let doc = "state file" in
-  Arg.(value & opt (some file) None & info [ "state" ] ~docv:"STATE" ~doc)
+  Arg.(value & opt (some string) None & info [ "state" ] ~docv:"STATE" ~doc)
 
 let gh_payload =
   let doc = "JSON file containing a github webhook payload" in
