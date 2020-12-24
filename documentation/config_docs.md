@@ -83,21 +83,18 @@ A json object with fields of bools for each status type.
             "allow": [
                 "backend"
             ],
-            "ignore": [],
             "channel": "backend"
         },
         {
             "allow": [
                 "aa"
             ],
-            "ignore": [],
             "channel": "aa-git"
         },
         {
             "allow": [
                 "siren"
             ],
-            "ignore": [],
             "channel": "siren"
         },
         {
@@ -141,7 +138,6 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
             "allow": [
                 "backend/api"
             ],
-            "ignore": [],
             "channel": "aa"
         },
         {
@@ -149,12 +145,9 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
                 "backend/megaindex",
                 "backend/ahrefskit"
             ],
-            "ignore": [],
             "channel": "backend"
         },
         {
-            "allow": [],
-            "ignore": [],
             "channel": "all-push-events"
         }
     ]
