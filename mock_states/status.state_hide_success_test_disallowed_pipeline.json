@@ -1,0 +1,7 @@
+{
+  "pipeline_statuses": {
+    "buildkite/pipeline2": {
+      "master": "failure"
+    }
+  }
+}

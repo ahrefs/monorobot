@@ -8,19 +8,19 @@ To update the configuration, simply edit the configuration file and push your ch
 
 Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/webhook-events-and-payloads) for more information on GitHub event payload structure.
 
-# Configuration values
+## Options
 
-**example**
+**Example**
 ```json
 {
     "main_branch_name": "develop",
-    "status_rules": {
-        ...
-    },
     "prefix_rules": {
         ...
     },
     "label_rules": {
+        ...
+    },
+    "status_rules": {
         ...
     }
 }
@@ -29,46 +29,9 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 | value | description | optional | default |
 |-|-|-|-|
 | `main_branch_name` | main branch used for the repo; filtering notifications about merges of main into other branches | Yes | - |
-| `status_rules` | status rules config object | No | - |
 | `label_rules` | label rules config object | No | - |
 | `prefix_rules` | prefix rules config object | No | - |
-
-## Status Config
-
-**example**
-```json
-"status_rules": {
-    "allowed_pipelines": [
-        "default",
-        "buildkite/pipeline2"
-    ],
-    "status": {
-        "pending": false,
-        "success": "once",
-        "failure": true,
-        "error": true,
-        "cancelled": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$"
-    }
-},
-```
-
-| value | description | optional | default |
-|-|-|-|-|
-| `title` | if defines a whitelist of values for the github payload. If not specified, all is permitted. | Yes | - |
-| `status` | a `status_state` config object | No | - |
-
-### Status State
-
-A json object with fields of bools for each status type.
-
-| value | description | optional | default |
-|-|-|-|-|
-| `pending` | `true` to notify; `false` to ignore | No | - |
-| `success` | `true` to notify; `false` to notify all; `"once"` to notify the first and ignore subsequent consecutive successes| No | - |
-| `failure` | `true` to notify; `false` to ignore | No | - |
-| `error` | `true` to notify; `false` to ignore | No | - |
-| `cancelled` | provide regex to ignore `failure` notifications with a description that matches it | Yes | - |
-
+| `status_rules` | status rules config object | No | - |
 
 ## Label Options
 
@@ -163,3 +126,101 @@ A **prefix rule** specifies whether or not a Slack channel should be notified, b
 | `allow` | if commit files match any prefix in this list, they should be routed to the channel | Yes | all prefixes allowed if no list provided |
 | `ignore` | if commit files match any prefix in this list, they shouldn't be routed to the channel (even if they match any allow prefixes) | Yes | - |
 | `channel` | channel to use as webhook if the rule is matched | No | - |
+
+## Status Options
+
+Monorobot supports additional behavior for GitHub status notifications, which are typically triggered by CI builds. A payload of this type contains:
+
+- A `context` field, whose value is the name of the CI pipeline the notificiation is about
+- A `state` field, whose value is either `success`, `failure`, `pending`, or `error`
+
+The following takes place when a status notification is received.
+
+1. Check whether a status notification should be *allowed* for further processing or *ignored*, according to a list of **status rules**. The bot will check the list *in order*, and use the policy defined by the first rule that the notification satisfies. If no rule matches, the default behavior of the status state is used:
+   - `pending`: `ignore`
+   - `failure`: `allow`
+   - `error`: `allow`
+   - `success`: `allow_once`
+1. For those payloads allowed by step 1, if it isn't a main branch build notification, route to the default channel to reduce spam in topic channels. Otherwise, check the notification commit's files according to the prefix rules.
+
+Internally, the bot keeps track of the status of the last allowed payload, for a given pipeline and branch. This information is used to evaluate the status rules (see below).
+
+**Example**
+
+```json
+"status_rules": {
+    "allowed_pipelines": [
+        "default",
+        "buildkite/pipeline2"
+    ],
+    "rules": [
+        {
+            "on": ["failure"],
+            "when": {
+                "match": {
+                    "field": "description",
+                    "re": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$"
+                }
+            },
+            "policy": "ignore"
+        },
+        { "on": ["pending"], "policy": "ignore"},
+        { "on": ["failure", "error"], "policy": "allow"},
+        { "on": ["success"], "policy": "allow_once"}
+    ]
+}
+```
+
+| value | description | optional | default |
+|-|-|-|-|
+| `allowed_pipelines` | a list of pipeline names; if specified, payloads whose pipeline name is not in the list will be ignored immediately, without checking the **status rules**; otherwise, all pipelines will be included in the status rule check | Yes | - |
+| `rules` | a list of **status rules** to determine whether to *allow* or *ignore* a payload for further processing | No | - |
+
+### Status Rules
+
+A **status rule** specifies whether a GitHub status notification should generate a Slack notification, given the notification's status and the last allowed build status. There are three policy options for handling payloads:
+
+- `allow`: Notify every time.
+- `ignore`: Suppress every time.
+- `allow_once`: Only notify if the last allowed status notification's build status for the given pipeline and branch differs from the current one. Useful for suppressing consecutive build success notifications.
+
+For example, the rule:
+```
+{ "on": A, "when": B, "policy": C }
+```
+is interpreted as:
+
+> "on a notification with a build state in `A`, when condition `B` is met, adopt the policy `C`".
+
+| value | description | optional | default |
+|-|-|-|-|
+| `on` | a list of build states that can trigger this rule | No | - |
+| `when` | a **status condition** object which, if specified, must be true for the rule to match | Yes | - |
+| `policy` | a policy option (one of `allow`, `ignore`, `allow_once`) | No | - |
+
+### Status Conditions
+
+You can optionally provide a **status condition** to specify additional requirements that a notification payload should meet, in order for a status rule's policy to apply.
+
+- `all_of`: Matches if every sub-condition in a list is true. Value should be the list of sub-conditions.
+- `one_of`: Matches if at least one sub-condition in a list is true. Value should be the list of sub-conditions.
+```json
+{
+    "all_of/one_of": [ condition1, condition2, ...]
+}
+```
+- `not`: Matches if a sub-condition is false. Value should be the sub-condition.
+```json
+{
+    "not": condition
+}
+```
+- `match`: Matches a text field in the payload against a regular expression. Value should be an object of the form:
+```json
+{
+    "match": {
+        "field": "context" | "description" | "target_url",
+        "re": string // a regular expression
+    }
+}
+```

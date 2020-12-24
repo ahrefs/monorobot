@@ -2,7 +2,6 @@ open Devkit
 open Base
 open Slack
 open Config_t
-open Config
 open Common
 open Github_j
 
@@ -13,17 +12,7 @@ let action_error msg = raise (Action_error msg)
 let log = Log.from "action"
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
-  (* this should move to context.ml once rule.ml is refactored to not depend on it *)
-  let print_config ctx =
-    let cfg = Context.get_config_exn ctx in
-    let secrets = Context.get_secrets_exn ctx in
-    log#info "using prefix routing:";
-    Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules;
-    log#info "using label routing:";
-    Rule.Label.print_label_routing cfg.label_rules.rules;
-    log#info "signature checking %s" (if Option.is_some secrets.gh_hook_token then "enabled" else "disabled")
-
-  let partition_push cfg n =
+  let partition_push (cfg : Config_t.config) n =
     let default = Option.to_list cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in
     n.commits
@@ -45,7 +34,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     |> Map.map ~f:(fun commits -> { n with commits })
     |> Map.to_alist
 
-  let partition_label (cfg : Config.t) (labels : label list) =
+  let partition_label (cfg : Config_t.config) (labels : label list) =
     let default = cfg.label_rules.default_channel in
     let rules = cfg.label_rules.rules in
     labels |> List.concat_map ~f:(Rule.Label.match_rules ~rules) |> List.dedup_and_sort ~compare:String.compare
@@ -87,7 +76,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Submitted, _, _ -> partition_label cfg n.pull_request.labels
     | _ -> []
 
-  let partition_commit (cfg : Config.t) files =
+  let partition_commit (cfg : Config_t.config) files =
     let default = Option.to_list cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in
     let matched_channel_names =
@@ -101,18 +90,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let cfg = Context.get_config_exn ctx in
     let pipeline = n.context in
     let current_status = n.state in
-    let updated_at = n.updated_at in
-    let get_commit_info () =
+    let rules = cfg.status_rules.rules in
+    let action_on_match (branches : branch list) =
       let default = Option.to_list cfg.prefix_rules.default_channel in
-      let () = Context.refresh_pipeline_status ~pipeline ~branches:n.branches ~status:current_status ~updated_at ctx in
-      match List.is_empty n.branches with
+      let () = Context.refresh_pipeline_status ~pipeline ~branches ~status:current_status ctx in
+      match List.is_empty branches with
       | true -> Lwt.return []
       | false ->
       match cfg.main_branch_name with
       | None -> Lwt.return default
       | Some main_branch_name ->
       (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
-      match List.exists n.branches ~f:(fun { name } -> String.equal name main_branch_name) with
+      match List.exists branches ~f:(fun { name } -> String.equal name main_branch_name) with
       | false -> Lwt.return default
       | true ->
         let sha = n.commit.sha in
@@ -122,27 +111,23 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         | Ok commit -> Lwt.return @@ partition_commit cfg commit.files
         )
     in
-    let res =
-      match
-        List.exists cfg.status_rules.status ~f:(fun x ->
-          match x with
-          | State s -> Poly.equal s n.state
-          | HideConsecutiveSuccess -> Poly.equal Success n.state
-          | _ -> false)
-      with
-      | false -> Lwt.return []
-      | true ->
-      match List.exists ~f:id [ Rule.Status.hide_cancelled n cfg; Rule.Status.hide_success n ctx ] with
-      | true -> Lwt.return []
-      | false ->
-      match cfg.status_rules.title with
-      | None -> get_commit_info ()
-      | Some status_filter ->
-      match List.exists status_filter ~f:(String.equal n.context) with
-      | false -> Lwt.return []
-      | true -> get_commit_info ()
-    in
-    res
+    if Context.is_pipeline_allowed ctx ~pipeline then begin
+      match Rule.Status.match_rules ~rules n with
+      | Some Ignore | None -> Lwt.return []
+      | Some Allow -> action_on_match n.branches
+      | Some Allow_once ->
+      match Map.find ctx.state.pipeline_statuses pipeline with
+      | Some branch_statuses ->
+        let has_same_status_state_as_prev (branch : branch) =
+          match Map.find branch_statuses branch.name with
+          | None -> false
+          | Some state -> Poly.equal state current_status
+        in
+        let branches = List.filter n.branches ~f:(Fn.non @@ has_same_status_state_as_prev) in
+        action_on_match branches
+      | None -> action_on_match n.branches
+    end
+    else Lwt.return []
 
   let partition_commit_comment (ctx : Context.t) n =
     let cfg = Context.get_config_exn ctx in
@@ -213,9 +198,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       let repo = Github.repo_of_notification notification in
       match%lwt Github_api.get_config ~ctx ~repo with
       | Ok config ->
-        print_config ctx;
-        (* can remove this wrapper once status_rules doesn't depend on Config.t *)
-        ctx.config <- Some (Config.make config);
+        Context.print_config ctx;
+        ctx.config <- Some config;
         Lwt.return @@ Ok ()
       | Error e -> action_error e
     in
@@ -243,7 +227,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           let%lwt () = send_notifications ctx notifications in
           ( match ctx.state_filepath with
           | None -> Lwt.return_unit
-          | Some path -> Lwt.return @@ State.save path ctx.state
+          | Some path ->
+            ( match%lwt State.save ctx.state path with
+            | Ok () -> Lwt.return_unit
+            | Error e -> action_error e
+            )
           )
         )
     with

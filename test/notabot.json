@@ -5,13 +5,18 @@
             "default",
             "buildkite/pipeline2"
         ],
-        "rules": {
-            "pending": false,
-            "failure": true,
-            "error": true,
-            "cancelled": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$",
-            "success": "once"
-        }
+        "rules": [
+            {
+                "on": ["failure"],
+                "when": {
+                    "match": {
+                        "field": "description",
+                        "re": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$"
+                    }
+                },
+                "policy": "ignore"
+            }
+        ]
     },
     "prefix_rules": {
         "default_channel": "default",
