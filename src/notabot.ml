@@ -25,8 +25,10 @@ let check_gh_action file json config secrets state =
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file
   | Some kind ->
+  match Common.get_local_file file with
+  | Error e -> log#error "%s" e
+  | Ok body ->
     let headers = [ "x-github-event", kind ] in
-    let body = Common.get_local_file file in
     let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
     Lwt_main.run
       ( if json then
