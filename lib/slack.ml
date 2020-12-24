@@ -7,6 +7,8 @@ open Slack_j
 
 let log = Log.from "slack"
 
+type channel_hook = string
+
 let empty_attachments =
   {
     mrkdwn_in = None;
@@ -307,69 +309,47 @@ let generate_status_notification (cfg : Config.t) (notification : status_notific
         (sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name t context
            state_info)
   in
-  {
-    text = None;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "fields"; "text" ];
-            fallback = summary;
-            pretext = summary;
-            color = Some color_info;
-            text = description_info;
-            fields =
-              Some [ { title = None; value = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] } ];
-          };
-        ];
-    blocks = None;
-  }
+  let attachment =
+    {
+      empty_attachments with
+      mrkdwn_in = Some [ "fields"; "text" ];
+      fallback = summary;
+      pretext = summary;
+      color = Some color_info;
+      text = description_info;
+      fields = Some [ { title = None; value = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] } ];
+    }
+  in
+  { text = None; attachments = Some [ attachment ]; blocks = None }
 
-let generate_commit_comment_notification cfg notification =
-  match%lwt Github.generate_commit_from_commit_comment cfg notification with
-  | None -> invalid_arg "no commits found"
-  | Some api_commit ->
-    let { commit; _ } = api_commit in
-    let { sender; comment; repository; _ } = notification in
-    let commit_id =
-      match comment.commit_id with
-      | None -> invalid_arg "commit id not found"
-      | Some c -> c
-    in
-    let summary =
-      Some
-        (sprintf "<%s|[%s]> *%s* commented on `<%s|%s>` %s" repository.url repository.full_name sender.login
-           comment.html_url (git_short_sha_hash commit_id) (first_line commit.message))
-    in
-    let path =
-      match comment.path with
-      | None -> None
-      | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
-    in
-    let notifs =
-      {
-        text = None;
-        attachments =
-          Some
-            [
-              {
-                empty_attachments with
-                mrkdwn_in = Some [ "pretext"; "text" ];
-                fallback = summary;
-                color = Some "#ccc";
-                pretext = summary;
-                footer = path;
-                text = Some (mrkdwn_of_markdown comment.body);
-              };
-            ];
-        blocks = None;
-      }
-    in
-    Lwt.return notifs
-
-let send_notification webhook_url data =
-  let body = `Raw ("application/json", data) in
-  match%lwt Web.http_request_lwt ~verbose:true ~body `POST webhook_url with
-  | `Ok _ -> Lwt.return_unit
-  | `Error e -> Exn_lwt.fail "failed to send notification to slack : %s" e
+let generate_commit_comment_notification api_commit notification =
+  let { commit; _ } = api_commit in
+  let { sender; comment; repository; _ } = notification in
+  let commit_id =
+    match comment.commit_id with
+    | None -> invalid_arg "commit id not found"
+    | Some c -> c
+  in
+  let summary =
+    Some
+      (sprintf "<%s|[%s]> *%s* commented on `<%s|%s>` %s" repository.url repository.full_name sender.login
+         comment.html_url (git_short_sha_hash commit_id) (first_line commit.message))
+  in
+  let path =
+    match comment.path with
+    | None -> None
+    | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
+  in
+  let attachment =
+    {
+      empty_attachments with
+      mrkdwn_in = Some [ "pretext"; "text" ];
+      fallback = summary;
+      color = Some "#ccc";
+      pretext = summary;
+      footer = path;
+      text = Some (mrkdwn_of_markdown comment.body);
+    }
+  in
+  let notifs = { text = None; attachments = Some [ attachment ]; blocks = None } in
+  Lwt.return notifs

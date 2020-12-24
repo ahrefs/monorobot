@@ -31,6 +31,7 @@ type repository = {
   full_name: string;
   html_url <ocaml name="url"> : string;
   commits_url: string;
+  contents_url: string;
 }
 
 type commit_pushed_notification = {
@@ -230,6 +231,11 @@ type commit_comment_notification = {
   repository: repository;
   comment: comment;
   sender: github_user;
+}
+
+(* other generic events *)
+type event_notification = {
+  repository: repository
 }
 
 type content_api_response = {

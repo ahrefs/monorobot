@@ -1,47 +1,63 @@
 open Base
 open Lib
-open Action
 
 let log = Devkit.Log.from "test"
 
-let print_notif (chan, msg) =
-  let json =
-    msg |> Slack_j.string_of_webhook_notification |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string
-  in
-  Stdio.printf "will notify #%s\n" chan;
-  Stdio.printf "%s\n" json
+let mock_payload_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_payloads"
 
-let process ~state_dir ~cfg_path ~secrets_path file =
-  Stdio.printf "===== file %s =====\n" file;
-  let filename = Caml.Filename.basename file in
-  match Github.event_of_filename filename with
-  | None -> Lwt.return_unit
-  | Some kind ->
-    let headers = [ "x-github-event", kind ] in
-    ( match Github.parse_exn ~secret:None headers (Stdio.In_channel.read_all file) with
-    | exception exn ->
-      Stdio.printf "exception when parsing %s: %s\n" file (Exn.to_string exn);
-      Lwt.return_unit
-    | event ->
-      Devkit.Log.set_loglevels "error";
-      let state_path = Caml.Filename.concat state_dir @@ Caml.Filename.basename file in
-      let ctx_partial = Context.make ~state_path ~secrets_path ~disable_write:true in
-      let%lwt ctx =
-        try%lwt ctx_partial ~cfg_args:(RemoteMake (cfg_path, event)) ()
-        with exn ->
-          log#info ~exn "unable to find a remote configuration %s" cfg_path;
-          ctx_partial ~cfg_args:(LocalMake cfg_path) ()
-      in
-      let%lwt notifs = Action.generate_notifications ctx event in
-      List.iter notifs ~f:print_notif;
-      Lwt.return_unit
-    )
+let mock_state_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_states"
+
+module Action_local = Action.Action (Api_local.Github) (Api_local.Slack)
+
+let get_mock_payloads () =
+  let files = Caml.Sys.readdir mock_payload_dir in
+  Array.sort files ~compare:String.compare;
+  Array.to_list files
+  |> List.filter_map ~f:(fun fn -> Github.event_of_filename fn |> Option.map ~f:(fun kind -> kind, fn))
+  |> List.map ~f:(fun (kind, fn) ->
+       let payload_path = Caml.Filename.concat mock_payload_dir fn in
+       let state_path = Caml.Filename.concat mock_state_dir fn in
+       if Caml.Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None)
+
+let process ~(ctx : Context.t) (kind, path, state_path) =
+  let%lwt ctx =
+    match state_path with
+    | None -> Lwt.return { ctx with state = State.empty }
+    | Some state_path ->
+    match Common.get_local_file state_path with
+    | Error e ->
+      log#error "failed to read %s: %s" state_path e;
+      Lwt.return ctx
+    | Ok file ->
+      let state = State_j.state_of_string file in
+      Lwt.return { ctx with state }
+  in
+  Stdio.printf "===== file %s =====\n" path;
+  let headers = [ "x-github-event", kind ] in
+  match Common.get_local_file path with
+  | Error e -> Lwt.return @@ log#error "failed to read %s: %s" path e
+  | Ok event ->
+    let%lwt _ctx = Action_local.process_github_notification ctx headers event in
+    Lwt.return_unit
 
 let () =
-  let mock_dir = "../mock_payloads" in
-  let jsons = Caml.Sys.readdir mock_dir in
-  let jsons = Array.map ~f:(fun p -> Caml.Filename.concat mock_dir p) jsons in
-  Array.sort jsons ~compare:String.compare;
+  let payloads = get_mock_payloads () in
+  let repo : Github_t.repository = { name = ""; full_name = ""; url = ""; commits_url = ""; contents_url = "" } in
+  let ctx = Context.make ~state_filepath:"state.json" () in
   Lwt_main.run
-    (let jsons = Array.to_list jsons in
-     Lwt_list.iter_s (process ~state_dir:"../mock_states" ~cfg_path:"notabot.json" ~secrets_path:"secrets.json") jsons)
+    ( match%lwt Api_local.Github.get_config ~ctx ~repo with
+    | Error e ->
+      log#error "%s" e;
+      Lwt.return_unit
+    | Ok config ->
+      (* can remove this wrapper once status_rules doesn't depend on Config.t *)
+      let config = Config.make config in
+      let ctx = { ctx with config = Some config } in
+      ( match Context.refresh_secrets ctx with
+      | Ok ctx -> Lwt_list.iter_s (process ~ctx) payloads
+      | Error e ->
+        log#error "failed to read secrets:";
+        log#error "%s" e;
+        Lwt.return_unit
+      )
+    )
