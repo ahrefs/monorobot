@@ -5,7 +5,7 @@ open Common
 
 module Github : Api.Github = struct
   let commits_url ~(repo : Github_t.repository) ~sha =
-    String.substr_replace_first ~pattern:"{/sha}" ~with_:sha repo.commits_url
+    String.substr_replace_first ~pattern:"{/sha}" ~with_:("/" ^ sha) repo.commits_url
 
   let contents_url ~(repo : Github_t.repository) ~path =
     String.substr_replace_first ~pattern:"{+path}" ~with_:path repo.contents_url
