@@ -74,13 +74,15 @@ let refresh_state ctx =
   match ctx.state_filepath with
   | None -> Ok ctx
   | Some path ->
-    log#info "loading saved state from file %s" path;
-    ( match get_local_file path with
-    | Error e -> fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path
-    | Ok file ->
-      let state = State_j.state_of_string file in
-      Ok { ctx with state }
-    )
+    if Caml.Sys.file_exists path then begin
+      log#info "loading saved state from file %s" path;
+      match get_local_file path with
+      | Error e -> fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path
+      | Ok file ->
+        let state = State_j.state_of_string file in
+        Ok { ctx with state }
+    end
+    else Ok ctx
 
 let print_config ctx =
   let cfg = get_config_exn ctx in
