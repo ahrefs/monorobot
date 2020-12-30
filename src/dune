@@ -3,4 +3,4 @@
    stdio uri)
  (preprocess
   (pps lwt_ppx))
- (public_name notabot))
+ (public_name monorobot))

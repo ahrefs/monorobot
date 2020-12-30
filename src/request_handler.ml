@@ -10,7 +10,7 @@ let setup_http ~ctx ~signature ~port ~ip =
   let open Httpev in
   let connection = Unix.ADDR_INET (ip, port) in
   let%lwt () =
-    Httpev.setup_lwt { default with name = "notabot"; connection; access_log_enabled = false } (fun _http request ->
+    Httpev.setup_lwt { default with name = "monorobot"; connection; access_log_enabled = false } (fun _http request ->
       let module Arg = Args (struct let req = request end) in
       let body r = Lwt.return (`Body r) in
       let ret ?(status = `Ok) ?(typ = "text/plain") ?extra r =

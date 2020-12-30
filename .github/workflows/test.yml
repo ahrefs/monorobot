@@ -25,12 +25,12 @@ jobs:
         with:
           ocaml-version: ${{ matrix.ocaml-version }}
 
-      - run: opam pin add notabot.dev . --no-action
+      - run: opam pin add monorobot.dev . --no-action
 
       - run: sudo apt update
-      - run: opam depext notabot --yes
-      - run: opam depext notabot --yes --with-doc
-      - run: opam depext notabot --yes --with-test
+      - run: opam depext monorobot --yes
+      - run: opam depext monorobot --yes --with-doc
+      - run: opam depext monorobot --yes --with-test
 
       - run: opam install . --deps-only --with-doc --with-test
 

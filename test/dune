@@ -10,7 +10,7 @@
   (source_tree ../mock_states)
   (source_tree ../mock_payloads)
   (source_tree github-api-cache)
-  notabot.json
+  monorobot.json
   secrets.json)
  (action
   (with-stdout-to

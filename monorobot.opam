@@ -1,13 +1,13 @@
 opam-version: "2.0"
-name: "notabot"
+name: "monorobot"
 version: "0.1"
 synopsis: "Notification bot"
 description: "Notification bot to handle webhook events and post notifications to Slack."
 maintainer: "Ahrefs <github@ahrefs.com>"
 authors: "Ahrefs <github@ahrefs.com>"
-homepage: "https://github.com/ahrefs/notabot"
-bug-reports: "https://github.com/ahrefs/notabot/issues"
-dev-repo: "git+https://github.com/ahrefs/notabot.git"
+homepage: "https://github.com/ahrefs/monorobot"
+bug-reports: "https://github.com/ahrefs/monorobot/issues"
+dev-repo: "git+https://github.com/ahrefs/monorobot.git"
 depends: [
  "ocaml" {>= "4.03.0"}
  "dune" {>= "2.5.0"}

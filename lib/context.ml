@@ -17,7 +17,7 @@ type t = {
 
 let default : t =
   {
-    config_filename = "notabot.json";
+    config_filename = "monorobot.json";
     secrets_filepath = "secrets.json";
     state_filepath = None;
     secrets = None;
