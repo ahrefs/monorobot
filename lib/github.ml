@@ -86,3 +86,50 @@ let parse_exn ~secret headers body =
   | "commit_comment" -> Commit_comment (commit_comment_notification_of_string body)
   | "member" | "create" | "delete" | "release" -> Event (event_notification_of_string body)
   | event -> failwith @@ sprintf "unsupported event : %s" event
+
+type gh_link = Commit of repository * commit_hash
+
+(** `gh_link_of_string s` parses a URL string `s` to try to match a supported
+    GitHub link type, generating repository endpoints if necessary *)
+let gh_link_of_string url_str =
+  let url = Uri.of_string url_str in
+  let path = Uri.path url in
+  let gh_com_html_base owner name = sprintf "https://github.com/%s/%s" owner name in
+  let gh_com_api_base owner name = sprintf "https://api.github.com/repos/%s/%s" owner name in
+  let custom_html_base ?(scheme = "https") base owner name = sprintf "%s://%s/%s/%s" scheme base owner name in
+  let custom_api_base ?(scheme = "https") base owner name =
+    sprintf "%s://%s/api/v3/repos/%s/%s" scheme base owner name
+  in
+  let re = Re.Str.regexp {|^\(.*\)/\(.+\)/\(.+\)/\(commit\)/\([a-z0-9]+\)/?$|} in
+  match Uri.host url with
+  | None -> None
+  | Some host ->
+  match Re.Str.string_match re path 0 with
+  | false -> None
+  | true ->
+    let base = host ^ Re.Str.matched_group 1 path in
+    let owner = Re.Str.matched_group 2 path in
+    let name = Re.Str.matched_group 3 path in
+    let link_type = Re.Str.matched_group 4 path in
+    let item = Re.Str.matched_group 5 path in
+    let scheme = Uri.scheme url in
+    let html_base, api_base =
+      if String.is_suffix base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
+      else custom_html_base ?scheme base owner name, custom_api_base ?scheme base owner name
+    in
+    let repo =
+      {
+        name;
+        full_name = sprintf "%s/%s" owner name;
+        url = html_base;
+        commits_url = sprintf "%s/commits{/sha}" api_base;
+        contents_url = sprintf "%s/contents/{+path}" api_base;
+      }
+    in
+    begin
+      try
+        match link_type with
+        | "commit" -> Some (Commit (repo, item))
+        | _ -> None
+      with _ -> None
+    end
