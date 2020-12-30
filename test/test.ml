@@ -42,7 +42,9 @@ let process ~(ctx : Context.t) (kind, path, state_path) =
 
 let () =
   let payloads = get_mock_payloads () in
-  let repo : Github_t.repository = { name = ""; full_name = ""; url = ""; commits_url = ""; contents_url = "" } in
+  let repo : Github_t.repository =
+    { name = ""; full_name = ""; url = ""; commits_url = ""; contents_url = ""; pulls_url = ""; issues_url = "" }
+  in
   let ctx = Context.make ~state_filepath:"state.json" () in
   Lwt_main.run
     ( match%lwt Api_local.Github.get_config ~ctx ~repo with

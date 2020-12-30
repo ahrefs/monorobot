@@ -11,6 +11,8 @@ let mk_repo ?(scheme = "https") prefix prefix_api : repository =
     url = sprintf "%s://%s/acme/test_repo" scheme prefix;
     commits_url = sprintf "%s://%s/repos/acme/test_repo/commits{/sha}" scheme prefix_api;
     contents_url = sprintf "%s://%s/repos/acme/test_repo/contents/{+path}" scheme prefix_api;
+    pulls_url = sprintf "%s://%s/repos/acme/test_repo/pulls{/number}" scheme prefix_api;
+    issues_url = sprintf "%s://%s/repos/acme/test_repo/issues{/number}" scheme prefix_api;
   }
 
 let enterprise_repo1 = mk_repo "git.acme.org" "git.acme.org/api/v3"
