@@ -1,3 +1,5 @@
+type 'v map_as_object <ocaml from="State"> = abstract
+
 type message_field = {
   ?title: string nullable;
   value: string;
@@ -64,4 +66,54 @@ type post_message_res = {
   ok: bool;
   ?channel: string nullable;
   ?error: string nullable;
+}
+
+type link_shared_link = {
+  domain: string;
+  url: string;
+}
+
+type link_shared_event = {
+  channel: string;
+  is_bot_user_member: bool;
+  user: string;
+  message_ts: string;
+  ?thread_ts: string option;
+  links: link_shared_link list;
+}
+
+type event = [
+| Link_shared <json name="link_shared"> of link_shared_event
+] <ocaml repr="classic"> <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+
+type event_callback_notification = {
+  token: string;
+  team_id: string;
+  api_app_id: string;
+  event: event;
+  event_id: string;
+  event_time: int;
+}
+
+type url_verification_notification = {
+  token: string;
+  challenge: string;
+}
+
+type event_notification = [
+| Event_callback <json name="event_callback"> of event_callback_notification
+| Url_verification <json name="url_verification"> of url_verification_notification
+] <ocaml repr="classic"> <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+
+type unfurl = message_attachment
+
+type chat_unfurl_req = {
+  channel: string;
+  ts: string;
+  unfurls: unfurl map_as_object;
+}
+
+type chat_unfurl_res = {
+  ok: bool;
+  ?error: string option;
 }
