@@ -20,7 +20,15 @@ module Github : Api.Github = struct
     | Ok file -> Lwt.return @@ Ok (Github_j.api_commit_of_string file)
 end
 
+module Slack_base : Api.Slack = struct
+  let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
+
+  let send_chat_unfurl ~ctx:_ _ = Lwt.return @@ Error "undefined for local setup"
+end
+
 module Slack : Api.Slack = struct
+  include Slack_base
+
   let send_notification ~ctx:_ ~msg =
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
     Stdio.printf "will notify #%s\n" msg.channel;
@@ -29,6 +37,8 @@ module Slack : Api.Slack = struct
 end
 
 module Slack_simple : Api.Slack = struct
+  include Slack_base
+
   let log = Log.from "slack"
 
   let send_notification ~ctx:_ ~(msg : Slack_t.post_message_req) =
@@ -41,6 +51,8 @@ module Slack_simple : Api.Slack = struct
 end
 
 module Slack_json : Api.Slack = struct
+  include Slack_base
+
   let log = Log.from "slack"
 
   let send_notification ~ctx:_ ~(msg : Slack_t.post_message_req) =
