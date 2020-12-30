@@ -11,6 +11,8 @@ let mk_repo ?(scheme = "https") prefix prefix_api : repository =
     url = sprintf "%s://%s/ahrefs/monorepo" scheme prefix;
     commits_url = sprintf "%s://%s/repos/ahrefs/monorepo/commits{/sha}" scheme prefix_api;
     contents_url = sprintf "%s://%s/repos/ahrefs/monorepo/contents/{+path}" scheme prefix_api;
+    pulls_url = sprintf "%s://%s/repos/ahrefs/monorepo/pulls{/number}" scheme prefix_api;
+    issues_url = sprintf "%s://%s/repos/ahrefs/monorepo/issues{/number}" scheme prefix_api;
   }
 
 let enterprise_repo1 = mk_repo "example.org" "example.org/api/v3"
