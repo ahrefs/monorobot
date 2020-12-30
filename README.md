@@ -42,7 +42,7 @@ Run the `_build/default/src/monorobot.exe` binary. The following commands are su
 
 ### Link Unfurling
 
-You can configure Monorobot to [unfurl GitHub links](https://api.slack.com/reference/messaging/link-unfurling) in Slack messages. Currently, commit links are supported.
+You can configure Monorobot to [unfurl GitHub links](https://api.slack.com/reference/messaging/link-unfurling) in Slack messages. Currently, commit, pull request, and issue links are supported.
 
 1. Give your app `links:read` and `links:write` [permissions](https://api.slack.com/apps).
 1. Configure your app to [support the Events API](https://api.slack.com/events-api#prepare). During the [url verification handshake](https://api.slack.com/events-api#the-events-api__subscribing-to-event-types__events-api-request-urls__request-url-configuration--verification__url-verification-handshake), you should tell Slack to direct event notifications to `<server_domain>/slack/events`. Ensure the server is running before triggering the handshake.
