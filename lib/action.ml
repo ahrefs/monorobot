@@ -232,4 +232,42 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Context.Context_error msg ->
       log#error "%s" msg;
       Lwt.return_unit
+
+  let process_link_shared_event (ctx : Context.t) (event : Slack_t.link_shared_event) =
+    let process link =
+      match Github.gh_link_of_string link with
+      | None -> Lwt.return_none
+      | Some gh_link ->
+      match gh_link with
+      | Commit (repo, sha) ->
+        ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
+        | Error _ -> Lwt.return_none
+        | Ok commit -> Lwt.return_some @@ (link, Slack_message.populate_commit repo commit)
+        )
+    in
+    if List.length event.links > 2 then Lwt.return "ignored: more than two links present"
+    else begin
+      let links = List.map event.links ~f:(fun l -> l.url) in
+      let%lwt unfurls = List.map links ~f:process |> Lwt.all |> Lwt.map List.filter_opt |> Lwt.map StringMap.of_list in
+      if Map.is_empty unfurls then Lwt.return "ignored: no links to unfurl"
+      else begin
+        let req : Slack_j.chat_unfurl_req = { channel = event.channel; ts = event.message_ts; unfurls } in
+        match%lwt Slack_api.send_chat_unfurl ~ctx req with
+        | Ok () -> Lwt.return "ok"
+        | Error e ->
+          log#error "%s" e;
+          Lwt.return "ignored: failed to unfurl links"
+      end
+    end
+
+  let process_slack_event (ctx : Context.t) headers body =
+    let secrets = Context.get_secrets_exn ctx in
+    match Slack_j.event_notification_of_string body with
+    | Url_verification payload -> Lwt.return payload.challenge
+    | Event_callback notification ->
+    match Slack.validate_signature ?signing_key:secrets.slack_signing_secret ~headers body with
+    | Error e -> action_error e
+    | Ok () ->
+    match notification.event with
+    | Link_shared event -> process_link_shared_event ctx event
 end
