@@ -239,6 +239,16 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | None -> Lwt.return_none
       | Some gh_link ->
       match gh_link with
+      | Pull_request (repo, number) ->
+        ( match%lwt Github_api.get_pull_request ~ctx ~repo ~number with
+        | Error _ -> Lwt.return_none
+        | Ok pr -> Lwt.return_some @@ (link, Slack_message.populate_pull_request repo pr)
+        )
+      | Issue (repo, number) ->
+        ( match%lwt Github_api.get_issue ~ctx ~repo ~number with
+        | Error _ -> Lwt.return_none
+        | Ok issue -> Lwt.return_some @@ (link, Slack_message.populate_issue repo issue)
+        )
       | Commit (repo, sha) ->
         ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
         | Error _ -> Lwt.return_none
