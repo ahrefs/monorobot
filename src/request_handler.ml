@@ -38,6 +38,9 @@ let setup_http ~ctx ~signature ~port ~ip =
           log#info "%s" request.body;
           let%lwt () = Action.process_github_notification ctx request.headers request.body in
           ret (Lwt.return "ok")
+        | _, [ "slack"; "events" ] ->
+          log#info "%s" request.body;
+          ret @@ Action.process_slack_event ctx request.headers request.body
         | _, _ ->
           log#error "unknown path : %s" (Httpev.show_request request);
           ret_err `Not_found "not found"
