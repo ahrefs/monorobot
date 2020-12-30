@@ -124,6 +124,8 @@ let gh_link_of_string url_str =
         url = html_base;
         commits_url = sprintf "%s/commits{/sha}" api_base;
         contents_url = sprintf "%s/contents/{+path}" api_base;
+        pulls_url = sprintf "%s/pulls{/number}" api_base;
+        issues_url = sprintf "%s/issues{/number}" api_base;
       }
     in
     begin

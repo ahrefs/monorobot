@@ -29,12 +29,23 @@ type github_user = {
   avatar_url: string;
 }
 
+type github_team = {
+  id: int;
+  name: string;
+  slug: string;
+  url: string;
+  html_url: string;
+  ~description <ocaml default="\"\"">: string;
+}
+
 type repository = {
   name: string;
   full_name: string;
   html_url <ocaml name="url"> : string;
   commits_url: string;
   contents_url: string;
+  pulls_url: string;
+  issues_url: string;
 }
 
 type commit_pushed_notification = {
@@ -55,6 +66,11 @@ type label = {
   name: string;
 }
 
+type abstract_issue_state = [
+| Open <json name="open">
+| Closed <json name="closed">
+] <ocaml repr="classic">
+
 type pull_request = {
   user: github_user;
   number: int;
@@ -62,6 +78,13 @@ type pull_request = {
   title: string;
   html_url: string;
   labels: label list;
+  state: abstract_issue_state;
+  ~requested_reviewers <ocaml default="[]">: github_user list;
+  ~requested_teams <ocaml default="[]">: github_team list;
+  ~assignees <ocaml default="[]">: github_user list;
+  ~merged <ocaml default="false">: bool;
+  ~draft <ocaml default="false">: bool;
+  ~comments <ocaml default="0">: int;
 }
 
 type issue = {
@@ -72,6 +95,9 @@ type issue = {
   html_url: string;
   labels: label list;
   ?pull_request: basic_json nullable;
+  state: abstract_issue_state;
+  ~assignees <ocaml default="[]">: github_user list;
+  ~comments <ocaml default="0">: int;
 }
 
 type pr_action = [
