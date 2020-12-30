@@ -60,27 +60,30 @@ let check_slack_action url file =
 (* flags *)
 
 let addr =
-  let doc = "http listen addr" in
+  let doc = "ip address that the http server should use" in
   Arg.(value & opt string "127.0.0.1" & info [ "a"; "addr" ] ~docv:"ADDR" ~doc)
 
 let port =
-  let doc = "http listen port" in
+  let doc = "port number that the http server should use" in
   Arg.(value & opt int 8080 & info [ "p"; "port" ] ~docv:"PORT" ~doc)
 
 let config =
-  let doc = "remote configuration file name" in
+  let doc = "name of the remote configuration file to retrieve from the root directory of a repository's main branch" in
   Arg.(value & opt string "monorobot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
 
 let secrets =
-  let doc = "configuration file containing secrets" in
+  let doc = "path to a local configuration file containing secrets to load on startup" in
   Arg.(value & opt file "secrets.json" & info [ "secrets" ] ~docv:"SECRETS" ~doc)
 
 let state =
-  let doc = "state file" in
+  let doc =
+    "path to a local file containing runtime state to load on startup; if specified file does not yet exist, a new one \
+     will be created; if unspecified, no state will be persisted during execution"
+  in
   Arg.(value & opt (some string) None & info [ "state" ] ~docv:"STATE" ~doc)
 
 let gh_payload =
-  let doc = "JSON file containing a github webhook payload" in
+  let doc = "path to a JSON file containing a github webhook payload" in
   Arg.(required & pos 0 (some file) None & info [] ~docv:"GH_PAYLOAD" ~doc)
 
 let slack_webhook_url =
@@ -88,11 +91,11 @@ let slack_webhook_url =
   Arg.(required & pos 0 (some string) None & info [] ~docv:"SLACK_WEBHOOK" ~doc)
 
 let slack_payload =
-  let doc = "JSON file containing a slack notification" in
+  let doc = "path to a JSON file containing a slack notification payload" in
   Arg.(required & pos 1 (some file) None & info [] ~docv:"SLACK_PAYLOAD" ~doc)
 
 let json =
-  let doc = "display output as json" in
+  let doc = "if set, will format output as json" in
   Arg.(value & flag & info [ "j"; "json" ] ~docv:"JSON" ~doc)
 
 (* commands *)
