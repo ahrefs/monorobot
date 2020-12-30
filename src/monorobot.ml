@@ -69,7 +69,7 @@ let port =
 
 let config =
   let doc = "name of the remote configuration file to retrieve from the root directory of a repository's main branch" in
-  Arg.(value & opt string "monorobot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
+  Arg.(value & opt string ".monorobot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
 
 let secrets =
   let doc = "path to a local configuration file containing secrets to load on startup" in
