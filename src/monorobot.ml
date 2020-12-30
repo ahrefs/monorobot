@@ -69,7 +69,7 @@ let port =
 
 let config =
   let doc = "remote configuration file name" in
-  Arg.(value & opt string "notabot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
+  Arg.(value & opt string "monorobot.json" & info [ "config" ] ~docv:"CONFIG" ~doc)
 
 let secrets =
   let doc = "configuration file containing secrets" in

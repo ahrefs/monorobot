@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-dune exec -- ./src/notabot.exe $@

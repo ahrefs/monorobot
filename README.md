@@ -18,7 +18,7 @@ make
 
 ## Running
 
-Run the `_build/default/src/notabot.exe` binary. The following commands are supported.
+Run the `_build/default/src/monorobot.exe` binary. The following commands are supported.
 
 - `run`: Launch the HTTP server
 - `check_gh <GH_PAYLOAD>`: read a Github notification from a file and display the actions that will be taken (used for testing)

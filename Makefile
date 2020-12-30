@@ -3,10 +3,10 @@
 default: build
 
 start:
-	dune exec -- ./src/notabot.exe
+	dune exec -- ./src/monorobot.exe
 
 build:
-	dune build src/notabot.exe
+	dune build src/monorobot.exe
 
 test:
 	dune runtest

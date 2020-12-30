@@ -8,7 +8,7 @@ change.
 How to test the changes? Which command to run? Which output is expected?
 
 ```
-./notabot check mock_payloads/SOME_FILE
+./monorobot check mock_payloads/SOME_FILE
 ```
 
 ## References

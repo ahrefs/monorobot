@@ -48,7 +48,7 @@ let generate_pull_request_notification notification =
     | Labeled -> "labeled", show_labels labels
     | _ ->
       invalid_arg
-        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
+        (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
            (string_of_pr_action action))
   in
   let summary =
@@ -87,7 +87,7 @@ let generate_pr_review_notification notification =
       )
     | _ ->
       invalid_arg
-        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
+        (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
            (string_of_pr_review_action action))
   in
   let summary =
@@ -120,7 +120,7 @@ let generate_pr_review_comment_notification notification =
     | Created -> "commented"
     | _ ->
       invalid_arg
-        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
+        (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
            (string_of_comment_action action))
   in
   let summary =
@@ -162,7 +162,7 @@ let generate_issue_notification notification =
     | Labeled -> "labeled", show_labels labels
     | _ ->
       invalid_arg
-        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s"
+        (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
            (string_of_issue_action action))
   in
   let summary =
@@ -196,7 +196,7 @@ let generate_issue_comment_notification notification =
     | _ ->
       invalid_arg
         (sprintf
-           "Notabot doesn't know how to generate pull request review comment notification for the unexpected event %s"
+           "Monorobot doesn't know how to generate pull request review comment notification for the unexpected event %s"
            (string_of_comment_action action))
   in
   let summary =
@@ -273,7 +273,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
     | Error -> "error"
     | _ ->
       invalid_arg
-        (sprintf "Notabot doesn't know how to generate notification for the unexpected event %s of %s"
+        (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s of %s"
            (string_of_status_state state) sha)
   in
   let color_info =
