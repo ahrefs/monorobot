@@ -24,6 +24,9 @@ type commit = {
 type github_user = {
   login: string;
   id: int;
+  url: string;
+  html_url: string;
+  avatar_url: string;
 }
 
 type repository = {
@@ -218,12 +221,19 @@ type file = {
   blob_url <ocaml name="url"> : string;
 }
 
+type api_commit_stats = {
+  total: int;
+  additions: int;
+  deletions: int;
+}
+
 type api_commit = {
   sha: commit_hash;
   commit: inner_commit;
   html_url <ocaml name="url"> : string;
   author: github_user;
   files: file list;
+  stats: api_commit_stats;
 }
 
 type commit_comment_notification = {
