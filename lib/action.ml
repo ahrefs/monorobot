@@ -280,4 +280,34 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Ok () ->
     match notification.event with
     | Link_shared event -> process_link_shared_event ctx event
+
+  let process_slack_oauth (ctx : Context.t) args =
+    try%lwt
+      let secrets = Context.get_secrets_exn ctx in
+      match secrets.slack_access_token with
+      | Some _ -> Lwt.return "ok"
+      | None ->
+      match Slack.validate_state ?oauth_state:secrets.slack_oauth_state ~args with
+      | Error e -> action_error e
+      | Ok () ->
+      match List.Assoc.find args "code" ~equal:String.equal with
+      | None -> action_error "argument `code` not found in slack authorization request"
+      | Some code ->
+        ( match%lwt Slack_api.update_access_token_of_context ~ctx ~code with
+        | Error e -> action_error e
+        | Ok () -> Lwt.return "ok"
+        )
+    with
+    | Yojson.Json_error msg ->
+      let e = Printf.sprintf "failed to parse file as valid JSON (%s)\naborting slack oauth exchange" msg in
+      log#error "%s" e;
+      Lwt.return e
+    | Action_error msg ->
+      let e = Printf.sprintf "%s\naborting slack oauth exchange" msg in
+      log#error "%s" e;
+      Lwt.return e
+    | Context.Context_error msg ->
+      let e = Printf.sprintf "%s\naborting slack oauth exchange" msg in
+      log#error "%s" e;
+      Lwt.return e
 end
