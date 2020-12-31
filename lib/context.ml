@@ -15,17 +15,18 @@ type t = {
   state : State_t.state;
 }
 
-let default : t =
+let default () : t =
   {
     config_filename = "monorobot.json";
     secrets_filepath = "secrets.json";
     state_filepath = None;
     secrets = None;
     config = None;
-    state = State.empty;
+    state = State.empty ();
   }
 
 let make ?config_filename ?secrets_filepath ?state_filepath () =
+  let default = default () in
   let config_filename = Option.value config_filename ~default:default.config_filename in
   let secrets_filepath = Option.value secrets_filepath ~default:default.secrets_filepath in
   { default with config_filename; secrets_filepath; state_filepath }
