@@ -86,6 +86,12 @@ let refresh_state ctx =
       | Error e -> fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path
       | Ok file ->
         let state = State_j.state_of_string file in
+        let secrets = get_secrets_exn ctx in
+        begin
+          match secrets.slack_access_token with
+          | None -> ()
+          | Some token -> State.set_slack_access_token ctx.state token
+        end;
         Ok { ctx with state }
     end
     else Ok ctx

@@ -29,7 +29,7 @@ module Slack_base : Api.Slack = struct
 
   let send_chat_unfurl ~ctx:_ _ = Lwt.return @@ Error "undefined for local setup"
 
-  let update_access_token_of_context ~ctx:_ ~code:_ = Lwt.return @@ Error "undefined for local setup"
+  let access_token_of_code ~ctx:_ ~code:_ = Lwt.return @@ Error "undefined for local setup"
 end
 
 module Slack : Api.Slack = struct
@@ -41,9 +41,7 @@ module Slack : Api.Slack = struct
     Stdio.printf "%s\n" json;
     Lwt.return @@ Ok ()
 
-  let update_access_token_of_context ~ctx:_ ~code:_ =
-    Stdio.printf "will generate token\n";
-    Lwt.return @@ Ok ()
+  let access_token_of_code ~ctx:_ ~code = Lwt.return @@ Ok (Printf.sprintf "token of code %s" code)
 end
 
 module Slack_simple : Api.Slack = struct

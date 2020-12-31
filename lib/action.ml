@@ -284,7 +284,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let process_slack_oauth (ctx : Context.t) args =
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
-      match secrets.slack_access_token with
+      match ctx.state.slack_access_token with
       | Some _ -> Lwt.return "ok"
       | None ->
       match Slack.validate_state ?oauth_state:secrets.slack_oauth_state ~args with
@@ -293,9 +293,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       match List.Assoc.find args "code" ~equal:String.equal with
       | None -> action_error "argument `code` not found in slack authorization request"
       | Some code ->
-        ( match%lwt Slack_api.update_access_token_of_context ~ctx ~code with
+        ( match%lwt Slack_api.access_token_of_code ~ctx ~code with
         | Error e -> action_error e
-        | Ok () -> Lwt.return "ok"
+        | Ok access_token ->
+          State.set_slack_access_token ctx.state access_token;
+          ( match ctx.state_filepath with
+          | None -> Lwt.return "ok"
+          | Some path ->
+            ( match%lwt State.save ctx.state path with
+            | Ok () -> Lwt.return "ok"
+            | Error e -> action_error e
+            )
+          )
         )
     with
     | Yojson.Json_error msg ->
