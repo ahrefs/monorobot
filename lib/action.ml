@@ -281,6 +281,28 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     match notification.event with
     | Link_shared event -> process_link_shared_event ctx event
 
+  (**
+
+    If there is a need to distribute the app, automatic OAuth exchange must be enabled.
+
+    The fields `slack_client_id` and `slack_client_secret` must be configured in the
+    secrets file. The `slack_oauth_state` field can be optionally provided to avoid
+    forgery attacks during the OAuth exchange.
+    (see: https://tools.ietf.org/html/rfc6749#section-4.1.1)
+
+    All of these fields are retrievable from the Slack app dashboard.
+
+    Once the server has been configured and launched, it will listen on `/slack/oauth`
+    for incoming OAuth requests from Slack. Each user should then go to the following
+    address, replacing the appropriate values (the `state` argument is only needed
+    if `slack_oauth_state` is set).
+      
+    https://slack.com/oauth/v2/authorize?scope=chat:write&client_id=<slack_client_id>&redirect_uri=<server_domain>/slack/oauth&state=<slack_oauth_state>
+
+    A page should open asking the user permission to install the bot to their
+    workspace. Clicking `allow` will trigger the OAuth exchange.
+
+  *)
   let process_slack_oauth (ctx : Context.t) args =
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
