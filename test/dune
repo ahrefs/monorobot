@@ -1,5 +1,5 @@
 (executables
- (names test github_link_test)
+ (names test github_link_test slack_oauth_test)
  (libraries lib base base.caml devkit devkit.core extlib lwt.unix stdio
    yojson)
  (preprocess
@@ -26,3 +26,8 @@
  (alias runtest)
  (action
    (run ./github_link_test.exe)))
+
+(rule
+ (alias runtest)
+ (action
+   (run ./slack_oauth_test.exe)))
