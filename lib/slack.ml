@@ -373,3 +373,14 @@ let validate_signature ?(version = "v0") ?signing_key ~headers body =
     let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
     let expected_signature = Printf.sprintf "%s=%s" version (Common.sign_string_sha256 ~key ~basestring) in
     if String.equal expected_signature signature then Ok () else Error "signatures don't match"
+
+let validate_state ?oauth_state ~args =
+  match oauth_state with
+  | None -> Ok ()
+  | Some expected_state ->
+  match List.Assoc.find args "state" ~equal:String.equal with
+  | None -> Error "argument `state` not found in slack authorization request"
+  | Some state ->
+  match String.equal state expected_state with
+  | false -> Error "argument `state` is present in slack authorization request but does not match expected value"
+  | true -> Ok ()

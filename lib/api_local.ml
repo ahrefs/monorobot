@@ -28,6 +28,8 @@ module Slack_base : Api.Slack = struct
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
 
   let send_chat_unfurl ~ctx:_ _ = Lwt.return @@ Error "undefined for local setup"
+
+  let update_access_token_of_context ~ctx:_ ~code:_ = Lwt.return @@ Error "undefined for local setup"
 end
 
 module Slack : Api.Slack = struct
@@ -37,6 +39,10 @@ module Slack : Api.Slack = struct
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
     Stdio.printf "will notify #%s\n" msg.channel;
     Stdio.printf "%s\n" json;
+    Lwt.return @@ Ok ()
+
+  let update_access_token_of_context ~ctx:_ ~code:_ =
+    Stdio.printf "will generate token\n";
     Lwt.return @@ Ok ()
 end
 
