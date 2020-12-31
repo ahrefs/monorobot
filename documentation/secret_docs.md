@@ -19,6 +19,7 @@ A secrets file stores sensitive information. Unlike the repository configuration
 | `gh_hook_token` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
 | `slack_access_token` | slack bot access token to enable message posting to the workspace | Yes | try to use webhooks defined in `slack_hooks` instead |
 | `slack_hooks` | list of channel names and their corresponding webhook endpoint | Yes | try to use token defined in `slack_access_token` instead |
+| `slack_signing_secret` | specify to verify incoming slack requests | Yes | - |
 
 Note that either `slack_access_token` or `slack_hooks` must be defined.
 
