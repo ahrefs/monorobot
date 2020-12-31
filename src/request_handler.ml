@@ -41,6 +41,9 @@ let setup_http ~ctx ~signature ~port ~ip =
         | _, [ "slack"; "events" ] ->
           log#info "%s" request.body;
           ret @@ Action.process_slack_event ctx request.headers request.body
+        | _, [ "slack"; "oauth" ] ->
+          log#info "slack oauth authorization request received";
+          ret @@ Action.process_slack_oauth ctx request.args
         | _, _ ->
           log#error "unknown path : %s" (Httpev.show_request request);
           ret_err `Not_found "not found"
