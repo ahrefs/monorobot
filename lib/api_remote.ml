@@ -142,14 +142,4 @@ module Slack : Api.Slack = struct
         | None, None -> Lwt.return @@ Error "an unknown error occurred while getting access token"
         )
       )
-
-  let update_access_token_of_context ~ctx ~code =
-    let secrets = Context.get_secrets_exn ctx in
-    match%lwt access_token_of_code ~ctx ~code with
-    | Error e -> Lwt.return @@ Error e
-    | Ok access_token ->
-      let secrets = { secrets with slack_access_token = Some access_token } in
-      ctx.secrets <- Some secrets;
-      let data = Config_j.string_of_secrets secrets |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
-      Lwt.return @@ write_to_local_file ~data ctx.secrets_filepath
 end
