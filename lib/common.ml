@@ -35,3 +35,6 @@ let get_local_file path = try Ok (Std.input_file path) with exn -> fmt_error "%s
 let write_to_local_file ~data path =
   try Ok (Devkit.Files.save_as path (fun oc -> Stdio.Out_channel.fprintf oc "%s" data))
   with exn -> fmt_error "%s" (Exn.to_string exn)
+
+let sign_string_sha256 ~key ~basestring =
+  Cstruct.of_string basestring |> Nocrypto.Hash.SHA256.hmac ~key:(Cstruct.of_string key) |> Hex.of_cstruct |> Hex.show

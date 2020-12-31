@@ -358,3 +358,17 @@ let generate_commit_comment_notification api_commit notification channel =
     }
   in
   { channel; text = None; attachments = Some [ attachment ]; blocks = None }
+
+let validate_signature ?(version = "v0") ?signing_key ~headers body =
+  match signing_key with
+  | None -> Ok ()
+  | Some key ->
+  match List.Assoc.find headers "x-slack-signature" ~equal:String.equal with
+  | None -> Error "unable to find header X-Slack-Signature"
+  | Some signature ->
+  match List.Assoc.find headers "x-slack-request-timestamp" ~equal:String.equal with
+  | None -> Error "unable to find header X-Slack-Request-Timestamp"
+  | Some timestamp ->
+    let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
+    let expected_signature = Printf.sprintf "%s=%s" version (Common.sign_string_sha256 ~key ~basestring) in
+    if String.equal expected_signature signature then Ok () else Error "signatures don't match"
