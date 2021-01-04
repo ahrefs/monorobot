@@ -77,8 +77,8 @@ let populate_pull_request repository (pull_request : pull_request) =
       "Comments", [ Int.to_string comments ];
       "Reviewers", get_reviewers ();
     ]
-    |> List.filter_map ~f:(fun (t, v) -> if List.is_empty v then None else Some (t, String.concat v ~sep:","))
-    |> List.map ~f:(fun (t, v) -> { title = Some t; value = v })
+    |> List.filter_map ~f:(fun (t, v) -> if List.is_empty v then None else Some (t, String.concat v ~sep:", "))
+    |> List.map ~f:(fun (t, v) -> { title = Some t; value = v; short = true })
   in
   let get_title () = sprintf "#%d %s" number (Mrkdwn.escape_mrkdwn title) in
   {
@@ -103,8 +103,8 @@ let populate_issue repository (issue : issue) =
       "Labels", List.map labels ~f:pp_label;
       "Comments", [ Int.to_string comments ];
     ]
-    |> List.filter_map ~f:(fun (t, v) -> if List.is_empty v then None else Some (t, String.concat v ~sep:","))
-    |> List.map ~f:(fun (t, v) -> { title = Some t; value = v })
+    |> List.filter_map ~f:(fun (t, v) -> if List.is_empty v then None else Some (t, String.concat v ~sep:", "))
+    |> List.map ~f:(fun (t, v) -> { title = Some t; value = v; short = true })
   in
   let get_title () = sprintf "#%d %s" number (Mrkdwn.escape_mrkdwn title) in
   {
