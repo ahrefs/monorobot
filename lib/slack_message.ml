@@ -2,8 +2,8 @@ open Base
 open Printf
 open Github_t
 open Slack_t
-
-let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
+open Common
+open Mrkdwn
 
 let empty_attachment =
   {
@@ -25,14 +25,18 @@ let empty_attachment =
   }
 
 let base_attachment (repository : repository) =
-  { empty_attachment with footer = Some (sprintf "<%s|%s>" repository.url repository.full_name) }
+  { empty_attachment with footer = Some (sprintf "<%s|%s>" repository.url (escape_mrkdwn repository.full_name)) }
 
 let pp_file (file : file) = sprintf "<%s|%s>" file.url (Mrkdwn.escape_mrkdwn file.filename)
 
 let populate_commit repository (commit : api_commit) =
   let ({ sha; commit; url; author; files; stats } : api_commit) = commit in
   let get_files () = List.map files ~f:pp_file in
-  let title = sprintf "`<%s|%s>` *%s - %s*" url (git_short_sha_hash sha) commit.message commit.author.name in
+  let title =
+    sprintf "`<%s|%s>` *%s - %s*" url (Slack.git_short_sha_hash sha)
+      (escape_mrkdwn @@ first_line commit.message)
+      (escape_mrkdwn commit.author.name)
+  in
   let num_change = List.length files in
   let changes =
     sprintf "%d %s with %d %s and %d %s:" num_change
