@@ -8,44 +8,19 @@ A secrets file stores sensitive information. Unlike the repository configuration
 
 ```json
 {
-    "slack_hooks": [
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "default"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "aa"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "backend"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "all-push-events"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "frontend-bot"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "aa-git"
-        },
-        {
-            "url": "https://slack_webhook_url",
-            "channel": "siren"
-        }
-    ]
+    "gh_token": "",
+    "slack_access_token": ""
 }
 ```
 
 | value | description | optional | default |
 |-|-|-|-|
-| `slack_hooks` | list of channel names (`channel`) and their corresponding webhook endpoint (`url`) | No | - |
 | `gh_token` | specify to grant the bot access to private repositories; omit for public repositories | Yes | - |
 | `gh_hook_token` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
+| `slack_access_token` | slack bot access token to enable message posting to the workspace | Yes | try to use webhooks defined in `slack_hooks` instead |
+| `slack_hooks` | list of channel names and their corresponding webhook endpoint | Yes | try to use token defined in `slack_access_token` instead |
+
+Note that either `slack_access_token` or `slack_hooks` must be defined.
 
 ## `gh_token`
 
@@ -54,3 +29,29 @@ Some operations, such as fetching a config file from a private repository, or th
 ## `gh_hook_token`
 
 Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/securing-your-webhooks) for more information on securing webhooks with a token.
+
+## `slack_access_token`
+
+Refer [here](https://api.slack.com/authentication/oauth-v2) for obtaining an access token via OAuth.
+
+## `slack_hooks`
+
+*Note: If `slack_access_token` is also defined, the bot will authenticate over Slack's Web API and this option will not be used.*
+
+Expected format:
+
+```json
+[
+    {
+        "channel": "channel name",
+        "url": "webhook url"
+    },
+    {
+        "channel": "channel name",
+        "url": "webhook url"
+    },
+    ...
+]
+```
+
+Refer [here](https://api.slack.com/messaging/webhooks) for obtaining a webhook for a channel.
