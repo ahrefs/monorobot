@@ -81,4 +81,26 @@ module Slack : Api.Slack = struct
         )
       | Error e -> Lwt.return @@ build_query_error url e
       )
+
+  let send_chat_unfurl ~(ctx : Context.t) req =
+    log#info "unfurling Slack links";
+    let secrets = Context.get_secrets_exn ctx in
+    match secrets.slack_access_token with
+    | None -> Lwt.return @@ fmt_error "failed to retrieve Slack access token"
+    | Some access_token ->
+      let data = Slack_j.string_of_chat_unfurl_req req in
+      log#info "%s" data;
+      let url = "https://slack.com/api/chat.unfurl" in
+      let headers = [ bearer_token_header access_token ] in
+      let body = `Raw ("application/json", data) in
+      ( match%lwt http_request ~body ~headers `POST url with
+      | Ok s ->
+        let res = Slack_j.chat_unfurl_res_of_string s in
+        if res.ok then Lwt.return @@ Ok ()
+        else (
+          let msg = Option.value ~default:"an unknown error occurred" res.error in
+          Lwt.return @@ fmt_error "%s\nfailed to unfurl Slack links" msg
+        )
+      | Error e -> Lwt.return @@ fmt_error "error while querying %s: %s\nfailed to unfurl Slack links" url e
+      )
 end

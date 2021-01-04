@@ -1,6 +1,5 @@
 open Printf
 open Base
-open Devkit
 open Common
 open Github_j
 open Slack_j
@@ -32,6 +31,8 @@ let show_labels = function
   | [] -> None
   | (labels : label list) ->
     Some (sprintf "Labels: %s" @@ String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels))
+
+let pluralize name num suffix = if num = 1 then sprintf "%s" name else String.concat [ name; suffix ]
 
 let generate_pull_request_notification notification channel =
   let { action; number; sender; pull_request; repository } = notification in
@@ -302,8 +303,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
           [ main ]
         | _ -> notification_branches
       in
-      let pluralize s = if Int.equal (List.length branches) 1 then s else sprintf "%ses" s in
-      [ sprintf "*%s*: %s" (pluralize "Branch") (String.concat ~sep:", " branches) ]
+      [ sprintf "*%s*: %s" (pluralize "Branch" (List.length branches) "es") (String.concat ~sep:", " branches) ]
   in
   let summary =
     match target_url with
@@ -358,3 +358,17 @@ let generate_commit_comment_notification api_commit notification channel =
     }
   in
   { channel; text = None; attachments = Some [ attachment ]; blocks = None }
+
+let validate_signature ?(version = "v0") ?signing_key ~headers body =
+  match signing_key with
+  | None -> Ok ()
+  | Some key ->
+  match List.Assoc.find headers "x-slack-signature" ~equal:String.equal with
+  | None -> Error "unable to find header X-Slack-Signature"
+  | Some signature ->
+  match List.Assoc.find headers "x-slack-request-timestamp" ~equal:String.equal with
+  | None -> Error "unable to find header X-Slack-Request-Timestamp"
+  | Some timestamp ->
+    let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
+    let expected_signature = Printf.sprintf "%s=%s" version (Common.sign_string_sha256 ~key ~basestring) in
+    if String.equal expected_signature signature then Ok () else Error "signatures don't match"
