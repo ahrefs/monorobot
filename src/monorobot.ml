@@ -46,7 +46,7 @@ let check_gh_action file json config secrets state =
 let check_slack_action url file =
   let data = Stdio.In_channel.read_all file in
   let chan = Printf.sprintf "webhook %s" url in
-  match Slack_j.webhook_notification_of_string data with
+  match Slack_j.post_message_req_of_string data with
   | exception exn -> log#error ~exn "unable to parse notification"
   | msg ->
     Lwt_main.run
