@@ -1,6 +1,7 @@
 ===== file ../mock_payloads/commit_comment.different_author.json =====
 will notify #all-push-events
 {
+  "channel": "all-push-events",
   "attachments": [
     {
       "fallback":
@@ -18,6 +19,7 @@ will notify #all-push-events
 ===== file ../mock_payloads/commit_comment.general_comment.json =====
 will notify #all-push-events
 {
+  "channel": "all-push-events",
   "attachments": [
     {
       "fallback":
@@ -33,6 +35,7 @@ will notify #all-push-events
 ===== file ../mock_payloads/commit_comment.general_comment_multiple_path.json =====
 will notify #a1
 {
+  "channel": "a1",
   "attachments": [
     {
       "fallback":
@@ -47,6 +50,7 @@ will notify #a1
 }
 will notify #all-push-events
 {
+  "channel": "all-push-events",
   "attachments": [
     {
       "fallback":
@@ -62,6 +66,7 @@ will notify #all-push-events
 ===== file ../mock_payloads/commit_comment.long_comment.json =====
 will notify #all-push-events
 {
+  "channel": "all-push-events",
   "attachments": [
     {
       "fallback":
@@ -80,6 +85,7 @@ will notify #all-push-events
 ===== file ../mock_payloads/commit_comment.mrkdwn_comment.json =====
 will notify #all-push-events
 {
+  "channel": "all-push-events",
   "attachments": [
     {
       "fallback":
@@ -98,6 +104,7 @@ will notify #all-push-events
 ===== file ../mock_payloads/commit_comment.multiple_paths.json =====
 will notify #all-push-events
 {
+  "channel": "all-push-events",
   "attachments": [
     {
       "fallback":
@@ -113,6 +120,7 @@ will notify #all-push-events
 ===== file ../mock_payloads/commit_comment.short_comment.json =====
 will notify #all-push-events
 {
+  "channel": "all-push-events",
   "attachments": [
     {
       "fallback":
@@ -130,6 +138,7 @@ will notify #all-push-events
 ===== file ../mock_payloads/issue_comment.created_in_issue.json =====
 will notify #default
 {
+  "channel": "default",
   "attachments": [
     {
       "fallback":
@@ -145,6 +154,7 @@ will notify #default
 ===== file ../mock_payloads/issue_comment.created_in_pr.json =====
 will notify #a1-bot
 {
+  "channel": "a1-bot",
   "attachments": [
     {
       "fallback":
@@ -159,6 +169,7 @@ will notify #a1-bot
 }
 will notify #backend
 {
+  "channel": "backend",
   "attachments": [
     {
       "fallback":
@@ -175,6 +186,7 @@ will notify #backend
 ===== file ../mock_payloads/issue_comment.draft_pr.json =====
 will notify #frontend-bot
 {
+  "channel": "frontend-bot",
   "attachments": [
     {
       "fallback":
@@ -192,6 +204,7 @@ will notify #frontend-bot
 ===== file ../mock_payloads/issues.closed.json =====
 will notify #backend
 {
+  "channel": "backend",
   "attachments": [
     {
       "fallback":
@@ -206,6 +219,7 @@ will notify #backend
 ===== file ../mock_payloads/issues.labeled.json =====
 will notify #backend
 {
+  "channel": "backend",
   "attachments": [
     {
       "fallback":
@@ -221,6 +235,7 @@ will notify #backend
 ===== file ../mock_payloads/issues.opened.json =====
 will notify #default
 {
+  "channel": "default",
   "attachments": [
     {
       "fallback":
@@ -237,6 +252,7 @@ will notify #default
 ===== file ../mock_payloads/issues.reopened.json =====
 will notify #backend
 {
+  "channel": "backend",
   "attachments": [
     {
       "fallback":
@@ -251,6 +267,7 @@ will notify #backend
 ===== file ../mock_payloads/pull_request.closed_capitalized.json =====
 will notify #a1-bot
 {
+  "channel": "a1-bot",
   "attachments": [
     {
       "fallback":
@@ -265,6 +282,7 @@ will notify #a1-bot
 ===== file ../mock_payloads/pull_request.closed_no_labels.json =====
 will notify #default
 {
+  "channel": "default",
   "attachments": [
     {
       "fallback":
@@ -279,6 +297,7 @@ will notify #default
 ===== file ../mock_payloads/pull_request.labeled_two_labels.json =====
 will notify #a1-bot
 {
+  "channel": "a1-bot",
   "attachments": [
     {
       "fallback":
@@ -293,6 +312,7 @@ will notify #a1-bot
 }
 will notify #backend
 {
+  "channel": "backend",
   "attachments": [
     {
       "fallback":
@@ -308,6 +328,7 @@ will notify #backend
 ===== file ../mock_payloads/pull_request.opened_one_label.json =====
 will notify #frontend-bot
 {
+  "channel": "frontend-bot",
   "attachments": [
     {
       "fallback":
@@ -324,6 +345,7 @@ will notify #frontend-bot
 ===== file ../mock_payloads/pull_request_review.approved.json =====
 will notify #default
 {
+  "channel": "default",
   "attachments": [
     {
       "fallback":
@@ -339,6 +361,7 @@ will notify #default
 ===== file ../mock_payloads/pull_request_review.commented.json =====
 will notify #frontend-bot
 {
+  "channel": "frontend-bot",
   "attachments": [
     {
       "fallback":
@@ -356,6 +379,7 @@ will notify #frontend-bot
 ===== file ../mock_payloads/pull_request_review.request_changes.json =====
 will notify #default
 {
+  "channel": "default",
   "attachments": [
     {
       "fallback":
@@ -373,6 +397,7 @@ will notify #default
 ===== file ../mock_payloads/pull_request_review_comment.created.json =====
 will notify #a1-bot
 {
+  "channel": "a1-bot",
   "attachments": [
     {
       "fallback":
@@ -389,6 +414,7 @@ will notify #a1-bot
 }
 will notify #backend
 {
+  "channel": "backend",
   "attachments": [
     {
       "fallback":
@@ -408,6 +434,7 @@ will notify #backend
 ===== file ../mock_payloads/push.two_commits.json =====
 will notify #all-push-events
 {
+  "channel": "all-push-events",
   "text":
     "<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
   "attachments": [
@@ -427,6 +454,7 @@ will notify #all-push-events
 ===== file ../mock_payloads/push.two_commits_longest_match.json =====
 will notify #all-push-events
 {
+  "channel": "all-push-events",
   "text":
     "<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
   "attachments": [
@@ -445,6 +473,7 @@ will notify #all-push-events
 }
 will notify #longest-a1
 {
+  "channel": "longest-a1",
   "text":
     "<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|1 commit> pushed by thatportugueseguy",
   "attachments": [
@@ -465,6 +494,7 @@ will notify #longest-a1
 ===== file ../mock_payloads/status.failure_test.json =====
 will notify #default
 {
+  "channel": "default",
   "attachments": [
     {
       "fallback":
@@ -490,6 +520,7 @@ will notify #default
 ===== file ../mock_payloads/status.success_public_repo_no_buildkite.json =====
 will notify #default
 {
+  "channel": "default",
   "attachments": [
     {
       "fallback":
@@ -510,6 +541,7 @@ will notify #default
 ===== file ../mock_payloads/status.success_test_main_branch.json =====
 will notify #all-push-events
 {
+  "channel": "all-push-events",
   "attachments": [
     {
       "fallback":
@@ -531,6 +563,7 @@ will notify #all-push-events
 ===== file ../mock_payloads/status.success_test_non_main_branch.json =====
 will notify #default
 {
+  "channel": "default",
   "attachments": [
     {
       "fallback":
