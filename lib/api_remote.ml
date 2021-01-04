@@ -50,12 +50,35 @@ end
 module Slack : Api.Slack = struct
   let log = Log.from "slack"
 
-  let send_notification ~chan ~msg ~url =
-    let data = Slack_j.string_of_webhook_notification msg in
-    let body = `Raw ("application/json", data) in
-    log#info "sending to %s : %s" chan data;
-    match%lwt http_request ~body `POST url with
-    | Ok _ -> Lwt.return @@ Ok ()
-    | Error e ->
-      Lwt.return @@ fmt_error "error while querying remote: %s\nfailed to send Slack notification to %s" e url
+  let bearer_token_header access_token = sprintf "Authorization: Bearer %s" (Uri.pct_decode access_token)
+
+  (** `send_notification ctx msg` notifies `msg.channel` with the payload `msg`;
+      uses web API with access token if available, or with webhook otherwise *)
+  let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =
+    log#info "sending to %s" msg.channel;
+    let build_error e = fmt_error "%s\nfailed to send Slack notification" e in
+    let build_query_error url e = build_error @@ sprintf "error while querying %s: %s" url e in
+    let secrets = Context.get_secrets_exn ctx in
+    let headers, url, webhook_mode =
+      match secrets.slack_access_token with
+      | Some access_token -> [ bearer_token_header access_token ], Some "https://slack.com/api/chat.postMessage", false
+      | None -> [], Context.hook_of_channel ctx msg.channel, true
+    in
+    match url with
+    | None -> Lwt.return @@ build_error @@ sprintf "no token or webhook configured to notify channel %s" msg.channel
+    | Some url ->
+      let data = Slack_j.string_of_post_message_req msg in
+      let body = `Raw ("application/json", data) in
+      log#info "data: %s" data;
+      ( match%lwt http_request ~body ~headers `POST url with
+      (* error detection in response: slack uses status codes for webhooks versus a 200 code w/ `error` field for web api *)
+      | Ok s ->
+        if webhook_mode then Lwt.return @@ Ok ()
+        else (
+          let res = Slack_j.post_message_res_of_string s in
+          if res.ok then Lwt.return @@ Ok ()
+          else Lwt.return @@ build_query_error url (Option.value ~default:"an unknown error occurred" res.error)
+        )
+      | Error e -> Lwt.return @@ build_query_error url e
+      )
 end
