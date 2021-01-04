@@ -87,7 +87,7 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
 |-|-|-|-|
 | `match` | if notifications have any label in this list, they should be routed to the channel | Yes | all labels matched if no list provided |
 | `ignore` | if notifications have any label in this list, they shouldn't be routed to the channel (even if they have any `match` labels) | Yes | - |
-| `channel` | channel to use as webhook if the rule is matched | No | - |
+| `channel` | channel to notify if the rule is matched | No | - |
 
 ## Prefix Options
 
@@ -126,7 +126,7 @@ A **prefix rule** specifies whether or not a Slack channel should be notified, b
 |-|-|-|-|
 | `match` | if commit files have any prefix in this list, they should be routed to the channel | Yes | all prefixes matched if no list provided |
 | `ignore` | if commit files have any prefix in this list, they shouldn't be routed to the channel (even if they have any `match` prefixes) | Yes | - |
-| `channel` | channel to use as webhook if the rule is matched | No | - |
+| `channel` | channel to notify if the rule is matched | No | - |
 
 ## Status Options
 

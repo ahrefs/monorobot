@@ -5,10 +5,6 @@ open Common
 open Github_j
 open Slack_j
 
-let log = Log.from "slack"
-
-type channel_hook = string
-
 let empty_attachments =
   {
     mrkdwn_in = None;
@@ -37,7 +33,7 @@ let show_labels = function
   | (labels : label list) ->
     Some (sprintf "Labels: %s" @@ String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels))
 
-let generate_pull_request_notification notification =
+let generate_pull_request_notification notification channel =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; _ } : pull_request) = pull_request in
   let action, body =
@@ -57,6 +53,7 @@ let generate_pull_request_notification notification =
          action sender.login)
   in
   {
+    channel;
     text = None;
     attachments =
       Some
@@ -73,7 +70,7 @@ let generate_pull_request_notification notification =
     blocks = None;
   }
 
-let generate_pr_review_notification notification =
+let generate_pr_review_notification notification channel =
   let { action; sender; pull_request; review; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -96,6 +93,7 @@ let generate_pr_review_notification notification =
          action_str number html_url title)
   in
   {
+    channel;
     text = None;
     attachments =
       Some
@@ -112,7 +110,7 @@ let generate_pr_review_notification notification =
     blocks = None;
   }
 
-let generate_pr_review_comment_notification notification =
+let generate_pr_review_comment_notification notification channel =
   let { action; pull_request; sender; comment; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -134,6 +132,7 @@ let generate_pr_review_comment_notification notification =
     | Some a -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url a)
   in
   {
+    channel;
     text = None;
     attachments =
       Some
@@ -151,7 +150,7 @@ let generate_pr_review_comment_notification notification =
     blocks = None;
   }
 
-let generate_issue_notification notification =
+let generate_issue_notification notification channel =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
   let { number; body; title; html_url; labels; _ } = issue in
   let action, body =
@@ -171,6 +170,7 @@ let generate_issue_notification notification =
          sender.login)
   in
   {
+    channel;
     text = None;
     attachments =
       Some
@@ -187,7 +187,7 @@ let generate_issue_notification notification =
     blocks = None;
   }
 
-let generate_issue_comment_notification notification =
+let generate_issue_comment_notification notification channel =
   let { action; issue; sender; comment; repository } = notification in
   let { number; title; _ } = issue in
   let action_str =
@@ -205,6 +205,7 @@ let generate_issue_comment_notification notification =
          action_str number issue.html_url title)
   in
   {
+    channel;
     text = None;
     attachments =
       Some
@@ -223,7 +224,7 @@ let generate_issue_comment_notification notification =
 
 let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
-let generate_push_notification notification =
+let generate_push_notification notification channel =
   let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in
   let commits_branch = Github.commits_branch_of_ref notification.ref in
   let tree_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode commits_branch ] in
@@ -247,6 +248,7 @@ let generate_push_notification notification =
       sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name)
   in
   {
+    channel;
     text = Some title;
     attachments =
       Some
@@ -262,7 +264,7 @@ let generate_push_notification notification =
     blocks = None;
   }
 
-let generate_status_notification (cfg : Config_t.config) (notification : status_notification) =
+let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
@@ -324,9 +326,9 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       fields = Some [ { title = None; value = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] } ];
     }
   in
-  { text = None; attachments = Some [ attachment ]; blocks = None }
+  { channel; text = None; attachments = Some [ attachment ]; blocks = None }
 
-let generate_commit_comment_notification api_commit notification =
+let generate_commit_comment_notification api_commit notification channel =
   let { commit; _ } = api_commit in
   let { sender; comment; repository; _ } = notification in
   let commit_id =
@@ -355,5 +357,4 @@ let generate_commit_comment_notification api_commit notification =
       text = Some (mrkdwn_of_markdown comment.body);
     }
   in
-  let notifs = { text = None; attachments = Some [ attachment ]; blocks = None } in
-  Lwt.return notifs
+  { channel; text = None; attachments = Some [ attachment ]; blocks = None }
