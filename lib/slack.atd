@@ -1,4 +1,4 @@
-type 'v map_as_object <ocaml from="State"> = abstract
+type 'v map_as_object <ocaml from="Common"> = abstract
 
 type message_field = {
   ?title: string nullable;

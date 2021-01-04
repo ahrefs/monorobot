@@ -1,8 +1,5 @@
 type status_state <ocaml from="Github"> = abstract
-
-type 'v map_as_object =
-  (string * 'v) list <json repr="object">
-    wrap <ocaml module="Common.StringMap" t="'v Common.StringMap.t">
+type 'v map_as_object <ocaml from="Common"> = abstract
 
 (* A map from branch names to build statuses *)
 type branch_statuses = status_state map_as_object
