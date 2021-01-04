@@ -67,8 +67,14 @@ let refresh_secrets ctx =
   match get_local_file path with
   | Error e -> fmt_error "error while getting local file: %s\nfailed to get secrets from file %s" e path
   | Ok file ->
-    ctx.secrets <- Some (Config_j.secrets_of_string file);
-    Ok ctx
+    let secrets = Config_j.secrets_of_string file in
+    begin
+      match secrets.slack_access_token, secrets.slack_hooks with
+      | None, [] -> fmt_error "either slack_access_token or slack_hooks must be defined in file '%s'" path
+      | _ ->
+        ctx.secrets <- Some secrets;
+        Ok ctx
+    end
 
 let refresh_state ctx =
   match ctx.state_filepath with
