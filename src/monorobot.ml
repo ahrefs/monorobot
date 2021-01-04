@@ -43,14 +43,17 @@ let check_gh_action file json config secrets state =
         )
     )
 
-let check_slack_action url file =
+let check_slack_action file secrets =
   let data = Stdio.In_channel.read_all file in
-  let chan = Printf.sprintf "webhook %s" url in
+  let ctx = Context.make ~secrets_filepath:secrets () in
   match Slack_j.post_message_req_of_string data with
   | exception exn -> log#error ~exn "unable to parse notification"
   | msg ->
+  match Context.refresh_secrets ctx with
+  | Error e -> log#error "%s" e
+  | Ok ctx ->
     Lwt_main.run
-      ( match%lwt Api_remote.Slack.send_notification ~chan ~msg ~url with
+      ( match%lwt Api_remote.Slack.send_notification ~ctx ~msg with
       | Error e ->
         log#error "%s" e;
         Lwt.return_unit
@@ -86,13 +89,9 @@ let gh_payload =
   let doc = "path to a JSON file containing a github webhook payload" in
   Arg.(required & pos 0 (some file) None & info [] ~docv:"GH_PAYLOAD" ~doc)
 
-let slack_webhook_url =
-  let doc = "slack webhook url" in
-  Arg.(required & pos 0 (some string) None & info [] ~docv:"SLACK_WEBHOOK" ~doc)
-
 let slack_payload =
   let doc = "path to a JSON file containing a slack notification payload" in
-  Arg.(required & pos 1 (some file) None & info [] ~docv:"SLACK_PAYLOAD" ~doc)
+  Arg.(required & pos 0 (some file) None & info [] ~docv:"SLACK_PAYLOAD" ~doc)
 
 let json =
   let doc = "if set, will format output as json" in
@@ -113,9 +112,9 @@ let check_gh =
   term, info
 
 let check_slack =
-  let doc = "read a Slack notification from a file and send it to a webhook; used for testing" in
+  let doc = "read a Slack notification from a file and send it to a channel; used for testing" in
   let info = Term.info "check_slack" ~doc in
-  let term = Term.(const check_slack_action $ slack_webhook_url $ slack_payload) in
+  let term = Term.(const check_slack_action $ slack_payload $ secrets) in
   term, info
 
 let default_cmd =
