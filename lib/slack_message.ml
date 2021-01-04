@@ -73,7 +73,7 @@ let populate_pull_request repository (pull_request : pull_request) =
     [
       "Assignees", List.map assignees ~f:pp_github_user;
       "Labels", List.map labels ~f:pp_label;
-      "Comments", [ Int.to_string comments ];
+      ("Comments", if comments > 0 then [ Int.to_string comments ] else []);
       "Reviewers", get_reviewers ();
     ]
     |> List.filter_map ~f:(fun (t, v) -> if List.is_empty v then None else Some (t, String.concat v ~sep:", "))
@@ -99,7 +99,7 @@ let populate_issue repository (issue : issue) =
     [
       "Assignees", List.map assignees ~f:pp_github_user;
       "Labels", List.map labels ~f:pp_label;
-      "Comments", [ Int.to_string comments ];
+      ("Comments", if comments > 0 then [ Int.to_string comments ] else []);
     ]
     |> List.filter_map ~f:(fun (t, v) -> if List.is_empty v then None else Some (t, String.concat v ~sep:", "))
     |> List.map ~f:(fun (t, v) -> { title = Some t; value = v; short = true })
