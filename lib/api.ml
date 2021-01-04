@@ -9,5 +9,5 @@ module type Github = sig
 end
 
 module type Slack = sig
-  val send_notification : chan:string -> msg:post_message_req -> url:string -> (unit, string) Result.t Lwt.t
+  val send_notification : ctx:Context.t -> msg:post_message_req -> (unit, string) Result.t Lwt.t
 end
