@@ -27,28 +27,24 @@ let empty_attachment =
 let base_attachment (repository : repository) =
   { empty_attachment with footer = Some (sprintf "<%s|%s>" repository.url (escape_mrkdwn repository.full_name)) }
 
-let pp_file (file : file) = sprintf "<%s|%s>" file.url (Mrkdwn.escape_mrkdwn file.filename)
-
 let populate_commit repository (commit : api_commit) =
-  let ({ sha; commit; url; author; files; stats } : api_commit) = commit in
-  let get_files () = List.map files ~f:pp_file in
+  let ({ sha; commit; url; author; files; _ } : api_commit) = commit in
   let title =
     sprintf "`<%s|%s>` *%s - %s*" url (Slack.git_short_sha_hash sha)
       (escape_mrkdwn @@ first_line commit.message)
       (escape_mrkdwn commit.author.name)
   in
   let num_change = List.length files in
-  let changes =
-    sprintf "%d %s with %d %s and %d %s:" num_change
-      (Slack.pluralize "changed file" num_change "s")
-      stats.additions
-      (Slack.pluralize "addition" stats.additions "s")
-      stats.deletions
-      (Slack.pluralize "deletion" stats.deletions "s")
+  let prefix_path =
+    List.map files ~f:(fun f -> f.filename)
+    |> Common.longest_common_prefix
+    |> String.split ~on:'/'
+    |> List.drop_last_exn
+    |> String.concat ~sep:"/"
   in
-  let files = get_files () |> String.concat ~sep:"\n" in
-  let text = sprintf "%s\n%s\n%s" title changes files in
-  let fallback = sprintf "[%s] %s - %s" (git_short_sha_hash sha) commit.message commit.author.name in
+  let changes = sprintf "%d changed %s in `%s/`" num_change (Slack.pluralize "file" num_change "s") prefix_path in
+  let text = sprintf "%s\n%s" title changes in
+  let fallback = sprintf "[%s] %s - %s" (Slack.git_short_sha_hash sha) commit.message commit.author.name in
   {
     (base_attachment repository) with
     author_name = Some author.login;
