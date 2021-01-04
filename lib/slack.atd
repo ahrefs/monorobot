@@ -54,7 +54,14 @@ type message_block = [
 ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 type post_message_req = {
+  channel: string;
   ?text: string nullable;
   ?attachments: message_attachment list nullable;
   ?blocks: message_block list nullable;
+}
+
+type post_message_res = {
+  ok: bool;
+  ?channel: string nullable;
+  ?error: string nullable;
 }
