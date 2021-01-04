@@ -18,6 +18,10 @@ module Github : Api.Github = struct
     match get_local_file url with
     | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get api commit %s" e url
     | Ok file -> Lwt.return @@ Ok (Github_j.api_commit_of_string file)
+
+  let get_pull_request ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error "undefined for local setup"
+
+  let get_issue ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error "undefined for local setup"
 end
 
 module Slack_base : Api.Slack = struct

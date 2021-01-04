@@ -3,6 +3,7 @@ type 'v map_as_object <ocaml from="State"> = abstract
 type message_field = {
   ?title: string nullable;
   value: string;
+  ~short <ocaml default="false">: bool;
 }
 
 type message_attachment = {

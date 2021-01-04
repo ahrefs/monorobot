@@ -259,7 +259,7 @@ let generate_push_notification notification channel =
             mrkdwn_in = Some [ "fields" ];
             fallback = Some "Commit pushed notification";
             color = Some "#ccc";
-            fields = Some [ { value = String.concat ~sep:"\n" commits; title = None } ];
+            fields = Some [ { value = String.concat ~sep:"\n" commits; title = None; short = false } ];
           };
         ];
     blocks = None;
@@ -315,6 +315,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         (sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name t context
            state_info)
   in
+  let msg = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] in
   let attachment =
     {
       empty_attachments with
@@ -323,7 +324,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       pretext = summary;
       color = Some color_info;
       text = description_info;
-      fields = Some [ { title = None; value = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] } ];
+      fields = Some [ { title = None; value = msg; short = false } ];
     }
   in
   { channel; text = None; attachments = Some [ attachment ]; blocks = None }
