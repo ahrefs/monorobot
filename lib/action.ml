@@ -152,41 +152,29 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let cfg = Context.get_config_exn ctx in
     match req with
     | Github.Push n ->
-      partition_push cfg n |> List.map ~f:(fun (webhook, n) -> webhook, generate_push_notification n) |> Lwt.return
-    | Pull_request n ->
-      partition_pr cfg n |> List.map ~f:(fun webhook -> webhook, generate_pull_request_notification n) |> Lwt.return
-    | PR_review n ->
-      partition_pr_review cfg n |> List.map ~f:(fun webhook -> webhook, generate_pr_review_notification n) |> Lwt.return
+      partition_push cfg n |> List.map ~f:(fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
+    | Pull_request n -> partition_pr cfg n |> List.map ~f:(generate_pull_request_notification n) |> Lwt.return
+    | PR_review n -> partition_pr_review cfg n |> List.map ~f:(generate_pr_review_notification n) |> Lwt.return
     | PR_review_comment n ->
-      partition_pr_review_comment cfg n
-      |> List.map ~f:(fun webhook -> webhook, generate_pr_review_comment_notification n)
-      |> Lwt.return
-    | Issue n ->
-      partition_issue cfg n |> List.map ~f:(fun webhook -> webhook, generate_issue_notification n) |> Lwt.return
+      partition_pr_review_comment cfg n |> List.map ~f:(generate_pr_review_comment_notification n) |> Lwt.return
+    | Issue n -> partition_issue cfg n |> List.map ~f:(generate_issue_notification n) |> Lwt.return
     | Issue_comment n ->
-      partition_issue_comment cfg n
-      |> List.map ~f:(fun webhook -> webhook, generate_issue_comment_notification n)
-      |> Lwt.return
+      partition_issue_comment cfg n |> List.map ~f:(generate_issue_comment_notification n) |> Lwt.return
     | Commit_comment n ->
-      let%lwt webhooks, api_commit = partition_commit_comment ctx n in
-      let%lwt notif = generate_commit_comment_notification api_commit n in
-      let notifs = List.map ~f:(fun webhook -> webhook, notif) webhooks in
+      let%lwt channels, api_commit = partition_commit_comment ctx n in
+      let notifs = List.map ~f:(generate_commit_comment_notification api_commit n) channels in
       Lwt.return notifs
     | Status n ->
-      let%lwt webhooks = partition_status ctx n in
-      let notifs = List.map ~f:(fun webhook -> webhook, generate_status_notification cfg n) webhooks in
+      let%lwt channels = partition_status ctx n in
+      let notifs = List.map ~f:(generate_status_notification cfg n) channels in
       Lwt.return notifs
     | _ -> Lwt.return []
 
   let send_notifications (ctx : Context.t) notifications =
-    let notify (chan, msg) =
-      match Context.hook_of_channel ctx chan with
-      | None -> Printf.ksprintf action_error "webhook not defined for Slack channel '%s'" chan
-      | Some url ->
-        ( match%lwt Slack_api.send_notification ~chan ~msg ~url with
-        | Ok () -> Lwt.return_unit
-        | Error e -> action_error e
-        )
+    let notify (msg : Slack_t.post_message_req) =
+      match%lwt Slack_api.send_notification ~ctx ~msg with
+      | Ok () -> Lwt.return_unit
+      | Error e -> action_error e
     in
     Lwt_list.iter_s notify notifications
 
