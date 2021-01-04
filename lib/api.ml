@@ -6,6 +6,10 @@ module type Github = sig
   val get_config : ctx:Context.t -> repo:repository -> (Config_t.config, string) Result.t Lwt.t
 
   val get_api_commit : ctx:Context.t -> repo:repository -> sha:string -> (api_commit, string) Result.t Lwt.t
+
+  val get_pull_request : ctx:Context.t -> repo:repository -> number:int -> (pull_request, string) Result.t Lwt.t
+
+  val get_issue : ctx:Context.t -> repo:repository -> number:int -> (issue, string) Result.t Lwt.t
 end
 
 module type Slack = sig

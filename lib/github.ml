@@ -87,7 +87,10 @@ let parse_exn ~secret headers body =
   | "member" | "create" | "delete" | "release" -> Event (event_notification_of_string body)
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
-type gh_link = Commit of repository * commit_hash
+type gh_link =
+  | Pull_request of repository * int
+  | Issue of repository * int
+  | Commit of repository * commit_hash
 
 (** `gh_link_of_string s` parses a URL string `s` to try to match a supported
     GitHub link type, generating repository endpoints if necessary *)
@@ -100,7 +103,7 @@ let gh_link_of_string url_str =
   let custom_api_base ?(scheme = "https") base owner name =
     sprintf "%s://%s/api/v3/repos/%s/%s" scheme base owner name
   in
-  let re = Re.Str.regexp {|^\(.*\)/\(.+\)/\(.+\)/\(commit\)/\([a-z0-9]+\)/?$|} in
+  let re = Re.Str.regexp {|^\(.*\)/\(.+\)/\(.+\)/\(commit\|pull\|issues\)/\([a-z0-9]+\)/?$|} in
   match Uri.host url with
   | None -> None
   | Some host ->
@@ -124,11 +127,15 @@ let gh_link_of_string url_str =
         url = html_base;
         commits_url = sprintf "%s/commits{/sha}" api_base;
         contents_url = sprintf "%s/contents/{+path}" api_base;
+        pulls_url = sprintf "%s/pulls{/number}" api_base;
+        issues_url = sprintf "%s/issues{/number}" api_base;
       }
     in
     begin
       try
         match link_type with
+        | "pull" -> Some (Pull_request (repo, Int.of_string item))
+        | "issues" -> Some (Issue (repo, Int.of_string item))
         | "commit" -> Some (Commit (repo, item))
         | _ -> None
       with _ -> None

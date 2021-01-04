@@ -11,6 +11,8 @@ let mk_repo ?(scheme = "https") prefix prefix_api : repository =
     url = sprintf "%s://%s/ahrefs/monorepo" scheme prefix;
     commits_url = sprintf "%s://%s/repos/ahrefs/monorepo/commits{/sha}" scheme prefix_api;
     contents_url = sprintf "%s://%s/repos/ahrefs/monorepo/contents/{+path}" scheme prefix_api;
+    pulls_url = sprintf "%s://%s/repos/ahrefs/monorepo/pulls{/number}" scheme prefix_api;
+    issues_url = sprintf "%s://%s/repos/ahrefs/monorepo/issues{/number}" scheme prefix_api;
   }
 
 let enterprise_repo1 = mk_repo "example.org" "example.org/api/v3"
@@ -20,6 +22,28 @@ let enterprise_repo2 = mk_repo "example.org/path/to/git" "example.org/path/to/gi
 let enterprise_repo_insecure = mk_repo ~scheme:"http" "example.org" "example.org/api/v3"
 
 let github_repo = mk_repo "github.com" "api.github.com"
+
+let pr_cases prefix repo =
+  [
+    sprintf "https://%s/ahrefs/monorepo/pull/100" prefix, Some (Pull_request (repo, 100));
+    sprintf "https://%s/ahrefs/monorepo/pull/2" prefix, Some (Pull_request (repo, 2));
+    sprintf "https://%s/ahrefs/monorepo/pull/100/" prefix, Some (Pull_request (repo, 100));
+    sprintf "https://%s/ahrefs/monorepo/pull/100?arg1=123" prefix, Some (Pull_request (repo, 100));
+    sprintf "https://%s/ahrefs/monorepo/pull/abc" prefix, None;
+    sprintf "https://%s/ahrefs/monorepo/pull/" prefix, None;
+    sprintf "https://%s/ahrefs/monorepo/pull" prefix, None;
+  ]
+
+let issue_cases prefix repo =
+  [
+    sprintf "https://%s/ahrefs/monorepo/issues/100" prefix, Some (Issue (repo, 100));
+    sprintf "https://%s/ahrefs/monorepo/issues/2" prefix, Some (Issue (repo, 2));
+    sprintf "https://%s/ahrefs/monorepo/issues/100/" prefix, Some (Issue (repo, 100));
+    sprintf "https://%s/ahrefs/monorepo/issues/100?arg1=123" prefix, Some (Issue (repo, 100));
+    sprintf "https://%s/ahrefs/monorepo/issues/abc" prefix, None;
+    sprintf "https://%s/ahrefs/monorepo/issues/" prefix, None;
+    sprintf "https://%s/ahrefs/monorepo/issues" prefix, None;
+  ]
 
 let commit_cases prefix repo =
   [
@@ -40,9 +64,17 @@ let other_cases =
 let cases =
   List.concat
     [
+      pr_cases "github.com" github_repo;
+      issue_cases "github.com" github_repo;
       commit_cases "github.com" github_repo;
+      pr_cases "www.github.com" github_repo;
+      issue_cases "www.github.com" github_repo;
       commit_cases "www.github.com" github_repo;
+      pr_cases "example.org" enterprise_repo1;
+      issue_cases "example.org" enterprise_repo1;
       commit_cases "example.org" enterprise_repo1;
+      pr_cases "example.org/path/to/git" enterprise_repo2;
+      issue_cases "example.org/path/to/git" enterprise_repo2;
       commit_cases "example.org/path/to/git" enterprise_repo2;
       other_cases;
     ]
