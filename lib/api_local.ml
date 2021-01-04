@@ -22,9 +22,7 @@ end
 
 module Slack : Api.Slack = struct
   let send_notification ~chan ~msg ~url:_ =
-    let json =
-      msg |> Slack_j.string_of_webhook_notification |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string
-    in
+    let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
     Stdio.printf "will notify #%s\n" chan;
     Stdio.printf "%s\n" json;
     Lwt.return @@ Ok ()
@@ -46,7 +44,7 @@ module Slack_json : Api.Slack = struct
   let log = Log.from "slack"
 
   let send_notification ~chan ~msg ~url:_ =
-    let json = Slack_j.string_of_webhook_notification msg in
+    let json = Slack_j.string_of_post_message_req msg in
     log#info "will notify %s" chan;
     let url = Uri.of_string "https://api.slack.com/docs/messages/builder" in
     let url = Uri.add_query_param url ("msg", [ json ]) in

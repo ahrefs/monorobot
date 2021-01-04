@@ -51,7 +51,7 @@ module Slack : Api.Slack = struct
   let log = Log.from "slack"
 
   let send_notification ~chan ~msg ~url =
-    let data = Slack_j.string_of_webhook_notification msg in
+    let data = Slack_j.string_of_post_message_req msg in
     let body = `Raw ("application/json", data) in
     log#info "sending to %s : %s" chan data;
     match%lwt http_request ~body `POST url with

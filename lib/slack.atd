@@ -1,9 +1,9 @@
-type webhook_notification_field = {
+type message_field = {
   ?title: string nullable;
   value: string;
 }
 
-type webhook_notification_attachment = {
+type message_attachment = {
   fallback: string nullable;
   ?mrkdwn_in: string list nullable;
   ?color: string nullable;
@@ -14,18 +14,18 @@ type webhook_notification_attachment = {
   ?title: string nullable;
   ?title_link: string nullable;
   ?text: string nullable;
-  ?fields: webhook_notification_field list nullable;
+  ?fields: message_field list nullable;
   ?image_url: string nullable;
   ?thumb_url: string nullable;
   ?ts: int nullable;
   ?footer: string nullable;
 }
 
-type notification_section_block_type = [
+type message_section_block_type = [
   Section <json name="section">
 ] <ocaml repr="classic">
 
-type notification_divider_block_type = [
+type message_divider_block_type = [
   Divider <json name="divider">
 ] <ocaml repr="classic">
 
@@ -39,22 +39,22 @@ type text_object = {
   text: string;
 }
 
-type webhook_notification_text_block = {
-  notification_type <json name="type"> : notification_section_block_type;
+type message_text_block = {
+  message_type <json name="type"> : message_section_block_type;
   text: text_object;
 }
 
-type webhook_notification_divider_block = {
-  notification_type <json name="type"> : notification_divider_block_type;
+type message_divider_block = {
+  message_type <json name="type"> : message_divider_block_type;
 }
 
-type webhook_notification_block = [
-  Text of webhook_notification_text_block
-  | Divider of webhook_notification_divider_block
+type message_block = [
+  Text of message_text_block
+  | Divider of message_divider_block
 ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
-type webhook_notification = {
+type post_message_req = {
   ?text: string nullable;
-  ?attachments: webhook_notification_attachment list nullable;
-  ?blocks: webhook_notification_block list nullable;
+  ?attachments: message_attachment list nullable;
+  ?blocks: message_block list nullable;
 }
