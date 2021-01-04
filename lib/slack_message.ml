@@ -48,7 +48,6 @@ let pp_github_team (team : github_team) = gh_name_of_string team.slug
 
 let populate_pull_request repository (pull_request : pull_request) =
   let ({
-         body;
          title;
          number;
          html_url;
@@ -92,11 +91,10 @@ let populate_pull_request repository (pull_request : pull_request) =
     title = Some (get_title ());
     title_link = Some html_url;
     fallback = Some (sprintf "[%s] %s" repository.full_name title);
-    text = Some (Mrkdwn.mrkdwn_of_markdown body);
   }
 
 let populate_issue repository (issue : issue) =
-  let ({ body; title; number; html_url; user; assignees; comments; labels; state; _ } : issue) = issue in
+  let ({ title; number; html_url; user; assignees; comments; labels; state; _ } : issue) = issue in
   let fields =
     [
       "Assignees", List.map assignees ~f:pp_github_user;
@@ -118,7 +116,6 @@ let populate_issue repository (issue : issue) =
     title = Some (get_title ());
     title_link = Some html_url;
     fallback = Some (sprintf "[%s] %s" repository.full_name title);
-    text = Some (Mrkdwn.mrkdwn_of_markdown body);
   }
 
 let populate_commit repository (commit : api_commit) =
