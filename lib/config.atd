@@ -49,6 +49,8 @@ type gh_repo_secrets = {
 type secrets = {
   (* repo-specific secrets; overrides global values if defined for a given repo *)
   ~repos <ocaml default="Common.StringMap.empty"> : gh_repo_secrets map_as_object;
+  (* whitelist of repository URLs to handle notifications for *)
+  ~allowed_repos <ocaml default="[]"> : string list;
   (* GitHub personal access token, if repo access requires it *)
   ?gh_token : string nullable;
   (* GitHub webhook token to secure the webhook *)
