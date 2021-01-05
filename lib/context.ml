@@ -4,14 +4,14 @@ open Devkit
 
 exception Context_error of string
 
-let context_error msg = raise (Context_error msg)
+let context_error fmt = Printf.ksprintf (fun msg -> raise (Context_error msg)) fmt
 
 type t = {
   config_filename : string;
   secrets_filepath : string;
   state_filepath : string option;
   mutable secrets : Config_t.secrets option;
-  mutable config : Config_t.config option;
+  config : Config_t.config Table.t;
   state : State_t.state;
 }
 
@@ -21,7 +21,7 @@ let default : t =
     secrets_filepath = "secrets.json";
     state_filepath = None;
     secrets = None;
-    config = None;
+    config = Table.empty ();
     state = State.empty;
   }
 
@@ -35,10 +35,14 @@ let get_secrets_exn ctx =
   | None -> context_error "secrets is uninitialized"
   | Some secrets -> secrets
 
-let get_config_exn ctx =
-  match ctx.config with
-  | None -> context_error "config is uninitialized"
+let find_repo_config ctx repo_url = Hashtbl.find ctx.config repo_url
+
+let find_repo_config_exn ctx repo_url =
+  match find_repo_config ctx repo_url with
+  | None -> context_error "config uninitialized for repo %s" repo_url
   | Some config -> config
+
+let set_repo_config ctx repo_url config = Hashtbl.set ctx.config ~key:repo_url ~data:config
 
 let hook_of_channel ctx channel_name =
   let secrets = get_secrets_exn ctx in
@@ -46,11 +50,12 @@ let hook_of_channel ctx channel_name =
   | Some hook -> Some hook.url
   | None -> None
 
-(** `is_pipeline_allowed ctx p` returns `true` if ctx.config.status_rules
-    doesn't define a whitelist of allowed pipelines, or if the list
+(** `is_pipeline_allowed s r p` returns `true` if
+    `status_rules` doesn't define a whitelist of allowed
+    pipelines in the config of repo `r`, or if the list
     contains pipeline `p`; returns `false` otherwise. *)
-let is_pipeline_allowed ctx ~pipeline =
-  match ctx.config with
+let is_pipeline_allowed ctx repo_url ~pipeline =
+  match find_repo_config ctx repo_url with
   | None -> false
   | Some config ->
   match config.status_rules.allowed_pipelines with
@@ -58,7 +63,8 @@ let is_pipeline_allowed ctx ~pipeline =
   | _ -> true
 
 let refresh_pipeline_status ctx ~pipeline ~(branches : Github_t.branch list) ~status =
-  if is_pipeline_allowed ctx ~pipeline then State.refresh_pipeline_status ctx.state ~pipeline ~branches ~status else ()
+  if is_pipeline_allowed ctx "" ~pipeline then State.refresh_pipeline_status ctx.state ~pipeline ~branches ~status
+  else ()
 
 let log = Log.from "context"
 
@@ -90,8 +96,8 @@ let refresh_state ctx =
     end
     else Ok ctx
 
-let print_config ctx =
-  let cfg = get_config_exn ctx in
+let print_config ctx repo_url =
+  let cfg = find_repo_config_exn ctx repo_url in
   let secrets = get_secrets_exn ctx in
   log#info "using prefix routing:";
   Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules;

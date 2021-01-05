@@ -87,7 +87,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     if List.is_empty matched_channel_names then default else matched_channel_names
 
   let partition_status (ctx : Context.t) (n : status_notification) =
-    let cfg = Context.get_config_exn ctx in
+    let repo = n.repository in
+    let cfg = Context.find_repo_config_exn ctx repo.url in
     let pipeline = n.context in
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
@@ -111,7 +112,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         | Ok commit -> Lwt.return @@ partition_commit cfg commit.files
         )
     in
-    if Context.is_pipeline_allowed ctx ~pipeline then begin
+    if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
       match Rule.Status.match_rules ~rules n with
       | Some Ignore | None -> Lwt.return []
       | Some Allow -> action_on_match n.branches
@@ -130,7 +131,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     else Lwt.return []
 
   let partition_commit_comment (ctx : Context.t) n =
-    let cfg = Context.get_config_exn ctx in
+    let cfg = Context.find_repo_config_exn ctx n.repository.url in
     match n.comment.commit_id with
     | None -> action_error "unable to find commit id for this commit comment event"
     | Some sha ->
@@ -149,7 +150,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       )
 
   let generate_notifications (ctx : Context.t) req =
-    let cfg = Context.get_config_exn ctx in
+    let repo = Github.repo_of_notification req in
+    let cfg = Context.find_repo_config_exn ctx repo.url in
     match req with
     | Github.Push n ->
       partition_push cfg n |> List.map ~f:(fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
@@ -178,20 +180,20 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     in
     Lwt_list.iter_s notify notifications
 
-  (** `refresh_config_of_context ctx n` updates the current context if the configuration
-      hasn't been loaded yet, or if the incoming request `n` is a push
+  (** `refresh_repo_config ctx n` fetches the latest repo config if it's
+      uninitialized, or if the incoming request `n` is a push
       notification containing commits that touched the config file. *)
-  let refresh_config_of_context (ctx : Context.t) notification =
+  let refresh_repo_config (ctx : Context.t) notification =
+    let repo = Github.repo_of_notification notification in
     let fetch_config () =
-      let repo = Github.repo_of_notification notification in
       match%lwt Github_api.get_config ~ctx ~repo with
       | Ok config ->
-        ctx.config <- Some config;
-        Context.print_config ctx;
+        Context.set_repo_config ctx repo.url config;
+        Context.print_config ctx repo.url;
         Lwt.return @@ Ok ()
       | Error e -> action_error e
     in
-    match ctx.config with
+    match Context.find_repo_config ctx repo.url with
     | None -> fetch_config ()
     | Some _ ->
     match notification with
@@ -208,7 +210,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       match Github.parse_exn ~secret:secrets.gh_hook_token headers body with
       | exception exn -> Exn_lwt.fail ~exn "failed to parse payload"
       | payload ->
-        ( match%lwt refresh_config_of_context ctx payload with
+        ( match%lwt refresh_repo_config ctx payload with
         | Error e -> action_error e
         | Ok () ->
           let%lwt notifications = generate_notifications ctx payload in
