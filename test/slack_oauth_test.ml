@@ -3,8 +3,6 @@ open Printf
 open Lib
 module Action = Action.Action (Api_local.Github) (Api_local.Slack)
 
-let log = Devkit.Log.from "oauth_test"
-
 let arg_code = "code", "1591663521684.1613458437648.4a18cf683e541ff9d8fd75075181cac49c7acae9431d7e4ffd424ce1ca8d2543"
 
 let arg_state = "state", "foo"
