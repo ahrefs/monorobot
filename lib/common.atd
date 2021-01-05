@@ -1,3 +1,7 @@
 type 'v map_as_object =
   (string * 'v) list <json repr="object">
     wrap <ocaml module="Common.StringMap" t="'v Common.StringMap.t">
+
+type 'v table_as_object =
+  (string * 'v) list <json repr="object">
+    wrap <ocaml module="Common.Table" t="'v Common.Table.t">

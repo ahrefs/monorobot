@@ -15,6 +15,20 @@ module StringMap = struct
   let unwrap = to_list
 end
 
+module Table = struct
+  type 'a t = (string, 'a) Hashtbl.t
+
+  let empty () = Hashtbl.create (module String)
+
+  let to_list (l : 'a t) : (string * 'a) list = Hashtbl.to_alist l
+
+  let of_list (m : (string * 'a) list) : 'a t = Hashtbl.of_alist_exn (module String) m
+
+  let wrap = of_list
+
+  let unwrap = to_list
+end
+
 let fmt_error fmt = Printf.ksprintf (fun s -> Error s) fmt
 
 let first_line s =
