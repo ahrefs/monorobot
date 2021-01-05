@@ -403,7 +403,8 @@ will notify #a1-bot
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
-      "text": "PR review comment example",
+      "text":
+        "PR review comment example with &lt;escaped &amp; characters&gt;",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
     }
@@ -419,7 +420,8 @@ will notify #backend
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
-      "text": "PR review comment example",
+      "text":
+        "PR review comment example with &lt;escaped &amp; characters&gt;",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
     }
