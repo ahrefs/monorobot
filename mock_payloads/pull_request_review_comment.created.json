@@ -31,7 +31,7 @@
       "type": "User",
       "site_admin": false
     },
-    "body": "PR review comment example",
+    "body": "PR review comment example with <escaped & characters>",
     "created_at": "2020-05-25T07:37:52Z",
     "updated_at": "2020-05-25T07:38:26Z",
     "html_url": "https://github.com/xinyuluo/pr_test/pull/4#discussion_r429778584",
