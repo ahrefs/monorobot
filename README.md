@@ -50,7 +50,7 @@ You can configure Monorobot to [unfurl GitHub links](https://api.slack.com/refer
 
 ### Documentation
 
-The bot expects two configuration files to be present.
+Add a configuration file to each repository you want to support, and a secrets file on the bot server itself. Read on for instructions to set up each file:
 
 * [Repository configuration](./documentation/config_docs.md)
 * [Secrets](./documentation/secret_docs.md)
