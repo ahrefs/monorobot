@@ -1,11 +1,18 @@
 open Base
 open Lib
+open Common
 
 let log = Devkit.Log.from "test"
+
+let () = Devkit.Log.set_loglevels "error"
 
 let mock_payload_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_payloads"
 
 let mock_state_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_states"
+
+let mock_secrets_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_secrets"
+
+let mock_config_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_config"
 
 module Action_local = Action.Action (Api_local.Github) (Api_local.Slack)
 
@@ -16,56 +23,44 @@ let get_mock_payloads () =
   |> List.filter_map ~f:(fun fn -> Github.event_of_filename fn |> Option.map ~f:(fun kind -> kind, fn))
   |> List.map ~f:(fun (kind, fn) ->
        let payload_path = Caml.Filename.concat mock_payload_dir fn in
-       let state_path = Caml.Filename.concat mock_state_dir fn in
-       if Caml.Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None)
+       let state_filepath =
+         let path = Caml.Filename.concat mock_state_dir fn in
+         if Caml.Sys.file_exists path then Some path else None
+       in
+       let secrets_filepath =
+         let path = Caml.Filename.concat mock_secrets_dir fn in
+         if Caml.Sys.file_exists path then Some path else None
+       in
+       let config_filename =
+         let path = Caml.Filename.concat mock_config_dir fn in
+         if Caml.Sys.file_exists path then Some fn else None
+       in
+       kind, payload_path, state_filepath, secrets_filepath, config_filename)
 
-let process ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =
-  let headers = [ "x-github-event", kind ] in
-  let make_test_context event =
-    let repo = Github.repo_of_notification @@ Github.parse_exn headers event in
-    let ctx = Context.make () in
-    ctx.secrets <- Some secrets;
-    ignore (State.find_or_add_repo ctx.state repo.url);
-    match state_path with
-    | None ->
-      Context.set_repo_config ctx repo.url config;
-      Lwt.return ctx
-    | Some state_path ->
-    match Common.get_local_file state_path with
-    | Error e ->
-      log#error "failed to read %s: %s" state_path e;
-      Lwt.return ctx
-    | Ok file ->
-      let repo_state = State_j.repo_state_of_string file in
-      Hashtbl.set ctx.state.repos ~key:repo.url ~data:repo_state;
-      Context.set_repo_config ctx repo.url config;
-      Lwt.return ctx
+let process (kind, path, state_filepath, secrets_filepath, config_filename) =
+  let make_test_context () =
+    let secrets_filepath =
+      Option.value ~default:(Caml.Filename.concat mock_secrets_dir Context.default_secrets_filepath) secrets_filepath
+    in
+    let ctx = Context.make ?config_filename ~secrets_filepath ?state_filepath () in
+    match Context.refresh_state ctx with
+    | Error e -> fmt_error "failed to read state: %s" e
+    | Ok ctx ->
+    match Context.refresh_secrets ctx with
+    | Error e -> fmt_error "failed to read secrets: %s" e
+    | Ok ctx -> Ok ctx
   in
   Stdio.printf "===== file %s =====\n" path;
   let headers = [ "x-github-event", kind ] in
-  match Common.get_local_file path with
+  match get_local_file path with
   | Error e -> Lwt.return @@ log#error "failed to read %s: %s" path e
   | Ok event ->
-    let%lwt ctx = make_test_context event in
+  match make_test_context () with
+  | Error e -> Lwt.return @@ log#error "%s" e
+  | Ok ctx ->
     let%lwt _ctx = Action_local.process_github_notification ctx headers event in
     Lwt.return_unit
 
 let () =
   let payloads = get_mock_payloads () in
-  let repo : Github_t.repository =
-    { name = ""; full_name = ""; url = ""; commits_url = ""; contents_url = ""; pulls_url = ""; issues_url = "" }
-  in
-  let ctx = Context.make ~state_filepath:"state.json" () in
-  Lwt_main.run
-    ( match%lwt Api_local.Github.get_config ~ctx ~repo with
-    | Error e ->
-      log#error "%s" e;
-      Lwt.return_unit
-    | Ok config ->
-    match Context.refresh_secrets ctx with
-    | Ok ctx -> Lwt_list.iter_s (process ~secrets:(Option.value_exn ctx.secrets) ~config) payloads
-    | Error e ->
-      log#error "failed to read secrets:";
-      log#error "%s" e;
-      Lwt.return_unit
-    )
+  Lwt_main.run (Lwt_list.iter_s process payloads)

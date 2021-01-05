@@ -7,8 +7,10 @@ let cwd = Caml.Sys.getcwd ()
 let cache_dir = Caml.Filename.concat cwd "github-api-cache"
 
 module Github : Api.Github = struct
+  let mock_config_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_config"
+
   let get_config ~(ctx : Context.t) ~repo:_ =
-    let url = Caml.Filename.concat cwd ctx.config_filename in
+    let url = Caml.Filename.concat mock_config_dir ctx.config_filename in
     match get_local_file url with
     | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get config %s" e url
     | Ok file -> Lwt.return @@ Ok (Config_j.config_of_string file)
