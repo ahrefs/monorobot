@@ -34,6 +34,14 @@ let show_labels = function
 
 let pluralize name num suffix = if num = 1 then sprintf "%s" name else String.concat [ name; suffix ]
 
+let escape = Mrkdwn.escape_mrkdwn
+
+let pp_link url text = sprintf "<%s|%s>" url (escape text)
+
+let pp_repo (repo : repository) = sprintf "[%s]" repo.full_name
+
+let pp_repo_mrkdwn (repo : repository) = pp_link repo.url @@ pp_repo repo
+
 let generate_pull_request_notification notification channel =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; _ } : pull_request) = pull_request in
@@ -50,11 +58,11 @@ let generate_pull_request_notification notification channel =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title
-         action sender.login)
+      (sprintf "%s Pull request #%d %s %s by *%s*" (pp_repo_mrkdwn repository) number (pp_link html_url title) action
+         sender.login)
   in
   let fallback =
-    Some (sprintf "[%s] Pull request #%d %s %s by %s" repository.full_name number title action sender.login)
+    Some (sprintf "%s Pull request #%d %s %s by %s" (pp_repo repository) number title action sender.login)
   in
   {
     channel;
@@ -93,10 +101,10 @@ let generate_pr_review_notification notification channel =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> *%s* <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login review.html_url
-         action_str number html_url title)
+      (sprintf "%s *%s* %s #%d %s" (pp_repo_mrkdwn repository) sender.login (pp_link review.html_url action_str) number
+         (pp_link html_url title))
   in
-  let fallback = Some (sprintf "[%s] %s %s #%d %s" repository.full_name sender.login action_str number title) in
+  let fallback = Some (sprintf "%s %s %s #%d %s" (pp_repo repository) sender.login action_str number title) in
   {
     channel;
     text = None;
@@ -128,14 +136,14 @@ let generate_pr_review_comment_notification notification channel =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> *%s* %s on #%d <%s|%s>" repository.url repository.full_name sender.login action_str number
-         html_url title)
+      (sprintf "%s *%s* %s on #%d %s" (pp_repo_mrkdwn repository) sender.login action_str number
+         (pp_link html_url title))
   in
-  let fallback = Some (sprintf "[%s] %s %s on #%d %s" repository.full_name sender.login action_str number title) in
+  let fallback = Some (sprintf "%s %s %s on #%d %s" (pp_repo repository) sender.login action_str number title) in
   let file =
     match comment.path with
     | None -> None
-    | Some a -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url a)
+    | Some a -> Some (sprintf "New comment by %s in %s" sender.login (pp_link comment.html_url a))
   in
   {
     channel;
@@ -172,10 +180,10 @@ let generate_issue_notification notification channel =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title action
+      (sprintf "%s Issue #%d %s %s by *%s*" (pp_repo_mrkdwn repository) number (pp_link html_url title) action
          sender.login)
   in
-  let fallback = Some (sprintf "[%s] Issue #%d %s %s by %s" repository.full_name number title action sender.login) in
+  let fallback = Some (sprintf "%s Issue #%d %s %s by %s" (pp_repo repository) number title action sender.login) in
   {
     channel;
     text = None;
@@ -208,10 +216,10 @@ let generate_issue_comment_notification notification channel =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> *%s* <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login comment.html_url
-         action_str number issue.html_url title)
+      (sprintf "%s *%s* %s on #%d %s" (pp_repo_mrkdwn repository) sender.login (pp_link comment.html_url action_str)
+         number (pp_link issue.html_url title))
   in
-  let fallback = Some (sprintf "[%s] %s %s on #%d %s" repository.full_name sender.login action_str number title) in
+  let fallback = Some (sprintf "%s %s %s on #%d %s" (pp_repo repository) sender.login action_str number title) in
   {
     channel;
     text = None;
@@ -236,36 +244,24 @@ let generate_push_notification notification channel =
   let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in
   let commits_branch = Github.commits_branch_of_ref notification.ref in
   let tree_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode commits_branch ] in
+  let repo_branch = sprintf "[%s:%s]" repository.name commits_branch in
+  let num_commits = sprintf "%d %s" (List.length commits) (pluralize "commit" (List.length commits) "s") in
+  let action = if forced then "force-pushed" else "pushed" in
+  let dest = if created then "to new branch " else "" in
   let title =
     if deleted then
-      sprintf "<%s|[%s]> %s deleted branch <%s|%s>" tree_url repository.name sender.login compare commits_branch
+      sprintf "%s %s deleted branch %s" (pp_link tree_url repository.name) sender.login (pp_link compare commits_branch)
     else
-      sprintf "<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby %s" tree_url repository.name commits_branch compare
-        (List.length commits)
-        ( match commits with
-        | [ _ ] -> ""
-        | _ -> "s"
-        )
-        (if forced then "force-" else "")
-        (if created then "to new branch " else "")
-        sender.login
+      sprintf "%s %s %s %sby %s" (pp_link tree_url repo_branch) (pp_link compare num_commits) action dest sender.login
   in
   let fallback =
-    if deleted then sprintf "[%s] %s deleted branch %s" repository.name sender.login commits_branch
-    else
-      sprintf "[%s:%s] %i commit%s %spushed %sby %s" repository.name commits_branch (List.length commits)
-        ( match commits with
-        | [ _ ] -> ""
-        | _ -> "s"
-        )
-        (if forced then "force-" else "")
-        (if created then "to new branch " else "")
-        sender.login
+    if deleted then sprintf "%s %s deleted branch %s" (pp_repo repository) sender.login commits_branch
+    else sprintf "%s %s %s %sby %s" repo_branch num_commits action dest sender.login
   in
   let commits =
     List.map commits ~f:(fun { url; id; message; author; _ } ->
-      let title = first_line message in
-      sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name)
+      let title = escape @@ first_line message in
+      sprintf "`%s` %s - %s" (pp_link url (git_short_sha_hash id)) title author.name)
   in
   {
     channel;
@@ -310,7 +306,12 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
     | Some s -> Some (sprintf "*Description*: %s." s)
   in
   let commit_info =
-    [ sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message) author.login ]
+    [
+      sprintf "*Commit*: `%s` %s - %s"
+        (pp_link html_url (git_short_sha_hash sha))
+        (escape @@ first_line message)
+        author.login;
+    ]
   in
   let branches_info =
     match List.map ~f:(fun { name } -> name) notification.branches with
@@ -326,21 +327,12 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       [ sprintf "*%s*: %s" (pluralize "Branch" (List.length branches) "es") (String.concat ~sep:", " branches) ]
   in
   let summary =
-    match target_url with
-    | None ->
-      Some (sprintf "<%s|[%s]> CI Build Status notification: %s" repository.url repository.full_name state_info)
-      (* in case the CI run is not using buildkite *)
-    | Some t ->
-      Some
-        (sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name t context
-           state_info)
+    let target = Option.value_map target_url ~default:"" ~f:(fun url -> sprintf " for %s" (pp_link url context)) in
+    Some (sprintf "%s CI Build Status notification%s: %s" (pp_repo_mrkdwn repository) target state_info)
   in
   let fallback =
-    match target_url with
-    | None ->
-      Some (sprintf "[%s] CI Build Status notification: %s" repository.full_name state_info)
-      (* in case the CI run is not using buildkite *)
-    | Some _ -> Some (sprintf "[%s] CI Build Status notification for %s: %s" repository.full_name context state_info)
+    let target = Option.value_map target_url ~default:"" ~f:(fun _ -> sprintf " for %s" context) in
+    Some (sprintf "%s CI Build Status notification%s: %s" (pp_repo repository) target state_info)
   in
   let msg = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] in
   let attachment =
@@ -366,18 +358,19 @@ let generate_commit_comment_notification api_commit notification channel =
   in
   let summary =
     Some
-      (sprintf "<%s|[%s]> *%s* commented on `<%s|%s>` %s" repository.url repository.full_name sender.login
-         comment.html_url (git_short_sha_hash commit_id) (first_line commit.message))
+      (sprintf "%s *%s* commented on `%s` %s" (pp_repo_mrkdwn repository) sender.login
+         (pp_link comment.html_url (git_short_sha_hash commit_id))
+         (escape @@ first_line commit.message))
   in
   let fallback =
     Some
-      (sprintf "[%s] %s commented on `%s` %s" repository.full_name sender.login (git_short_sha_hash commit_id)
+      (sprintf "%s %s commented on `%s` %s" (pp_repo repository) sender.login (git_short_sha_hash commit_id)
          (first_line commit.message))
   in
   let path =
     match comment.path with
     | None -> None
-    | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
+    | Some p -> Some (sprintf "New comment by %s in %s" sender.login (pp_link comment.html_url p))
   in
   let attachment =
     {
