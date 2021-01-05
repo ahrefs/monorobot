@@ -53,6 +53,9 @@ let generate_pull_request_notification notification channel =
       (sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title
          action sender.login)
   in
+  let fallback =
+    Some (sprintf "[%s] Pull request #%d %s %s by %s" repository.full_name number title action sender.login)
+  in
   {
     channel;
     text = None;
@@ -62,7 +65,7 @@ let generate_pull_request_notification notification channel =
           {
             empty_attachments with
             mrkdwn_in = Some [ "text" ];
-            fallback = summary;
+            fallback;
             color = Some "#ccc";
             pretext = summary;
             text = mrkdwn_of_markdown_opt body;
@@ -93,6 +96,7 @@ let generate_pr_review_notification notification channel =
       (sprintf "<%s|[%s]> *%s* <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login review.html_url
          action_str number html_url title)
   in
+  let fallback = Some (sprintf "[%s] %s %s #%d %s" repository.full_name sender.login action_str number title) in
   {
     channel;
     text = None;
@@ -102,7 +106,7 @@ let generate_pr_review_notification notification channel =
           {
             empty_attachments with
             mrkdwn_in = Some [ "text" ];
-            fallback = summary;
+            fallback;
             color = Some "#ccc";
             pretext = summary;
             text = mrkdwn_of_markdown_opt review.body;
@@ -127,6 +131,7 @@ let generate_pr_review_comment_notification notification channel =
       (sprintf "<%s|[%s]> *%s* %s on #%d <%s|%s>" repository.url repository.full_name sender.login action_str number
          html_url title)
   in
+  let fallback = Some (sprintf "[%s] %s %s on #%d %s" repository.full_name sender.login action_str number title) in
   let file =
     match comment.path with
     | None -> None
@@ -141,7 +146,7 @@ let generate_pr_review_comment_notification notification channel =
           {
             empty_attachments with
             mrkdwn_in = Some [ "text" ];
-            fallback = summary;
+            fallback;
             color = Some "#ccc";
             pretext = summary;
             footer = file;
@@ -170,6 +175,7 @@ let generate_issue_notification notification channel =
       (sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title action
          sender.login)
   in
+  let fallback = Some (sprintf "[%s] Issue #%d %s %s by %s" repository.full_name number title action sender.login) in
   {
     channel;
     text = None;
@@ -179,7 +185,7 @@ let generate_issue_notification notification channel =
           {
             empty_attachments with
             mrkdwn_in = Some [ "text" ];
-            fallback = summary;
+            fallback;
             color = Some "#ccc";
             pretext = summary;
             text = mrkdwn_of_markdown_opt body;
@@ -205,6 +211,7 @@ let generate_issue_comment_notification notification channel =
       (sprintf "<%s|[%s]> *%s* <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login comment.html_url
          action_str number issue.html_url title)
   in
+  let fallback = Some (sprintf "[%s] %s %s on #%d %s" repository.full_name sender.login action_str number title) in
   {
     channel;
     text = None;
@@ -214,7 +221,7 @@ let generate_issue_comment_notification notification channel =
           {
             empty_attachments with
             mrkdwn_in = Some [ "text" ];
-            fallback = summary;
+            fallback;
             color = Some "#ccc";
             pretext = summary;
             text = Some (mrkdwn_of_markdown comment.body);
@@ -243,6 +250,18 @@ let generate_push_notification notification channel =
         (if created then "to new branch " else "")
         sender.login
   in
+  let fallback =
+    if deleted then sprintf "[%s] %s deleted branch %s" repository.name sender.login commits_branch
+    else
+      sprintf "[%s:%s] %i commit%s %spushed %sby %s" repository.name commits_branch (List.length commits)
+        ( match commits with
+        | [ _ ] -> ""
+        | _ -> "s"
+        )
+        (if forced then "force-" else "")
+        (if created then "to new branch " else "")
+        sender.login
+  in
   let commits =
     List.map commits ~f:(fun { url; id; message; author; _ } ->
       let title = first_line message in
@@ -250,14 +269,15 @@ let generate_push_notification notification channel =
   in
   {
     channel;
-    text = Some title;
+    text = None;
     attachments =
       Some
         [
           {
             empty_attachments with
             mrkdwn_in = Some [ "fields" ];
-            fallback = Some "Commit pushed notification";
+            pretext = Some title;
+            fallback = Some fallback;
             color = Some "#ccc";
             fields = Some [ { value = String.concat ~sep:"\n" commits; title = None; short = false } ];
           };
@@ -315,12 +335,19 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         (sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name t context
            state_info)
   in
+  let fallback =
+    match target_url with
+    | None ->
+      Some (sprintf "[%s] CI Build Status notification: %s" repository.full_name state_info)
+      (* in case the CI run is not using buildkite *)
+    | Some _ -> Some (sprintf "[%s] CI Build Status notification for %s: %s" repository.full_name context state_info)
+  in
   let msg = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] in
   let attachment =
     {
       empty_attachments with
       mrkdwn_in = Some [ "fields"; "text" ];
-      fallback = summary;
+      fallback;
       pretext = summary;
       color = Some color_info;
       text = description_info;
@@ -342,6 +369,11 @@ let generate_commit_comment_notification api_commit notification channel =
       (sprintf "<%s|[%s]> *%s* commented on `<%s|%s>` %s" repository.url repository.full_name sender.login
          comment.html_url (git_short_sha_hash commit_id) (first_line commit.message))
   in
+  let fallback =
+    Some
+      (sprintf "[%s] %s commented on `%s` %s" repository.full_name sender.login (git_short_sha_hash commit_id)
+         (first_line commit.message))
+  in
   let path =
     match comment.path with
     | None -> None
@@ -351,7 +383,7 @@ let generate_commit_comment_notification api_commit notification channel =
     {
       empty_attachments with
       mrkdwn_in = Some [ "pretext"; "text" ];
-      fallback = summary;
+      fallback;
       color = Some "#ccc";
       pretext = summary;
       footer = path;
