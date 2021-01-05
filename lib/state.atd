@@ -1,5 +1,6 @@
 type status_state <ocaml from="Github"> = abstract
 type 'v map_as_object <ocaml from="Common"> = abstract
+type 'v table_as_object <ocaml from="Common"> = abstract
 
 (* A map from branch names to build statuses *)
 type branch_statuses = status_state map_as_object
@@ -9,7 +10,12 @@ type branch_statuses = status_state map_as_object
    branch *)
 type pipeline_statuses = branch_statuses map_as_object
 
+(* The runtime state of a given GitHub repository *)
+type repo_state = {
+  pipeline_statuses <ocaml mutable>: pipeline_statuses
+}
+
 (* The serializable runtime state of the bot *)
 type state = {
-  pipeline_statuses <ocaml mutable>: pipeline_statuses
+  ~repos <ocaml default="Common.Table.empty ()"> : repo_state table_as_object
 }

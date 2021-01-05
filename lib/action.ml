@@ -94,7 +94,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let rules = cfg.status_rules.rules in
     let action_on_match (branches : branch list) =
       let default = Option.to_list cfg.prefix_rules.default_channel in
-      let () = Context.refresh_pipeline_status ~pipeline ~branches ~status:current_status ctx in
+      State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status;
       match List.is_empty branches with
       | true -> Lwt.return []
       | false ->
@@ -113,11 +113,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         )
     in
     if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
+      let repo_state = State.find_or_add_repo ctx.state repo.url in
       match Rule.Status.match_rules ~rules n with
       | Some Ignore | None -> Lwt.return []
       | Some Allow -> action_on_match n.branches
       | Some Allow_once ->
-      match Map.find ctx.state.pipeline_statuses pipeline with
+      match Map.find repo_state.pipeline_statuses pipeline with
       | Some branch_statuses ->
         let has_same_status_state_as_prev (branch : branch) =
           match Map.find branch_statuses branch.name with
