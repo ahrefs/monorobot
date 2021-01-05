@@ -19,24 +19,34 @@ let get_mock_payloads () =
        let state_path = Caml.Filename.concat mock_state_dir fn in
        if Caml.Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None)
 
-let process ~(ctx : Context.t) (kind, path, state_path) =
-  let%lwt ctx =
+let process ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =
+  let headers = [ "x-github-event", kind ] in
+  let make_test_context event =
+    let repo = Github.repo_of_notification @@ Github.parse_exn headers event in
+    let ctx = Context.make () in
+    ctx.secrets <- Some secrets;
+    ignore (State.find_or_add_repo ctx.state repo.url);
     match state_path with
-    | None -> Lwt.return ctx
+    | None ->
+      Context.set_repo_config ctx repo.url config;
+      Lwt.return ctx
     | Some state_path ->
     match Common.get_local_file state_path with
     | Error e ->
       log#error "failed to read %s: %s" state_path e;
       Lwt.return ctx
     | Ok file ->
-      let state = State_j.state_of_string file in
-      Lwt.return { ctx with state }
+      let repo_state = State_j.repo_state_of_string file in
+      Hashtbl.set ctx.state.repos ~key:repo.url ~data:repo_state;
+      Context.set_repo_config ctx repo.url config;
+      Lwt.return ctx
   in
   Stdio.printf "===== file %s =====\n" path;
   let headers = [ "x-github-event", kind ] in
   match Common.get_local_file path with
   | Error e -> Lwt.return @@ log#error "failed to read %s: %s" path e
   | Ok event ->
+    let%lwt ctx = make_test_context event in
     let%lwt _ctx = Action_local.process_github_notification ctx headers event in
     Lwt.return_unit
 
@@ -52,12 +62,10 @@ let () =
       log#error "%s" e;
       Lwt.return_unit
     | Ok config ->
-      let ctx = { ctx with config = Some config } in
-      ( match Context.refresh_secrets ctx with
-      | Ok ctx -> Lwt_list.iter_s (process ~ctx) payloads
-      | Error e ->
-        log#error "failed to read secrets:";
-        log#error "%s" e;
-        Lwt.return_unit
-      )
+    match Context.refresh_secrets ctx with
+    | Ok ctx -> Lwt_list.iter_s (process ~secrets:(Option.value_exn ctx.secrets) ~config) payloads
+    | Error e ->
+      log#error "failed to read secrets:";
+      log#error "%s" e;
+      Lwt.return_unit
     )
