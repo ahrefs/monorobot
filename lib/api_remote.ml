@@ -77,9 +77,12 @@ module Slack : Api.Slack = struct
     let build_query_error url e = build_error @@ sprintf "error while querying %s: %s" url e in
     let secrets = Context.get_secrets_exn ctx in
     let headers, url, webhook_mode =
+      match Context.hook_of_channel ctx msg.channel with
+      | Some url -> [], Some url, true
+      | None ->
       match secrets.slack_access_token with
       | Some access_token -> [ bearer_token_header access_token ], Some "https://slack.com/api/chat.postMessage", false
-      | None -> [], Context.hook_of_channel ctx msg.channel, true
+      | None -> [], None, false
     in
     match url with
     | None -> Lwt.return @@ build_error @@ sprintf "no token or webhook configured to notify channel %s" msg.channel
