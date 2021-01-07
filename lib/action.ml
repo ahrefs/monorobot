@@ -89,11 +89,30 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let partition_status (ctx : Context.t) (n : status_notification) =
     let cfg = Context.get_config_exn ctx in
     let pipeline = n.context in
-    let current_status = n.state in
     let rules = cfg.status_rules.rules in
-    let action_on_match (branches : branch list) =
+    let get_build_step_statuses () =
+      let target_url_path = Uri.of_string (Option.value ~default:"" n.target_url) |> Uri.path in
+      match%lwt Github_api.get_api_statuses ~ctx ~repo:n.repository ~sha:n.commit.sha with
+      | Error e -> action_error e
+      | Ok statuses ->
+        statuses
+        (* only include statuses associated with same build as `n` (in case rebuild is triggered for same commit) *)
+        |> List.filter ~f:(fun s ->
+             String.equal (Option.value ~default:"" s.target_url |> Uri.of_string |> Uri.path) target_url_path)
+        (* sort by most recent; string comparisons are sufficient for ISO timestamps *)
+        |> List.sort ~compare:(fun s1 s2 -> String.compare s2.created_at s1.created_at)
+        (* map from build step name to status object *)
+        |> List.map ~f:(fun s -> s.context, s)
+        |> Map.of_alist_multi (module String)
+        (* only use the most recent build step status *)
+        |> Map.map ~f:List.hd_exn
+        |> Map.to_alist
+        |> List.map ~f:snd
+        |> Lwt.return
+    in
+    let action_on_match (branches : branch list) statuses =
       let default = Option.to_list cfg.prefix_rules.default_channel in
-      let () = Context.refresh_pipeline_status ~pipeline ~branches ~status:current_status ctx in
+      Context.refresh_pipeline_status ctx ~pipeline ~branches ~statuses;
       match List.is_empty branches with
       | true -> Lwt.return []
       | false ->
@@ -114,18 +133,26 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     if Context.is_pipeline_allowed ctx ~pipeline then begin
       match Rule.Status.match_rules ~rules n with
       | Some Ignore | None -> Lwt.return []
-      | Some Allow -> action_on_match n.branches
+      | Some Allow ->
+        let%lwt statuses = get_build_step_statuses () in
+        action_on_match n.branches statuses
       | Some Allow_once ->
-      match Map.find ctx.state.pipeline_statuses pipeline with
-      | Some branch_statuses ->
-        let has_same_status_state_as_prev (branch : branch) =
-          match Map.find branch_statuses branch.name with
-          | None -> false
-          | Some state -> Poly.equal state current_status
+        let%lwt statuses = get_build_step_statuses () in
+        let status_state_of_branch_changed (branch : branch) status =
+          match Map.find ctx.state.pipeline_statuses status.context with
+          | Some branch_statuses ->
+            begin
+              match Map.find branch_statuses branch.name with
+              | None -> true
+              | Some state -> not @@ Poly.equal state status.state
+            end
+          | None -> true
         in
-        let branches = List.filter n.branches ~f:(Fn.non @@ has_same_status_state_as_prev) in
-        action_on_match branches
-      | None -> action_on_match n.branches
+        let at_least_one_status_state_changed branch =
+          List.exists statuses ~f:(status_state_of_branch_changed branch)
+        in
+        let branches = List.filter n.branches ~f:at_least_one_status_state_changed in
+        action_on_match branches statuses
     end
     else Lwt.return []
 

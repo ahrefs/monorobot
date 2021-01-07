@@ -237,6 +237,22 @@ type status_notification = {
   updated_at: string;
 }
 
+type api_status = {
+  url: string;
+  avatar_url: string;
+  id: int;
+  node_id: string;
+  state: status_state;
+  ?description: string nullable;
+  ?target_url: string nullable;
+  context: string;
+  created_at: string;
+  updated_at: string;
+  creator: github_user;
+}
+
+type api_statuses = api_status list
+
 type file = {
   sha: commit_hash;
   filename: string;

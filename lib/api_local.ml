@@ -19,6 +19,13 @@ module Github : Api.Github = struct
     | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get api commit %s" e url
     | Ok file -> Lwt.return @@ Ok (Github_j.api_commit_of_string file)
 
+  let get_api_statuses ~ctx:_ ~repo:_ ~sha =
+    let url = Caml.Filename.concat cache_dir @@ Printf.sprintf "%s-statuses" sha in
+    match get_local_file url with
+    | Error e ->
+      Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get api statuses for commit %s" e url
+    | Ok file -> Lwt.return @@ Ok (Github_j.api_statuses_of_string file)
+
   let get_pull_request ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error "undefined for local setup"
 
   let get_issue ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error "undefined for local setup"
