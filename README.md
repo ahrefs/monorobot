@@ -36,13 +36,15 @@ Run the `_build/default/src/monorobot.exe` binary. The following commands are su
     1. [Create a Slack app](https://api.slack.com/apps?new_app=1).
     2. Click "Install to Workspace", and when prompted to grant permissions to your workspace, click "Allow".
     3. Set up notifications with one of the following methods:
-        - **Web API (recommended):** To use Slack's [Web API](https://api.slack.com/web), click on "OAuth & Permissions" in your app dashboard's sidebar. Give your bot a *Bot Token Scope* of `chat:write`. Copy the generated OAuth access token (`xoxb-XXXX`) to the `slack_access_token` field of your secrets file. This token is used by the bot to authenticate to the workspace, and remains valid until the token is revoked or the app is uninstalled.
+        - **Web API (recommended):** To use Slack's [Web API](https://api.slack.com/web), click on "OAuth & Permissions" in your app dashboard's sidebar. Give your bot a *Bot Token Scope* of [`chat:write`](https://api.slack.com/scopes/chat:write) (for per-channel authorization) or [`chat:write.public`](https://api.slack.com/scopes/chat:write.public) (for authorization to all channels). Copy the generated OAuth access token (`xoxb-XXXX`) to the `slack_access_token` field of your secrets file. This token is used by the bot to authenticate to the workspace, and remains valid until the token is revoked or the app is uninstalled. If you use the `chat:write` scope, add the bot to each channel you want to notify.
         - **Incoming Webhooks:** To use [incoming webhooks](https://api.slack.com/messaging/webhooks), enable them in your app dashboard and create one for each channel you want to notify. Store them in the `slack_hooks` field of your secrets file. If you decide to notify additional channels later, you will need to update the secrets file with the new webhooks and restart the server.
 
 
 ### Link Unfurling
 
 You can configure Monorobot to [unfurl GitHub links](https://api.slack.com/reference/messaging/link-unfurling) in Slack messages. Currently, commit, pull request, and issue links are supported.
+
+Note: The `slack_access_token` must be configured in your secrets file for link unfurling. See previous section for details.
 
 1. Give your app `links:read` and `links:write` [permissions](https://api.slack.com/apps).
 1. Configure your app to [support the Events API](https://api.slack.com/events-api#prepare). During the [url verification handshake](https://api.slack.com/events-api#the-events-api__subscribing-to-event-types__events-api-request-urls__request-url-configuration--verification__url-verification-handshake), you should tell Slack to direct event notifications to `<server_domain>/slack/events`. Ensure the server is running before triggering the handshake.
