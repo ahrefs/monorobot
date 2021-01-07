@@ -21,7 +21,7 @@ A secrets file stores sensitive information. Unlike the repository configuration
 | `slack_hooks` | list of channel names and their corresponding webhook endpoint | Yes | try to use token defined in `slack_access_token` instead |
 | `slack_signing_secret` | specify to verify incoming slack requests | Yes | - |
 
-Note that either `slack_access_token` or `slack_hooks` must be defined.
+Note that either `slack_access_token` or `slack_hooks` must be defined. If both are present, the bot will send notifications using webhooks.
 
 ## `gh_token`
 
@@ -33,11 +33,16 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 
 ## `slack_access_token`
 
+Required for:
+- Notification sending via Web API
+- Link unfurling
+
 Refer [here](https://api.slack.com/authentication/oauth-v2) for obtaining an access token via OAuth.
 
 ## `slack_hooks`
 
-*Note: If `slack_access_token` is also defined, the bot will authenticate over Slack's Web API and this option will not be used.*
+Required for:
+- Notification sending via webhooks
 
 Expected format:
 
