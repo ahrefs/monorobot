@@ -5,7 +5,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://git.ahrefs.com/ahrefs/notabot_test|[ahrefs/notabot_test]> *xinyuluo* commented on `<https://git.ahrefs.com/ahrefs/notabot_test/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-4444|0d95302a>` Update README.md",
+        "[ahrefs/notabot_test] xinyuluo commented on `0d95302a` Update README.md",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
@@ -23,7 +23,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39726328|cd5b85af>` add new line at EOF",
+        "[xinyuluo/pr_test] xinyuluo commented on `cd5b85af` add new line at EOF",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
@@ -39,7 +39,7 @@ will notify #aa
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on `<https://github.com/xinyuluo/pr_test/commit/1edcdf5e45a8b7ed01c247b981d8f42d426a7794#commitcomment-40398096|1edcdf5e>` Add files via upload",
+        "[xinyuluo/pr_test] xinyuluo commented on `1edcdf5e` Add files via upload",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
@@ -54,7 +54,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on `<https://github.com/xinyuluo/pr_test/commit/1edcdf5e45a8b7ed01c247b981d8f42d426a7794#commitcomment-40398096|1edcdf5e>` Add files via upload",
+        "[xinyuluo/pr_test] xinyuluo commented on `1edcdf5e` Add files via upload",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
@@ -70,7 +70,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39729580|cd5b85af>` add new line at EOF",
+        "[xinyuluo/pr_test] xinyuluo commented on `cd5b85af` add new line at EOF",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
@@ -89,7 +89,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39729580|cd5b85af>` add new line at EOF",
+        "[xinyuluo/pr_test] xinyuluo commented on `cd5b85af` add new line at EOF",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
@@ -108,7 +108,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on `<https://github.com/xinyuluo/pr_test/commit/41dad1d3d41f329f00836f166a7103a262e69889#commitcomment-39743628|41dad1d3>` make changes in 2 files",
+        "[xinyuluo/pr_test] xinyuluo commented on `41dad1d3` make changes in 2 files",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
@@ -124,7 +124,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on `<https://github.com/xinyuluo/pr_test/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-39726325|cd5b85af>` add new line at EOF",
+        "[xinyuluo/pr_test] xinyuluo commented on `cd5b85af` add new line at EOF",
       "mrkdwn_in": [ "pretext", "text" ],
       "color": "#ccc",
       "pretext":
@@ -142,7 +142,7 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* <https://github.com/xinyuluo/pr_test/issues/5#issuecomment-633347088|commented> on #5 <https://github.com/xinyuluo/pr_test/issues/5|handle issue event>",
+        "[xinyuluo/pr_test] xinyuluo commented on #5 handle issue event",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -157,8 +157,7 @@ will notify #aa-git
   "channel": "aa-git",
   "attachments": [
     {
-      "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* <https://github.com/xinyuluo/pr_test/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/pr_test/pull/4|README update>",
+      "fallback": "[xinyuluo/pr_test] xinyuluo commented on #4 README update",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -172,8 +171,7 @@ will notify #backend
   "channel": "backend",
   "attachments": [
     {
-      "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* <https://github.com/xinyuluo/pr_test/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/pr_test/pull/4|README update>",
+      "fallback": "[xinyuluo/pr_test] xinyuluo commented on #4 README update",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -190,7 +188,7 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "<https://git.ahrefs.com/ahrefs/frontend|[ahrefs/frontend]> *raman* <https://git.ahrefs.com/ahrefs/frontend/pull/6168#issuecomment-17123|commented> on #6168 <https://git.ahrefs.com/ahrefs/frontend/pull/6168|[ADMIN] Search results by IP (Blocked IP Info UI)>",
+        "[ahrefs/frontend] raman commented on #6168 [ADMIN] Search results by IP (Blocked IP Info UI)",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -208,7 +206,7 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Issue #6 <https://github.com/xinyuluo/pr_test/issues/6|create a test for issue_notification> closed by *xinyuluo*",
+        "[xinyuluo/pr_test] Issue #6 create a test for issue_notification closed by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -223,7 +221,7 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Issue #6 <https://github.com/xinyuluo/pr_test/issues/6|create a test for issue_notification> labeled by *xinyuluo*",
+        "[xinyuluo/pr_test] Issue #6 create a test for issue_notification labeled by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -239,7 +237,7 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Issue #6 <https://github.com/xinyuluo/pr_test/issues/6|create a test for issue_notification> opened by *xinyuluo*",
+        "[xinyuluo/pr_test] Issue #6 create a test for issue_notification opened by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -256,7 +254,7 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Issue #6 <https://github.com/xinyuluo/pr_test/issues/6|create a test for issue_notification> reopened by *xinyuluo*",
+        "[xinyuluo/pr_test] Issue #6 create a test for issue_notification reopened by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -271,7 +269,7 @@ will notify #aa-git
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Pull request #8 <https://github.com/xinyuluo/pr_test/pull/8|Update README.md> closed by *xinyuluo*",
+        "[xinyuluo/pr_test] Pull request #8 Update README.md closed by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -286,7 +284,7 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Pull request #2 <https://github.com/xinyuluo/pr_test/pull/2|Update README.md> closed by *xinyuluo*",
+        "[xinyuluo/pr_test] Pull request #2 Update README.md closed by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -301,7 +299,7 @@ will notify #aa-git
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|README update> labeled by *xinyuluo*",
+        "[xinyuluo/pr_test] Pull request #4 README update labeled by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -316,7 +314,7 @@ will notify #backend
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Pull request #4 <https://github.com/xinyuluo/pr_test/pull/4|README update> labeled by *xinyuluo*",
+        "[xinyuluo/pr_test] Pull request #4 README update labeled by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -332,7 +330,7 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> Pull request #3 <https://github.com/xinyuluo/pr_test/pull/3|Update README.md> opened by *xinyuluo*",
+        "[xinyuluo/pr_test] Pull request #3 Update README.md opened by xinyuluo",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -349,7 +347,7 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://git.ahrefs.com/louis/test-notabot|[louis/test-notabot]> *louis* <https://git.ahrefs.com/louis/test-notabot/pull/6#pullrequestreview-22450|approved> #6 <https://git.ahrefs.com/louis/test-notabot/pull/6|create pr_review_test.md>",
+        "[louis/test-notabot] louis approved #6 create pr_review_test.md",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -365,7 +363,7 @@ will notify #frontend-bot
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* <https://github.com/xinyuluo/pr_test/pull/3#pullrequestreview-419921693|commented on> #3 <https://github.com/xinyuluo/pr_test/pull/3|Update README.md>",
+        "[xinyuluo/pr_test] xinyuluo commented on #3 Update README.md",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -383,7 +381,7 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://git.ahrefs.com/louis/test-notabot|[louis/test-notabot]> *louis* <https://git.ahrefs.com/louis/test-notabot/pull/6#pullrequestreview-22451|requested changes on> #6 <https://git.ahrefs.com/louis/test-notabot/pull/6|create pr_review_test.md>",
+        "[louis/test-notabot] louis requested changes on #6 create pr_review_test.md",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
@@ -400,13 +398,13 @@ will notify #aa-git
   "channel": "aa-git",
   "attachments": [
     {
-      "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/pr_test/pull/4|README update>",
+      "fallback": "[xinyuluo/pr_test] xinyuluo commented on #4 README update",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/pr_test/pull/4|README update>",
-      "text": "PR review comment example",
+      "text":
+        "PR review comment example with &lt;escaped &amp; characters&gt;",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/pr_test/pull/4#discussion_r429778584|README.md>"
     }
@@ -417,13 +415,13 @@ will notify #backend
   "channel": "backend",
   "attachments": [
     {
-      "fallback":
-        "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/pr_test/pull/4|README update>",
+      "fallback": "[xinyuluo/pr_test] xinyuluo commented on #4 README update",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
         "<https://github.com/xinyuluo/pr_test|[xinyuluo/pr_test]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/pr_test/pull/4|README update>",
-      "text": "PR review comment example",
+      "text":
+        "PR review comment example with &lt;escaped &amp; characters&gt;",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/pr_test/pull/4#discussion_r429778584|README.md>"
     }
@@ -435,13 +433,14 @@ will notify #backend
 will notify #all-push-events
 {
   "channel": "all-push-events",
-  "text":
-    "<https://github.com/thatportugueseguy/webhooks-test/tree/master|[webhooks-test:master]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
   "attachments": [
     {
-      "fallback": "Commit pushed notification",
+      "fallback":
+        "[webhooks-test:master] 2 commits pushed by thatportugueseguy",
       "mrkdwn_in": [ "fields" ],
       "color": "#ccc",
+      "pretext":
+        "<https://github.com/thatportugueseguy/webhooks-test/tree/master|[webhooks-test:master]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
       "fields": [
         {
           "value":
@@ -455,13 +454,14 @@ will notify #all-push-events
 will notify #all-push-events
 {
   "channel": "all-push-events",
-  "text":
-    "<https://github.com/thatportugueseguy/webhooks-test/tree/master|[webhooks-test:master]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
   "attachments": [
     {
-      "fallback": "Commit pushed notification",
+      "fallback":
+        "[webhooks-test:master] 2 commits pushed by thatportugueseguy",
       "mrkdwn_in": [ "fields" ],
       "color": "#ccc",
+      "pretext":
+        "<https://github.com/thatportugueseguy/webhooks-test/tree/master|[webhooks-test:master]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
       "fields": [
         {
           "value":
@@ -474,13 +474,14 @@ will notify #all-push-events
 will notify #longest-aa
 {
   "channel": "longest-aa",
-  "text":
-    "<https://github.com/thatportugueseguy/webhooks-test/tree/master|[webhooks-test:master]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|1 commit> pushed by thatportugueseguy",
   "attachments": [
     {
-      "fallback": "Commit pushed notification",
+      "fallback":
+        "[webhooks-test:master] 1 commit pushed by thatportugueseguy",
       "mrkdwn_in": [ "fields" ],
       "color": "#ccc",
+      "pretext":
+        "<https://github.com/thatportugueseguy/webhooks-test/tree/master|[webhooks-test:master]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|1 commit> pushed by thatportugueseguy",
       "fields": [
         {
           "value":
@@ -498,7 +499,7 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://git.ahrefs.com/ahrefs/notabot_test|[ahrefs/notabot_test]> CI Build Status notification for <https://buildkite.com/ahrefs/notabot-test/builds/2|buildkite/notabot-test>: failure",
+        "[ahrefs/notabot_test] CI Build Status notification for buildkite/notabot-test: failure",
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
       "pretext":
@@ -524,7 +525,7 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://github.com/Codertocat/Hello-World|[Codertocat/Hello-World]> CI Build Status notification: success",
+        "[Codertocat/Hello-World] CI Build Status notification: success",
       "mrkdwn_in": [ "fields", "text" ],
       "color": "good",
       "pretext":
@@ -545,7 +546,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback":
-        "<https://git.ahrefs.com/ahrefs/notabot_test|[ahrefs/notabot_test]> CI Build Status notification for <https://buildkite.com/ahrefs/notabot-test/builds/2|buildkite/notabot-test>: success",
+        "[ahrefs/notabot_test] CI Build Status notification for buildkite/notabot-test: success",
       "mrkdwn_in": [ "fields", "text" ],
       "color": "good",
       "pretext":
@@ -567,7 +568,7 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://git.ahrefs.com/ahrefs/notabot_test|[ahrefs/notabot_test]> CI Build Status notification for <https://buildkite.com/ahrefs/notabot-test/builds/2|buildkite/notabot-test>: success",
+        "[ahrefs/notabot_test] CI Build Status notification for buildkite/notabot-test: success",
       "mrkdwn_in": [ "fields", "text" ],
       "color": "good",
       "pretext":
