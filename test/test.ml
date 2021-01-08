@@ -20,6 +20,7 @@ let get_mock_payloads () =
        if Caml.Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None)
 
 let process ~(ctx : Context.t) (kind, path, state_path) =
+  ctx.state.pipeline_statuses <- Common.StringMap.empty;
   let%lwt ctx =
     match state_path with
     | None -> Lwt.return ctx

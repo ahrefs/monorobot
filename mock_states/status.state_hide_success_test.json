@@ -6,6 +6,12 @@
     },
     "buildkite/pipeline2": {
       "master": "success"
+    },
+    "buildkite/pipeline2/build-infra": {
+      "master": "success"
+    },
+    "buildkite/pipeline2/setup": {
+      "master": "success"
     }
   }
 }
