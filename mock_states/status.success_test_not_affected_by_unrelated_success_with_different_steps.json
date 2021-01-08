@@ -1,0 +1,17 @@
+
+{
+  "pipeline_statuses": {
+    "buildkite/pipeline2": {
+      "develop": "success"
+    },
+    "buildkite/pipeline2/build-infra": {
+      "develop": "failure"
+    },
+    "buildkite/pipeline2/setup": {
+      "develop": "success"
+    },
+    "buildkite/pipeline2/build": {
+      "develop": "success"
+    }
+  }
+}
