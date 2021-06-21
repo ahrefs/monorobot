@@ -34,10 +34,10 @@ module Github : Api.Github = struct
           try
             response.content |> String.split_lines |> String.concat |> decode_string_pad |> Config_j.config_of_string
             |> fun res -> Lwt.return @@ Ok res
-          with Base64.Invalid_char as exn ->
+          with exn ->
             let e = Exn.to_string exn in
             Lwt.return
-            @@ fmt_error "error while decoding base64 in GitHub response: %s\nfailed to get config from file %s" e url
+            @@ fmt_error "error while reading config from GitHub response: %s\nfailed to get config from file %s" e url
         end
       | encoding ->
         Lwt.return

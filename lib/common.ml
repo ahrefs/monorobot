@@ -23,7 +23,7 @@ let first_line s =
   | [] -> s
 
 let decode_string_pad s =
-  String.rstrip ~drop:(List.mem [ '='; ' '; '\n'; '\r'; '\t' ] ~equal:Char.equal) s |> Base64.decode_string
+  String.rstrip ~drop:(List.mem [ '='; ' '; '\n'; '\r'; '\t' ] ~equal:Char.equal) s |> Base64.decode_exn ~pad:false
 
 let http_request ?headers ?body meth path =
   match%lwt Web.http_request_lwt ~ua:"monorobot" ~verbose:true ?headers ?body meth path with
