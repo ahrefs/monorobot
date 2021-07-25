@@ -217,21 +217,6 @@ will notify #backend
   ]
 }
 ===== file ../mock_payloads/issues.labeled.json =====
-will notify #backend
-{
-  "channel": "backend",
-  "attachments": [
-    {
-      "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> labeled by *xinyuluo*",
-      "mrkdwn_in": [ "text" ],
-      "color": "#ccc",
-      "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> labeled by *xinyuluo*",
-      "text": "Labels: backend"
-    }
-  ]
-}
 ===== file ../mock_payloads/issues.opened.json =====
 will notify #default
 {
@@ -295,36 +280,6 @@ will notify #default
   ]
 }
 ===== file ../mock_payloads/pull_request.labeled_two_labels.json =====
-will notify #a1-bot
-{
-  "channel": "a1-bot",
-  "attachments": [
-    {
-      "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
-      "mrkdwn_in": [ "text" ],
-      "color": "#ccc",
-      "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
-      "text": "Labels: a1, backend"
-    }
-  ]
-}
-will notify #backend
-{
-  "channel": "backend",
-  "attachments": [
-    {
-      "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
-      "mrkdwn_in": [ "text" ],
-      "color": "#ccc",
-      "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
-      "text": "Labels: a1, backend"
-    }
-  ]
-}
 ===== file ../mock_payloads/pull_request.opened_one_label.json =====
 will notify #frontend-bot
 {

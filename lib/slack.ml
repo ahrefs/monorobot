@@ -36,13 +36,12 @@ let pluralize name num suffix = if num = 1 then sprintf "%s" name else String.co
 
 let generate_pull_request_notification notification channel =
   let { action; number; sender; pull_request; repository } = notification in
-  let ({ body; title; html_url; labels; _ } : pull_request) = pull_request in
+  let ({ body; title; html_url; _ } : pull_request) = pull_request in
   let action, body =
     match action with
     | Opened -> "opened", Some body
     | Closed -> "closed", None
     | Reopened -> "reopened", None
-    | Labeled -> "labeled", show_labels labels
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
@@ -153,13 +152,12 @@ let generate_pr_review_comment_notification notification channel =
 
 let generate_issue_notification notification channel =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
-  let { number; body; title; html_url; labels; _ } = issue in
+  let { number; body; title; html_url; _ } = issue in
   let action, body =
     match action with
     | Opened -> "opened", Some body
     | Closed -> "closed", None
     | Reopened -> "reopened", None
-    | Labeled -> "labeled", show_labels labels
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
