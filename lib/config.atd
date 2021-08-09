@@ -45,7 +45,7 @@ type secrets = {
   ?gh_hook_token : string nullable;
   (* list of Slack webhook & channel name pairs *)
   ~slack_hooks <ocaml default="[]"> : webhook list;
-  (* Slack bot token obtained via OAuth, enabling message posting to the workspace *)
+  (* Slack bot token (`xoxb-XXXX`), giving the bot capabilities to interact with the workspace *)
   ?slack_access_token : string nullable;
  (* Slack uses this secret to sign requests; provide to verify incoming Slack requests *)
   ?slack_signing_secret : string nullable;

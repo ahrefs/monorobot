@@ -37,7 +37,13 @@ Required for:
 - Notification sending via Web API
 - Link unfurling
 
-Refer [here](https://api.slack.com/authentication/oauth-v2) for obtaining an access token via OAuth.
+You can obtain a bot token from the "OAuth & Permissions" in your app dashboard's sidebar. Note that you need a *bot* token (`xoxb-XXXX`), not a *user* token (`xoxp-XXXX`).
+See [here](https://api.slack.com/authentication/basics#start) for creating/installing an app and requesting scopes.
+
+Give it the following scopes:
+- For notifications - [`chat:write`](https://api.slack.com/scopes/chat:write) (per-channel authorization) or [`chat:write.public`](https://api.slack.com/scopes/chat:write.public) (authorization to all channels)
+    - Note: If you use the `chat:write` scope, add the bot to each channel you want to notify.
+- For link unfurling - [`links:read`](https://api.slack.com/scopes/links:read) and [`links:write`](https://api.slack.com/scopes/links:write) (also see **Link Unfurling** in main README)
 
 ## `slack_hooks`
 
