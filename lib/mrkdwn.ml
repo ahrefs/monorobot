@@ -16,6 +16,11 @@ let unescape_omd =
 
 let transform_text = escape_mrkdwn
 
+let transform_code s =
+  (** Omd.to_markdown escapes Text elements but not Code elements, so we do the same for
+      Code elements so that unescape_omd can be applied uniformly to the whole string later *)
+  String.substr_replace_all ~pattern:"\\" ~with_:"\\\\" @@ escape_mrkdwn s
+
 let rec transform_list = List.map ~f:transform
 
 and transform_flatten = List.map ~f:transform_list
@@ -43,9 +48,10 @@ and transform = function
   | Html_block _ as e -> Code_block ("", to_markdown [ e ])
   | Blockquote t -> Blockquote (transform_list t)
   | Img (alt, src, title) -> transform @@ Url (src, [ Text alt ], title)
-  | Code_block (_, str) -> Code_block ("", str)
+  | Code_block (_, str) -> Code_block ("", transform_code str)
+  | Code (_, str) -> Code ("", transform_code str)
   | Text s -> Text (transform_text s)
-  | (Code _ | Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
+  | (Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
 
 (* unescaping here is a workaround of to_markdown escaping parentheses in text (bug?) *)
 let mrkdwn_of_markdown str = unescape_omd @@ to_markdown @@ transform_list @@ of_string str
