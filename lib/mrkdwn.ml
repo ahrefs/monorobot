@@ -11,25 +11,25 @@ let escape_mrkdwn =
     | '&' -> "&amp;"
     | c -> String.make 1 c)
 
-(** Unescape markdown characters escaped by Omd.to_markdown
-    
-    Omd behaves this way because "any ASCII punctuation character may
-    be backslash-escaped"
+(** Unescape markdown characters escaped because "any ASCII punctuation
+    character may be backslash-escaped"
     https://spec.commonmark.org/0.30/#backslash-escapes
-    
+
     This pertains to '\\', '[', ']', '(', ')', '`', '*' unconditionally,
     and '.', '-', '+', '!', '<', '>', '#' depending on chars before/after.
     Argument escapeworthy_map can be left blank because escaped chars are
     unescaped to themselves. *)
-let unescape_omd =
-  Staged.unstage @@ String.Escaping.unescape_gen_exn ~escapeworthy_map:[] ~escape_char:'\\'
+let unescape_omd = Staged.unstage @@ String.Escaping.unescape_gen_exn ~escapeworthy_map:[] ~escape_char:'\\'
+
+(** Escape the `escape_char` '\\' for use with `unescape_omd` later *)
+let escape_omd = Staged.unstage @@ String.Escaping.escape_gen_exn ~escapeworthy_map:[] ~escape_char:'\\'
 
 let transform_text = escape_mrkdwn
 
-let transform_code s =
-  (** Omd.to_markdown escapes Text elements but not Code elements, so we do the same for
-      Code elements so that unescape_omd can be applied uniformly to the whole string later *)
-  String.substr_replace_all ~pattern:"\\" ~with_:"\\\\" @@ escape_mrkdwn s
+(** `Omd.to_markdown` escapes backslash (and other applicable chars) in
+    `Text` elements but not `Code` elements, so do the same for the latter so
+    that `unescape_omd` can apply uniformly to the whole mrkdwn string later *)
+let transform_code s = escape_omd @@ escape_mrkdwn s
 
 let rec transform_list = List.map ~f:transform
 
