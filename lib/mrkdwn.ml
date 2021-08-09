@@ -11,8 +11,18 @@ let escape_mrkdwn =
     | '&' -> "&amp;"
     | c -> String.make 1 c)
 
+(** Unescape markdown characters escaped by Omd.to_markdown
+    
+    Omd behaves this way because "any ASCII punctuation character may
+    be backslash-escaped"
+    https://spec.commonmark.org/0.30/#backslash-escapes
+    
+    This pertains to '\\', '[', ']', '(', ')', '`', '*' unconditionally,
+    and '.', '-', '+', '!', '<', '>', '#' depending on chars before/after.
+    Argument escapeworthy_map can be left blank because escaped chars are
+    unescaped to themselves. *)
 let unescape_omd =
-  Staged.unstage @@ String.Escaping.unescape_gen_exn ~escapeworthy_map:[ '(', '('; ')', ')' ] ~escape_char:'\\'
+  Staged.unstage @@ String.Escaping.unescape_gen_exn ~escapeworthy_map:[] ~escape_char:'\\'
 
 let transform_text = escape_mrkdwn
 
@@ -53,5 +63,4 @@ and transform = function
   | Text s -> Text (transform_text s)
   | (Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
 
-(* unescaping here is a workaround of to_markdown escaping parentheses in text (bug?) *)
 let mrkdwn_of_markdown str = unescape_omd @@ to_markdown @@ transform_list @@ of_string str
