@@ -32,7 +32,7 @@
     "created_at": "2020-06-07T15:11:50Z",
     "updated_at": "2020-06-07T15:11:50Z",
     "author_association": "OWNER",
-    "body": "**bold**, *italic*\n> blockquote\n\n* list-element 1\n* list-element 2\n  * list-element2.1\n  * [list-element2.2](www.google.com)\n\n<div>html block</div>\n```ocaml\nStdio.printf \"hello ocaml\"\n```"
+    "body": "**bold**, *italic*\n> blockquote\n\n* list-element 1\n* list-element 2\n  * list-element2.1\n  * [list-element2.2](www.google.com)\n\n<div>html block</div>\n```ocaml\nStdio.printf \"hello ocaml\"\n```\nescaped chars \\\\\\(\\)\\[\\]\\`\\*\n`keep \\`\n```\nkeep \\\n```"
   },
   "repository": {
     "id": 0,
