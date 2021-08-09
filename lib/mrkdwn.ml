@@ -11,10 +11,25 @@ let escape_mrkdwn =
     | '&' -> "&amp;"
     | c -> String.make 1 c)
 
-let unescape_omd =
-  Staged.unstage @@ String.Escaping.unescape_gen_exn ~escapeworthy_map:[ '(', '('; ')', ')' ] ~escape_char:'\\'
+(** Unescape markdown characters escaped because "any ASCII punctuation
+    character may be backslash-escaped"
+    https://spec.commonmark.org/0.30/#backslash-escapes
+
+    This pertains to '\\', '[', ']', '(', ')', '`', '*' unconditionally,
+    and '.', '-', '+', '!', '<', '>', '#' depending on chars before/after.
+    Argument escapeworthy_map can be left blank because escaped chars are
+    unescaped to themselves. *)
+let unescape_omd = Staged.unstage @@ String.Escaping.unescape_gen_exn ~escapeworthy_map:[] ~escape_char:'\\'
+
+(** Escape the `escape_char` '\\' for use with `unescape_omd` later *)
+let escape_omd = Staged.unstage @@ String.Escaping.escape_gen_exn ~escapeworthy_map:[] ~escape_char:'\\'
 
 let transform_text = escape_mrkdwn
+
+(** `Omd.to_markdown` escapes backslash (and other applicable chars) in
+    `Text` elements but not `Code` elements, so do the same for the latter so
+    that `unescape_omd` can apply uniformly to the whole mrkdwn string later *)
+let transform_code s = escape_omd @@ escape_mrkdwn s
 
 let rec transform_list = List.map ~f:transform
 
@@ -43,9 +58,9 @@ and transform = function
   | Html_block _ as e -> Code_block ("", to_markdown [ e ])
   | Blockquote t -> Blockquote (transform_list t)
   | Img (alt, src, title) -> transform @@ Url (src, [ Text alt ], title)
-  | Code_block (_, str) -> Code_block ("", str)
+  | Code_block (_, str) -> Code_block ("", transform_code str)
+  | Code (_, str) -> Code ("", transform_code str)
   | Text s -> Text (transform_text s)
-  | (Code _ | Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
+  | (Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
 
-(* unescaping here is a workaround of to_markdown escaping parentheses in text (bug?) *)
 let mrkdwn_of_markdown str = unescape_omd @@ to_markdown @@ transform_list @@ of_string str
