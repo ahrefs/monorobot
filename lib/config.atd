@@ -49,4 +49,11 @@ type secrets = {
   ?slack_access_token : string nullable;
  (* Slack uses this secret to sign requests; provide to verify incoming Slack requests *)
   ?slack_signing_secret : string nullable;
+  (* Client ID of the Slack bot; used for OAuth authentication  *)
+  ?slack_client_id : string nullable;
+  (* Client secret of the Slack bot; used for OAuth authentication  *)
+  ?slack_client_secret : string nullable;
+  (* if specified, maintains state b/w OAuth request and callback to prevent CSRF
+    see: https://tools.ietf.org/html/rfc6749#section-4.1.1 *)
+  ?slack_oauth_state : string nullable;
 }

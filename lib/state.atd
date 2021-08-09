@@ -11,5 +11,6 @@ type pipeline_statuses = branch_statuses map_as_object
 
 (* The serializable runtime state of the bot *)
 type state = {
-  pipeline_statuses <ocaml mutable>: pipeline_statuses
+  pipeline_statuses <ocaml mutable>: pipeline_statuses;
+  ?slack_access_token <ocaml mutable>: string nullable;
 }

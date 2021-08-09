@@ -280,4 +280,65 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Ok () ->
     match notification.event with
     | Link_shared event -> process_link_shared_event ctx event
+
+  (**
+
+    If there is a need to distribute the app, automatic OAuth exchange must be enabled.
+
+    The fields `slack_client_id` and `slack_client_secret` must be configured in the
+    secrets file. The `slack_oauth_state` field can be optionally provided to avoid
+    forgery attacks during the OAuth exchange.
+    (see: https://tools.ietf.org/html/rfc6749#section-4.1.1)
+
+    All of these fields are retrievable from the Slack app dashboard.
+
+    Once the server has been configured and launched, it will listen on `/slack/oauth`
+    for incoming OAuth requests from Slack. Each user should then go to the following
+    address, replacing the appropriate values (the `state` argument is only needed
+    if `slack_oauth_state` is set).
+      
+    https://slack.com/oauth/v2/authorize?scope=chat:write&client_id=<slack_client_id>&redirect_uri=<server_domain>/slack/oauth&state=<slack_oauth_state>
+
+    A page should open asking the user permission to install the bot to their
+    workspace. Clicking `allow` will trigger the OAuth exchange.
+
+  *)
+  let process_slack_oauth (ctx : Context.t) args =
+    try%lwt
+      let secrets = Context.get_secrets_exn ctx in
+      match ctx.state.slack_access_token with
+      | Some _ -> Lwt.return "ok"
+      | None ->
+      match Slack.validate_state ?oauth_state:secrets.slack_oauth_state ~args with
+      | Error e -> action_error e
+      | Ok () ->
+      match List.Assoc.find args "code" ~equal:String.equal with
+      | None -> action_error "argument `code` not found in slack authorization request"
+      | Some code ->
+        ( match%lwt Slack_api.access_token_of_code ~ctx ~code with
+        | Error e -> action_error e
+        | Ok access_token ->
+          State.set_slack_access_token ctx.state access_token;
+          ( match ctx.state_filepath with
+          | None -> Lwt.return "ok"
+          | Some path ->
+            ( match%lwt State.save ctx.state path with
+            | Ok () -> Lwt.return "ok"
+            | Error e -> action_error e
+            )
+          )
+        )
+    with
+    | Yojson.Json_error msg ->
+      let e = Printf.sprintf "failed to parse file as valid JSON (%s)\naborting slack oauth exchange" msg in
+      log#error "%s" e;
+      Lwt.return e
+    | Action_error msg ->
+      let e = Printf.sprintf "%s\naborting slack oauth exchange" msg in
+      log#error "%s" e;
+      Lwt.return e
+    | Context.Context_error msg ->
+      let e = Printf.sprintf "%s\naborting slack oauth exchange" msg in
+      log#error "%s" e;
+      Lwt.return e
 end

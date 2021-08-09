@@ -15,17 +15,18 @@ type t = {
   state : State_t.state;
 }
 
-let default : t =
+let default () : t =
   {
     config_filename = "monorobot.json";
     secrets_filepath = "secrets.json";
     state_filepath = None;
     secrets = None;
     config = None;
-    state = State.empty;
+    state = State.empty ();
   }
 
 let make ?config_filename ?secrets_filepath ?state_filepath () =
+  let default = default () in
   let config_filename = Option.value config_filename ~default:default.config_filename in
   let secrets_filepath = Option.value secrets_filepath ~default:default.secrets_filepath in
   { default with config_filename; secrets_filepath; state_filepath }
@@ -86,6 +87,12 @@ let refresh_state ctx =
       | Error e -> fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path
       | Ok file ->
         let state = State_j.state_of_string file in
+        let secrets = get_secrets_exn ctx in
+        begin
+          match secrets.slack_access_token with
+          | None -> ()
+          | Some token -> State.set_slack_access_token ctx.state token
+        end;
         Ok { ctx with state }
     end
     else Ok ctx

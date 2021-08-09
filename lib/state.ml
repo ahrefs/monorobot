@@ -2,7 +2,7 @@ open Base
 open Common
 open Devkit
 
-let empty : State_t.state = { pipeline_statuses = StringMap.empty }
+let empty () : State_t.state = { pipeline_statuses = StringMap.empty; slack_access_token = None }
 
 let refresh_pipeline_status (state : State_t.state) ~pipeline ~(branches : Github_t.branch list) ~status =
   let update_pipeline_status branch_statuses =
@@ -11,6 +11,8 @@ let refresh_pipeline_status (state : State_t.state) ~pipeline ~(branches : Githu
     List.fold_left new_statuses ~init ~f:(fun m (key, data) -> Map.set m ~key ~data)
   in
   state.pipeline_statuses <- Map.update state.pipeline_statuses pipeline ~f:update_pipeline_status
+
+let set_slack_access_token (state : State_t.state) access_token = state.slack_access_token <- Some access_token
 
 let log = Log.from "state"
 

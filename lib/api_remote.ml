@@ -123,4 +123,26 @@ module Slack : Api.Slack = struct
         )
       | Error e -> Lwt.return @@ fmt_error "error while querying %s: %s\nfailed to unfurl Slack links" url e
       )
+
+  let access_token_of_code ~(ctx : Context.t) ~code =
+    let secrets = Context.get_secrets_exn ctx in
+    let body = `Form [ "code", code ] in
+    match secrets.slack_client_id with
+    | None -> Lwt.return @@ Error "slack_client_id is undefined"
+    | Some client_id ->
+    match secrets.slack_client_secret with
+    | None -> Lwt.return @@ Error "slack_client_secret is undefined"
+    | Some client_secret ->
+      let auth_header = Base64.encode_string @@ sprintf "%s:%s" client_id client_secret in
+      let headers = [ Printf.sprintf "Authorization: Basic %s" auth_header ] in
+      ( match%lwt Common.http_request ~body ~headers `POST "https://slack.com/api/oauth.v2.access" with
+      | Error e -> Lwt.return @@ Error e
+      | Ok data ->
+        let response = Slack_j.oauth_access_res_of_string data in
+        ( match response.access_token, response.error with
+        | Some access_token, _ -> Lwt.return @@ Ok access_token
+        | None, Some e -> Lwt.return @@ Error e
+        | None, None -> Lwt.return @@ Error "an unknown error occurred while getting access token"
+        )
+      )
 end

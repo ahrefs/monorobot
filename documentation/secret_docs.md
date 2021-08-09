@@ -20,8 +20,13 @@ A secrets file stores sensitive information. Unlike the repository configuration
 | `slack_access_token` | slack bot access token to enable message posting to the workspace | Yes | try to use webhooks defined in `slack_hooks` instead |
 | `slack_hooks` | list of channel names and their corresponding webhook endpoint | Yes | try to use token defined in `slack_access_token` instead |
 | `slack_signing_secret` | specify to verify incoming slack requests | Yes | - |
+| `slack_client_id` | slack client ID, used for [oauth](https://api.slack.com/authentication/oauth-v2) authentication | Yes | - |
+| `slack_client_secret` | slack client secret, used for [oauth](https://api.slack.com/authentication/oauth-v2) authentication | Yes | - |
+| `slack_oauth_state` | specify some unique value to maintain state b/w oauth request and callback and prevent CSRF (see [RFC6749](https://tools.ietf.org/html/rfc6749#section-4.1.1)) | Yes | - |
 
 Note that either `slack_access_token` or `slack_hooks` must be defined. If both are present, the bot will send notifications using webhooks.
+
+The fields `slack_client_id`, `slack_client_secret`, and `slack_oauth_state` only apply if you need to distribute the app to multiple users.
 
 ## `gh_token`
 
@@ -38,6 +43,8 @@ Required for:
 - Link unfurling
 
 Refer [here](https://api.slack.com/authentication/oauth-v2) for obtaining an access token via OAuth.
+
+If automatic OAuth exchange is set up, the bot will configure this value at runtime.
 
 ## `slack_hooks`
 

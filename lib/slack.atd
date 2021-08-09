@@ -118,3 +118,10 @@ type chat_unfurl_res = {
   ok: bool;
   ?error: string option;
 }
+
+(* expected payload when exchanging oauth code for access token *)
+type oauth_access_res = {
+  ok: bool;
+  ?access_token: string option;
+  ?error: string option;
+}

@@ -16,4 +16,6 @@ module type Slack = sig
   val send_notification : ctx:Context.t -> msg:post_message_req -> (unit, string) Result.t Lwt.t
 
   val send_chat_unfurl : ctx:Context.t -> chat_unfurl_req -> (unit, string) Result.t Lwt.t
+
+  val access_token_of_code : ctx:Context.t -> code:string -> (string, string) Result.t Lwt.t
 end
