@@ -39,6 +39,12 @@ module Status = struct
 end
 
 module Prefix = struct
+  (** Filters prefix rules based on config and current commit. Returns true if
+      `branch_filters` includes the commit branch, or if it's empty but the
+      commit is `distinct`. *)
+  let filter_by_branch ~branch ~distinct rule =
+    (List.is_empty rule.branch_filters && distinct) || List.mem rule.branch_filters branch ~equal:String.equal
+
   (** `match_rules f rs` returns the channel name of a rule in `rs` that matches
       file name `f` with the longest prefix, if one exists. A rule `r` matches
       `f` with prefix length `l`, if `f` has no prefix in `r.ignore` and `l` is

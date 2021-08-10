@@ -15,20 +15,22 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let partition_push (cfg : Config_t.config) n =
     let default = Option.to_list cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in
+    let branch = Github.commits_branch_of_ref n.ref in
     n.commits
-    |> List.filter ~f:(fun c -> c.distinct)
     |> List.filter ~f:(fun c ->
-         let branch = Github.commits_branch_of_ref n.ref in
          let skip = Github.is_main_merge_message ~msg:c.message ~branch cfg in
          if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
          not skip)
     |> List.concat_map ~f:(fun commit ->
+         let rules = List.filter ~f:(Rule.Prefix.filter_by_branch ~branch ~distinct:commit.distinct) rules in
          let matched_channel_names =
            Github.modified_files_of_commit commit
            |> List.filter_map ~f:(Rule.Prefix.match_rules ~rules)
            |> List.dedup_and_sort ~compare:String.compare
          in
-         let channel_names = if List.is_empty matched_channel_names then default else matched_channel_names in
+         let channel_names =
+           if List.is_empty matched_channel_names && commit.distinct then default else matched_channel_names
+         in
          List.map channel_names ~f:(fun n -> n, commit))
     |> Map.of_alist_multi (module String)
     |> Map.map ~f:(fun commits -> { n with commits })
