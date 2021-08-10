@@ -66,6 +66,7 @@ type status_rule = {
 type prefix_rule = {
   ?allow <json name="match"> : string list nullable;
   ?ignore : string list nullable;
+  ~branch_filters <ocaml default="[]"> : string list;
   channel_name <json name="channel"> : string;
 }
 
