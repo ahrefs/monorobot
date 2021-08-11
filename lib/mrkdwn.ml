@@ -69,42 +69,97 @@ and transform = function
 *)
 let mrkdwn_of_md md =
   let b = Buffer.create 128 in
+  let references : ref_container option ref = ref None in
   let rec f tl = function
     | X _ -> loop tl
-    | Blockquote _q -> loop tl
-    | Ref (_rc, _name, _text, _fallback) -> loop tl
-    | Img_ref (_rc, _name, _text, _fallback) -> loop tl
-    | Paragraph _md -> loop tl
-    | Img (_alt, _src, _title) -> loop tl
-    | Text _t -> loop tl
-    | Raw _t -> loop tl
-    | Raw_block _t -> loop tl
-    | Emph _md -> loop tl
-    | Bold _md -> loop tl
-    | Ul _l -> loop tl
-    | Ol _l -> loop tl
-    | Ulp _l -> loop tl
-    | Olp _l -> loop tl
-    | Code_block (_lang, _c) -> loop tl
-    | Code (_lang, _c) -> loop tl
-    | Br -> loop tl
-    | Hr -> loop tl
-    | Html (_tagname, _attrs, _body) -> loop tl
-    | Html_block (_tagname, _attrs, _body) -> loop tl
+    | Blockquote _q -> (* todo *) loop tl
+    | Ref (rc, _name, _text, fallback) | Img_ref (rc, _name, _text, fallback) ->
+      (* [rc] stores refs from whole document, so it's enough to record just the
+         first encounter
+      *)
+      if Option.is_empty !references then references := Some rc;
+      (* [fallback#to_string] renders as
+         [<text>][<name>] for Ref, e.g., [interesting fact][1]
+         and
+         ![<text>][<name>] for Img_ref, e.g., ![image of cat][1]
+      *)
+      loop (Raw fallback#to_string :: tl)
+    | Paragraph _md -> (* todo *) loop tl
+    | Img (alt, src, title) -> loop (Url (src, [ Text alt ], title) :: tl)
+    | Text t ->
+      Buffer.add_string b @@ escape_mrkdwn t;
+      loop tl
+    | Raw s ->
+      Buffer.add_string b s;
+      loop tl
+    | Raw_block s ->
+      Buffer.add_char b '\n';
+      Buffer.add_string b s;
+      Buffer.add_char b '\n';
+      loop tl
+    | Emph md' ->
+      Buffer.add_string b "_";
+      loop md';
+      Buffer.add_string b "_";
+      loop tl
+    | Bold md' ->
+      Buffer.add_string b "*";
+      loop md';
+      Buffer.add_string b "*";
+      loop tl
+    | Ul _l -> (* todo *) loop tl
+    | Ol _l -> (* todo *) loop tl
+    | Ulp _l -> (* todo *) loop tl
+    | Olp _l -> (* todo *) loop tl
+    | Code_block (_lang, _c) -> (* todo *) loop tl
+    | Code (_lang, c) ->
+      Buffer.add_char b '`';
+      Buffer.add_string b (escape_mrkdwn c);
+      Buffer.add_char b '`';
+      loop tl
+    | Hr ->
+      Buffer.add_string b "* * *\n";
+      loop tl
+    | Html (tagname, _attrs, body) ->
+      Printf.bprintf b "`&lt;%s&gt;" tagname;
+      Buffer.add_string b (escape_mrkdwn @@ to_html body);
+      Printf.bprintf b "&lt;/%s&gt;`" tagname;
+      loop tl
+    | Html_block (_tagname, _attrs, _body) -> (* todo *) loop tl
     | Html_comment _s -> loop tl
-    | Url (_href, _s, _title) -> loop tl
-    | H1 _md -> loop tl
-    | H2 _md -> loop tl
-    | H3 _md -> loop tl
-    | H4 _md -> loop tl
-    | H5 _md -> loop tl
-    | H6 _md -> loop tl
-    | NL -> loop tl
+    | Url (href, s, title) ->
+      Buffer.add_char b '<';
+      Buffer.add_string b href;
+      Buffer.add_char b '|';
+      if String.length title > 0 then Printf.bprintf b "%s - " @@ escape_mrkdwn title;
+      loop s;
+      Buffer.add_char b '>';
+      loop tl
+    | H1 md' | H2 md' | H3 md' | H4 md' | H5 md' | H6 md' -> loop (Paragraph (transform_list [ Bold md' ]) :: tl)
+    | NL | Br ->
+      (* the string "\n" renders NL
+         the string "\\n" (backslash-newline) renders Br
+      *)
+      Buffer.add_char b '\n';
+      loop tl
   and loop = function
     | hd :: tl -> f tl hd
     | [] -> ()
   in
+  (* print the document *)
   loop md;
+  (* print any references *)
+  begin
+    match !references with
+    | None -> ()
+    | Some r ->
+      let print_ref (name, (url, title)) =
+        if String.equal title "" then Printf.bprintf b "[%s]: %s \n" name url
+        else Printf.bprintf b "[%s]: %s \"%s\"\n" name url title
+      in
+      Buffer.add_char b '\n';
+      List.iter ~f:print_ref r#get_all
+  end;
   Buffer.contents b
 
 let mrkdwn_of_markdown str = unescape_omd @@ to_markdown @@ transform_list @@ of_string str
