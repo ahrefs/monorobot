@@ -229,12 +229,13 @@ let generate_push_notification notification channel =
   let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in
   let commits_branch = Github.commits_branch_of_ref notification.ref in
   let tree_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode commits_branch ] in
+  let num_commits = List.length commits in
   let title =
     if deleted then
       sprintf "<%s|[%s]> %s deleted branch <%s|%s>" tree_url repository.name sender.login compare commits_branch
     else
       sprintf "<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby %s" tree_url repository.name commits_branch compare
-        (List.length commits)
+        num_commits
         ( match commits with
         | [ _ ] -> ""
         | _ -> "s"
@@ -244,9 +245,16 @@ let generate_push_notification notification channel =
         sender.login
   in
   let commits =
-    List.map commits ~f:(fun { url; id; message; author; _ } ->
+    let pp_commit { url; id; message; author; _ } =
       let title = first_line message in
-      sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name)
+      sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name
+    in
+    (* truncation point depends on line length, but 10 lines seems okay for most cases *)
+    let num_dropped = 10 in
+    let dropped = num_commits - num_dropped in
+    if dropped > 0 then
+      List.rev_map_append (List.drop (List.rev commits) dropped) [ sprintf "+%d more..." dropped ] ~f:pp_commit
+    else List.map commits ~f:pp_commit
   in
   {
     channel;
