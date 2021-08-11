@@ -12,6 +12,7 @@ type status_rules = {
   files they are related to. *)
 type prefix_rules = {
   ?default_channel: string nullable; (* if none of the rules is matching *)
+  ~default_branch_filters <ocaml default="[]">: string list;
   rules: prefix_rule list;
 }
 
