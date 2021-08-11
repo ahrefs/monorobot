@@ -44,8 +44,9 @@ module Prefix = struct
       if no filter is matched. *)
   let filter_by_branch ~branch ~default_branch_filters ~distinct rule =
     match rule.branch_filters with
-    | _ :: _ as filters -> List.mem filters branch ~equal:String.equal
-    | [] ->
+    | Some (_ :: _ as filters) -> List.mem filters branch ~equal:String.equal
+    | Some [] -> distinct
+    | None ->
     match default_branch_filters with
     | _ :: _ as filters -> List.mem filters branch ~equal:String.equal
     | [] -> distinct
