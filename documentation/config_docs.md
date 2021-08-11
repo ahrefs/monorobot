@@ -97,6 +97,7 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
 ```json
 "prefix_rules": {
     "default_channel": "default",
+    "default_branch_filters": ["develop"],
     "rules": [
         {
             "match": [
@@ -109,6 +110,7 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
                 "backend/megaindex",
                 "backend/ahrefskit"
             ],
+            "branch_filters": [],
             "channel": "backend"
         },
         {
@@ -117,15 +119,26 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
     ]
 },
 ```
+| value | description | optional | default |
+|-|-|-|-|
+| `default_channel` | default channel to notify if no rules match | Yes | don't notify any channel |
+| `default_branch_filters` | fallback branch filters (see below) if none are declared locally for a rule | Yes | don't apply branch filtering and show `distinct` commits only |
+| `rules` | list of `prefix_rule` objects | No | - |
 
 ### Prefix Rule
 
 A **prefix rule** specifies whether or not a Slack channel should be notified, based on the filenames present in the commits associated with the given payload. The semantics for the `match` and `ignore` fields are the same as those for label rules (see above).
 
+Default behavior is to apply each rule regardless of what branch is pushed, and when a rule is matched, show its `distinct` commits only.
+Branch filters limit rule application to selected branches, and shows _all_ commits on match.
+The filters can be declared globally with `default_branch_filters` (see above), or locally per rule with `branch_filters`, where the latter takes precedence.
+To ignore a globally declared filter for a single rule, declare one locally with an empty list, as shown in the example above.
+
 | value | description | optional | default |
 |-|-|-|-|
 | `match` | if commit files have any prefix in this list, they should be routed to the channel | Yes | all prefixes matched if no list provided |
 | `ignore` | if commit files have any prefix in this list, they shouldn't be routed to the channel (even if they have any `match` prefixes) | Yes | - |
+| `branch_filters` | consider commits only if pushed ref branch is in this list | Yes | fall back on `default_branch_filters` behavior (see above) |
 | `channel` | channel to notify if the rule is matched | No | - |
 
 ## Status Options
