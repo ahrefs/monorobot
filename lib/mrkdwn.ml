@@ -63,4 +63,48 @@ and transform = function
   | Text s -> Text (transform_text s)
   | (Br | Hr | NL | Ref _ | Img_ref _ | Raw _ | Raw_block _ | X _) as e -> e
 
+(** Translates omd AST to a Slack mrkdwn string. Code heavily adapted
+    from omd 1.3.1 source.
+    https://github.com/ocaml/omd/blob/1.3.1/src/omd_backend.ml#L872
+*)
+let mrkdwn_of_md md =
+  let b = Buffer.create 128 in
+  let rec f tl = function
+    | X _ -> loop tl
+    | Blockquote _q -> loop tl
+    | Ref (_rc, _name, _text, _fallback) -> loop tl
+    | Img_ref (_rc, _name, _text, _fallback) -> loop tl
+    | Paragraph _md -> loop tl
+    | Img (_alt, _src, _title) -> loop tl
+    | Text _t -> loop tl
+    | Raw _t -> loop tl
+    | Raw_block _t -> loop tl
+    | Emph _md -> loop tl
+    | Bold _md -> loop tl
+    | Ul _l -> loop tl
+    | Ol _l -> loop tl
+    | Ulp _l -> loop tl
+    | Olp _l -> loop tl
+    | Code_block (_lang, _c) -> loop tl
+    | Code (_lang, _c) -> loop tl
+    | Br -> loop tl
+    | Hr -> loop tl
+    | Html (_tagname, _attrs, _body) -> loop tl
+    | Html_block (_tagname, _attrs, _body) -> loop tl
+    | Html_comment _s -> loop tl
+    | Url (_href, _s, _title) -> loop tl
+    | H1 _md -> loop tl
+    | H2 _md -> loop tl
+    | H3 _md -> loop tl
+    | H4 _md -> loop tl
+    | H5 _md -> loop tl
+    | H6 _md -> loop tl
+    | NL -> loop tl
+  and loop = function
+    | hd :: tl -> f tl hd
+    | [] -> ()
+  in
+  loop md;
+  Buffer.contents b
+
 let mrkdwn_of_markdown str = unescape_omd @@ to_markdown @@ transform_list @@ of_string str
