@@ -250,8 +250,8 @@ let generate_push_notification notification channel =
       sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name
     in
     (* truncation point depends on line length, but 10 lines seems okay for most cases *)
-    let num_dropped = 10 in
-    let dropped = num_commits - num_dropped in
+    let num_shown = 10 in
+    let dropped = num_commits - num_shown in
     if dropped > 0 then
       List.rev_map_append (List.drop (List.rev commits) dropped) [ sprintf "+%d more..." dropped ] ~f:pp_commit
     else List.map commits ~f:pp_commit
