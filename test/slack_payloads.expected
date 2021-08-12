@@ -436,7 +436,7 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "text":
-    "<https://github.com/octocat/test-repo/tree/master|[test-repo:master]> <https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|3 commits> pushed by octocat",
+    "<https://github.com/octocat/test-repo/tree/develop|[test-repo:develop]> <https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|3 commits> pushed by octocat",
   "attachments": [
     {
       "fallback": "Commit pushed notification",
@@ -451,26 +451,6 @@ will notify #all-push-events
     }
   ]
 }
-will notify #backend1
-{
-  "channel": "backend1",
-  "text":
-    "<https://github.com/octocat/test-repo/tree/master|[test-repo:master]> <https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|1 commit> pushed by octocat",
-  "attachments": [
-    {
-      "fallback": "Commit pushed notification",
-      "mrkdwn_in": [ "fields" ],
-      "color": "#ccc",
-      "fields": [
-        {
-          "value":
-            "`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - octocat"
-        }
-      ]
-    }
-  ]
-}
-===== file ../mock_payloads/push.branch_filter_local.json =====
 will notify #backend1
 {
   "channel": "backend1",
@@ -490,11 +470,31 @@ will notify #backend1
     }
   ]
 }
+===== file ../mock_payloads/push.branch_filter_local.json =====
+will notify #backend1
+{
+  "channel": "backend1",
+  "text":
+    "<https://github.com/octocat/test-repo/tree/master|[test-repo:master]> <https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|1 commit> pushed by octocat",
+  "attachments": [
+    {
+      "fallback": "Commit pushed notification",
+      "mrkdwn_in": [ "fields" ],
+      "color": "#ccc",
+      "fields": [
+        {
+          "value":
+            "`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - octocat"
+        }
+      ]
+    }
+  ]
+}
 will notify #backend2
 {
   "channel": "backend2",
   "text":
-    "<https://github.com/octocat/test-repo/tree/develop|[test-repo:develop]> <https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by octocat",
+    "<https://github.com/octocat/test-repo/tree/master|[test-repo:master]> <https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by octocat",
   "attachments": [
     {
       "fallback": "Commit pushed notification",
@@ -534,7 +534,7 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "text":
-    "<https://github.com/thatportugueseguy/webhooks-test/tree/master|[webhooks-test:master]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
+    "<https://github.com/thatportugueseguy/webhooks-test/tree/develop|[webhooks-test:develop]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
   "attachments": [
     {
       "fallback": "Commit pushed notification",
@@ -554,7 +554,7 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "text":
-    "<https://github.com/thatportugueseguy/webhooks-test/tree/master|[webhooks-test:master]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
+    "<https://github.com/thatportugueseguy/webhooks-test/tree/develop|[webhooks-test:develop]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy",
   "attachments": [
     {
       "fallback": "Commit pushed notification",
@@ -573,7 +573,7 @@ will notify #longest-aa
 {
   "channel": "longest-aa",
   "text":
-    "<https://github.com/thatportugueseguy/webhooks-test/tree/master|[webhooks-test:master]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|1 commit> pushed by thatportugueseguy",
+    "<https://github.com/thatportugueseguy/webhooks-test/tree/develop|[webhooks-test:develop]> <https://github.com/thatportugueseguy/webhooks-test/compare/fb245e2a6d52...e2173f38ae43|1 commit> pushed by thatportugueseguy",
   "attachments": [
     {
       "fallback": "Commit pushed notification",

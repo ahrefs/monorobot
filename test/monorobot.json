@@ -20,9 +20,7 @@
     },
     "prefix_rules": {
         "default_channel": "default",
-        "default_branch_filters": [
-            "master"
-        ],
+        "filter_main_branch": true,
         "rules": [
             {
                 "match": [
@@ -56,7 +54,7 @@
                 ],
                 "channel": "backend2",
                 "branch_filters": [
-                    "develop"
+                    "master"
                 ]
             },
             {
