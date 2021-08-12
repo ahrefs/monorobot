@@ -67,7 +67,7 @@ and transform = function
     from omd 1.3.1 source.
     https://github.com/ocaml/omd/blob/1.3.1/src/omd_backend.ml#L872
 *)
-let mrkdwn_of_md md =
+let rec mrkdwn_of_md md =
   let b = Buffer.create 128 in
   let references : ref_container option ref = ref None in
   let nl b = Buffer.add_char b '\n' in
@@ -87,9 +87,31 @@ let mrkdwn_of_md md =
        which is inside a list item because those need to be indented!
     *)
     | X _ -> loop list_indent tl
-    | Blockquote _q -> (* todo *) loop list_indent tl
+    | Blockquote q ->
+      (* mrkdwn doesn't support nested quotes, but output '>' chars anyway*)
+      let quote s =
+        let b = Buffer.create (String.length s) in
+        let l = String.length s in
+        let rec loop is_nl i =
+          if i < l then begin
+            if is_nl && i < l - 1 then Buffer.add_string b "> ";
+            match s.[i] with
+            | '\n' ->
+              nl b;
+              loop true (i + 1)
+            | c ->
+              Buffer.add_char b c;
+              loop false (i + 1)
+          end
+          else Buffer.contents b
+        in
+        loop true 0
+      in
+      Buffer.add_string b (quote @@ mrkdwn_of_md q);
+      if not @@ List.is_empty tl then nl_if_needed_above b;
+      loop list_indent tl
     | Ref (rc, _name, _text, fallback) | Img_ref (rc, _name, _text, fallback) ->
-      (* [rc] stores refs from whole document, so it's enough to record just the
+      (* [rc] stores all refs from document, so it's enough to record just the
          first encounter
       *)
       if Option.is_empty !references then references := Some rc;
@@ -162,8 +184,28 @@ let mrkdwn_of_md md =
         Printf.bprintf b "%d. " i;
         loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *));
       loop list_indent tl
-    | Code_block (_lang, _c) -> (* todo *) loop list_indent tl
+    | Code_block (_lang, c) ->
+      (* unlike commonmark, can't have code block inside lists, so print code block with
+         zero indent, but continue rest of the list at correct indent after
+
+         note: sometimes indentation intended as list item paragraph is wrongly
+         interpreted as code block - an issue with Omd.of_string
+         e.g., both should be parsed the second way, but aren't:
+         # of_string "  - foo\n\n    bar";;
+         - : t = [Ul [[Text "foo"]]; NL; NL; Code_block ("", "bar")]
+         # of_string "- foo\n\n    bar";;
+         - : t = [Ulp [[Paragraph [Text "foo"]; Paragraph [Text "bar"]]]]
+      *)
+      nl_if_needed_above b;
+      Buffer.add_string b "```\n";
+      Buffer.add_string b (escape_mrkdwn c);
+      nl_if_needed_above b;
+      Buffer.add_string b "```\n";
+      loop list_indent tl
     | Code (_lang, c) ->
+      (* sadly, slack mrkdwn has no way to escape backticks within in-line code,
+         so broken markup is unavoidable
+      *)
       Buffer.add_char b '`';
       Buffer.add_string b (escape_mrkdwn c);
       Buffer.add_char b '`';
@@ -171,12 +213,8 @@ let mrkdwn_of_md md =
     | Hr ->
       Buffer.add_string b "* * *\n";
       loop list_indent tl
-    | Html (tagname, _attrs, body) ->
-      Printf.bprintf b "`&lt;%s&gt;" tagname;
-      Buffer.add_string b (escape_mrkdwn @@ to_html body);
-      Printf.bprintf b "&lt;/%s&gt;`" tagname;
-      loop list_indent tl
-    | Html_block (_tagname, _attrs, _body) -> (* todo *) loop list_indent tl
+    | Html (_tagname, _attrs, _body) as html -> loop list_indent (Code ("", to_html [ html ]) :: tl)
+    | Html_block (_tagname, _attrs, _body) as html -> loop list_indent (Code_block ("", to_html [ html ]) :: tl)
     | Html_comment _s -> loop list_indent tl
     | Url (href, s, title) ->
       Buffer.add_char b '<';
