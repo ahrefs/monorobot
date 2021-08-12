@@ -70,9 +70,24 @@ and transform = function
 let mrkdwn_of_md md =
   let b = Buffer.create 128 in
   let references : ref_container option ref = ref None in
-  let rec f tl = function
-    | X _ -> loop tl
-    | Blockquote _q -> (* todo *) loop tl
+  let nl b = Buffer.add_char b '\n' in
+  let nl_if_needed_above b =
+    if Buffer.length b > 0 && (not @@ Char.equal '\n' (Buffer.nth b (Buffer.length b - 1))) then nl b
+  in
+  let add_spaces n =
+    for _i = 1 to n do
+      Buffer.add_char b ' '
+    done
+  in
+  let rec f ?(fst_p_in_li = true) ?(is_in_list = false) list_indent tl = function
+    (* [list_indent: int] is the indentation level in number of spaces.
+       [fst_p_in_li: bool] is used to apply different indentation to the first
+       paragraph in a list items.
+       [is_in_list: bool] is necessary to know if we are inside a paragraph
+       which is inside a list item because those need to be indented!
+    *)
+    | X _ -> loop list_indent tl
+    | Blockquote _q -> (* todo *) loop list_indent tl
     | Ref (rc, _name, _text, fallback) | Img_ref (rc, _name, _text, fallback) ->
       (* [rc] stores refs from whole document, so it's enough to record just the
          first encounter
@@ -83,71 +98,110 @@ let mrkdwn_of_md md =
          and
          ![<text>][<name>] for Img_ref, e.g., ![image of cat][1]
       *)
-      loop (Raw fallback#to_string :: tl)
-    | Paragraph _md -> (* todo *) loop tl
-    | Img (alt, src, title) -> loop (Url (src, [ Text alt ], title) :: tl)
+      loop list_indent (Raw fallback#to_string :: tl)
+    | Paragraph [] -> loop list_indent tl
+    | Paragraph md ->
+      (* indent if inside a list (Olp or Ulp) *)
+      if is_in_list then if fst_p_in_li then add_spaces (list_indent - 2) else add_spaces list_indent;
+      (* paragraph body + skip line *)
+      loop ~fst_p_in_li:false list_indent md;
+      nl b;
+      nl b;
+      loop ~fst_p_in_li:false list_indent tl
+    | Img (alt, src, title) -> loop list_indent (Url (src, [ Text alt ], title) :: tl)
     | Text t ->
       Buffer.add_string b @@ escape_mrkdwn t;
-      loop tl
+      loop list_indent tl
     | Raw s ->
       Buffer.add_string b s;
-      loop tl
+      loop list_indent tl
     | Raw_block s ->
-      Buffer.add_char b '\n';
+      nl b;
       Buffer.add_string b s;
-      Buffer.add_char b '\n';
-      loop tl
+      nl b;
+      loop list_indent tl
     | Emph md' ->
       Buffer.add_string b "_";
-      loop md';
+      loop list_indent md';
       Buffer.add_string b "_";
-      loop tl
+      loop list_indent tl
     | Bold md' ->
       Buffer.add_string b "*";
-      loop md';
+      loop list_indent md';
       Buffer.add_string b "*";
-      loop tl
-    | Ul _l -> (* todo *) loop tl
-    | Ol _l -> (* todo *) loop tl
-    | Ulp _l -> (* todo *) loop tl
-    | Olp _l -> (* todo *) loop tl
-    | Code_block (_lang, _c) -> (* todo *) loop tl
+      loop list_indent tl
+    | Ul l ->
+      nl_if_needed_above b;
+      List.iter l ~f:(fun li ->
+        add_spaces list_indent;
+        Buffer.add_string b "- ";
+        loop ~is_in_list:true (list_indent + 4) li;
+        nl_if_needed_above b);
+      if list_indent = 0 then nl b;
+      loop list_indent tl
+    | Ol l ->
+      nl_if_needed_above b;
+      List.iteri l ~f:(fun i li ->
+        add_spaces list_indent;
+        Printf.bprintf b "%d. " (i + 1);
+        loop ~is_in_list:true (list_indent + 4) li;
+        nl_if_needed_above b);
+      if list_indent = 0 then nl b;
+      loop list_indent tl
+    | Ulp l ->
+      List.iter l ~f:(fun li ->
+        nl_if_needed_above b;
+        add_spaces list_indent;
+        Buffer.add_string b "- ";
+        loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *));
+      loop list_indent tl
+    | Olp l ->
+      List.iteri l ~f:(fun i li ->
+        nl_if_needed_above b;
+        add_spaces list_indent;
+        Printf.bprintf b "%d. " i;
+        loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *));
+      loop list_indent tl
+    | Code_block (_lang, _c) -> (* todo *) loop list_indent tl
     | Code (_lang, c) ->
       Buffer.add_char b '`';
       Buffer.add_string b (escape_mrkdwn c);
       Buffer.add_char b '`';
-      loop tl
+      loop list_indent tl
     | Hr ->
       Buffer.add_string b "* * *\n";
-      loop tl
+      loop list_indent tl
     | Html (tagname, _attrs, body) ->
       Printf.bprintf b "`&lt;%s&gt;" tagname;
       Buffer.add_string b (escape_mrkdwn @@ to_html body);
       Printf.bprintf b "&lt;/%s&gt;`" tagname;
-      loop tl
-    | Html_block (_tagname, _attrs, _body) -> (* todo *) loop tl
-    | Html_comment _s -> loop tl
+      loop list_indent tl
+    | Html_block (_tagname, _attrs, _body) -> (* todo *) loop list_indent tl
+    | Html_comment _s -> loop list_indent tl
     | Url (href, s, title) ->
       Buffer.add_char b '<';
       Buffer.add_string b href;
       Buffer.add_char b '|';
       if String.length title > 0 then Printf.bprintf b "%s - " @@ escape_mrkdwn title;
-      loop s;
+      loop list_indent s;
       Buffer.add_char b '>';
-      loop tl
-    | H1 md' | H2 md' | H3 md' | H4 md' | H5 md' | H6 md' -> loop (Paragraph (transform_list [ Bold md' ]) :: tl)
-    | NL | Br ->
-      (* the string "\n" renders NL
-         the string "\\n" (backslash-newline) renders Br
-      *)
-      Buffer.add_char b '\n';
-      loop tl
-  and loop = function
-    | hd :: tl -> f tl hd
+      loop list_indent tl
+    | H1 md' | H2 md' | H3 md' | H4 md' | H5 md' | H6 md' ->
+      loop list_indent (Paragraph (transform_list [ Bold md' ]) :: tl)
+    | Br ->
+      (* the string "\\n" (backslash-newline) or end of line double-space renders Br *)
+      nl b;
+      loop list_indent tl
+    | NL ->
+      (* the string "\n" renders NL *)
+      nl_if_needed_above b;
+      loop list_indent tl
+  and loop ?(fst_p_in_li = true) ?(is_in_list = false) list_indent = function
+    | hd :: tl -> f ~fst_p_in_li ~is_in_list list_indent tl hd
     | [] -> ()
   in
   (* print the document *)
-  loop md;
+  loop 0 md;
   (* print any references *)
   begin
     match !references with
@@ -157,7 +211,7 @@ let mrkdwn_of_md md =
         if String.equal title "" then Printf.bprintf b "[%s]: %s \n" name url
         else Printf.bprintf b "[%s]: %s \"%s\"\n" name url title
       in
-      Buffer.add_char b '\n';
+      nl b;
       List.iter ~f:print_ref r#get_all
   end;
   Buffer.contents b
