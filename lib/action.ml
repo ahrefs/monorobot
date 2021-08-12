@@ -16,8 +16,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let default = Option.to_list cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in
     let branch = Github.commits_branch_of_ref n.ref in
-    let default_branch_filters = cfg.prefix_rules.default_branch_filters in
-    let filter_by_branch = Rule.Prefix.filter_by_branch ~branch ~default_branch_filters in
+    let main_branch = if cfg.prefix_rules.filter_main_branch then cfg.main_branch_name else None in
+    let filter_by_branch = Rule.Prefix.filter_by_branch ~branch ~main_branch in
     n.commits
     |> List.filter ~f:(fun c ->
          let skip = Github.is_main_merge_message ~msg:c.message ~branch cfg in

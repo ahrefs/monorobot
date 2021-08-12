@@ -40,16 +40,16 @@ end
 
 module Prefix = struct
   (** Filters prefix rules based on branch filtering config and current commit.
-      Prioritizes local filters over default ones. Only allows distinct commits
+      Prioritizes local filters over main branch one. Only allows distinct commits
       if no filter is matched. *)
-  let filter_by_branch ~branch ~default_branch_filters ~distinct rule =
+  let filter_by_branch ~branch ~main_branch ~distinct rule =
     match rule.branch_filters with
     | Some (_ :: _ as filters) -> List.mem filters branch ~equal:String.equal
     | Some [] -> distinct
     | None ->
-    match default_branch_filters with
-    | _ :: _ as filters -> List.mem filters branch ~equal:String.equal
-    | [] -> distinct
+    match main_branch with
+    | Some main_branch -> String.equal main_branch branch
+    | None -> distinct
 
   (** `match_rules f rs` returns the channel name of a rule in `rs` that matches
       file name `f` with the longest prefix, if one exists. A rule `r` matches
