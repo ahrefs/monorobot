@@ -25,13 +25,20 @@ let rec mrkdwn_of_md md =
       Buffer.add_char b ' '
     done
   in
-  let rec f ?(fst_p_in_li = true) ?(is_in_list = false) list_indent tl = function
+  let rec loop ?(fst_p_in_li = true) ?(is_in_list = false) list_indent =
     (* [list_indent: int] is the indentation level in number of spaces.
        [fst_p_in_li: bool] is used to apply different indentation to the first
        paragraph in a list items.
        [is_in_list: bool] is necessary to know if we are inside a paragraph
        which is inside a list item because those need to be indented!
     *)
+    let loop ?(fst_p_in_li = fst_p_in_li) ?(is_in_list = is_in_list) list_indent l =
+      loop ~fst_p_in_li ~is_in_list list_indent l
+    in
+    function
+    | [] -> ()
+    | el :: tl ->
+    match el with
     | X _ -> loop list_indent tl
     | Blockquote q ->
       (* mrkdwn doesn't support nested quotes, but output '>' chars anyway*)
@@ -179,9 +186,6 @@ let rec mrkdwn_of_md md =
       (* the string "\n" renders NL *)
       nl_if_needed_above b;
       loop list_indent tl
-  and loop ?(fst_p_in_li = true) ?(is_in_list = false) list_indent = function
-    | hd :: tl -> f ~fst_p_in_li ~is_in_list list_indent tl hd
-    | [] -> ()
   in
   (* print the document *)
   loop 0 md;
