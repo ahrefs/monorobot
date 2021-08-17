@@ -32,7 +32,7 @@
     "created_at": "2020-06-07T15:11:50Z",
     "updated_at": "2020-06-07T15:11:50Z",
     "author_association": "OWNER",
-    "body": "**bold**, *italic*\n> blockquote\n\n* list-element 1\n* list-element 2\n  * list-element2.1\n  * [list-element2.2](www.google.com)\n\n<div>html block</div>\n```ocaml\nStdio.printf \"hello ocaml\"\n```\nescaped chars \\\\\\(\\)\\[\\]\\`\\*\n`keep \\`\n```\nkeep \\\n```"
+    "body": "# header 1\r\n## header 2\r\n### header 3\r\n#### header 4\r\n##### header 5\r\n###### header 6\r\n\r\n***\r\n\r\nparagraph 1 **bold**, _italic_, ~strikethrough~, **_bold italic_**, _**italic bold**_\r\n\r\nparagraph 2\r\nhard line break\r\n\r\n> blockquote\r\n\r\n> > > multi\r\n> >\r\n> > level\r\n>\r\n> blockquote\r\n\r\n* list-element 1\r\n* list-element 2\r\n  * list-element 2.1\r\n    * list-element 2.1.1\r\n  * [list-element 2.2](www.google.com)\r\n\r\n1. list-element 1\r\n1. list-element 2\r\n    1. list-element 2.1\r\n        1. list-element 2.1.1\r\n    1. [list-element 2.2](www.google.com)\r\n1. list-element 3\r\n\r\n[some link text](www.google.com \"link with title\")\r\n\r\n* > quote in list\r\n\r\n> * list in quote\r\n\r\n![image](https://via.placeholder.com/20x20)\r\n\r\n![image](https://via.placeholder.com/20x20 \"with title\")\r\n\r\n![](https://via.placeholder.com/20x20 \"no alt\")\r\n\r\n![](https://via.placeholder.com/20x20)\r\n\r\n<div>html block with <i>styling</i></div>\r\n\r\n```ocaml\r\nStdio.printf \"hello ocaml\"\r\n```\r\n\r\ninline `code block`\r\n\r\nescape these \\\\\\(\\)\\[\\]\\`\\*  `but keep \\`\r\n\r\n```\r\nand keep \\\r\n```\r\n"
   },
   "repository": {
     "id": 0,

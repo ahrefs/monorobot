@@ -95,7 +95,7 @@ will notify #all-push-events
       "pretext":
         "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF",
       "text":
-        "*bold*, _italic_\n\n> blockquote\n\n\n- list-element 1\n- list-element 2\n    - list-element2.1\n    - <www.google.com|list-element2.2>\n\n\n```\n<div>html block</div>\n```\n```\nStdio.printf \"hello ocaml\"\n```\nescaped chars \\()[]`*\n`keep \\`\n\n```\nkeep \\\n```",
+        "*header 1*\n\n*header 2*\n\n*header 3*\n\n*header 4*\n\n*header 5*\n\n*header 6*\n\n* * *\nparagraph 1 *bold*, _italic_, ~strikethrough~, *_bold italic_*, _*italic bold*_\n\nparagraph 2\nhard line break\n\n> blockquote\n\n> > > multi\n> > \n> > level\n> \n> blockquote\n\n- list-element 1\n- list-element 2\n    - list-element 2.1\n        - list-element 2.1.1\n    - <www.google.com|list-element 2.2>\n\n1. list-element 1\n2. list-element 2\n    1. list-element 2.1\n        1. list-element 2.1.1\n    2. <www.google.com|list-element 2.2>\n3. list-element 3\n\n<www.google.com|link with title - some link text>\n\n- > quote in list\n\n> - list in quote\n\n<https://via.placeholder.com/20x20|image>\n\n<https://via.placeholder.com/20x20|with title - image>\n\n<https://via.placeholder.com/20x20|no alt - >\n\n<https://via.placeholder.com/20x20|>\n\n```\n&lt;div&gt;html block with &lt;i&gt;styling&lt;/i&gt;&lt;/div&gt;\n```\n```\nStdio.printf \"hello ocaml\"\n```\ninline `code block`\n\nescape these \\()[]`*  `but keep \\`\n\n```\nand keep \\\n```",
       "footer":
         "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|main.ml>"
     }
@@ -196,7 +196,7 @@ will notify #frontend-bot
       "pretext":
         "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> *yasunariw* <https://github.com/ahrefs/monorepo/pull/6168#issuecomment-17123|commented> on #6168 <https://github.com/ahrefs/monorepo/pull/6168|Feature 1234>",
       "text":
-        "> I do not understand this\n\n\nDo you have access to the logs on the website?"
+        "> I do not understand this\n\nDo you have access to the logs on the website?"
     }
   ]
 }
