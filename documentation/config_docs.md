@@ -119,7 +119,7 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
     ]
 },
 ```
-| value | description | if absent |
+| value | description | default |
 |-|-|-|
 | `default_channel` | same behavior as label rule `default_channel` |  |
 | `filter_main_branch` | if true and `main_branch_name` is declared, use main branch to filter rules that have no local filter; otherwise, don't apply branch filtering and show `distinct` commits only | false |
@@ -134,7 +134,7 @@ Branch filters limit rule application to selected branches, and shows _all_ comm
 The filters can be declared globally with `filter_main_branch` (see above), or locally per rule with `branch_filters`, where the latter takes precedence.
 To ignore a globally declared filter for a single rule, declare one locally with an empty list, as shown in the example above.
 
-| value | description | if absent |
+| value | description | default |
 |-|-|-|
 | `match` | if commit files have any prefix in this list, they should be routed to the channel | all prefixes matched |
 | `ignore` | if commit files have any prefix in this list, they shouldn't be routed to the channel (even if they have any `match` prefixes) | fall back on `match` field behavior |
