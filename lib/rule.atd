@@ -68,7 +68,7 @@ type prefix_rule = {
   ?ignore : string list nullable;
   ?branch_filters : string list nullable;
   channel_name <json name="channel"> : string;
-}
+} <json adapter.ocaml="Atd_adapters.Branch_filters_adapter">
 
 (* A payload matches a label rule with a channel name if absent from the ignore list
    and present in the allow list. Both `allow` and `ignore` are optional. If `allow`
