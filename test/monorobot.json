@@ -20,6 +20,7 @@
     },
     "prefix_rules": {
         "default_channel": "default",
+        "filter_main_branch": true,
         "rules": [
             {
                 "match": [
@@ -39,6 +40,22 @@
                     "backend/a4"
                 ],
                 "channel": "backend"
+            },
+            {
+                "match": [
+                    "backend/branch-filter1"
+                ],
+                "channel": "backend1",
+                "branch_filters": "any"
+            },
+            {
+                "match": [
+                    "backend/branch-filter2"
+                ],
+                "channel": "backend2",
+                "branch_filters": [
+                    "master"
+                ]
             },
             {
                 "channel": "all-push-events"
