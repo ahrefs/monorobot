@@ -46,7 +46,7 @@
                     "backend/branch-filter1"
                 ],
                 "channel": "backend1",
-                "branch_filters": []
+                "branch_filters": "any"
             },
             {
                 "match": [

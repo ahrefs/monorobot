@@ -110,7 +110,7 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
                 "backend/a5",
                 "backend/a4"
             ],
-            "branch_filters": [],
+            "branch_filters": "any",
             "channel": "backend"
         },
         {
@@ -132,13 +132,13 @@ A **prefix rule** specifies whether or not a Slack channel should be notified, b
 Default behavior is to apply each rule regardless of what branch is pushed, and when a rule is matched, show its `distinct` commits only.
 Branch filters limit rule application to selected branches, and shows _all_ commits on match.
 The filters can be declared globally with `filter_main_branch` (see above), or locally per rule with `branch_filters`, where the latter takes precedence.
-To ignore a globally declared filter for a single rule, declare one locally with an empty list, as shown in the example above.
+To ignore a globally declared filter for a single rule, declare one locally with value "any", as shown in the example above.
 
 | value | description | default |
 |-|-|-|
 | `match` | if commit files have any prefix in this list, they should be routed to the channel | all prefixes matched |
 | `ignore` | if commit files have any prefix in this list, they shouldn't be routed to the channel (even if they have any `match` prefixes) | fall back on `match` field behavior |
-| `branch_filters` | consider commits only if pushed ref branch is in this list | fall back on `filter_main_branch` field behavior (see above) |
+| `branch_filters` | consider commits only if pushed ref branch is in this list; set to "any" to ignore `filter_main_branch` for this rule | fall back on `filter_main_branch` field behavior (see above) |
 | `channel` | channel to notify if the rule is matched | required field |
 
 ## Status Options
