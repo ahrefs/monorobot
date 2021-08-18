@@ -27,12 +27,12 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 }
 ```
 
-| value | description | optional | default |
-|-|-|-|-|
-| `main_branch_name` | main branch used for the repo; filtering notifications about merges of main into other branches, and constraining prefix rule application | Yes | - |
-| `label_rules` | label rules config object | No | - |
-| `prefix_rules` | prefix rules config object | No | - |
-| `status_rules` | status rules config object | No | - |
+| value | description | default |
+|-|-|-|
+| `main_branch_name` | main branch used for the repo; filtering notifications about merges of main into other branches, and constraining prefix rule application | main branch related features disabled |
+| `label_rules` | label rules config object | required field |
+| `prefix_rules` | prefix rules config object | required field |
+| `status_rules` | status rules config object | required field |
 
 ## Label Options
 
@@ -74,20 +74,20 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 },
 ```
 
-| value | description | optional | default |
-|-|-|-|-|
-| `default_channel` | default channel to notify if no rules match | Yes | don't notify any channel |
-| `rules` | list of `label_rule` objects | No | - |
+| value | description | default |
+|-|-|-|
+| `default_channel` | default channel to notify when no rules match | no channels notified when no rules match |
+| `rules` | list of `label_rule` objects | required field |
 
 ### Label Rule
 
 A **label rule** specifies whether or not a Slack channel should be notified, based on the labels present in the given payload. For each rule, `ignore` is a blacklist of labels that should not notify the rule's channel, and `match` is a whitelist of labels that should. If a label exists in both lists, the `ignore` list takes precedence. If an empty `ignore` list is provided, nothing is ignored. If an empty `match` list is provided, everything is matched. Both are optional; if neither are provided, the rule will always generate a notification for its channel.
 
-| value | description | optional | default |
-|-|-|-|-|
-| `match` | if notifications have any label in this list, they should be routed to the channel | Yes | all labels matched if no list provided |
-| `ignore` | if notifications have any label in this list, they shouldn't be routed to the channel (even if they have any `match` labels) | Yes | - |
-| `channel` | channel to notify if the rule is matched | No | - |
+| value | description | default |
+|-|-|-|
+| `match` | if notifications have any label in this list, they should be routed to the channel | all labels matched |
+| `ignore` | if notifications have any label in this list, they shouldn't be routed to the channel (even if they have any `match` labels) | fall back on `match` field behavior |
+| `channel` | channel to notify if the rule is matched | required field |
 
 ## Prefix Options
 
@@ -122,7 +122,7 @@ A **label rule** specifies whether or not a Slack channel should be notified, ba
 | value | description | default |
 |-|-|-|
 | `default_channel` | same behavior as label rule `default_channel` |  |
-| `filter_main_branch` | if true and `main_branch_name` is declared, use main branch to filter rules that have no local filter; otherwise, don't apply branch filtering and show `distinct` commits only | false |
+| `filter_main_branch` | if true and `main_branch_name` is declared, use main branch to filter rules that have no local filter; otherwise, don't apply branch filtering and show `distinct` commits only | `false` |
 | `rules` | list of `prefix_rule` objects | required field |
 
 ### Prefix Rule
@@ -185,10 +185,10 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
 }
 ```
 
-| value | description | optional | default |
-|-|-|-|-|
-| `allowed_pipelines` | a list of pipeline names; if specified, payloads whose pipeline name is not in the list will be ignored immediately, without checking the **status rules**; otherwise, all pipelines will be included in the status rule check | Yes | - |
-| `rules` | a list of **status rules** to determine whether to *allow* or *ignore* a payload for further processing | No | - |
+| value | description | default |
+|-|-|-|
+| `allowed_pipelines` | a list of pipeline names; if specified, payloads whose pipeline name is not in the list will be ignored immediately, without checking the **status rules** | all pipelines included in the status rule check |
+| `rules` | a list of **status rules** to determine whether to *allow* or *ignore* a payload for further processing | required field |
 
 ### Status Rules
 
@@ -206,11 +206,11 @@ is interpreted as:
 
 > "on a notification with a build state in `A`, when condition `B` is met, adopt the policy `C`".
 
-| value | description | optional | default |
-|-|-|-|-|
-| `on` | a list of build states that can trigger this rule | No | - |
-| `when` | a **status condition** object which, if specified, must be true for the rule to match | Yes | - |
-| `policy` | a policy option (one of `allow`, `ignore`, `allow_once`) | No | - |
+| value | description | default |
+|-|-|-|
+| `on` | a list of build states that can trigger this rule | required field |
+| `when` | a **status condition** object which, if specified, must be true for the rule to match | no status condition applied |
+| `policy` | a policy option (one of `allow`, `ignore`, `allow_once`) | required field |
 
 ### Status Conditions
 
