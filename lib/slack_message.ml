@@ -123,12 +123,11 @@ let populate_commit repository (commit : api_commit) =
   let title =
     sprintf "`<%s|%s>` *%s - <%s|%s>*" url (Slack.git_short_sha_hash sha)
       (escape_mrkdwn @@ first_line commit.message)
-      (escape_mrkdwn author.html_url)
-      (escape_mrkdwn commit.author.name)
+      (escape_mrkdwn author.html_url) (escape_mrkdwn commit.author.name)
   in
   let changes =
     match files with
-    | [f] -> sprintf "_modified `%s` (+%d-%d)_" (escape_mrkdwn f.filename) f.additions f.deletions
+    | [ f ] -> sprintf "_modified `%s` (+%d-%d)_" (escape_mrkdwn f.filename) f.additions f.deletions
     | _ ->
       let prefix_path =
         List.map files ~f:(fun f -> f.filename)
