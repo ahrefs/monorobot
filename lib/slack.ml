@@ -230,6 +230,12 @@ let generate_push_notification notification channel =
   let commits_branch = Github.commits_branch_of_ref notification.ref in
   let tree_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode commits_branch ] in
   let num_commits = List.length commits in
+  let compare =
+    (* if single commit, don't show compare *)
+    match commits with
+    | [ { url; _ } ] -> url
+    | _ -> compare
+  in
   let title =
     if deleted then
       sprintf "<%s|[%s]> %s deleted branch <%s|%s>" tree_url repository.name sender.login compare commits_branch
