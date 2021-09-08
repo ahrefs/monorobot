@@ -46,3 +46,28 @@ module Branch_filters_adapter = List_or_default_field.Make (struct
 
   let default_value = `List []
 end)
+
+module Slack_response_adapter : Atdgen_runtime.Json_adapter.S = struct
+  let normalize (x : Yojson.Safe.t) =
+    match x with
+    | `Assoc fields ->
+      begin
+        match List.assoc "ok" fields with
+        | `Bool true -> `List [ `String "Ok"; x ]
+        | `Bool false ->
+          begin
+            match List.assoc "error" fields with
+            | `String msg -> `List [ `String "Error"; `String msg ]
+            | _ -> x
+          end
+        | _ | (exception Not_found) -> x
+      end
+    | _ -> x
+
+  let restore (x : Yojson.Safe.t) =
+    let mk_fields ok fields = ("ok", `Bool ok) :: List.filter (fun (k, _) -> k <> "ok") fields in
+    match x with
+    | `List [ `String "Ok"; `Assoc fields ] -> `Assoc (mk_fields true fields)
+    | `List [ `String "Error"; `String msg ] -> `Assoc (mk_fields false [ "error", `String msg ])
+    | _ -> x
+end
