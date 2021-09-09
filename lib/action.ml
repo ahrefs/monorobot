@@ -238,6 +238,23 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       Lwt.return_unit
 
   let process_link_shared_event (ctx : Context.t) (event : Slack_t.link_shared_event) =
+    let fetch_bot_user_id () =
+      match%lwt Slack_api.send_auth_test ~ctx () with
+      | Ok { user_id; _ } ->
+        ctx.state.bot_user_id <- Some user_id;
+        let%lwt () =
+          Option.value_map ctx.state_filepath ~default:Lwt.return_unit ~f:(fun path ->
+            match%lwt State.save ctx.state path with
+            | Ok () -> Lwt.return_unit
+            | Error msg ->
+              log#warn "failed to save state file %s : %s" path msg;
+              Lwt.return_unit)
+        in
+        Lwt.return_some user_id
+      | Error msg ->
+        log#warn "failed to query slack auth.test : %s" msg;
+        Lwt.return_none
+    in
     let process link =
       match Github.gh_link_of_string link with
       | None -> Lwt.return_none
@@ -259,7 +276,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         | Ok commit -> Lwt.return_some @@ (link, Slack_message.populate_commit repo commit)
         )
     in
+    let%lwt bot_user_id =
+      match ctx.state.bot_user_id with
+      | Some id -> Lwt.return_some id
+      | None -> fetch_bot_user_id ()
+    in
     if List.length event.links > 2 then Lwt.return "ignored: more than two links present"
+    else if Option.value_map bot_user_id ~default:false ~f:(String.equal event.user) then
+      Lwt.return "ignored: is bot user"
     else begin
       let links = List.map event.links ~f:(fun l -> l.url) in
       let%lwt unfurls = List.map links ~f:process |> Lwt.all |> Lwt.map List.filter_opt |> Lwt.map StringMap.of_list in

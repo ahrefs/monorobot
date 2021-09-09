@@ -28,6 +28,8 @@ module Slack_base : Api.Slack = struct
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
 
   let send_chat_unfurl ~ctx:_ _ = Lwt.return @@ Error "undefined for local setup"
+
+  let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
 end
 
 module Slack : Api.Slack = struct

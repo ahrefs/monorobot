@@ -118,3 +118,19 @@ type chat_unfurl_res = {
   ok: bool;
   ?error: string option;
 }
+
+type auth_test_res = {
+  url: string;
+  team: string;
+  user: string;
+  team_id: string;
+  user_id: string;
+}
+
+type ('ok, 'err) http_response <ocaml predef module="Base.Result" t="t"> = [
+  | Ok of 'ok
+  | Error of 'err
+] <ocaml repr="classic">
+
+type 'ok slack_response = ('ok, string) http_response
+  <json adapter.ocaml="Atd_adapters.Slack_response_adapter">
