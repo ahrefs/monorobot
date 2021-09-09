@@ -67,9 +67,11 @@ end
 module Slack : Api.Slack = struct
   let log = Log.from "slack"
 
-  let slack_http_request ?headers ?body meth url read =
+  let query_error_msg url e = sprintf "error while querying %s: %s" url e
+
+  let slack_api_request ?headers ?body meth url read =
     match%lwt http_request ?headers ?body meth url with
-    | Error e -> Lwt.return @@ Error (sprintf "error while querying %s: %s" url e)
+    | Error e -> Lwt.return @@ Error (query_error_msg url e)
     | Ok s -> Lwt.return @@ Slack_j.slack_response_of_string read s
 
   let bearer_token_header access_token = sprintf "Authorization: Bearer %s" (Uri.pct_encode access_token)
@@ -79,7 +81,6 @@ module Slack : Api.Slack = struct
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =
     log#info "sending to %s" msg.channel;
     let build_error e = fmt_error "%s\nfailed to send Slack notification" e in
-    let build_query_error url e = build_error @@ sprintf "error while querying %s: %s" url e in
     let secrets = Context.get_secrets_exn ctx in
     let headers, url, webhook_mode =
       match Context.hook_of_channel ctx msg.channel with
@@ -95,17 +96,16 @@ module Slack : Api.Slack = struct
       let data = Slack_j.string_of_post_message_req msg in
       let body = `Raw ("application/json", data) in
       log#info "data: %s" data;
-      ( match%lwt http_request ~body ~headers `POST url with
-      (* error detection in response: slack uses status codes for webhooks versus a 200 code w/ `error` field for web api *)
-      | Ok s ->
-        if webhook_mode then Lwt.return @@ Ok ()
-        else (
-          let res = Slack_j.post_message_res_of_string s in
-          if res.ok then Lwt.return @@ Ok ()
-          else Lwt.return @@ build_query_error url (Option.value ~default:"an unknown error occurred" res.error)
-        )
-      | Error e -> Lwt.return @@ build_query_error url e
-      )
+      if webhook_mode then begin
+        match%lwt http_request ~body ~headers `POST url with
+        | Ok _res -> Lwt.return @@ Ok ()
+        | Error e -> Lwt.return @@ build_error (query_error_msg url e)
+      end
+      else begin
+        match%lwt slack_api_request ~body ~headers `POST url Slack_j.read_post_message_res with
+        | Ok _res -> Lwt.return @@ Ok ()
+        | Error e -> Lwt.return @@ build_error e
+      end
 
   let send_chat_unfurl ~(ctx : Context.t) req =
     log#info "unfurling Slack links";
@@ -118,15 +118,9 @@ module Slack : Api.Slack = struct
       let url = "https://slack.com/api/chat.unfurl" in
       let headers = [ bearer_token_header access_token ] in
       let body = `Raw ("application/json", data) in
-      ( match%lwt http_request ~body ~headers `POST url with
-      | Ok s ->
-        let res = Slack_j.chat_unfurl_res_of_string s in
-        if res.ok then Lwt.return @@ Ok ()
-        else (
-          let msg = Option.value ~default:"an unknown error occurred" res.error in
-          Lwt.return @@ fmt_error "%s\nfailed to unfurl Slack links" msg
-        )
-      | Error e -> Lwt.return @@ fmt_error "error while querying %s: %s\nfailed to unfurl Slack links" url e
+      ( match%lwt slack_api_request ~body ~headers `POST url Slack_j.read_chat_unfurl_res with
+      | Ok _res -> Lwt.return @@ Ok ()
+      | Error e -> Lwt.return @@ fmt_error "%s\nfailed to unfurl Slack links" e
       )
 
   let send_auth_test ~(ctx : Context.t) () =
@@ -137,8 +131,8 @@ module Slack : Api.Slack = struct
     | Some access_token ->
       let url = "https://slack.com/api/auth.test" in
       let headers = [ bearer_token_header access_token ] in
-      ( match%lwt slack_http_request ~headers `GET url Slack_j.read_auth_test_res with
+      ( match%lwt slack_api_request ~headers `GET url Slack_j.read_auth_test_res with
       | Ok res -> Lwt.return @@ Ok res
-      | Error e -> Lwt.return @@ Error (sprintf "%s\nfailed to retrieve Slack auth info" e)
+      | Error e -> Lwt.return @@ fmt_error "%s\nfailed to retrieve Slack auth info" e
       )
 end

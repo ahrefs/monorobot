@@ -64,9 +64,7 @@ type post_message_req = {
 }
 
 type post_message_res = {
-  ok: bool;
-  ?channel: string nullable;
-  ?error: string nullable;
+  channel: string;
 }
 
 type link_shared_link = {
@@ -116,7 +114,6 @@ type chat_unfurl_req = {
 
 type chat_unfurl_res = {
   ok: bool;
-  ?error: string option;
 }
 
 type auth_test_res = {
