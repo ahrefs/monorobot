@@ -67,6 +67,11 @@ end
 module Slack : Api.Slack = struct
   let log = Log.from "slack"
 
+  let slack_http_request ?headers ?body meth url read =
+    match%lwt http_request ?headers ?body meth url with
+    | Error e -> Lwt.return @@ Error (sprintf "error while querying %s: %s" url e)
+    | Ok s -> Lwt.return @@ Slack_j.slack_response_of_string read s
+
   let bearer_token_header access_token = sprintf "Authorization: Bearer %s" (Uri.pct_encode access_token)
 
   (** `send_notification ctx msg` notifies `msg.channel` with the payload `msg`;
@@ -122,5 +127,18 @@ module Slack : Api.Slack = struct
           Lwt.return @@ fmt_error "%s\nfailed to unfurl Slack links" msg
         )
       | Error e -> Lwt.return @@ fmt_error "error while querying %s: %s\nfailed to unfurl Slack links" url e
+      )
+
+  let send_auth_test ~(ctx : Context.t) () =
+    log#info "retrieving bot information";
+    let secrets = Context.get_secrets_exn ctx in
+    match secrets.slack_access_token with
+    | None -> Lwt.return @@ Error "failed to retrieve Slack access token"
+    | Some access_token ->
+      let url = "https://slack.com/api/auth.test" in
+      let headers = [ bearer_token_header access_token ] in
+      ( match%lwt slack_http_request ~headers `GET url Slack_j.read_auth_test_res with
+      | Ok res -> Lwt.return @@ Ok res
+      | Error e -> Lwt.return @@ Error (sprintf "%s\nfailed to retrieve Slack auth info" e)
       )
 end

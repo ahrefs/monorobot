@@ -2,7 +2,7 @@ open Base
 open Common
 open Devkit
 
-let empty : State_t.state = { pipeline_statuses = StringMap.empty }
+let empty : State_t.state = { pipeline_statuses = StringMap.empty; bot_user_id = None }
 
 let refresh_pipeline_status (state : State_t.state) ~pipeline ~(branches : Github_t.branch list) ~status =
   let update_pipeline_status branch_statuses =
