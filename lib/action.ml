@@ -22,7 +22,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     |> List.filter ~f:(fun c ->
          let skip = Github.is_main_merge_message ~msg:c.message ~branch cfg in
          if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
-         not skip)
+         not skip
+       )
     |> List.concat_map ~f:(fun commit ->
          let rules = List.filter ~f:(filter_by_branch ~distinct:commit.distinct) rules in
          let matched_channel_names =
@@ -33,7 +34,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
          let channel_names =
            if List.is_empty matched_channel_names && commit.distinct then default else matched_channel_names
          in
-         List.map channel_names ~f:(fun n -> n, commit))
+         List.map channel_names ~f:(fun n -> n, commit)
+       )
     |> Map.of_alist_multi (module String)
     |> Map.map ~f:(fun commits -> { n with commits })
     |> Map.to_alist
@@ -248,7 +250,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
             | Ok () -> Lwt.return_unit
             | Error msg ->
               log#warn "failed to save state file %s : %s" path msg;
-              Lwt.return_unit)
+              Lwt.return_unit
+          )
         in
         Lwt.return_some user_id
       | Error msg ->

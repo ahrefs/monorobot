@@ -62,7 +62,8 @@ let populate_pull_request repository (pull_request : pull_request) =
          merged;
          _;
        }
-        : pull_request)
+        : pull_request
+        )
     =
     pull_request
   in

@@ -7,7 +7,8 @@ let escape_mrkdwn =
     | '<' -> "&lt;"
     | '>' -> "&gt;"
     | '&' -> "&amp;"
-    | c -> String.make 1 c)
+    | c -> String.make 1 c
+    )
 
 (** Translates omd AST to a Slack mrkdwn string. Code heavily adapted
     from omd 1.3.1 source.
@@ -111,7 +112,8 @@ let rec mrkdwn_of_md md =
         add_spaces list_indent;
         Buffer.add_string b "- ";
         loop ~is_in_list:true (list_indent + 4) li;
-        nl_if_needed_above b);
+        nl_if_needed_above b
+      );
       if list_indent = 0 then nl b;
       loop list_indent tl
     | Ol l ->
@@ -120,7 +122,8 @@ let rec mrkdwn_of_md md =
         add_spaces list_indent;
         Printf.bprintf b "%d. " (i + 1);
         loop ~is_in_list:true (list_indent + 4) li;
-        nl_if_needed_above b);
+        nl_if_needed_above b
+      );
       if list_indent = 0 then nl b;
       loop list_indent tl
     | Ulp l ->
@@ -128,14 +131,16 @@ let rec mrkdwn_of_md md =
         nl_if_needed_above b;
         add_spaces list_indent;
         Buffer.add_string b "- ";
-        loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *));
+        loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *)
+      );
       loop list_indent tl
     | Olp l ->
       List.iteri l ~f:(fun i li ->
         nl_if_needed_above b;
         add_spaces list_indent;
         Printf.bprintf b "%d. " i;
-        loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *));
+        loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *)
+      );
       loop list_indent tl
     | Code_block (_lang, c) ->
       (* unlike commonmark, can't have code block inside lists, so print code block with

@@ -55,7 +55,8 @@ let setup_http ~ctx ~signature ~port ~ip =
           | Failure s -> s
           | Invalid_argument s -> s
           | exn -> Exn.str exn
-          ))
+          )
+    )
   in
   Lwt.return_unit
 

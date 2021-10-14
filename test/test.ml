@@ -17,7 +17,8 @@ let get_mock_payloads () =
   |> List.map ~f:(fun (kind, fn) ->
        let payload_path = Caml.Filename.concat mock_payload_dir fn in
        let state_path = Caml.Filename.concat mock_state_dir fn in
-       if Caml.Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None)
+       if Caml.Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None
+     )
 
 let process ~(ctx : Context.t) (kind, path, state_path) =
   let%lwt ctx =
