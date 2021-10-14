@@ -36,11 +36,11 @@ let pluralize name num suffix = if num = 1 then sprintf "%s" name else String.co
 
 let generate_pull_request_notification notification channel =
   let { action; number; sender; pull_request; repository } = notification in
-  let ({ body; title; html_url; labels; _ } : pull_request) = pull_request in
+  let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
   let action, body =
     match action with
     | Opened -> "opened", Some body
-    | Closed -> "closed", None
+    | Closed -> (if merged then "merged" else "closed"), None
     | Reopened -> "reopened", None
     | Labeled -> "labeled", show_labels labels
     | _ ->

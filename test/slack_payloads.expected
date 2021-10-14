@@ -286,11 +286,11 @@ will notify #default
   "attachments": [
     {
       "fallback":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> closed by *xinyuluo*",
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> merged by *xinyuluo*",
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "pretext":
-        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> closed by *xinyuluo*"
+        "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> merged by *xinyuluo*"
     }
   ]
 }
