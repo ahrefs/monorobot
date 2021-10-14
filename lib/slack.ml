@@ -46,12 +46,14 @@ let generate_pull_request_notification notification channel =
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
-           (string_of_pr_action action))
+           (string_of_pr_action action)
+        )
   in
   let summary =
     Some
       (sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title
-         action sender.login)
+         action sender.login
+      )
   in
   {
     channel;
@@ -86,12 +88,14 @@ let generate_pr_review_notification notification channel =
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
-           (string_of_pr_review_action action))
+           (string_of_pr_review_action action)
+        )
   in
   let summary =
     Some
       (sprintf "<%s|[%s]> *%s* <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login review.html_url
-         action_str number html_url title)
+         action_str number html_url title
+      )
   in
   {
     channel;
@@ -120,12 +124,14 @@ let generate_pr_review_comment_notification notification channel =
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
-           (string_of_comment_action action))
+           (string_of_comment_action action)
+        )
   in
   let summary =
     Some
       (sprintf "<%s|[%s]> *%s* %s on #%d <%s|%s>" repository.url repository.full_name sender.login action_str number
-         html_url title)
+         html_url title
+      )
   in
   let file =
     match comment.path with
@@ -163,12 +169,14 @@ let generate_issue_notification notification channel =
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
-           (string_of_issue_action action))
+           (string_of_issue_action action)
+        )
   in
   let summary =
     Some
       (sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title action
-         sender.login)
+         sender.login
+      )
   in
   {
     channel;
@@ -198,12 +206,14 @@ let generate_issue_comment_notification notification channel =
       invalid_arg
         (sprintf
            "Monorobot doesn't know how to generate pull request review comment notification for the unexpected event %s"
-           (string_of_comment_action action))
+           (string_of_comment_action action)
+        )
   in
   let summary =
     Some
       (sprintf "<%s|[%s]> *%s* <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login comment.html_url
-         action_str number issue.html_url title)
+         action_str number issue.html_url title
+      )
   in
   {
     channel;
@@ -291,7 +301,8 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s of %s"
-           (string_of_status_state state) sha)
+           (string_of_status_state state) sha
+        )
   in
   let color_info =
     match state with
@@ -327,7 +338,8 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
     | Some t ->
       Some
         (sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name t context
-           state_info)
+           state_info
+        )
   in
   let msg = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] in
   let attachment =
@@ -354,7 +366,8 @@ let generate_commit_comment_notification api_commit notification channel =
   let summary =
     Some
       (sprintf "<%s|[%s]> *%s* commented on `<%s|%s>` %s" repository.url repository.full_name sender.login
-         comment.html_url (git_short_sha_hash commit_id) (first_line commit.message))
+         comment.html_url (git_short_sha_hash commit_id) (first_line commit.message)
+      )
   in
   let path =
     match comment.path with

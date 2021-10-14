@@ -89,7 +89,8 @@ module Prefix = struct
            | Some l, Some [] -> Stdio.printf "  %s" (show_match l)
            | Some l, Some i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
          end;
-         Stdio.printf " -> #%s\n%!" rule.channel_name)
+         Stdio.printf " -> #%s\n%!" rule.channel_name
+       )
 end
 
 module Label = struct
@@ -124,5 +125,6 @@ module Label = struct
            | Some l, Some [] -> Stdio.printf "  %s" (show_match l)
            | Some l, Some i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
          end;
-         Stdio.printf " -> #%s\n%!" rule.channel_name)
+         Stdio.printf " -> #%s\n%!" rule.channel_name
+       )
 end
