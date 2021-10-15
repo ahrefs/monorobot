@@ -29,7 +29,8 @@ jobs:
 
       - run: sudo apt update
       - run: opam depext monorobot --yes
-      - run: opam depext monorobot --yes --with-doc
+      # https://github.com/ocaml/opam-repository/issues/16663
+      # - run: opam depext monorobot --yes --with-doc
       - run: opam depext monorobot --yes --with-test
 
       - run: opam install . --deps-only --with-doc --with-test
