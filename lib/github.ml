@@ -38,20 +38,17 @@ let event_of_filename filename =
 
 let is_main_merge_message ~msg:message ~branch (cfg : Config_t.config) =
   match cfg.main_branch_name with
-  | Some main_branch when String.equal branch main_branch ->
+  | Some main_branch ->
     (*
       handle "Merge <main branch> into <feature branch>" commits when they are merged into main branch
       we should have already seen these commits on the feature branch but for some reason they are distinct:true
     *)
-    let prefix = sprintf "Merge branch '%s' into " main_branch in
-    let prefix2 = sprintf "Merge remote-tracking branch 'origin/%s' into " main_branch in
+    let re =
+      Str.regexp (sprintf {|^Merge\( remote-tracking\)? branch '\(origin/\)?%s'\( of .+\)? into \(.+\)$|} main_branch)
+    in
     let title = Common.first_line message in
-    String.is_prefix title ~prefix || String.is_prefix title ~prefix:prefix2
-  | Some main_branch ->
-    let expect = sprintf "Merge branch '%s' into %s" main_branch branch in
-    let expect2 = sprintf "Merge remote-tracking branch 'origin/%s' into %s" main_branch branch in
-    let title = Common.first_line message in
-    String.equal title expect || String.equal title expect2
+    let matched = Str.string_match re title 0 in
+    matched && (String.equal branch main_branch || String.equal branch (Str.matched_group 4 title))
   | _ -> false
 
 let modified_files_of_commit commit = List.concat [ commit.added; commit.removed; commit.modified ]
