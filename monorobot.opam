@@ -23,6 +23,7 @@ depends: [
  "lwt_ppx"
  "nocrypto"
  "re"
+ "re2"
  "stdio"
  "uri"
  "ocamlformat" {dev}
