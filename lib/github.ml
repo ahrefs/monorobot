@@ -44,11 +44,16 @@ let is_main_merge_message ~msg:message ~branch (cfg : Config_t.config) =
       we should have already seen these commits on the feature branch but for some reason they are distinct:true
     *)
     let re =
-      Str.regexp (sprintf {|^Merge\( remote-tracking\)? branch '\(origin/\)?%s'\( of .+\)? into \(.+\)$|} main_branch)
+      Re2.create_exn
+        (sprintf {|^Merge(?: remote-tracking)? branch '(?:origin/)?%s'(?: of .+)? into (.+)$|} (Re2.escape main_branch))
     in
     let title = Common.first_line message in
-    let matched = Str.string_match re title 0 in
-    matched && (String.equal branch main_branch || String.equal branch (Str.matched_group 4 title))
+    begin
+      try
+        let other_branch = Re2.find_first_exn ~sub:(`Index 1) re title in
+        String.equal branch main_branch || String.equal branch other_branch
+      with Re2.Exceptions.Regex_match_failed _ -> false
+    end
   | _ -> false
 
 let modified_files_of_commit commit = List.concat [ commit.added; commit.removed; commit.modified ]
@@ -89,6 +94,8 @@ type gh_link =
   | Issue of repository * int
   | Commit of repository * commit_hash
 
+let gh_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues)/([a-z0-9]+)/?$|}
+
 (** `gh_link_of_string s` parses a URL string `s` to try to match a supported
     GitHub link type, generating repository endpoints if necessary *)
 let gh_link_of_string url_str =
@@ -100,18 +107,12 @@ let gh_link_of_string url_str =
   let custom_api_base ?(scheme = "https") base owner name =
     sprintf "%s://%s/api/v3/repos/%s/%s" scheme base owner name
   in
-  let re = Re.Str.regexp {|^\(.*\)/\(.+\)/\(.+\)/\(commit\|pull\|issues\)/\([a-z0-9]+\)/?$|} in
   match Uri.host url with
   | None -> None
   | Some host ->
-  match Re.Str.string_match re path 0 with
-  | false -> None
-  | true ->
-    let base = host ^ Re.Str.matched_group 1 path in
-    let owner = Re.Str.matched_group 2 path in
-    let name = Re.Str.matched_group 3 path in
-    let link_type = Re.Str.matched_group 4 path in
-    let item = Re.Str.matched_group 5 path in
+  match Re2.find_submatches_exn gh_re path with
+  | [| _; prefix; Some owner; Some name; Some link_type; Some item |] ->
+    let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
     let scheme = Uri.scheme url in
     let html_base, api_base =
       if String.is_suffix base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
@@ -137,3 +138,4 @@ let gh_link_of_string url_str =
         | _ -> None
       with _ -> None
     end
+  | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
