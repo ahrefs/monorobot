@@ -4,3 +4,9 @@
  (preprocess
   (pps lwt_ppx))
  (public_name monorobot))
+
+(rule
+ (targets version.ml)
+ (deps (universe) gen_version.sh)
+ (action
+  (run "./gen_version.sh")))
