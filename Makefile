@@ -5,8 +5,11 @@ default: build
 start:
 	dune exec -- ./src/monorobot.exe
 
-build:
+build: gen_version
 	dune build src/monorobot.exe
+
+gen_version:
+	./gen_version.sh
 
 test:
 	dune runtest
@@ -20,4 +23,5 @@ fmt:
 	dune build @fmt --auto-promote
 
 clean:
+	rm -f src/version.ml
 	dune clean

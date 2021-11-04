@@ -119,7 +119,7 @@ let check_slack =
 
 let default_cmd =
   let doc = "the notification bot" in
-  Term.(ret (const (`Help (`Pager, None)))), Term.info "monorobot" ~doc
+  Term.(ret (const (`Help (`Pager, None)))), Term.info "monorobot" ~doc ~version:Version.current
 
 let cmds = [ run; check_gh; check_slack ]
 
