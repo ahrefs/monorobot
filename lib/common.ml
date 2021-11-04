@@ -15,6 +15,14 @@ module StringMap = struct
   let unwrap = to_list
 end
 
+module Re2 = struct
+  include Re2
+
+  let wrap s = create_exn s
+
+  let unwrap = Re2.to_string
+end
+
 let fmt_error fmt = Printf.ksprintf (fun s -> Error s) fmt
 
 let first_line s =
