@@ -21,10 +21,7 @@ module Status = struct
         | Target_url -> notification.target_url
       in
       let rec match_condition = function
-        | Match { field; re } ->
-          value_of_field field
-          |> Option.map ~f:(fun f -> Re.Str.string_match (Re.Str.regexp_case_fold re) f 0)
-          |> Option.value ~default:false
+        | Match { field; re } -> value_of_field field |> Option.map ~f:(Re2.matches re) |> Option.value ~default:false
         | All_of conditions -> List.for_all conditions ~f:match_condition
         | One_of conditions -> List.exists conditions ~f:match_condition
         | Not condition -> not @@ match_condition condition

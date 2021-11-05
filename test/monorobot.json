@@ -11,7 +11,7 @@
                 "when": {
                     "match": {
                         "field": "description",
-                        "re": "^\\(Build #[0-9]+ canceled by .+\\|Failed (exit status 255)\\)$"
+                        "re": "^(Build #[0-9]+ canceled by .+|Failed \\(exit status 255\\))$"
                     }
                 },
                 "policy": "ignore"

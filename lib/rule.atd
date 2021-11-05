@@ -1,3 +1,5 @@
+type regex = string wrap <ocaml module="Common.Re2">
+
 (* Text fields from the GitHub payload that can be used in a condition *)
 type comparable_field = [
 | Context <json name="context">
@@ -8,7 +10,7 @@ type comparable_field = [
 (* Checks whether a payload field matches the provided regex pattern *)
 type match_condition = {
   field : comparable_field;
-  re : string; (* expects a regex pattern *)
+  re : regex;
 }
 
 (* Specifies additional conditions the payload must meet for the status rule to match *)
