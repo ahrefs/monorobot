@@ -36,25 +36,23 @@ let event_of_filename filename =
   | [ kind; _; "json" ] -> Some kind
   | _ -> None
 
-let is_main_merge_message ~msg:message ~branch (cfg : Config_t.config) =
+let merge_commit_re = Re2.create_exn {|^Merge(?: remote-tracking)? branch '(?:origin/)?.+'(?: of .+)? into (.+)$|}
+
+let is_merge_commit_to_ignore ~(cfg : Config_t.config) ~branch commit =
   match cfg.main_branch_name with
-  | Some main_branch ->
+  | Some main_branch when String.equal branch main_branch ->
     (*
-      handle "Merge <main branch> into <feature branch>" commits when they are merged into main branch
+      handle "Merge <any branch> into <feature branch>" commits when they are merged into main branch
       we should have already seen these commits on the feature branch but for some reason they are distinct:true
     *)
-    let re =
-      Re2.create_exn
-        (sprintf {|^Merge(?: remote-tracking)? branch '(?:origin/)?%s'(?: of .+)? into (.+)$|} (Re2.escape main_branch))
-    in
-    let title = Common.first_line message in
+    let title = Common.first_line commit.message in
     begin
       try
-        let other_branch = Re2.find_first_exn ~sub:(`Index 1) re title in
-        String.equal branch main_branch || String.equal branch other_branch
+        let receiving_branch = Re2.find_first_exn ~sub:(`Index 1) merge_commit_re title in
+        not @@ String.equal branch receiving_branch
       with Re2.Exceptions.Regex_match_failed _ -> false
     end
-  | _ -> false
+  | Some _ | None -> false
 
 let modified_files_of_commit commit = List.concat [ commit.added; commit.removed; commit.modified ]
 

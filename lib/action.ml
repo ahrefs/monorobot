@@ -20,7 +20,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let filter_by_branch = Rule.Prefix.filter_by_branch ~branch ~main_branch in
     n.commits
     |> List.filter ~f:(fun c ->
-         let skip = Github.is_main_merge_message ~msg:c.message ~branch cfg in
+         let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
          if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
          not skip
        )
