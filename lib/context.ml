@@ -51,7 +51,7 @@ let hook_of_channel ctx channel_name =
     contains pipeline `p`; returns `false` otherwise. *)
 let is_pipeline_allowed ctx ~pipeline =
   match ctx.config with
-  | None -> false
+  | None -> true
   | Some config ->
   match config.status_rules.allowed_pipelines with
   | Some allowed_pipelines when not @@ List.exists allowed_pipelines ~f:(String.equal pipeline) -> false
