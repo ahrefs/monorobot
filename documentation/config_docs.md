@@ -32,7 +32,7 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 | `main_branch_name` | main branch used for the repo; filtering notifications about merges of main into other branches, and constraining prefix rule application | main branch related features disabled |
 | `label_rules` | label rules config object | required field |
 | `prefix_rules` | prefix rules config object | required field |
-| `status_rules` | status rules config object | required field |
+| `status_rules` | status rules config object | all status notifications are ignored |
 
 ## Label Options
 
