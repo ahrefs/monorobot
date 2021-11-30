@@ -1,11 +1,15 @@
 
 {
-  "pipeline_statuses": {
-    "default": {
-      "master": "failure"
-    },
-    "buildkite/pipeline2": {
-      "master": "success"
+  "repos": {
+    "https://github.com/ahrefs/monorepo": {
+      "pipeline_statuses": {
+        "default": {
+          "master": "failure"
+        },
+        "buildkite/pipeline2": {
+          "master": "success"
+        }
+      }
     }
   }
 }

@@ -65,19 +65,20 @@ module Prefix = struct
     |> Option.map ~f:(fun (res : prefix_rule * int) -> (fst res).channel_name)
 
   let print_prefix_routing rules =
+    let log = Devkit.Log.from "context" in
     let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
     rules
     |> List.iter ~f:(fun (rule : prefix_rule) ->
          begin
            match rule.allow, rule.ignore with
-           | None, None -> Stdio.printf "  any"
-           | None, Some [] -> Stdio.printf "  any"
-           | None, Some l -> Stdio.printf "  not %s" (show_match l)
-           | Some l, None -> Stdio.printf "  %s" (show_match l)
-           | Some l, Some [] -> Stdio.printf "  %s" (show_match l)
-           | Some l, Some i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
+           | None, None -> log#info "  any"
+           | None, Some [] -> log#info "  any"
+           | None, Some l -> log#info "  not %s" (show_match l)
+           | Some l, None -> log#info "  %s" (show_match l)
+           | Some l, Some [] -> log#info "  %s" (show_match l)
+           | Some l, Some i -> log#info "  %s and not %s" (show_match l) (show_match i)
          end;
-         Stdio.printf " -> #%s\n%!" rule.channel_name)
+         log#info " -> #%s\n%!" rule.channel_name)
 end
 
 module Label = struct
@@ -100,17 +101,18 @@ module Label = struct
     rules |> List.filter_map ~f:match_rule |> List.dedup_and_sort ~compare:String.compare
 
   let print_label_routing rules =
+    let log = Devkit.Log.from "context" in
     let show_match l = String.concat ~sep:" or " l in
     rules
     |> List.iter ~f:(fun (rule : label_rule) ->
          begin
            match rule.allow, rule.ignore with
-           | None, None -> Stdio.printf "  any"
-           | None, Some [] -> Stdio.printf "  any"
-           | None, Some l -> Stdio.printf "  not %s" (show_match l)
-           | Some l, None -> Stdio.printf "  %s" (show_match l)
-           | Some l, Some [] -> Stdio.printf "  %s" (show_match l)
-           | Some l, Some i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
+           | None, None -> log#info "  any"
+           | None, Some [] -> log#info "  any"
+           | None, Some l -> log#info "  not %s" (show_match l)
+           | Some l, None -> log#info "  %s" (show_match l)
+           | Some l, Some [] -> log#info "  %s" (show_match l)
+           | Some l, Some i -> log#info "  %s and not %s" (show_match l) (show_match i)
          end;
-         Stdio.printf " -> #%s\n%!" rule.channel_name)
+         log#info " -> #%s\n%!" rule.channel_name)
 end

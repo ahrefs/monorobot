@@ -9,9 +9,9 @@
  (deps
   (source_tree ../mock_states)
   (source_tree ../mock_payloads)
-  (source_tree github-api-cache)
-  monorobot.json
-  secrets.json)
+  (source_tree ../mock_config)
+  (source_tree ../mock_secrets)
+  (source_tree github-api-cache))
  (action
   (with-stdout-to
    slack_payloads.out

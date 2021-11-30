@@ -1,7 +1,11 @@
 {
-  "pipeline_statuses": {
-    "buildkite/pipeline2": {
-      "master": "failure"
+  "repos": {
+    "https://github.com/ahrefs/monorepo": {
+      "pipeline_statuses": {
+        "buildkite/pipeline2": {
+          "master": "failure"
+        }
+      }
     }
   }
 }

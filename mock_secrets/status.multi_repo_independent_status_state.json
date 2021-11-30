@@ -1,0 +1,19 @@
+{
+  "repos": {
+    "https://github.com/ahrefs/runner": {
+      "pipeline_statuses": {
+        "buildkite/pipeline2": {
+          "master": "success"
+        }
+      }
+    },
+    "https://example.org/ahrefs/monorepo": {
+      "pipeline_statuses": {
+        "buildkite/pipeline2": {
+          "master": "failure"
+        }
+      }
+    }
+  },
+  "slack_access_token": ""
+}
