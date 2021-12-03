@@ -232,11 +232,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | _ -> Lwt.return_unit
 
   let process_github_notification (ctx : Context.t) headers body =
+    let validate_signature secrets =
+      let signing_key = secrets.gh_hook_token in
+      Github.validate_signature ?signing_key ~headers body
+    in
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
-      match Github.parse_exn ~secret:secrets.gh_hook_token headers body with
+      match Github.parse_exn headers body with
       | exception exn -> Exn_lwt.fail ~exn "failed to parse payload"
       | payload ->
+      match validate_signature secrets with
+      | Error e -> action_error e
+      | Ok () ->
         ( match%lwt refresh_repo_config ctx payload with
         | Error e -> action_error e
         | Ok () ->

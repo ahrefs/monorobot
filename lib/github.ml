@@ -64,16 +64,16 @@ let is_valid_signature ~secret headers_sig body =
   let (`Hex request_hash) = Hex.of_string request_hash in
   String.equal headers_sig (sprintf "sha1=%s" request_hash)
 
+let validate_signature ?signing_key ~headers body =
+  match signing_key with
+  | None -> Ok ()
+  | Some secret ->
+  match List.Assoc.find headers "x-hub-signature" ~equal:String.equal with
+  | None -> Error "unable to find header x-hub-signature"
+  | Some signature -> if is_valid_signature ~secret signature body then Ok () else Error "signatures don't match"
+
 (* Parse a payload. The type of the payload is detected from the headers. *)
-let parse_exn ~secret headers body =
-  begin
-    match secret with
-    | None -> ()
-    | Some secret ->
-    match List.Assoc.find headers "x-hub-signature" ~equal:String.equal with
-    | None -> Exn.fail "unable to find header x-hub-signature"
-    | Some req_sig -> if not @@ is_valid_signature ~secret req_sig body then failwith "request signature invalid"
-  end;
+let parse_exn headers body =
   match List.Assoc.find_exn headers "x-github-event" ~equal:String.equal with
   | exception exn -> Exn.fail ~exn "unable to read x-github-event"
   | "push" -> Push (commit_pushed_notification_of_string body)
