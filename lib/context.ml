@@ -43,6 +43,16 @@ let find_repo_config_exn ctx repo_url =
 
 let set_repo_config ctx repo_url config = Stringtbl.set ctx.config ~key:repo_url ~data:config
 
+let gh_token_of_secrets (secrets : Config_t.secrets) repo_url =
+  match Map.find secrets.repo_secrets repo_url with
+  | None -> secrets.gh_token
+  | Some repo_secrets -> repo_secrets.gh_token
+
+let gh_hook_token_of_secrets (secrets : Config_t.secrets) repo_url =
+  match Map.find secrets.repo_secrets repo_url with
+  | None -> secrets.gh_hook_token
+  | Some repo_secrets -> repo_secrets.gh_hook_token
+
 let hook_of_channel ctx channel_name =
   let secrets = get_secrets_exn ctx in
   match List.find secrets.slack_hooks ~f:(fun webhook -> String.equal webhook.channel channel_name) with
@@ -93,8 +103,9 @@ let refresh_state ctx =
 let print_config ctx repo_url =
   let cfg = find_repo_config_exn ctx repo_url in
   let secrets = get_secrets_exn ctx in
+  let token = gh_hook_token_of_secrets secrets repo_url in
   log#info "using prefix routing:";
   Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules;
   log#info "using label routing:";
   Rule.Label.print_label_routing cfg.label_rules.rules;
-  log#info "signature checking %s" (if Option.is_some secrets.gh_hook_token then "enabled" else "disabled")
+  log#info "signature checking %s" (if Option.is_some token then "enabled" else "disabled")
