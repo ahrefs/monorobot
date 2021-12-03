@@ -76,7 +76,7 @@ module Slack : Api.Slack = struct
 
   let bearer_token_header access_token = sprintf "Authorization: Bearer %s" (Uri.pct_encode access_token)
 
-  (** `send_notification ctx msg` notifies `msg.channel` with the payload `msg`;
+  (** [send_notification ctx msg] notifies [msg.channel] with the payload [msg];
       uses web API with access token if available, or with webhook otherwise *)
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =
     log#info "sending to %s" msg.channel;

@@ -48,7 +48,7 @@ module Branch_filters_adapter = List_or_default_field.Make (struct
 end)
 
 (** Error detection in Slack API response. The web API communicates errors using
-    an `error` field rather than status codes. Note, on the other hand, that
+    an [error] field rather than status codes. Note, on the other hand, that
     webhooks do use status codes to communicate errors. *)
 module Slack_response_adapter : Atdgen_runtime.Json_adapter.S = struct
   let normalize (x : Yojson.Safe.t) =

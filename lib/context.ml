@@ -46,9 +46,9 @@ let hook_of_channel ctx channel_name =
   | Some hook -> Some hook.url
   | None -> None
 
-(** `is_pipeline_allowed ctx p` returns `true` if ctx.config.status_rules
+(** [is_pipeline_allowed ctx p] returns [true] if [ctx.config.status_rules]
     doesn't define a whitelist of allowed pipelines, or if the list
-    contains pipeline `p`; returns `false` otherwise. *)
+    contains pipeline [p]; returns [false] otherwise. *)
 let is_pipeline_allowed ctx ~pipeline =
   match ctx.config with
   | None -> true

@@ -9,10 +9,10 @@ module Status = struct
       { trigger = [ Success ]; condition = None; policy = Allow_once };
     ]
 
-  (** `match_rules n rs` returns the policy declared by the first rule in `rs`
-      to match status notification `n` if one exists, falling back to
-      the default rules otherwise. A rule `r` matches `n` if `n.state` is in
-      `r.trigger` and `n` meets `r.condition`. *)
+  (** [match_rules n rs] returns the policy declared by the first rule in [rs]
+      to match status notification [n] if one exists, falling back to
+      the default rules otherwise. A rule [r] matches [n] if [n.state] is in
+      [r.trigger] and [n] meets [r.condition]. *)
   let match_rules (notification : Github_t.status_notification) ~rules =
     let match_rule rule =
       let value_of_field = function
@@ -48,10 +48,10 @@ module Prefix = struct
     | Some main_branch -> String.equal main_branch branch
     | None -> distinct
 
-  (** `match_rules f rs` returns the channel name of a rule in `rs` that matches
-      file name `f` with the longest prefix, if one exists. A rule `r` matches
-      `f` with prefix length `l`, if `f` has no prefix in `r.ignore` and `l` is
-      the length of the longest prefix of `f` in `r.allow`. An undefined or empty
+  (** [match_rules f rs] returns the channel name of a rule in [rs] that matches
+      file name [f] with the longest prefix, if one exists. A rule [r] matches
+      [f] with prefix length [l], if [f] has no prefix in [r.ignore] and [l] is
+      the length of the longest prefix of [f] in [r.allow]. An undefined or empty
       allow list is considered a prefix match of length 0. The ignore list is
       evaluated before the allow list. *)
   let match_rules filename ~rules =
@@ -91,9 +91,9 @@ module Prefix = struct
 end
 
 module Label = struct
-  (** `match_rules l rs` returns the channel names of the rules in `rs` that
-      allow label `l`, if one exists. A rule `r` matches label `l`, if `l` is
-      not a member of `r.ignore` and is a member of `r.allow`. The label name
+  (** [match_rules l rs] returns the channel names of the rules in [rs] that
+      allow label [l], if one exists. A rule [r] matches label [l], if [l] is
+      not a member of [r.ignore] and is a member of [r.allow]. The label name
       comparison is case insensitive. An undefined allow list is considered a
       match. The ignore list is evaluated before the allow list. *)
   let match_rules (label : Github_t.label) ~rules =

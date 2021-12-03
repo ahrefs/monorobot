@@ -184,8 +184,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     in
     Lwt_list.iter_s notify notifications
 
-  (** `refresh_config_of_context ctx n` updates the current context if the configuration
-      hasn't been loaded yet, or if the incoming request `n` is a push
+  (** [refresh_config_of_context ctx n] updates the current context if the configuration
+      hasn't been loaded yet, or if the incoming request [n] is a push
       notification containing commits that touched the config file. *)
   let refresh_config_of_context (ctx : Context.t) notification =
     let fetch_config () =

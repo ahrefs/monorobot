@@ -94,7 +94,7 @@ type gh_link =
 
 let gh_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues)/([a-z0-9]+)/?$|}
 
-(** `gh_link_of_string s` parses a URL string `s` to try to match a supported
+(** [gh_link_of_string s] parses a URL string [s] to try to match a supported
     GitHub link type, generating repository endpoints if necessary *)
 let gh_link_of_string url_str =
   let url = Uri.of_string url_str in

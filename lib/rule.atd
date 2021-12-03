@@ -48,8 +48,8 @@ type status_rule = {
 
 (* A filename matches a prefix rule with the channel name if it isn't in the ignore
    list and it is in the allow list. If multiple prefix rules match for a given
-   file, the one to match with the longest prefix is used. Both `allow` and
-   `ignore` are optional. If `allow` is undefined, then the rule matches all
+   file, the one to match with the longest prefix is used. Both [allow] and
+   [ignore] are optional. If [allow] is undefined, then the rule matches all
    payloads.
 
    If a commit affects 3 files:
@@ -73,7 +73,7 @@ type prefix_rule = {
 } <json adapter.ocaml="Atd_adapters.Branch_filters_adapter">
 
 (* A payload matches a label rule with a channel name if absent from the ignore list
-   and present in the allow list. Both `allow` and `ignore` are optional. If `allow`
+   and present in the allow list. Both [allow] and [ignore] are optional. If [allow]
    is undefined, then the rule matches all payloads. *)
 type label_rule = {
   ?allow <json name="match"> : string list nullable;
