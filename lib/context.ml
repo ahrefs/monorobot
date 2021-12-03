@@ -22,7 +22,7 @@ let default : t =
     state_filepath = None;
     secrets = None;
     config = Stringtbl.empty ();
-    state = State.empty;
+    state = State.empty ();
   }
 
 let make ?config_filename ?secrets_filepath ?state_filepath () =
@@ -60,9 +60,6 @@ let is_pipeline_allowed ctx repo_url ~pipeline =
   match config.status_rules.allowed_pipelines with
   | Some allowed_pipelines when not @@ List.exists allowed_pipelines ~f:(String.equal pipeline) -> false
   | _ -> true
-
-let refresh_pipeline_status ctx repo_url ~pipeline ~(branches : Github_t.branch list) ~status =
-  if is_pipeline_allowed ctx repo_url ~pipeline then State.refresh_pipeline_status ctx.state ~pipeline ~branches ~status
 
 let log = Log.from "context"
 
