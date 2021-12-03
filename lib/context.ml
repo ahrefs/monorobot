@@ -15,20 +15,19 @@ type t = {
   state : State_t.state;
 }
 
-let default : t =
+let default_config_filename = "monorobot.json"
+
+let default_secrets_filepath = "secrets.json"
+
+let make ?config_filename ?secrets_filepath ?state_filepath () =
   {
-    config_filename = "monorobot.json";
-    secrets_filepath = "secrets.json";
-    state_filepath = None;
+    config_filename = Option.value config_filename ~default:default_config_filename;
+    secrets_filepath = Option.value secrets_filepath ~default:default_secrets_filepath;
+    state_filepath;
     secrets = None;
     config = Stringtbl.empty ();
     state = State.empty ();
   }
-
-let make ?config_filename ?secrets_filepath ?state_filepath () =
-  let config_filename = Option.value config_filename ~default:default.config_filename in
-  let secrets_filepath = Option.value secrets_filepath ~default:default.secrets_filepath in
-  { default with config_filename; secrets_filepath; state_filepath }
 
 let get_secrets_exn ctx =
   match ctx.secrets with
