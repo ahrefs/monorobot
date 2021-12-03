@@ -1,5 +1,4 @@
 open Base
-open Devkit
 
 module StringMap = struct
   type 'a t = 'a Map.M(String).t
@@ -11,12 +10,30 @@ module StringMap = struct
   let unwrap = to_list
 end
 
+module Stringtbl = struct
+  include Hashtbl
+
+  type 'a t = 'a Hashtbl.M(String).t
+
+  let empty () = Hashtbl.create (module String)
+
+  let to_list (l : 'a t) : (string * 'a) list = Hashtbl.to_alist l
+
+  let of_list (m : (string * 'a) list) : 'a t = Hashtbl.of_alist_exn (module String) m
+
+  let wrap = of_list
+
+  let unwrap = to_list
+end
+
 module Re2 = struct
   include Re2
 
   let wrap s = create_exn s
   let unwrap = Re2.to_string
 end
+
+open Devkit
 
 let fmt_error fmt = Printf.ksprintf (fun s -> Error s) fmt
 
