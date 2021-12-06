@@ -4,15 +4,16 @@ A Slackbot for GitHub monorepos. Configure how repo notifications should be rout
 
 ## Setting Up
 
-Install dependencies via OPAM.
+Install via OPAM:
+
+```
+opam install monorobot
+```
+
+Or install dependencies and build locally:
 
 ```sh
 opam install --deps-only .
-```
-
-Then, build with Dune.
-
-```sh
 make
 ```
 
