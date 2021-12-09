@@ -2,6 +2,8 @@
 
 A Slackbot for GitHub monorepos. Configure how repo notifications should be routed to specified Slack channels based on file prefixes, issue/PR labels, and CI build statuses.
 
+Check out the [accompanying blog post](https://tech.ahrefs.com/monorobot-a-slack-bot-for-monorepos-374260e2ca43) for an overview of Monorobot.
+
 ## Setting Up
 
 Install via OPAM:
