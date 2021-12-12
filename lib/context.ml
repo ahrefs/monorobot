@@ -57,8 +57,8 @@ let is_pipeline_allowed ctx ~pipeline =
   | Some allowed_pipelines when not @@ List.exists allowed_pipelines ~f:(String.equal pipeline) -> false
   | _ -> true
 
-let refresh_pipeline_status ctx ~pipeline ~(branches : Github_t.branch list) ~status =
-  if is_pipeline_allowed ctx ~pipeline then State.refresh_pipeline_status ctx.state ~pipeline ~branches ~status else ()
+let refresh_pipeline_status ctx ~pipeline ~(branches : Github_t.branch list) ~statuses =
+  if is_pipeline_allowed ctx ~pipeline then State.refresh_pipeline_status ctx.state ~branches ~statuses else ()
 
 let log = Log.from "context"
 

@@ -21,6 +21,7 @@ let get_mock_payloads () =
      )
 
 let process ~(ctx : Context.t) (kind, path, state_path) =
+  ctx.state.pipeline_statuses <- Common.StringMap.empty;
   let%lwt ctx =
     match state_path with
     | None -> Lwt.return ctx

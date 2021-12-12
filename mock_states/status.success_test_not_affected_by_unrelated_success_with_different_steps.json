@@ -1,17 +1,17 @@
 
 {
   "pipeline_statuses": {
-    "default": {
-      "master": "failure"
-    },
     "buildkite/pipeline2": {
-      "master": "success"
+      "develop": "success"
     },
     "buildkite/pipeline2/build-infra": {
-      "master": "success"
+      "develop": "failure"
     },
     "buildkite/pipeline2/setup": {
-      "master": "success"
+      "develop": "success"
+    },
+    "buildkite/pipeline2/build": {
+      "develop": "success"
     }
   }
 }

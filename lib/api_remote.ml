@@ -55,6 +55,10 @@ module Github : Api.Github = struct
     let%lwt res = commits_url ~repo ~sha |> get_resource ctx in
     Lwt.return @@ Result.map res ~f:Github_j.api_commit_of_string
 
+  let get_api_statuses ~(ctx : Context.t) ~repo ~sha =
+    let%lwt res = commits_url ~repo ~sha |> sprintf "%s/statuses" |> get_resource ctx in
+    Lwt.return @@ Result.map res ~f:Github_j.api_statuses_of_string
+
   let get_pull_request ~(ctx : Context.t) ~repo ~number =
     let%lwt res = pulls_url ~repo ~number |> get_resource ctx in
     Lwt.return @@ Result.map res ~f:Github_j.pull_request_of_string
