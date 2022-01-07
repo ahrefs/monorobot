@@ -100,7 +100,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let rules = cfg.status_rules.rules in
     let action_on_match (branches : branch list) =
       let default = Option.to_list cfg.prefix_rules.default_channel in
-      State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status;
+      let%lwt () = State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status in
       match List.is_empty branches with
       | true -> Lwt.return []
       | false ->
@@ -118,7 +118,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         )
     in
     if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
-      let repo_state = State.find_or_add_repo ctx.state repo.url in
+      let%lwt repo_state = State.find_or_add_repo ctx.state repo.url in
       match Rule.Status.match_rules ~rules n with
       | Some Ignore | None -> Lwt.return []
       | Some Allow -> action_on_match n.branches
@@ -283,7 +283,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let fetch_bot_user_id () =
       match%lwt Slack_api.send_auth_test ~ctx () with
       | Ok { user_id; _ } ->
-        ctx.state.bot_user_id <- Some user_id;
+        State.set_bot_user_id ctx.state user_id;
         let%lwt () =
           Option.value_map ctx.state_filepath ~default:Lwt.return_unit ~f:(fun path ->
             match%lwt State.save ctx.state path with
@@ -320,7 +320,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         )
     in
     let%lwt bot_user_id =
-      match ctx.state.bot_user_id with
+      match State.get_bot_user_id ctx.state with
       | Some id -> Lwt.return_some id
       | None -> fetch_bot_user_id ()
     in
