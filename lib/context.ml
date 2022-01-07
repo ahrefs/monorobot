@@ -12,7 +12,7 @@ type t = {
   state_filepath : string option;
   mutable secrets : Config_t.secrets option;
   config : Config_t.config Stringtbl.t;
-  state : State_t.state;
+  state : State.t;
 }
 
 let default_config_filename = "monorobot.json"
@@ -95,7 +95,7 @@ let refresh_state ctx =
       match get_local_file path with
       | Error e -> fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path
       | Ok file ->
-        let state = State_j.state_of_string file in
+        let state = { ctx.state with state = State_j.state_of_string file } in
         Ok { ctx with state }
     end
     else Ok ctx

@@ -24,7 +24,7 @@ let process ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =
     let repo = Github.repo_of_notification @@ Github.parse_exn headers event in
     let ctx = Context.make () in
     ctx.secrets <- Some secrets;
-    ignore (State.find_or_add_repo ctx.state repo.url);
+    let%lwt _ = State.find_or_add_repo ctx.state repo.url in
     match state_path with
     | None ->
       Context.set_repo_config ctx repo.url config;
@@ -36,7 +36,7 @@ let process ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =
       Lwt.return ctx
     | Ok file ->
       let repo_state = State_j.repo_state_of_string file in
-      Common.Stringtbl.set ctx.state.repos ~key:repo.url ~data:repo_state;
+      let%lwt () = State.set_repo_state ctx.state repo.url repo_state in
       Context.set_repo_config ctx repo.url config;
       Lwt.return ctx
   in
