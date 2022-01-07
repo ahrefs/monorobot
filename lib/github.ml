@@ -92,7 +92,9 @@ type gh_link =
   | Issue of repository * int
   | Commit of repository * commit_hash
 
-let gh_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues)/([a-z0-9]+)/?$|}
+let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues)/([a-z0-9]+)/?$|}
+
+let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported
     GitHub link type, generating repository endpoints if necessary *)
@@ -108,7 +110,7 @@ let gh_link_of_string url_str =
   match Uri.host url with
   | None -> None
   | Some host ->
-  match Re2.find_submatches_exn gh_re path with
+  match Re2.find_submatches_exn gh_link_re path with
   | [| _; prefix; Some owner; Some name; Some link_type; Some item |] ->
     let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
     let scheme = Uri.scheme url in
@@ -137,3 +139,19 @@ let gh_link_of_string url_str =
       with _ -> None
     end
   | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
+
+let get_project_owners (labels : label list) project_owners_map =
+  List.fold_left labels ~init:[] ~f:(fun acc label ->
+    match Map.find_multi project_owners_map label.name with
+    | [] -> acc
+    | reviewers -> List.rev_append reviewers acc
+  )
+  |> List.dedup_and_sort ~compare:String.compare
+  |> List.partition_map ~f:(fun reviewer ->
+       try
+         let team = Re2.find_first_exn ~sub:(`Index 1) gh_org_team_re reviewer in
+         Second team
+       with Re2.Exceptions.Regex_match_failed _ -> First reviewer
+     )
+  |> fun (reviewers, team_reviewers) ->
+  if List.is_empty reviewers && List.is_empty team_reviewers then None else Some { reviewers; team_reviewers }
