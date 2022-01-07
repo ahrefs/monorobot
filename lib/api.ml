@@ -10,6 +10,13 @@ module type Github = sig
   val get_pull_request : ctx:Context.t -> repo:repository -> number:int -> (pull_request, string) Result.t Lwt.t
 
   val get_issue : ctx:Context.t -> repo:repository -> number:int -> (issue, string) Result.t Lwt.t
+
+  val request_reviewers
+    :  ctx:Context.t ->
+    repo:repository ->
+    number:int ->
+    reviewers:request_reviewers_req ->
+    (unit, string) Result.t Lwt.t
 end
 
 module type Slack = sig

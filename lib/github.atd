@@ -269,6 +269,11 @@ type commit_comment_notification = {
   sender: github_user;
 }
 
+type request_reviewers_req = {
+  reviewers : string list;
+  team_reviewers : string list;
+}
+
 (* other generic events *)
 type event_notification = {
   repository: repository
