@@ -4,7 +4,7 @@ open Devkit
 
 type t = {
   state : State_t.state;
-  lock : Lwt_mutex.t;
+  lock : Lwt_mutex.t;  (** protect access to mutable string map `pipeline_statuses` *)
 }
 
 let empty_repo_state () : State_t.repo_state = { pipeline_statuses = StringMap.empty }
