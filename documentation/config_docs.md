@@ -250,6 +250,10 @@ In GitHub, ["code owners"](https://docs.github.com/en/repositories/managing-your
 - Owners are defined _per PR label_, instead of _per directory_ (or directory pattern)
 - Definitions should be placed in the per-repo Monorobot configuration file, instead of a `CODEOWNERS` file
 
+Draft PR behavior is similar to code owners. From GitHub documentation:
+
+> Code owners are not automatically requested to review draft pull requests. [...] When you mark a draft pull request as ready for review, code owners are automatically notified.
+
 The syntax for listing users is `username`. For teams, it is `org/team-name`.
 
 Note that the owner of the personal access token cannot be a project owner, as GitHub disallows a user from self-requesting a review. Consider provisioning a separate bot user, or authenticating using a [GitHub App](https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#accessing-api-endpoints-as-a-github-app) instead.
