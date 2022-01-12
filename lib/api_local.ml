@@ -22,6 +22,8 @@ module Github : Api.Github = struct
   let get_pull_request ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error "undefined for local setup"
 
   let get_issue ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error "undefined for local setup"
+
+  let request_reviewers ~ctx:_ ~repo:_ ~number:_ ~reviewers:_ = Lwt.return @@ Error "undefined for local setup"
 end
 
 module Slack_base : Api.Slack = struct

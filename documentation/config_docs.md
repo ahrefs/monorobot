@@ -23,6 +23,9 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
     },
     "status_rules": {
         ...
+    },
+    "project_owners": {
+        ...
     }
 }
 ```
@@ -33,6 +36,7 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 | `label_rules` | label rules config object | required field |
 | `prefix_rules` | prefix rules config object | required field |
 | `status_rules` | status rules config object | all status notifications are ignored |
+| `project_owners` | project owners config object | no project owners are defined |
 
 ## Label Options
 
@@ -236,5 +240,39 @@ You can optionally provide a **status condition** to specify additional requirem
         "field": "context" | "description" | "target_url",
         "re": string // a regular expression
     }
+}
+```
+
+## Project Owners
+
+In GitHub, ["code owners"](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners) are the users/teams whose review is automatically requested when a PR modifying code in a given directory is opened. **Project owners** behave similarly, with two differences.
+
+- Owners are defined _per PR label_, instead of _per directory_ (or directory pattern)
+- Definitions should be placed in the per-repo Monorobot configuration file, instead of a `CODEOWNERS` file
+
+Draft PR behavior is similar to code owners. From GitHub documentation:
+
+> Code owners are not automatically requested to review draft pull requests. [...] When you mark a draft pull request as ready for review, code owners are automatically notified.
+
+The syntax for listing users is `username`. For teams, it is `org/team-name`.
+
+Note that the owner of the personal access token cannot be a project owner, as GitHub disallows a user from self-requesting a review. Consider provisioning a separate bot user, or authenticating using a [GitHub App](https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#accessing-api-endpoints-as-a-github-app) instead.
+
+```json
+{
+    ...,
+    "project_owners": {
+        "rules": [
+            {
+                "label": "Label 1",
+                "owners": ["user1", "user2", "org/team1"]
+            },
+            {
+                "label": "Label 2",
+                "owners": ["org/team2", "user3"]
+            }
+        ]
+    },
+    ...
 }
 ```

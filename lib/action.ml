@@ -208,6 +208,27 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       if config_was_modified then fetch_config () else Lwt.return @@ Ok ()
     | _ -> Lwt.return @@ Ok ()
 
+  let do_github_tasks ctx (req : Github.t) =
+    let cfg = Context.get_config_exn ctx in
+    let project_owners (pull_request : pull_request) repository number =
+      match Github.get_project_owners pull_request cfg.project_owners with
+      | Some reviewers ->
+        ( match%lwt Github_api.request_reviewers ~ctx ~repo:repository ~number ~reviewers with
+        | Ok () -> Lwt.return_unit
+        | Error e -> action_error e
+        )
+      | None -> Lwt.return_unit
+    in
+    match req with
+    | Github.Pull_request
+        { action; pull_request = { draft = false; state = Open; _ } as pull_request; repository; number; _ } ->
+      begin
+        match action with
+        | Ready_for_review | Labeled -> project_owners pull_request repository number
+        | _ -> Lwt.return_unit
+      end
+    | _ -> Lwt.return_unit
+
   let process_github_notification (ctx : Context.t) headers body =
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
@@ -218,7 +239,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         | Error e -> action_error e
         | Ok () ->
           let%lwt notifications = generate_notifications ctx payload in
-          let%lwt () = send_notifications ctx notifications in
+          let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx payload ] in
           ( match ctx.state_filepath with
           | None -> Lwt.return_unit
           | Some path ->

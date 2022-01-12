@@ -92,7 +92,9 @@ type gh_link =
   | Issue of repository * int
   | Commit of repository * commit_hash
 
-let gh_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues)/([a-z0-9]+)/?$|}
+let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues)/([a-z0-9]+)/?$|}
+
+let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported
     GitHub link type, generating repository endpoints if necessary *)
@@ -108,7 +110,7 @@ let gh_link_of_string url_str =
   match Uri.host url with
   | None -> None
   | Some host ->
-  match Re2.find_submatches_exn gh_re path with
+  match Re2.find_submatches_exn gh_link_re path with
   | [| _; prefix; Some owner; Some name; Some link_type; Some item |] ->
     let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
     let scheme = Uri.scheme url in
@@ -137,3 +139,19 @@ let gh_link_of_string url_str =
       with _ -> None
     end
   | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
+
+let get_project_owners (pr : pull_request) ({ rules } : Config_t.project_owners) =
+  List.fold_left pr.labels ~init:[] ~f:(fun acc l -> List.rev_append (Rule.Project_owners.match_rules l ~rules) acc)
+  |> List.dedup_and_sort ~compare:String.compare
+  |> List.partition_map ~f:(fun reviewer ->
+       try
+         let team = Re2.find_first_exn ~sub:(`Index 1) gh_org_team_re reviewer in
+         Second team
+       with Re2.Exceptions.Regex_match_failed _ -> First reviewer
+     )
+  |> fun (reviewers, team_reviewers) ->
+  let already_requested = List.map ~f:(fun r -> r.login) pr.requested_reviewers in
+  let already_requested_team = List.map ~f:(fun r -> r.slug) pr.requested_teams in
+  let reviewers = List.filter ~f:(not $ List.mem already_requested ~equal:String.equal) reviewers in
+  let team_reviewers = List.filter ~f:(not $ List.mem already_requested_team ~equal:String.equal) team_reviewers in
+  if List.is_empty reviewers && List.is_empty team_reviewers then None else Some { reviewers; team_reviewers }
