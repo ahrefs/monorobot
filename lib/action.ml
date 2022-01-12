@@ -48,7 +48,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
 
   let partition_pr cfg (n : pr_notification) =
     match n.action with
-    | Opened | Closed | Reopened | Labeled -> partition_label cfg n.pull_request.labels
+    | (Opened | Closed | Reopened | Labeled) when not n.pull_request.draft -> partition_label cfg n.pull_request.labels
     | _ -> []
 
   let partition_issue cfg (n : issue_notification) =
