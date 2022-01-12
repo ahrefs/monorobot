@@ -210,16 +210,22 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
 
   let do_github_tasks ctx (req : Github.t) =
     let cfg = Context.get_config_exn ctx in
+    let project_owners (pull_request : pull_request) repository number =
+      match Github.get_project_owners pull_request.labels cfg.project_owners with
+      | Some reviewers ->
+        ( match%lwt Github_api.request_reviewers ~ctx ~repo:repository ~number ~reviewers with
+        | Ok () -> Lwt.return_unit
+        | Error e -> action_error e
+        )
+      | None -> Lwt.return_unit
+    in
     match req with
-    | Github.Pull_request { action = Labeled; pull_request; repository; number; _ } ->
+    | Github.Pull_request
+        { action; pull_request = { draft = false; state = Open; _ } as pull_request; repository; number; _ } ->
       begin
-        match Github.get_project_owners pull_request.labels cfg.project_owners with
-        | Some reviewers ->
-          ( match%lwt Github_api.request_reviewers ~ctx ~repo:repository ~number ~reviewers with
-          | Ok () -> Lwt.return_unit
-          | Error e -> action_error e
-          )
-        | None -> Lwt.return_unit
+        match action with
+        | Ready_for_review | Labeled -> project_owners pull_request repository number
+        | _ -> Lwt.return_unit
       end
     | _ -> Lwt.return_unit
 
