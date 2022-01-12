@@ -211,7 +211,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let do_github_tasks ctx (req : Github.t) =
     let cfg = Context.get_config_exn ctx in
     let project_owners (pull_request : pull_request) repository number =
-      match Github.get_project_owners pull_request.labels cfg.project_owners with
+      match Github.get_project_owners pull_request cfg.project_owners with
       | Some reviewers ->
         ( match%lwt Github_api.request_reviewers ~ctx ~repo:repository ~number ~reviewers with
         | Ok () -> Lwt.return_unit
