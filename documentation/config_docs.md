@@ -258,8 +258,16 @@ Note that the owner of the personal access token cannot be a project owner, as G
 {
     ...,
     "project_owners": {
-        "Label 1": ["user1", "user2", "org/team1"],
-        "Label 2": ["org/team2", "user3"]
+        "rules": [
+            {
+                "label": "Label 1",
+                "owners": ["user1", "user2", "org/team1"]
+            },
+            {
+                "label": "Label 2",
+                "owners": ["org/team2", "user3"]
+            }
+        ]
     },
     ...
 }

@@ -125,3 +125,10 @@ module Label = struct
          Stdio.printf " -> #%s\n%!" rule.channel_name
        )
 end
+
+module Project_owners = struct
+  let match_rules (l : Github_t.label) ~rules =
+    match List.find rules ~f:(fun { label; _ } -> String.equal label l.name) with
+    | Some { owners = []; _ } | None -> []
+    | Some { owners; _ } -> owners
+end

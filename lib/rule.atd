@@ -80,3 +80,12 @@ type label_rule = {
   ?ignore : string list nullable;
   channel_name <json name="channel"> : string;
 }
+
+(* Requests reviews from [owners] if a PR is labeled with [label]. Owner format:
+   - users: "username"
+   - teams: "org/team"
+*)
+type project_owners_rule = {
+  label: string;
+  owners: string list;
+}

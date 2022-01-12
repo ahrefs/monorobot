@@ -140,12 +140,8 @@ let gh_link_of_string url_str =
     end
   | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
 
-let get_project_owners (labels : label list) project_owners_map =
-  List.fold_left labels ~init:[] ~f:(fun acc label ->
-    match Map.find_multi project_owners_map label.name with
-    | [] -> acc
-    | reviewers -> List.rev_append reviewers acc
-  )
+let get_project_owners (labels : label list) ({ rules } : Config_t.project_owners) =
+  List.fold_left labels ~init:[] ~f:(fun acc l -> List.rev_append (Rule.Project_owners.match_rules l ~rules) acc)
   |> List.dedup_and_sort ~compare:String.compare
   |> List.partition_map ~f:(fun reviewer ->
        try
