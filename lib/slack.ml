@@ -268,8 +268,11 @@ let generate_push_notification notification channel =
     (* truncation point depends on line length, but 10 lines seems okay for most cases *)
     let num_shown = 10 in
     let dropped = num_commits - num_shown in
-    if dropped > 0 then
-      List.rev_map_append (List.drop (List.rev commits) dropped) [ sprintf "+%d more..." dropped ] ~f:pp_commit
+    if dropped > 0 then begin
+      let h, commits' = List.split_n commits (num_shown / 2) in
+      let t = List.drop commits' dropped in
+      List.concat [ List.map ~f:pp_commit h; [ sprintf "+%d more..." dropped ]; List.map ~f:pp_commit t ]
+    end
     else List.map commits ~f:pp_commit
   in
   {
