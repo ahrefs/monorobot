@@ -116,6 +116,22 @@ let populate_issue repository (issue : issue) =
     fallback = Some (sprintf "[%s] %s" repository.full_name title);
   }
 
+(* use some date library :see_no_evil: *)
+let month = function
+  | 1 -> "Jan"
+  | 2 -> "Feb"
+  | 3 -> "Mar"
+  | 4 -> "Apr"
+  | 5 -> "May"
+  | 6 -> "Jun"
+  | 7 -> "Jul"
+  | 8 -> "Aug"
+  | 9 -> "Sep"
+  | 10 -> "Oct"
+  | 11 -> "Nov"
+  | 12 -> "Dec"
+  | _ -> assert false
+
 let populate_commit repository (commit : api_commit) =
   let ({ sha; commit; url; author; files; _ } : api_commit) = commit in
   let title =
@@ -135,9 +151,28 @@ let populate_commit repository (commit : api_commit) =
         |> String.concat ~sep:"/"
       in
       let where = if String.is_empty prefix_path then "" else sprintf " in `%s/`" prefix_path in
-      (* TODO use "today" on same day, "Month Day" during same year
-        even better would be to have "N units ago" and tooltip, but looks like slack doesn't provide such thing *)
-      sprintf "modified %d files%s on %s" (List.length files) where commit.author.date
+      let when_ =
+        (*
+        use "today" on same day, "Month Day" during same year
+        even better would be to have "N units ago" and tooltip computed by slack at time of presentation
+        but looks like slack doesn't provide such functionality
+      *)
+        try
+          match String.split commit.author.date ~on:'T' with
+          | [ date; _ ] ->
+            let yy, mm, dd =
+              let tm = Unix.gmtime @@ Devkit.Time.now () in
+              tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday
+            in
+            ( match List.map ~f:Int.of_string @@ String.split date ~on:'-' with
+            | [ y; m; d ] when y = yy && m = mm && d = dd -> "today"
+            | [ y; m; d ] when y = yy -> sprintf " on %s %d" (month m) d
+            | _ -> date
+            )
+          | _ -> failwith "wut"
+        with _ -> " on " ^ commit.author.date
+      in
+      sprintf "modified %d files%s %s" (List.length files) where when_
   in
   let text = sprintf "%s\n%s" title changes in
   let fallback = sprintf "[%s] %s - %s" (Slack.git_short_sha_hash sha) commit.message commit.author.name in
