@@ -6,6 +6,12 @@ type git_user = {
   ?username: string option;
 }
 
+type git_user_with_date = {
+  name: string;
+  email: string;
+  date: string;
+}
+
 type commit_hash = string
 
 type commit = {
@@ -14,7 +20,7 @@ type commit = {
   message: string;
   timestamp: string;
   url: string;
-  author:  git_user;
+  author: git_user;
   committer: git_user;
   added: string list;
   removed: string list;
@@ -209,7 +215,8 @@ type status_state = [
 ] <ocaml repr="classic">
 
 type inner_commit = {
-  author: git_user;
+  author: git_user_with_date;
+  committer: git_user_with_date;
   message: string;
 }
 

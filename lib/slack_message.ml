@@ -37,13 +37,10 @@ let empty_attachment =
     footer = None;
   }
 
-let base_attachment (repository : repository) =
-  { empty_attachment with footer = Some (sprintf "<%s|%s>" repository.url (escape_mrkdwn repository.full_name)) }
-
+let simple_footer (repository : repository) = sprintf "<%s|%s>" repository.url (escape_mrkdwn repository.full_name)
+let base_attachment repository = { empty_attachment with footer = Some (simple_footer repository) }
 let pp_label (label : label) = label.name
-
 let pp_github_user (user : github_user) = gh_name_of_string user.login
-
 let pp_github_team (team : github_team) = gh_name_of_string team.slug
 
 let populate_pull_request repository (pull_request : pull_request) =
@@ -137,12 +134,20 @@ let populate_commit repository (commit : api_commit) =
         |> List.drop_last_exn
         |> String.concat ~sep:"/"
       in
-      sprintf "modified %d files in `%s/`" (List.length files) prefix_path
+      let where = if String.is_empty prefix_path then "" else sprintf " in `%s/`" prefix_path in
+      (* TODO use "today" on same day, "Month Day" during same year
+        even better would be to have "N units ago" and tooltip, but looks like slack doesn't provide such thing *)
+      sprintf "modified %d files%s on %s" (List.length files) where commit.author.date
   in
   let text = sprintf "%s\n%s" title changes in
   let fallback = sprintf "[%s] %s - %s" (Slack.git_short_sha_hash sha) commit.message commit.author.name in
   {
     (base_attachment repository) with
+    footer =
+      Some
+        (simple_footer repository
+        ^ if String.equal commit.committer.date commit.author.date then "" else " " ^ commit.committer.date
+        );
     (*
     author_name = Some author.login;
     author_link = Some author.html_url;
