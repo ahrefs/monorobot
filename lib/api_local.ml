@@ -3,7 +3,6 @@ open Common
 open Devkit
 
 let cwd = Caml.Sys.getcwd ()
-
 let cache_dir = Caml.Filename.concat cwd "github-api-cache"
 
 module Github : Api.Github = struct
@@ -20,17 +19,13 @@ module Github : Api.Github = struct
     | Ok file -> Lwt.return @@ Ok (Github_j.api_commit_of_string file)
 
   let get_pull_request ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error "undefined for local setup"
-
   let get_issue ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error "undefined for local setup"
-
   let request_reviewers ~ctx:_ ~repo:_ ~number:_ ~reviewers:_ = Lwt.return @@ Error "undefined for local setup"
 end
 
 module Slack_base : Api.Slack = struct
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
-
   let send_chat_unfurl ~ctx:_ _ = Lwt.return @@ Error "undefined for local setup"
-
   let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
 end
 

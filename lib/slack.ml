@@ -24,7 +24,6 @@ let empty_attachments =
   }
 
 let mrkdwn_of_markdown str = String.strip @@ Mrkdwn.mrkdwn_of_markdown str
-
 let mrkdwn_of_markdown_opt = Option.map ~f:mrkdwn_of_markdown
 
 let show_labels = function

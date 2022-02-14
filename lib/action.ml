@@ -8,7 +8,6 @@ open Github_j
 exception Action_error of string
 
 let action_error msg = raise (Action_error msg)
-
 let log = Log.from "action"
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct

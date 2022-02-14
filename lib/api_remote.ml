@@ -78,7 +78,6 @@ end
 
 module Slack : Api.Slack = struct
   let log = Log.from "slack"
-
   let query_error_msg url e = sprintf "error while querying %s: %s" url e
 
   let slack_api_request ?headers ?body meth url read =

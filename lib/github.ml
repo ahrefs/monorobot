@@ -93,7 +93,6 @@ type gh_link =
   | Commit of repository * commit_hash
 
 let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues)/([a-z0-9]+)/?$|}
-
 let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported

@@ -2,9 +2,7 @@ open Base
 open Lib
 
 let log = Devkit.Log.from "test"
-
 let mock_payload_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_payloads"
-
 let mock_state_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_states"
 
 module Action_local = Action.Action (Api_local.Github) (Api_local.Slack)

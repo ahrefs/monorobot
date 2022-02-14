@@ -40,11 +40,7 @@ module List_or_default_field = struct
 end
 
 module Branch_filters_adapter = List_or_default_field.Make (struct
-  let field_name = "branch_filters"
-
-  let default_alias = "any"
-
-  let default_value = `List []
+  let field_name = "branch_filters" let default_alias = "any" let default_value = `List []
 end)
 
 (** Error detection in Slack API response. The web API communicates errors using

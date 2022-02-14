@@ -122,5 +122,4 @@ let default_cmd =
   Term.(ret (const (`Help (`Pager, None)))), Term.info "monorobot" ~doc ~version:Version.current
 
 let cmds = [ run; check_gh; check_slack ]
-
 let () = Term.(exit @@ eval_choice default_cmd cmds)

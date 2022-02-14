@@ -16,11 +16,8 @@ let mk_repo ?(scheme = "https") prefix prefix_api : repository =
   }
 
 let enterprise_repo1 = mk_repo "example.org" "example.org/api/v3"
-
 let enterprise_repo2 = mk_repo "example.org/path/to/git" "example.org/path/to/git/api/v3"
-
 let enterprise_repo_insecure = mk_repo ~scheme:"http" "example.org" "example.org/api/v3"
-
 let github_repo = mk_repo "github.com" "api.github.com"
 
 let pr_cases prefix repo =
