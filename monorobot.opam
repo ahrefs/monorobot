@@ -18,7 +18,7 @@ depends: [
  "base" {>= "v0.13.0"}
  "base64" {>= "3.0.0"}
  "biniou"
- "cmdliner" {>= "0.9.8"}
+ "cmdliner" {>= "0.9.8" & < "1.1.0"} # TODO fix deprecation warnings
  "cstruct"
  "devkit" {>= "1.20210120"}
  "extlib" {>= "1.7.8"}
