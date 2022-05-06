@@ -239,8 +239,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     in
     let repo_is_allowed secrets payload =
       let repo = Github.repo_of_notification payload in
-      let allowed_repos = secrets.allowed_repos in
-      List.is_empty allowed_repos || List.exists allowed_repos ~f:(String.equal repo.url)
+      List.is_empty secrets.repos || List.exists secrets.repos ~f:(fun r -> String.equal r.url repo.url)
     in
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
