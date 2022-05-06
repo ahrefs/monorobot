@@ -44,24 +44,20 @@ type webhook = {
   channel : string; (* name of the Slack channel to post the message *)
 }
 
-type gh_secrets = {
+type repo_config = {
+  (* Repository url. Fully qualified (include protocol), without trailing slash. e.g. https://github.com/ahrefs/monorobot *)
+  url : string;
   (* GitHub personal access token, if repo access requires it *)
   ?gh_token : string nullable;
   (* GitHub webhook token to secure the webhook *)
   ?gh_hook_token : string nullable;
 }
 
-type repo_config = {
-  url : string;
-  inherit gh_secrets;
-}
-
 (* This is the structure of the secrets file which stores sensitive information, and
    shouldn't be checked into version control.  *)
 type secrets = {
-  inherit gh_secrets;
   (* repo-specific secrets; overrides global values if defined for a given repo *)
-  ~repos <ocaml default="[]"> : repo_config list;
+  repos : repo_config list;
   (* list of Slack webhook & channel name pairs *)
   ~slack_hooks <ocaml default="[]"> : webhook list;
   (* Slack bot token (`xoxb-XXXX`), giving the bot capabilities to interact with the workspace *)

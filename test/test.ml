@@ -22,6 +22,8 @@ let process ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =
   let headers = [ "x-github-event", kind ] in
   let make_test_context event =
     let repo = Github.repo_of_notification @@ Github.parse_exn headers event in
+    (* overwrite repo url in secrets with that of notification for this test case *)
+    let secrets = { secrets with repos = [ { url = repo.url; gh_token = None; gh_hook_token = None } ] } in
     let ctx = Context.make () in
     ctx.secrets <- Some secrets;
     let%lwt _ = State.find_or_add_repo ctx.state repo.url in

@@ -237,9 +237,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       let signing_key = Context.gh_hook_token_of_secrets secrets repo.url in
       Github.validate_signature ?signing_key ~headers body
     in
-    let repo_is_allowed secrets payload =
+    let repo_is_supported secrets payload =
       let repo = Github.repo_of_notification payload in
-      List.is_empty secrets.repos || List.exists secrets.repos ~f:(fun r -> String.equal r.url repo.url)
+      List.exists secrets.repos ~f:(fun r -> String.equal r.url repo.url)
     in
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
@@ -249,7 +249,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       match validate_signature secrets payload with
       | Error e -> action_error e
       | Ok () ->
-      match repo_is_allowed secrets payload with
+      match repo_is_supported secrets payload with
       | false -> action_error "unsupported repository"
       | true ->
         ( match%lwt refresh_repo_config ctx payload with
