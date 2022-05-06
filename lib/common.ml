@@ -16,13 +16,9 @@ module Stringtbl = struct
   type 'a t = 'a Hashtbl.M(String).t
 
   let empty () = Hashtbl.create (module String)
-
   let to_list (l : 'a t) : (string * 'a) list = Hashtbl.to_alist l
-
   let of_list (m : (string * 'a) list) : 'a t = Hashtbl.of_alist_exn (module String) m
-
   let wrap = of_list
-
   let unwrap = to_list
 end
 

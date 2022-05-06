@@ -35,9 +35,7 @@ let set_repo_pipeline_status { state; lock } repo_url ~pipeline ~(branches : Git
   Lwt.return_unit
 
 let set_bot_user_id { state; _ } user_id = state.State_t.bot_user_id <- Some user_id
-
 let get_bot_user_id { state; _ } = state.State_t.bot_user_id
-
 let log = Log.from "state"
 
 let save { state; _ } path =
