@@ -101,25 +101,27 @@ let json =
 
 let run =
   let doc = "launch the http server" in
-  let info = Term.info "run" ~doc in
+  let info = Cmd.info "run" ~doc in
   let term = Term.(const http_server_action $ addr $ port $ config $ secrets $ state) in
-  term, info
+  Cmd.v info term
 
 let check_gh =
   let doc = "read a Github notification from a file and display the actions that will be taken; used for testing" in
-  let info = Term.info "check_gh" ~doc in
+  let info = Cmd.info "check_gh" ~doc in
   let term = Term.(const check_gh_action $ gh_payload $ json $ config $ secrets $ state) in
-  term, info
+  Cmd.v info term
 
 let check_slack =
   let doc = "read a Slack notification from a file and send it to a channel; used for testing" in
-  let info = Term.info "check_slack" ~doc in
+  let info = Cmd.info "check_slack" ~doc in
   let term = Term.(const check_slack_action $ slack_payload $ secrets) in
-  term, info
+  Cmd.v info term
 
-let default_cmd =
+let default, info =
   let doc = "the notification bot" in
-  Term.(ret (const (`Help (`Pager, None)))), Term.info "monorobot" ~doc ~version:Version.current
+  Term.(ret (const (`Help (`Pager, None)))), Cmd.info "monorobot" ~doc ~version:Version.current
 
-let cmds = [ run; check_gh; check_slack ]
-let () = Term.(exit @@ eval_choice default_cmd cmds)
+let () =
+  let cmds = [ run; check_gh; check_slack ] in
+  let group = Cmd.group ~default info cmds in
+  Caml.exit @@ Cmd.eval group
