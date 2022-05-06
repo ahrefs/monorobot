@@ -17,8 +17,7 @@ A secrets file stores sensitive information. Unlike the repository configuration
 |-|-|-|-|
 | `gh_token` | specify to grant the bot access to private repositories; omit for public repositories | Yes | - |
 | `gh_hook_token` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
-| `repos` | an object mapping repository URLs to repository-specific GitHub secrets | Yes | - |
-| `allowed_repos` | a whitelist of repository URLs to process payloads for | Yes | all incoming payloads are processed |
+| `repos` | specify to use Monorobot in multiple repositories (with support for overriding secrets) | Yes | - |
 | `slack_access_token` | slack bot access token to enable message posting to the workspace | Yes | try to use webhooks defined in `slack_hooks` instead |
 | `slack_hooks` | list of channel names and their corresponding webhook endpoint | Yes | try to use token defined in `slack_access_token` instead |
 | `slack_signing_secret` | specify to verify incoming slack requests | Yes | - |
@@ -39,27 +38,25 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 
 ## `repos`
 
-If you're using Monorobot for multiple repositories that need different secrets (e.g., one on github.com and another on GitHub Enterprise), you can provide them as an object. Secrets defined here will take precedence over those defined at the top level of the secrets file.
+Specifies which repositories to accept events from, along with any repository-specific overrides to secrets. If omitted, assumes all notifications come from a single repository and accepts all events.
+
+Secrets defined here take precedence over those defined at the top level of the secrets file.
 
 Repository URLs should be fully qualified (include the protocol), with no trailing backslash.
 
 ```json
-{
-  "https://github.com/ahrefs/runner" : {
+[
+  {
+    "url": "https://github.com/ahrefs/runner",
     "gh_token": "XXX"
   },
-  "https://example.org/ahrefs/coyote" : {
+  {
+    "url": "https://example.org/ahrefs/coyote",
     "gh_token": "XXX",
     "gh_hook_token": "XXX"
   }
-}
+]
 ```
-
-## `allowed_repos`
-
-Use this option to restrict incoming notifications from GitHub to approved repository URLs.
-
-Repository URLs should be fully qualified (include the protocol), with no trailing backslash.
 
 ## `slack_access_token`
 

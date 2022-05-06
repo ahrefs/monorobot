@@ -2,7 +2,6 @@ type status_rule <ocaml from="Rule"> = abstract
 type prefix_rule <ocaml from="Rule"> = abstract
 type label_rule <ocaml from="Rule"> = abstract
 type project_owners_rule <ocaml from="Rule"> = abstract
-type 'v map_as_object <ocaml from="Common"> = abstract
 
 (* This type of rule is used for CI build notifications. *)
 type status_rules = {
@@ -45,24 +44,24 @@ type webhook = {
   channel : string; (* name of the Slack channel to post the message *)
 }
 
-type gh_repo_secrets = {
+type gh_secrets = {
   (* GitHub personal access token, if repo access requires it *)
   ?gh_token : string nullable;
   (* GitHub webhook token to secure the webhook *)
   ?gh_hook_token : string nullable;
 }
 
+type repo_config = {
+  url : string;
+  inherit gh_secrets;
+}
+
 (* This is the structure of the secrets file which stores sensitive information, and
    shouldn't be checked into version control.  *)
 type secrets = {
+  inherit gh_secrets;
   (* repo-specific secrets; overrides global values if defined for a given repo *)
-  ~repo_secrets <ocaml default="Common.StringMap.empty"> : gh_repo_secrets map_as_object;
-  (* whitelist of repository URLs to handle notifications for *)
-  ~allowed_repos <ocaml default="[]"> : string list;
-  (* GitHub personal access token, if repo access requires it *)
-  ?gh_token : string nullable;
-  (* GitHub webhook token to secure the webhook *)
-  ?gh_hook_token : string nullable;
+  ~repos <ocaml default="[]"> : repo_config list;
   (* list of Slack webhook & channel name pairs *)
   ~slack_hooks <ocaml default="[]"> : webhook list;
   (* Slack bot token (`xoxb-XXXX`), giving the bot capabilities to interact with the workspace *)

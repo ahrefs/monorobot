@@ -16,7 +16,6 @@ type t = {
 }
 
 let default_config_filename = "monorobot.json"
-
 let default_secrets_filepath = "secrets.json"
 
 let make ?config_filename ?secrets_filepath ?state_filepath () =
@@ -44,14 +43,14 @@ let find_repo_config_exn ctx repo_url =
 let set_repo_config ctx repo_url config = Stringtbl.set ctx.config ~key:repo_url ~data:config
 
 let gh_token_of_secrets (secrets : Config_t.secrets) repo_url =
-  match Map.find secrets.repo_secrets repo_url with
+  match List.find secrets.repos ~f:(fun r -> String.equal r.Config_t.url repo_url) with
   | None -> secrets.gh_token
-  | Some repo_secrets -> repo_secrets.gh_token
+  | Some repos -> repos.gh_token
 
 let gh_hook_token_of_secrets (secrets : Config_t.secrets) repo_url =
-  match Map.find secrets.repo_secrets repo_url with
+  match List.find secrets.repos ~f:(fun r -> String.equal r.Config_t.url repo_url) with
   | None -> secrets.gh_hook_token
-  | Some repo_secrets -> repo_secrets.gh_hook_token
+  | Some repos -> repos.gh_hook_token
 
 let hook_of_channel ctx channel_name =
   let secrets = get_secrets_exn ctx in
