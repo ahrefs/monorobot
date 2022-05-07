@@ -6,14 +6,26 @@ exception Context_error of string
 
 let context_error fmt = Printf.ksprintf (fun msg -> raise (Context_error msg)) fmt
 
+type user = {
+  id : string;
+  real_name : string;
+  display_name : string;
+  email : string;
+}
+
 type t = {
   config_filename : string;
   secrets_filepath : string;
   state_filepath : string option;
   mutable secrets : Config_t.secrets option;
   config : Config_t.config Stringtbl.t;
+  users : user Stringtbl.t;
   state : State.t;
 }
+
+type slack_auth_mode =
+  | Webhook
+  | Token
 
 let default_config_filename = "monorobot.json"
 let default_secrets_filepath = "secrets.json"
@@ -25,6 +37,7 @@ let make ?config_filename ?secrets_filepath ?state_filepath () =
     state_filepath;
     secrets = None;
     config = Stringtbl.empty ();
+    users = Stringtbl.empty ();
     state = State.empty ();
   }
 
@@ -32,6 +45,12 @@ let get_secrets_exn ctx =
   match ctx.secrets with
   | None -> context_error "secrets is uninitialized"
   | Some secrets -> secrets
+
+let slack_auth_mode_exn ctx =
+  let secrets = get_secrets_exn ctx in
+  match secrets.Config_t.slack_access_token with
+  | None -> Webhook
+  | Some _ -> Token
 
 let find_repo_config ctx repo_url = Stringtbl.find ctx.config repo_url
 
@@ -112,3 +131,10 @@ let print_config ctx repo_url =
   log#info "using label routing:";
   Rule.Label.print_label_routing cfg.label_rules.rules;
   log#info "signature checking %s" (if Option.is_some token then "enabled" else "disabled")
+
+let user_of_slack_user (user : Slack_t.user) =
+  if Slack.is_human user then begin
+    let Slack_t.{ real_name; display_name; _ } = user.profile in
+    Option.map user.profile.email ~f:(fun email -> email, { id = user.id; real_name; display_name; email })
+  end
+  else None

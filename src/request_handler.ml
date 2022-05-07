@@ -60,7 +60,32 @@ let setup_http ~ctx ~signature ~port ~ip =
   in
   Lwt.return_unit
 
+let users_refresh_interval = Time.hours 4
+
+let refresh_users ctx =
+  let rec loop ctx =
+    let%lwt () =
+      match%lwt Api_remote.Slack.get_users_list ~ctx () with
+      | Ok users ->
+        Common.Stringtbl.clear ctx.users;
+        users.members
+        |> List.filter_map Context.user_of_slack_user
+        |> List.iter (fun (email, user) -> Common.Stringtbl.add_exn ctx.users ~key:email ~data:user)
+        |> Lwt.return
+      | Error e ->
+        log#error "refresh_users: %s" e;
+        Lwt.return_unit
+    in
+    let%lwt () = Lwt_unix.sleep users_refresh_interval in
+    loop ctx
+  in
+  match Context.slack_auth_mode_exn ctx with
+  | Context.Webhook ->
+    log#warn "slack: not using token auth, user DM feature will be disabled";
+    Lwt.return_unit
+  | Token -> loop ctx
+
 let run ~ctx ~addr ~port =
   let ip = Unix.inet_addr_of_string addr in
   let signature = sprintf "listen %s:%d" (Unix.string_of_inet_addr ip) port in
-  setup_http ~ctx ~signature ~port ~ip
+  Lwt.join [ setup_http ~ctx ~signature ~port ~ip; refresh_users ctx ]
