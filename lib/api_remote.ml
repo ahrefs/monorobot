@@ -150,4 +150,17 @@ module Slack : Api.Slack = struct
       | Ok res -> Lwt.return @@ Ok res
       | Error e -> Lwt.return @@ fmt_error "%s\nfailed to retrieve Slack auth info" e
       )
+
+  let get_users_list ~(ctx : Context.t) () =
+    log#info "retrieving workspace users";
+    let secrets = Context.get_secrets_exn ctx in
+    match secrets.slack_access_token with
+    | None -> Lwt.return @@ Error "failed to retrieve Slack access token"
+    | Some access_token ->
+      let url = "https://slack.com/api/users.list" in
+      let headers = [ bearer_token_header access_token ] in
+      ( match%lwt slack_api_request ~headers `GET url Slack_j.read_users_list_res with
+      | Ok res -> Lwt.return @@ Ok res
+      | Error e -> Lwt.return @@ fmt_error "%s\nfailed to retrieve rorkspace users" e
+      )
 end

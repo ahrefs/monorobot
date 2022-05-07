@@ -56,6 +56,20 @@ type message_block = [
   | Divider of message_divider_block
 ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
+type user_profile = {
+  real_name: string;
+  display_name: string;
+  ~email: string nullable;
+}
+
+type user = {
+  id: string;
+  profile: user_profile;
+  deleted: bool;
+  is_bot: bool;
+  ~is_ultra_restricted <ocaml default="false">: bool;
+}
+
 type post_message_req = {
   channel: string;
   ?text: string nullable;
@@ -122,6 +136,10 @@ type auth_test_res = {
   user: string;
   team_id: string;
   user_id: string;
+}
+
+type users_list_res = {
+  members : user list;
 }
 
 type ('ok, 'err) http_response <ocaml predef module="Base.Result" t="t"> = [
