@@ -149,8 +149,8 @@ let get_project_owners (pr : pull_request) ({ rules } : Config_t.project_owners)
        with Re2.Exceptions.Regex_match_failed _ -> First reviewer
      )
   |> fun (reviewers, team_reviewers) ->
-  let already_requested = List.map ~f:(fun r -> r.login) pr.requested_reviewers in
+  let already_requested_or_author = pr.user.login :: List.map ~f:(fun r -> r.login) pr.requested_reviewers in
   let already_requested_team = List.map ~f:(fun r -> r.slug) pr.requested_teams in
-  let reviewers = List.filter ~f:(not $ List.mem already_requested ~equal:String.equal) reviewers in
+  let reviewers = List.filter ~f:(not $ List.mem already_requested_or_author ~equal:String.equal) reviewers in
   let team_reviewers = List.filter ~f:(not $ List.mem already_requested_team ~equal:String.equal) team_reviewers in
   if List.is_empty reviewers && List.is_empty team_reviewers then None else Some { reviewers; team_reviewers }
