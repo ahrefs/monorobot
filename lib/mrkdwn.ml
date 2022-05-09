@@ -68,7 +68,7 @@ let rec mrkdwn_of_md md =
       (* [rc] stores all refs from document, so it's enough to record just the
          first encounter
       *)
-      if Option.is_empty !references then references := Some rc;
+      if Option.is_none !references then references := Some rc;
       (* [fallback#to_string] renders as
          [<text>][<name>] for Ref, e.g., [interesting fact][1]
          and
