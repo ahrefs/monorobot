@@ -264,10 +264,10 @@ let generate_push_notification notification channel =
       let title = first_line message in
       sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name
     in
-    (* truncation point depends on line length, but 10 lines seems okay for most cases *)
-    let num_shown = 10 in
+    (* truncation point depends on line length, but 7+3 lines seems okay for most cases *)
+    let num_shown = 7 in
     let dropped = num_commits - num_shown in
-    if dropped > 0 then begin
+    if dropped > 3 then begin
       let h, commits' = List.split_n commits (num_shown / 2) in
       let t = List.drop commits' dropped in
       List.concat [ List.map ~f:pp_commit h; [ sprintf "+%d more..." dropped ]; List.map ~f:pp_commit t ]
