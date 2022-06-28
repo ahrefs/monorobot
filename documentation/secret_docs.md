@@ -8,26 +8,58 @@ A secrets file stores sensitive information. Unlike the repository configuration
 
 ```json
 {
-    "gh_token": "",
-    "slack_access_token": ""
+    "repos": [
+      {
+        "url": "https://github.com/ahrefs/monorobot",
+        "gh_token": "XXX"
+      }
+    ],
+    "slack_access_token": "XXX"
 }
 ```
 
 | value | description | optional | default |
 |-|-|-|-|
-| `gh_token` | specify to grant the bot access to private repositories; omit for public repositories | Yes | - |
-| `gh_hook_token` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
+| `repos` | specify each target repository's url and its secrets | No | - |
 | `slack_access_token` | slack bot access token to enable message posting to the workspace | Yes | try to use webhooks defined in `slack_hooks` instead |
 | `slack_hooks` | list of channel names and their corresponding webhook endpoint | Yes | try to use token defined in `slack_access_token` instead |
 | `slack_signing_secret` | specify to verify incoming slack requests | Yes | - |
 
 Note that either `slack_access_token` or `slack_hooks` must be defined. If both are present, the bot will send notifications using webhooks.
 
-## `gh_token`
+## `repos`
+
+Specifies which repositories to accept events from, along with any repository-specific overrides to secrets.
+
+```json
+[
+  {
+    "url": "https://github.com/ahrefs/runner",
+    "gh_token": "XXX"
+  },
+  {
+    "url": "https://git.ahrefs.com/ahrefs/coyote",
+    "gh_token": "XXX",
+    "gh_hook_token": "XXX"
+  }
+]
+```
+
+| value | description | optional | default |
+|-|-|-|-|
+| `url` | the repository url. | No | - |
+| `gh_token` | specify to grant the bot access to private repositories; omit for public repositories | Yes | - |
+| `gh_hook_token` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
+
+### `repos`
+
+Repository URLs should be fully qualified (include the protocol), with no trailing backslash.
+
+### `gh_token`
 
 Some operations, such as fetching a config file from a private repository, or the commit corresponding to a commit comment event, require a personal access token. Refer [here](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) for detailed instructions on token generation.
 
-## `gh_hook_token`
+### `gh_hook_token`
 
 Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/securing-your-webhooks) for more information on securing webhooks with a token.
 

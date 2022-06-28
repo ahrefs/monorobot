@@ -55,7 +55,7 @@ Note: The `slack_access_token` must be configured in your secrets file for link 
 
 ### Documentation
 
-The bot expects two configuration files to be present.
+Commit a configuration file to the root of each repository you want to support, and add a secrets file on the bot server itself. Read on for instructions to set up each file:
 
 * [Repository configuration](./documentation/config_docs.md)
 * [Secrets](./documentation/secret_docs.md)
