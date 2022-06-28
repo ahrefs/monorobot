@@ -93,13 +93,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     if List.is_empty matched_channel_names then default else matched_channel_names
 
   let partition_status (ctx : Context.t) (n : status_notification) =
-    let cfg = Context.get_config_exn ctx in
+    let repo = n.repository in
+    let cfg = Context.find_repo_config_exn ctx repo.url in
     let pipeline = n.context in
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
     let action_on_match (branches : branch list) =
       let default = Option.to_list cfg.prefix_rules.default_channel in
-      let () = Context.refresh_pipeline_status ~pipeline ~branches ~status:current_status ctx in
+      let%lwt () = State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status in
       match List.is_empty branches with
       | true -> Lwt.return []
       | false ->
@@ -111,18 +112,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | false -> Lwt.return default
       | true ->
         let sha = n.commit.sha in
-        let repo = n.repository in
         ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
         | Error e -> action_error e
         | Ok commit -> Lwt.return @@ partition_commit cfg commit.files
         )
     in
-    if Context.is_pipeline_allowed ctx ~pipeline then begin
+    if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
+      let%lwt repo_state = State.find_or_add_repo ctx.state repo.url in
       match Rule.Status.match_rules ~rules n with
       | Some Ignore | None -> Lwt.return []
       | Some Allow -> action_on_match n.branches
       | Some Allow_once ->
-      match Map.find ctx.state.pipeline_statuses pipeline with
+      match Map.find repo_state.pipeline_statuses pipeline with
       | Some branch_statuses ->
         let has_same_status_state_as_prev (branch : branch) =
           match Map.find branch_statuses branch.name with
@@ -136,7 +137,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     else Lwt.return []
 
   let partition_commit_comment (ctx : Context.t) n =
-    let cfg = Context.get_config_exn ctx in
+    let cfg = Context.find_repo_config_exn ctx n.repository.url in
     match n.comment.commit_id with
     | None -> action_error "unable to find commit id for this commit comment event"
     | Some sha ->
@@ -155,7 +156,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       )
 
   let generate_notifications (ctx : Context.t) req =
-    let cfg = Context.get_config_exn ctx in
+    let repo = Github.repo_of_notification req in
+    let cfg = Context.find_repo_config_exn ctx repo.url in
     match req with
     | Github.Push n ->
       partition_push cfg n |> List.map ~f:(fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
@@ -184,20 +186,20 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     in
     Lwt_list.iter_s notify notifications
 
-  (** [refresh_config_of_context ctx n] updates the current context if the configuration
-      hasn't been loaded yet, or if the incoming request [n] is a push
+  (** [refresh_repo_config ctx n] fetches the latest repo config if it's
+      uninitialized, or if the incoming request [n] is a push
       notification containing commits that touched the config file. *)
-  let refresh_config_of_context (ctx : Context.t) notification =
+  let refresh_repo_config (ctx : Context.t) notification =
+    let repo = Github.repo_of_notification notification in
     let fetch_config () =
-      let repo = Github.repo_of_notification notification in
       match%lwt Github_api.get_config ~ctx ~repo with
       | Ok config ->
-        ctx.config <- Some config;
-        Context.print_config ctx;
+        Context.set_repo_config ctx repo.url config;
+        Context.print_config ctx repo.url;
         Lwt.return @@ Ok ()
       | Error e -> action_error e
     in
-    match ctx.config with
+    match Context.find_repo_config ctx repo.url with
     | None -> fetch_config ()
     | Some _ ->
     match notification with
@@ -208,8 +210,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       if config_was_modified then fetch_config () else Lwt.return @@ Ok ()
     | _ -> Lwt.return @@ Ok ()
 
-  let do_github_tasks ctx (req : Github.t) =
-    let cfg = Context.get_config_exn ctx in
+  let do_github_tasks ctx (repo : repository) (req : Github.t) =
+    let cfg = Context.find_repo_config_exn ctx repo.url in
     let project_owners (pull_request : pull_request) repository number =
       match Github.get_project_owners pull_request cfg.project_owners with
       | Some reviewers ->
@@ -230,16 +232,32 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | _ -> Lwt.return_unit
 
   let process_github_notification (ctx : Context.t) headers body =
+    let validate_signature secrets payload =
+      let repo = Github.repo_of_notification payload in
+      let signing_key = Context.gh_hook_token_of_secrets secrets repo.url in
+      Github.validate_signature ?signing_key ~headers body
+    in
+    let repo_is_supported secrets payload =
+      let repo = Github.repo_of_notification payload in
+      List.exists secrets.repos ~f:(fun r -> String.equal r.url repo.url)
+    in
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
-      match Github.parse_exn ~secret:secrets.gh_hook_token headers body with
+      match Github.parse_exn headers body with
       | exception exn -> Exn_lwt.fail ~exn "failed to parse payload"
       | payload ->
-        ( match%lwt refresh_config_of_context ctx payload with
+      match validate_signature secrets payload with
+      | Error e -> action_error e
+      | Ok () ->
+      match repo_is_supported secrets payload with
+      | false -> action_error "unsupported repository"
+      | true ->
+        ( match%lwt refresh_repo_config ctx payload with
         | Error e -> action_error e
         | Ok () ->
           let%lwt notifications = generate_notifications ctx payload in
-          let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx payload ] in
+          let repo = Github.repo_of_notification payload in
+          let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx repo payload ] in
           ( match ctx.state_filepath with
           | None -> Lwt.return_unit
           | Some path ->
@@ -264,7 +282,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let fetch_bot_user_id () =
       match%lwt Slack_api.send_auth_test ~ctx () with
       | Ok { user_id; _ } ->
-        ctx.state.bot_user_id <- Some user_id;
+        State.set_bot_user_id ctx.state user_id;
         let%lwt () =
           Option.value_map ctx.state_filepath ~default:Lwt.return_unit ~f:(fun path ->
             match%lwt State.save ctx.state path with
@@ -301,7 +319,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         )
     in
     let%lwt bot_user_id =
-      match ctx.state.bot_user_id with
+      match State.get_bot_user_id ctx.state with
       | Some id -> Lwt.return_some id
       | None -> fetch_bot_user_id ()
     in
