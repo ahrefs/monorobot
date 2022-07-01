@@ -1,4 +1,5 @@
 type 'v map_as_object <ocaml from="Common"> = abstract
+type user_id = string wrap <ocaml module="Wrap.Slack.User_id">
 
 type message_field = {
   ?title: string nullable;
@@ -122,6 +123,40 @@ type auth_test_res = {
   user: string;
   team_id: string;
   user_id: string;
+}
+
+type user_profile = {
+  real_name: string;
+  display_name: string;
+  real_name_normalized: string;
+  display_name_normalized: string;
+  ~email: string nullable;
+  ~phone: string nullable;
+  image_24: string;
+  image_32: string;
+  image_48: string;
+  image_72: string;
+  image_192: string;
+  image_512: string;
+  team: string;
+}
+
+(* https://api.slack.com/types/user *)
+type user = {
+  id: user_id;
+  profile: user_profile;
+  ~tz: string nullable;
+  ~tz_label: string nullable;
+  ~tz_offset <ocaml default="0">: int;
+  deleted: bool;
+  is_bot: bool;
+  ~is_ultra_restricted <ocaml default="false">: bool;
+}
+
+type users_list_res = {
+  ok: bool;
+  members: user list;
+  response_metadata: (string * string) list <json repr="object">;
 }
 
 type ('ok, 'err) http_response <ocaml predef module="Base.Result" t="t"> = [
