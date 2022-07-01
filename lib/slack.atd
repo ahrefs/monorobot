@@ -112,7 +112,7 @@ type chat_unfurl_req = {
   unfurls: unfurl map_as_object;
 }
 
-type chat_unfurl_res = {
+type ok_res = {
   ok: bool;
 }
 
