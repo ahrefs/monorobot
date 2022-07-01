@@ -331,8 +331,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       let%lwt unfurls = List.map links ~f:process |> Lwt.all |> Lwt.map List.filter_opt |> Lwt.map StringMap.of_list in
       if Map.is_empty unfurls then Lwt.return "ignored: no links to unfurl"
       else begin
-        let req : Slack_j.chat_unfurl_req = { channel = event.channel; ts = event.message_ts; unfurls } in
-        match%lwt Slack_api.send_chat_unfurl ~ctx req with
+        match%lwt Slack_api.send_chat_unfurl ~ctx ~channel:event.channel ~ts:event.message_ts ~unfurls () with
         | Ok () -> Lwt.return "ok"
         | Error e ->
           log#error "%s" e;
