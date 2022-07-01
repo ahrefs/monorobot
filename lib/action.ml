@@ -350,4 +350,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Ok () ->
     match notification.event with
     | Link_shared event -> process_link_shared_event ctx event
+
+  (** debugging endpoint to return current in-memory repo config *)
+  let print_config (ctx : Context.t) repo_url =
+    log#info "finding config for repo_url: %s" repo_url;
+    match Context.find_repo_config ctx repo_url with
+    | None -> Lwt.return_error (`Not_found, Printf.sprintf "repo_url not found: %s" repo_url)
+    | Some config -> Lwt.return_ok (Config_j.string_of_config config)
 end

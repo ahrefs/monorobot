@@ -34,6 +34,12 @@ let setup_http ~ctx ~signature ~port ~ip =
         in
         match request.meth, List.map Web.urldecode path with
         | _, [ "stats" ] -> ret @@ Lwt.return (sprintf "%s %s uptime\n" signature Devkit.Action.uptime#get_str)
+        | `GET, [ "config" ] ->
+          let repo_url = Arg.str "repo" |> Web.urldecode in
+          ( match%lwt Action.print_config ctx repo_url with
+          | Error (code, msg) -> ret_err code msg
+          | Ok res -> ret ~typ:"application/json" (Lwt.return res)
+          )
         | _, [ "github" ] ->
           log#info "%s" request.body;
           let%lwt () = Action.process_github_notification ctx request.headers request.body in
