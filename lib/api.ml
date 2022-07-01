@@ -28,4 +28,5 @@ module type Slack = sig
     unit slack_response Lwt.t
 
   val send_auth_test : ctx:Context.t -> unit -> auth_test_res slack_response Lwt.t
+  val users_list : ctx:Context.t -> ?limit:string -> ?team_id:string -> unit -> users_list_res slack_response Lwt.t
 end

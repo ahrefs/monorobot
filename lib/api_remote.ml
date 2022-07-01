@@ -108,6 +108,8 @@ module Slack : Api.Slack = struct
     (* must read whole response to update lexer state *)
     ignore (Slack_j.read_ok_res s l)
 
+  let optional_args = List.filter_map ~f:(fun (k, v) -> Option.map ~f:(fun v -> k, v) v)
+
   (** [send_notification ctx msg] notifies [msg.channel] with the payload [msg];
       uses web API with access token if available, or with webhook otherwise *)
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =
@@ -148,4 +150,8 @@ module Slack : Api.Slack = struct
 
   let send_auth_test ~(ctx : Context.t) () =
     request_token_auth ~name:"retrieve bot information" ~ctx `POST "auth.test" Slack_j.read_auth_test_res
+
+  let users_list ~(ctx : Context.t) ?limit ?team_id () =
+    let params = optional_args [ "limit", limit; "team_id", team_id ] in
+    request_token_auth ~name:"get users list" ~ctx ~body:(`Form params) `GET "users.list" Slack_j.read_users_list_res
 end
