@@ -139,7 +139,8 @@ module Slack : Api.Slack = struct
         | Error e -> Lwt.return @@ build_error e
       end
 
-  let send_chat_unfurl ~(ctx : Context.t) req =
+  let send_chat_unfurl ~(ctx : Context.t) ~channel ~ts ~unfurls () =
+    let req = Slack_j.{ channel; ts; unfurls } in
     let data = Slack_j.string_of_chat_unfurl_req req in
     request_token_auth ~name:"unfurl slack links"
       ~body:(`Raw ("application/json", data))
