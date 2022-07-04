@@ -402,3 +402,9 @@ let validate_signature ?(version = "v0") ?signing_key ~headers body =
     let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
     let expected_signature = Printf.sprintf "%s=%s" version (Common.sign_string_sha256 ~key ~basestring) in
     if String.equal expected_signature signature then Ok () else Error "signatures don't match"
+
+let is_active_human_user user =
+  (not user.is_bot)
+  && (not user.deleted)
+  && (not user.is_ultra_restricted)
+  && not (Wrap.Slack.User_id.is_slackbot user.id)

@@ -42,6 +42,8 @@ let find_repo_config_exn ctx repo_url =
 
 let set_repo_config ctx repo_url config = Stringtbl.set ctx.config ~key:repo_url ~data:config
 
+let list_repo_configs ctx = Option.value_map ~default:[] ~f:(fun secrets -> secrets.repos) ctx.secrets
+
 let gh_token_of_secrets (secrets : Config_t.secrets) repo_url =
   match List.find secrets.repos ~f:(fun r -> String.equal r.Config_t.url repo_url) with
   | None -> None

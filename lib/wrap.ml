@@ -7,5 +7,6 @@ module Slack = struct
 
     let wrap = inject
     let unwrap = project
+    let is_slackbot s = String.equal (project s) "USLACKBOT"
   end
 end
