@@ -71,7 +71,7 @@ module Github : Api.Github = struct
     let%lwt res = issues_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
     Lwt.return @@ Result.map res ~f:Github_j.issue_of_string
 
-  let request_reviewers ~(ctx : Context.t) ~repo ~number ~reviewers =
+  let request_reviewers ~(ctx : Context.t) ~(repo : Github_t.repository) ~number ~reviewers =
     let body = Github_j.string_of_request_reviewers_req reviewers in
     let%lwt res =
       pulls_url ~repo ~number ^ "/requested_reviewers"
