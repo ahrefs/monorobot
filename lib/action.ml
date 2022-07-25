@@ -237,8 +237,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       let signing_key = Context.gh_hook_token_of_secrets secrets repo.url in
       Github.validate_signature ?signing_key ~headers body
     in
-    let repo_is_supported secrets payload =
-      let repo = Github.repo_of_notification payload in
+    let repo_is_supported secrets (repo : Github_t.repository) =
       List.exists secrets.repos ~f:(fun r -> String.equal r.url repo.url)
     in
     try%lwt
@@ -249,14 +248,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       match validate_signature secrets payload with
       | Error e -> action_error e
       | Ok () ->
-      match repo_is_supported secrets payload with
-      | false -> action_error "unsupported repository"
+      let repo = Github.repo_of_notification payload in
+      match repo_is_supported secrets repo with
+      | false -> action_error @@ Printf.sprintf "unsupported repository %s" repo.url
       | true ->
         ( match%lwt refresh_repo_config ctx payload with
         | Error e -> action_error e
         | Ok () ->
           let%lwt notifications = generate_notifications ctx payload in
-          let repo = Github.repo_of_notification payload in
           let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx repo payload ] in
           ( match ctx.state_filepath with
           | None -> Lwt.return_unit
