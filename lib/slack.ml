@@ -50,8 +50,8 @@ let generate_pull_request_notification notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url (escape title)
-      action sender.login
+    sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url
+      (escape title) action sender.login
   in
   {
     channel;
@@ -161,8 +161,8 @@ let generate_issue_notification notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url (escape title) action
-      sender.login
+    sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url (escape title)
+      action sender.login
   in
   {
     channel;
@@ -343,7 +343,8 @@ let generate_commit_comment_notification api_commit notification channel =
   in
   let summary =
     sprintf "<%s|[%s]> *%s* commented on `<%s|%s>` %s" repository.url repository.full_name sender.login comment.html_url
-      (git_short_sha_hash commit_id) (first_line (escape commit.message))
+      (git_short_sha_hash commit_id)
+      (first_line (escape commit.message))
   in
   let path =
     match comment.path with
