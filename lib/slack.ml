@@ -49,23 +49,19 @@ let generate_pull_request_notification notification channel =
         )
   in
   let summary =
-    Some
-      (sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title
-         action sender.login
-      )
+    sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title
+      action sender.login
   in
   {
     channel;
-    text = None;
+    text = Some summary;
     attachments =
       Some
         [
           {
             empty_attachments with
             mrkdwn_in = Some [ "text" ];
-            fallback = summary;
             color = Some "#ccc";
-            pretext = summary;
             text = mrkdwn_of_markdown_opt body;
           };
         ];
@@ -91,23 +87,19 @@ let generate_pr_review_notification notification channel =
         )
   in
   let summary =
-    Some
-      (sprintf "<%s|[%s]> *%s* <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login review.html_url
-         action_str number html_url title
-      )
+    sprintf "<%s|[%s]> *%s* <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login review.html_url
+      action_str number html_url title
   in
   {
     channel;
-    text = None;
+    text = Some summary;
     attachments =
       Some
         [
           {
             empty_attachments with
             mrkdwn_in = Some [ "text" ];
-            fallback = summary;
             color = Some "#ccc";
-            pretext = summary;
             text = mrkdwn_of_markdown_opt review.body;
           };
         ];
@@ -127,10 +119,8 @@ let generate_pr_review_comment_notification notification channel =
         )
   in
   let summary =
-    Some
-      (sprintf "<%s|[%s]> *%s* %s on #%d <%s|%s>" repository.url repository.full_name sender.login action_str number
-         html_url title
-      )
+    sprintf "<%s|[%s]> *%s* %s on #%d <%s|%s>" repository.url repository.full_name sender.login action_str number
+      html_url title
   in
   let file =
     match comment.path with
@@ -139,16 +129,14 @@ let generate_pr_review_comment_notification notification channel =
   in
   {
     channel;
-    text = None;
+    text = Some summary;
     attachments =
       Some
         [
           {
             empty_attachments with
             mrkdwn_in = Some [ "text" ];
-            fallback = summary;
             color = Some "#ccc";
-            pretext = summary;
             footer = file;
             text = Some (mrkdwn_of_markdown comment.body);
           };
@@ -172,23 +160,19 @@ let generate_issue_notification notification channel =
         )
   in
   let summary =
-    Some
-      (sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title action
-         sender.login
-      )
+    sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title action
+      sender.login
   in
   {
     channel;
-    text = None;
+    text = Some summary;
     attachments =
       Some
         [
           {
             empty_attachments with
             mrkdwn_in = Some [ "text" ];
-            fallback = summary;
             color = Some "#ccc";
-            pretext = summary;
             text = mrkdwn_of_markdown_opt body;
           };
         ];
@@ -209,23 +193,19 @@ let generate_issue_comment_notification notification channel =
         )
   in
   let summary =
-    Some
-      (sprintf "<%s|[%s]> *%s* <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login comment.html_url
-         action_str number issue.html_url title
-      )
+    sprintf "<%s|[%s]> *%s* <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login comment.html_url
+      action_str number issue.html_url title
   in
   {
     channel;
-    text = None;
+    text = Some summary;
     attachments =
       Some
         [
           {
             empty_attachments with
             mrkdwn_in = Some [ "text" ];
-            fallback = summary;
             color = Some "#ccc";
-            pretext = summary;
             text = Some (mrkdwn_of_markdown comment.body);
           };
         ];
@@ -283,7 +263,6 @@ let generate_push_notification notification channel =
           {
             empty_attachments with
             mrkdwn_in = Some [ "fields" ];
-            fallback = Some "Commit pushed notification";
             color = Some "#ccc";
             fields = Some [ { value = String.concat ~sep:"\n" commits; title = None; short = false } ];
           };
@@ -335,27 +314,23 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   let summary =
     match target_url with
     | None ->
-      Some (sprintf "<%s|[%s]> CI Build Status notification: %s" repository.url repository.full_name state_info)
+      sprintf "<%s|[%s]> CI Build Status notification: %s" repository.url repository.full_name state_info
       (* in case the CI run is not using buildkite *)
-    | Some t ->
-      Some
-        (sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name t context
-           state_info
-        )
+    | Some target_url ->
+      sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name target_url
+        context state_info
   in
   let msg = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] in
   let attachment =
     {
       empty_attachments with
       mrkdwn_in = Some [ "fields"; "text" ];
-      fallback = summary;
-      pretext = summary;
       color = Some color_info;
       text = description_info;
       fields = Some [ { title = None; value = msg; short = false } ];
     }
   in
-  { channel; text = None; attachments = Some [ attachment ]; blocks = None }
+  { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
 
 let generate_commit_comment_notification api_commit notification channel =
   let { commit; _ } = api_commit in
@@ -366,10 +341,8 @@ let generate_commit_comment_notification api_commit notification channel =
     | Some c -> c
   in
   let summary =
-    Some
-      (sprintf "<%s|[%s]> *%s* commented on `<%s|%s>` %s" repository.url repository.full_name sender.login
-         comment.html_url (git_short_sha_hash commit_id) (first_line commit.message)
-      )
+    sprintf "<%s|[%s]> *%s* commented on `<%s|%s>` %s" repository.url repository.full_name sender.login comment.html_url
+      (git_short_sha_hash commit_id) (first_line commit.message)
   in
   let path =
     match comment.path with
@@ -380,14 +353,12 @@ let generate_commit_comment_notification api_commit notification channel =
     {
       empty_attachments with
       mrkdwn_in = Some [ "pretext"; "text" ];
-      fallback = summary;
       color = Some "#ccc";
-      pretext = summary;
       footer = path;
       text = Some (mrkdwn_of_markdown comment.body);
     }
   in
-  { channel; text = None; attachments = Some [ attachment ]; blocks = None }
+  { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
 
 let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match signing_key with
