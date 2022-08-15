@@ -25,6 +25,7 @@ let empty_attachments =
 
 let mrkdwn_of_markdown str = String.strip @@ Mrkdwn.mrkdwn_of_markdown str
 let mrkdwn_of_markdown_opt = Option.map ~f:mrkdwn_of_markdown
+let escape = Mrkdwn.escape_mrkdwn
 
 let show_labels = function
   | [] -> None
@@ -49,7 +50,7 @@ let generate_pull_request_notification notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title
+    sprintf "<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url (escape title)
       action sender.login
   in
   {
@@ -88,7 +89,7 @@ let generate_pr_review_notification notification channel =
   in
   let summary =
     sprintf "<%s|[%s]> *%s* <%s|%s> #%d <%s|%s>" repository.url repository.full_name sender.login review.html_url
-      action_str number html_url title
+      action_str number html_url (escape title)
   in
   {
     channel;
@@ -120,7 +121,7 @@ let generate_pr_review_comment_notification notification channel =
   in
   let summary =
     sprintf "<%s|[%s]> *%s* %s on #%d <%s|%s>" repository.url repository.full_name sender.login action_str number
-      html_url title
+      html_url (escape title)
   in
   let file =
     match comment.path with
@@ -160,7 +161,7 @@ let generate_issue_notification notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url title action
+    sprintf "<%s|[%s]> Issue #%d <%s|%s> %s by *%s*" repository.url repository.full_name number html_url (escape title) action
       sender.login
   in
   {
@@ -194,7 +195,7 @@ let generate_issue_comment_notification notification channel =
   in
   let summary =
     sprintf "<%s|[%s]> *%s* <%s|%s> on #%d <%s|%s>" repository.url repository.full_name sender.login comment.html_url
-      action_str number issue.html_url title
+      action_str number issue.html_url (escape title)
   in
   {
     channel;
@@ -342,7 +343,7 @@ let generate_commit_comment_notification api_commit notification channel =
   in
   let summary =
     sprintf "<%s|[%s]> *%s* commented on `<%s|%s>` %s" repository.url repository.full_name sender.login comment.html_url
-      (git_short_sha_hash commit_id) (first_line commit.message)
+      (git_short_sha_hash commit_id) (first_line (escape commit.message))
   in
   let path =
     match comment.path with
