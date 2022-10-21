@@ -18,6 +18,9 @@
             }
         ]
     },
+    "ignored_users": [
+        "ignored_user"
+    ],
     "prefix_rules": {
         "default_channel": "default",
         "filter_main_branch": true,
@@ -64,9 +67,6 @@
     },
     "label_rules": {
         "default_channel": "default",
-        "ignored_users": [
-            "ignored_user"
-        ],
         "rules": [
             {
                 "match": [

@@ -35,6 +35,7 @@ type config = {
   label_rules : label_rules;
   ~status_rules <ocaml default="{allowed_pipelines = Some []; rules = []}"> : status_rules;
   ~project_owners <ocaml default="{rules = []}"> : project_owners;
+  ~ignored_users <ocaml default="[]">: string list; (* list of ignored users *)
   ?main_branch_name : string nullable; (* the name of the main branch; used to filter out notifications about merges of main branch into other branches *)
 }
 
