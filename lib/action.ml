@@ -248,21 +248,22 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       match validate_signature secrets payload with
       | Error e -> action_error e
       | Ok () ->
-      let repo = Github.repo_of_notification payload in
-      match repo_is_supported secrets repo with
-      | false -> action_error @@ Printf.sprintf "unsupported repository %s" repo.url
-      | true ->
-        ( match%lwt refresh_repo_config ctx payload with
-        | Error e -> action_error e
-        | Ok () ->
-          let%lwt notifications = generate_notifications ctx payload in
-          let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx repo payload ] in
-          ( match ctx.state_filepath with
-          | None -> Lwt.return_unit
-          | Some path ->
-            ( match%lwt State.save ctx.state path with
-            | Ok () -> Lwt.return_unit
-            | Error e -> action_error e
+        let repo = Github.repo_of_notification payload in
+        ( match repo_is_supported secrets repo with
+        | false -> action_error @@ Printf.sprintf "unsupported repository %s" repo.url
+        | true ->
+          ( match%lwt refresh_repo_config ctx payload with
+          | Error e -> action_error e
+          | Ok () ->
+            let%lwt notifications = generate_notifications ctx payload in
+            let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx repo payload ] in
+            ( match ctx.state_filepath with
+            | None -> Lwt.return_unit
+            | Some path ->
+              ( match%lwt State.save ctx.state path with
+              | Ok () -> Lwt.return_unit
+              | Error e -> action_error e
+              )
             )
           )
         )

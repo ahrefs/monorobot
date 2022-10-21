@@ -89,8 +89,8 @@ let generate_pr_review_notification notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url
-      action_str number (pp_link ~url:html_url title)
+    sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
+      number (pp_link ~url:html_url title)
   in
   {
     channel;
@@ -343,8 +343,8 @@ let generate_commit_comment_notification api_commit notification channel =
     | Some c -> c
   in
   let summary =
-    sprintf "<%s|[%s]> *%s* commented on `%s` %s" repository.url repository.full_name sender.login (pp_link ~url:comment.html_url
-      (git_short_sha_hash commit_id))
+    sprintf "<%s|[%s]> *%s* commented on `%s` %s" repository.url repository.full_name sender.login
+      (pp_link ~url:comment.html_url (git_short_sha_hash commit_id))
       (first_line (escape commit.message))
   in
   let path =
