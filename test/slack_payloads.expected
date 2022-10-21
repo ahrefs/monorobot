@@ -128,19 +128,6 @@ will notify #default
   ]
 }
 ===== file ../mock_payloads/issue_comment.created_in_issue_by_ignored.json =====
-will notify #default
-{
-  "channel": "default",
-  "text": "<https://github.com/sewenthy/monorobot|[sewenthy/monorobot]> *ignored_user* <https://github.com/sewenthy/monorobot/pull/1#issuecomment-1286545775|commented> on #1 <https://github.com/sewenthy/monorobot/pull/1|something test>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "text" ],
-      "color": "#ccc",
-      "text": "new comment"
-    }
-  ]
-}
 ===== file ../mock_payloads/issue_comment.created_in_pr.json =====
 will notify #a1-bot
 {
