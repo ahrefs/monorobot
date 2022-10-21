@@ -64,6 +64,9 @@
     },
     "label_rules": {
         "default_channel": "default",
+        "ignored_users": [
+            "ignored_user"
+        ],
         "rules": [
             {
                 "match": [
