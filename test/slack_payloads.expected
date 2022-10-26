@@ -127,6 +127,7 @@ will notify #default
     }
   ]
 }
+===== file ../mock_payloads/issue_comment.created_in_issue_by_ignored.json =====
 ===== file ../mock_payloads/issue_comment.created_in_pr.json =====
 will notify #a1-bot
 {
