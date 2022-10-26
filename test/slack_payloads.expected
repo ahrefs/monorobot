@@ -575,3 +575,13 @@ will notify #default
     }
   ]
 }
+===== file ../mock_slack_events/commits.one_file_modified.json =====
+will unfurl in #C047QTRD1CH
+{"channel":"C047QTRD1CH","ts":"1666757730.846499","unfurls":{"https://github.com/ahrefs/monorobot/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478":{"fallback":"[0d95302a] Update README.md - Louis","mrkdwn_in":["text"],"color":"#f6f8fa","author_icon":"https://github.com/avatars/u/0","text":"`<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` *Update README.md - <https://github.com/Khady|Louis>*\n_modified `README.md` (+1-1)_","footer":"<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"}}}
+===== file ../mock_slack_events/compare.simple_branches.json =====
+===== file ../mock_slack_events/issue.open.json =====
+will unfurl in #C047QTRD1CH
+{"channel":"C047QTRD1CH","ts":"1666772724.077999","unfurls":{"https://github.com/ahrefs/monorobot/issues/124":{"fallback":"[ahrefs/monorobot] Update the CI to a recent ocaml","mrkdwn_in":["text"],"color":"#28a745","author_name":"Khady","author_link":"https://github.com/Khady","author_icon":"https://avatars.githubusercontent.com/u/974142?v=4","title":"#124 Update the CI to a recent ocaml","title_link":"https://github.com/ahrefs/monorobot/issues/124","fields":[],"footer":"<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"}}}
+===== file ../mock_slack_events/pr.multiple_involved.json =====
+will unfurl in #C047QTRD1CH
+{"channel":"C047QTRD1CH","ts":"1666771760.054409","unfurls":{"https://github.com/ahrefs/monorobot/pull/107/":{"fallback":"[ahrefs/monorobot] Track status state per build step instead of per pipeline","mrkdwn_in":["text"],"color":"#28a745","author_name":"yasunariw","author_link":"https://github.com/yasunariw","author_icon":"https://avatars.githubusercontent.com/u/7478035?v=4","title":"#107 Track status state per build step instead of per pipeline","title_link":"https://github.com/ahrefs/monorobot/pull/107","fields":[{"title":"Reviewers","value":"@ygrek, @Khady","short":true}],"footer":"<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"}}}

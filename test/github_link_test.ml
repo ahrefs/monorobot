@@ -51,6 +51,19 @@ let commit_cases prefix repo =
     sprintf "https://%s/ahrefs/monorepo/commit" prefix, None;
   ]
 
+let compare_cases prefix repo =
+  [
+    sprintf "https://%s/ahrefs/monorepo/compare/master...develop" prefix, Some (Compare (repo, "master...develop"));
+    sprintf "https://%s/ahrefs/monorepo/compare/develop...master/" prefix, Some (Compare (repo, "develop...master"));
+    ( sprintf "https://%s/ahrefs/monorepo/compare/master...sewen/one-feature" prefix,
+      Some (Compare (repo, "master...sewen/one-feature")) );
+    ( sprintf "https://%s/ahrefs/monorepo/compare/master...sewen/one-feature/" prefix,
+      Some (Compare (repo, "master...sewen/one-feature")) );
+    ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/one-feature...master/" prefix,
+      Some (Compare (repo, "sewen/one-feature...master")) );
+    sprintf "https://%s/ahrefs/monorepo/compare" prefix, None;
+  ]
+
 let other_cases =
   [
     "http://github.com/ahrefs/monorepo/commit/69c42640", Some (Commit (github_repo, "69c42640"));
@@ -67,13 +80,24 @@ let cases =
       pr_cases "www.github.com" github_repo;
       issue_cases "www.github.com" github_repo;
       commit_cases "www.github.com" github_repo;
+      compare_cases "www.github.com" github_repo;
       pr_cases "example.org" enterprise_repo1;
       issue_cases "example.org" enterprise_repo1;
       commit_cases "example.org" enterprise_repo1;
       pr_cases "example.org/path/to/git" enterprise_repo2;
       issue_cases "example.org/path/to/git" enterprise_repo2;
       commit_cases "example.org/path/to/git" enterprise_repo2;
+      compare_cases "example.org/path/to/git" enterprise_repo2;
       other_cases;
     ]
 
-let () = List.iter cases ~f:(fun (input, expected) -> assert (Poly.equal (gh_link_of_string input) expected))
+let () =
+  List.iter cases ~f:(fun (input, expected) ->
+    assert (
+      match Poly.equal (gh_link_of_string input) expected with
+      | true -> true
+      | false ->
+        Stdio.print_endline input;
+        false
+    )
+  )

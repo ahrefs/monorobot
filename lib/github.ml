@@ -91,8 +91,9 @@ type gh_link =
   | Pull_request of repository * int
   | Issue of repository * int
   | Commit of repository * commit_hash
+  | Compare of repository * compare_branches
 
-let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues)/([a-z0-9]+)/?$|}
+let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/.\-_]+)/?$|}
 let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported
@@ -111,6 +112,11 @@ let gh_link_of_string url_str =
   | Some host ->
   match Re2.find_submatches_exn gh_link_re path with
   | [| _; prefix; Some owner; Some name; Some link_type; Some item |] ->
+    let item =
+      match String.get item (String.length item - 1) with
+      | '/' -> String.sub item ~pos:0 ~len:(String.length item - 1)
+      | _ -> item
+    in
     let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
     let scheme = Uri.scheme url in
     let html_base, api_base =
@@ -134,6 +140,7 @@ let gh_link_of_string url_str =
         | "pull" -> Some (Pull_request (repo, Int.of_string item))
         | "issues" -> Some (Issue (repo, Int.of_string item))
         | "commit" -> Some (Commit (repo, item))
+        | "compare" -> Some (Compare (repo, item))
         | _ -> None
       with _ -> None
     end

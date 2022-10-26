@@ -9,6 +9,7 @@
  (deps
   (source_tree ../mock_states)
   (source_tree ../mock_payloads)
+  (source_tree ../mock_slack_events)
   (source_tree github-api-cache)
   monorobot.json
   secrets.json)

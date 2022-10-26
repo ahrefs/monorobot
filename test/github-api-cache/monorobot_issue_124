@@ -1,0 +1,15 @@
+{
+  "user": {
+    "login": "Khady",
+    "id": 974142,
+    "url": "https://api.github.com/users/Khady",
+    "html_url": "https://github.com/Khady",
+    "avatar_url": "https://avatars.githubusercontent.com/u/974142?v=4"
+  },
+  "number": 124,
+  "body": "Currently running ocaml 4.09, could move to ocaml 4.14.\r\n\r\nMight also be possible to enable some kind of caching.",
+  "title": "Update the CI to a recent ocaml",
+  "html_url": "https://github.com/ahrefs/monorobot/issues/124",
+  "labels": [],
+  "state": "open"
+}

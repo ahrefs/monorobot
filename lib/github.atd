@@ -13,6 +13,7 @@ type git_user_with_date = {
 }
 
 type commit_hash = string
+type compare_branches = string
 
 type commit = {
   id: commit_hash;
