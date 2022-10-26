@@ -15,6 +15,9 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 ```json
 {
     "main_branch_name": "develop",
+    "ignored_users": [
+        "ignored_user"
+    ],
     "prefix_rules": {
         ...
     },
@@ -37,6 +40,7 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 | `prefix_rules` | prefix rules config object | required field |
 | `status_rules` | status rules config object | all status notifications are ignored |
 | `project_owners` | project owners config object | no project owners are defined |
+| `ignored_users` | list of users to be ignored on all notifications | no user is ignored |
 
 ## Label Options
 

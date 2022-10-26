@@ -155,9 +155,28 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         )
       )
 
-  let generate_notifications (ctx : Context.t) req =
+  let ignore_notifications_from_user cfg req =
+    let sender_login =
+      match req with
+      | Github.Push n -> Some n.sender.login
+      | Pull_request n -> Some n.sender.login
+      | PR_review n -> Some n.sender.login
+      | PR_review_comment n -> Some n.sender.login
+      | Issue n -> Some n.sender.login
+      | Issue_comment n -> Some n.sender.login
+      | Commit_comment n -> Some n.sender.login
+      | _ -> None
+    in
+    match sender_login with
+    | Some sender_login -> List.exists cfg.ignored_users ~f:(String.equal sender_login)
+    | None -> false
+
+  let generate_notifications (ctx : Context.t) (req : Github.t) =
     let repo = Github.repo_of_notification req in
     let cfg = Context.find_repo_config_exn ctx repo.url in
+    match ignore_notifications_from_user cfg req with
+    | true -> Lwt.return []
+    | false ->
     match req with
     | Github.Push n ->
       partition_push cfg n |> List.map ~f:(fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
