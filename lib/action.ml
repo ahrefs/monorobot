@@ -317,6 +317,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         Lwt.return_none
     in
     let process link =
+      log#info "processing links: %s" link;
       match Github.gh_link_of_string link with
       | None -> Lwt.return_none
       | Some gh_link ->
@@ -336,6 +337,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         | Error _ -> Lwt.return_none
         | Ok commit -> Lwt.return_some @@ (link, Slack_message.populate_commit repo commit)
         )
+      | Compare (_, compare_branches) ->
+        log#info "looking at branch %s" compare_branches;
+        Lwt.return_none
     in
     let%lwt bot_user_id =
       match State.get_bot_user_id ctx.state with

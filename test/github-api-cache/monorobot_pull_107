@@ -1,0 +1,31 @@
+{
+  "user": {
+    "login": "yasunariw",
+    "id": 7478035,
+    "url": "https://api.github.com/users/yasunariw",
+    "html_url": "https://github.com/yasunariw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/7478035?v=4"
+  },
+  "number": 107,
+  "body": "## Description of the task\r\n\r\nBecause two builds on the same pipeline + branch don't necessarily always run the same build steps, the current state tracking is insufficient for handling those cases. Instead of tracking build state per pipeline, we should track it per build step.\r\n\r\n**Some details regarding Buildkite notification behavior:**\r\n\r\n- There are two types to consider -- notifications for overall builds (\"Build #123 failed\") vs those for individual steps within a larger build (\"step XYZ of build #123 failed\").\r\n- The only way to differentiate b/w them is to look at the `context` field, which is either `buildkite/pipeline-name` for the former or `buildkite/pipeline-name/build-step` for the latter. \r\n- The final notification of the overall build is always sent after the final notification for any of the build steps.\r\n\r\n**The implementation:**\r\n\r\nFor each status notification that passes the rule check (which should only be overall build notifications), we:\r\n1. Retrieve all status notifications associated with this commit using [GH's API](https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-commit-statuses-for-a-reference)\r\n2. Filter the list to only get the status notifications that belong to the same build (in case of rebuilds)\r\n3. Filter the list again for the most recent status notification of each build step (which should either be success or failure)\r\n4. Update the runtime state, which maps pipeline/build step names to per-branch build states.\r\n5. Just like before, this is then queried whenever there is an \"allow_once\" match. An \"allow_once\" match will generate a notification if any of the build steps associated with the current build have a different status value from the previous build.\r\n\r\n**Future work:**\r\n\r\nIt would be nice if build failure notifications also told us which build step failed. This can be done easily by making `Action.partition_status` returned the build steps that failed, so that `Slack.generate_status_notification` can include them in the final message. \r\n\r\n**Final note:**\r\n\r\nLarge diff size is due to the addition of HTTP request/response stubs - apologies.\r\n\r\n## How to test\r\n\r\nExisting tests should pass.\r\n\r\nTwo cases are added; the second handles the [behavior observed in production](https://ahrefs.slack.com/archives/CKZANG2TE/p1609971822011500) that motivated this PR.\r\n\r\n`status.success_test_different_steps_from_prev`\r\n\r\nThis is for an incoming successful build on develop branch with a single build step, \"notabot-test/build\". There exist past successes for same branch + different steps, and for different branch + same step, but not for same branch + same step. Thus, it should generate a notification.\r\n\r\n`status.success_test_not_affected_by_unrelated_success_with_different_steps`\r\n\r\nThis is for an incoming successful build on develop branch with two steps, \"notabot-test/{build-infra,setup}\". Here, previously a build with steps \"build-infra\" and \"setup\" failed on step \"build-infra\". Then a subsequent build with step \"build\" succeeded, so the overall pipeline state is a success. However, the more recent successful but unrelated build should not affect generation of another success notification, given the change in status state for \"build-infra\".\r\n\r\n```\r\nmake test\r\n```\r\n\r\n## References\r\n\r\n- existing issue: #80 \r\n- Slack discussion: https://ahrefs.slack.com/archives/CKZANG2TE/p1609971822011500\r\n- other?\r\n",
+  "title": "Track status state per build step instead of per pipeline",
+  "html_url": "https://github.com/ahrefs/monorobot/pull/107",
+  "labels": [],
+  "state": "open",
+  "requested_reviewers": [
+    {
+      "login": "ygrek",
+      "id": 104087,
+      "url": "https://api.github.com/users/ygrek",
+      "html_url": "https://github.com/ygrek",
+      "avatar_url": "https://avatars.githubusercontent.com/u/104087?v=4"
+    },
+    {
+      "login": "Khady",
+      "id": 974142,
+      "url": "https://api.github.com/users/Khady",
+      "html_url": "https://github.com/Khady",
+      "avatar_url": "https://avatars.githubusercontent.com/u/974142?v=4"
+    }
+  ]
+}

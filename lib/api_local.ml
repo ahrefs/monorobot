@@ -1,6 +1,7 @@
 open Base
 open Common
 open Devkit
+open Printf
 
 let cwd = Caml.Sys.getcwd ()
 let cache_dir = Caml.Filename.concat cwd "github-api-cache"
@@ -18,15 +19,34 @@ module Github : Api.Github = struct
     | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get api commit %s" e url
     | Ok file -> Lwt.return @@ Ok (Github_j.api_commit_of_string file)
 
-  let get_pull_request ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error "undefined for local setup"
-  let get_issue ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error "undefined for local setup"
+  let get_pull_request ~ctx:_ ~(repo : Github_t.repository) ~number =
+    let url = Caml.Filename.concat cache_dir (sprintf "%s_pull_%d" repo.name number) in
+    match get_local_file url with
+    | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get api pr %s" e url
+    | Ok file -> Lwt.return @@ Ok (Github_j.pull_request_of_string file)
+
+  let get_issue ~ctx:_ ~(repo : Github_t.repository) ~number =
+    let url = Caml.Filename.concat cache_dir (sprintf "%s_issue_%d" repo.name number) in
+    match get_local_file url with
+    | Error e -> Lwt.return @@ fmt_error "error while getting local file: %s\nfailed to get api pr %s" e url
+    | Ok file -> Lwt.return @@ Ok (Github_j.issue_of_string file)
+
   let request_reviewers ~ctx:_ ~repo:_ ~number:_ ~reviewers:_ = Lwt.return @@ Error "undefined for local setup"
 end
 
 module Slack_base : Api.Slack = struct
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
-  let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error "undefined for local setup"
-  let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
+
+  let send_chat_unfurl ~ctx:_ ~channel ~ts ~unfurls () =
+    let req = Slack_j.{ channel; ts; unfurls } in
+    let data = Slack_j.string_of_chat_unfurl_req req in
+    Stdio.printf "will unfurl in #%s\n" channel;
+    Stdio.printf "%s\n" data;
+    Lwt.return @@ Ok ()
+
+  let send_auth_test ~ctx:_ () =
+    Lwt.return
+    @@ Ok ({ url = ""; team = ""; user = ""; team_id = ""; user_id = "test_slack_user" } : Slack_t.auth_test_res)
 end
 
 module Slack : Api.Slack = struct
