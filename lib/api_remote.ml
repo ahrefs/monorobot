@@ -16,6 +16,12 @@ module Github : Api.Github = struct
   let issues_url ~(repo : Github_t.repository) ~number =
     String.substr_replace_first ~pattern:"{/number}" ~with_:(sprintf "/%d" number) repo.issues_url
 
+  let branches_url ~(repo : Github_t.repository) ~name =
+    String.substr_replace_first ~pattern:"{/branch}" ~with_:(sprintf "/%s" name) repo.branches_url
+
+  let compares_url ~(repo : Github_t.repository) ~basehead =
+    String.substr_replace_first ~pattern:"{/basehead}" ~with_:(sprintf "/%s" basehead) repo.compare_url
+
   let build_headers ?token () =
     let headers = [ "Accept: application/vnd.github.v3+json" ] in
     Option.value_map token ~default:headers ~f:(fun v -> sprintf "Authorization: token %s" v :: headers)
@@ -63,6 +69,10 @@ module Github : Api.Github = struct
     let%lwt res = commits_url ~repo ~sha |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
     Lwt.return @@ Result.map res ~f:Github_j.api_commit_of_string
 
+  let get_branch ~(ctx : Context.t) ~(repo : Github_t.repository) ~name =
+    let%lwt res = branches_url ~repo ~name |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
+    Lwt.return @@ Result.map res ~f:Github_j.branch_of_string
+
   let get_pull_request ~(ctx : Context.t) ~(repo : Github_t.repository) ~number =
     let%lwt res = pulls_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
     Lwt.return @@ Result.map res ~f:Github_j.pull_request_of_string
@@ -70,6 +80,13 @@ module Github : Api.Github = struct
   let get_issue ~(ctx : Context.t) ~(repo : Github_t.repository) ~number =
     let%lwt res = issues_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
     Lwt.return @@ Result.map res ~f:Github_j.issue_of_string
+
+  let get_compare ~(ctx : Context.t) ~(repo : Github_t.repository) ~basehead =
+    let%lwt res =
+      compares_url ~repo ~basehead |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
+    in
+
+    Lwt.return @@ Result.map res ~f:Github_j.compare_of_string
 
   let request_reviewers ~(ctx : Context.t) ~(repo : Github_t.repository) ~number ~reviewers =
     let body = Github_j.string_of_request_reviewers_req reviewers in

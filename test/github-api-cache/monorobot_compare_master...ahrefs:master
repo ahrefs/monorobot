@@ -1,0 +1,378 @@
+{
+  "url": "https://api.github.com/repos/sewenthy/monorobot/compare/master...ahrefs:master",
+  "html_url": "https://github.com/sewenthy/monorobot/compare/master...ahrefs:master",
+  "permalink_url": "https://github.com/sewenthy/monorobot/compare/sewenthy:c7d51fb...ahrefs:6ec6b47",
+  "diff_url": "https://github.com/sewenthy/monorobot/compare/master...ahrefs:master.diff",
+  "patch_url": "https://github.com/sewenthy/monorobot/compare/master...ahrefs:master.patch",
+  "base_commit": {
+    "sha": "c7d51fb8c85a50afc926dc12b94eaedea98ab20e",
+    "node_id": "C_kwDOIRbPmdoAKGM3ZDUxZmI4Yzg1YTUwYWZjOTI2ZGMxMmI5NGVhZWRlYTk4YWIyMGU",
+    "commit": {
+      "author": {
+        "name": "Sewen Thy",
+        "email": "mail@example.org",
+        "date": "2022-10-25T03:55:43Z"
+      },
+      "committer": {
+        "name": "Sewen Thy",
+        "email": "mail@example.org",
+        "date": "2022-10-25T03:55:43Z"
+      },
+      "message": "notify me?",
+      "tree": {
+        "sha": "6a4b81f18e8fb5869782fb13c11792fffba3ba08",
+        "url": "https://api.github.com/repos/sewenthy/monorobot/git/trees/6a4b81f18e8fb5869782fb13c11792fffba3ba08"
+      },
+      "url": "https://api.github.com/repos/sewenthy/monorobot/git/commits/c7d51fb8c85a50afc926dc12b94eaedea98ab20e",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    },
+    "url": "https://api.github.com/repos/sewenthy/monorobot/commits/c7d51fb8c85a50afc926dc12b94eaedea98ab20e",
+    "html_url": "https://github.com/sewenthy/monorobot/commit/c7d51fb8c85a50afc926dc12b94eaedea98ab20e",
+    "comments_url": "https://api.github.com/repos/sewenthy/monorobot/commits/c7d51fb8c85a50afc926dc12b94eaedea98ab20e/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "3612e3c0d3f9d000db907d2141f4a641800363b1",
+        "url": "https://api.github.com/repos/sewenthy/monorobot/commits/3612e3c0d3f9d000db907d2141f4a641800363b1",
+        "html_url": "https://github.com/sewenthy/monorobot/commit/3612e3c0d3f9d000db907d2141f4a641800363b1"
+      }
+    ]
+  },
+  "merge_base_commit": {
+    "sha": "56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+    "node_id": "C_kwDOC5saPNoAKDU2YWRhMTA4NGQ2YjVjYzcxODIxZjY1Y2Y0MWYwMTNmZTZjMjgwZjM",
+    "commit": {
+      "author": {
+        "name": "Louis",
+        "email": "mail@example.org",
+        "date": "2022-10-21T05:50:21Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2022-10-21T05:50:21Z"
+      },
+      "message": "Merge pull request #125 from sewenthy/sewen/fix-ocamlformat-action-slack-files\n\nformat: fixed ocamlformat for action.ml and slack.ml",
+      "tree": {
+        "sha": "d8149bfb8f4a02a6b304e3c2691cd9e43b32cd16",
+        "url": "https://api.github.com/repos/sewenthy/monorobot/git/trees/d8149bfb8f4a02a6b304e3c2691cd9e43b32cd16"
+      },
+      "url": "https://api.github.com/repos/sewenthy/monorobot/git/commits/56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjUjMdCRBK7hj4Ov3rIwAAD2AIAAmlxrzBO6GsjS2ixiCss5jn\n1MnSj6udoS7h0jjbuTKpkGKuR6WJ7UVXUkL8XFKGmfxC7QxJbS4iP9PHPCN7mesZ\ndTQuGnRzxx0MYwRZqC8R14lSMSE1OIxH3iyyssRPRXFOAKDu9PE1qN23iZVFMPrO\n3k6/3Zci9b7mmwD+Y7JpMuDY48oThVuE95oOhVzDJuUQwIMDIl5eVrK5uJ3xf6L6\ng6RC7MnrP44hvS8CPihrhPcfJnJDmJvf68NfgtshVdMJMvWhGDkDsXTsY328PHoO\nsWxYoXW6BbcbOkO/+YOnrUnesr1mrKkvhrxnqco/9hKURj755CeekxZBxwc8+ro=\n=Bweb\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree d8149bfb8f4a02a6b304e3c2691cd9e43b32cd16\nparent 35d2e51234150ff001a3aaf37868c9b0d01e72dc\nparent 2c67a2867fb5b4eba564a695d9a15bc5babad012\nauthor Louis <mail@example.org> 1666331421 +0800\ncommitter GitHub <noreply@github.com> 1666331421 +0800\n\nMerge pull request #125 from sewenthy/sewen/fix-ocamlformat-action-slack-files\n\nformat: fixed ocamlformat for action.ml and slack.ml"
+      }
+    },
+    "url": "https://api.github.com/repos/sewenthy/monorobot/commits/56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+    "html_url": "https://github.com/sewenthy/monorobot/commit/56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+    "comments_url": "https://api.github.com/repos/sewenthy/monorobot/commits/56ada1084d6b5cc71821f65cf41f013fe6c280f3/comments",
+    "author": {
+      "login": "Khady",
+      "id": 974142,
+      "node_id": "MDQ6VXNlcjk3NDE0Mg==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/974142?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Khady",
+      "html_url": "https://github.com/Khady",
+      "followers_url": "https://api.github.com/users/Khady/followers",
+      "following_url": "https://api.github.com/users/Khady/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Khady/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Khady/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Khady/subscriptions",
+      "organizations_url": "https://api.github.com/users/Khady/orgs",
+      "repos_url": "https://api.github.com/users/Khady/repos",
+      "events_url": "https://api.github.com/users/Khady/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Khady/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "35d2e51234150ff001a3aaf37868c9b0d01e72dc",
+        "url": "https://api.github.com/repos/sewenthy/monorobot/commits/35d2e51234150ff001a3aaf37868c9b0d01e72dc",
+        "html_url": "https://github.com/sewenthy/monorobot/commit/35d2e51234150ff001a3aaf37868c9b0d01e72dc"
+      },
+      {
+        "sha": "2c67a2867fb5b4eba564a695d9a15bc5babad012",
+        "url": "https://api.github.com/repos/sewenthy/monorobot/commits/2c67a2867fb5b4eba564a695d9a15bc5babad012",
+        "html_url": "https://github.com/sewenthy/monorobot/commit/2c67a2867fb5b4eba564a695d9a15bc5babad012"
+      }
+    ]
+  },
+  "status": "diverged",
+  "ahead_by": 3,
+  "behind_by": 9,
+  "total_commits": 3,
+  "commits": [
+    {
+      "sha": "858b5e1d2de2716883a7f83f69676cb1d05a6c9f",
+      "node_id": "C_kwDOIRbPmdoAKDg1OGI1ZTFkMmRlMjcxNjg4M2E3ZjgzZjY5Njc2Y2IxZDA1YTZjOWY",
+      "commit": {
+        "author": {
+          "name": "Sewen Thy",
+          "email": "mail@example.org",
+          "date": "2022-10-21T07:19:08Z"
+        },
+        "committer": {
+          "name": "Sewen Thy",
+          "email": "mail@example.org",
+          "date": "2022-10-21T09:54:42Z"
+        },
+        "message": "test: test for ignoring user comment on PR",
+        "tree": {
+          "sha": "8bb264f1e59c13ac99b27c7432fafc0ad17e8538",
+          "url": "https://api.github.com/repos/sewenthy/monorobot/git/trees/8bb264f1e59c13ac99b27c7432fafc0ad17e8538"
+        },
+        "url": "https://api.github.com/repos/sewenthy/monorobot/git/commits/858b5e1d2de2716883a7f83f69676cb1d05a6c9f",
+        "comment_count": 0,
+        "verification": {
+          "verified": false,
+          "reason": "unsigned",
+          "signature": null,
+          "payload": null
+        }
+      },
+      "url": "https://api.github.com/repos/sewenthy/monorobot/commits/858b5e1d2de2716883a7f83f69676cb1d05a6c9f",
+      "html_url": "https://github.com/sewenthy/monorobot/commit/858b5e1d2de2716883a7f83f69676cb1d05a6c9f",
+      "comments_url": "https://api.github.com/repos/sewenthy/monorobot/commits/858b5e1d2de2716883a7f83f69676cb1d05a6c9f/comments",
+      "author": null,
+      "committer": null,
+      "parents": [
+        {
+          "sha": "2c67a2867fb5b4eba564a695d9a15bc5babad012",
+          "url": "https://api.github.com/repos/sewenthy/monorobot/commits/2c67a2867fb5b4eba564a695d9a15bc5babad012",
+          "html_url": "https://github.com/sewenthy/monorobot/commit/2c67a2867fb5b4eba564a695d9a15bc5babad012"
+        }
+      ]
+    },
+    {
+      "sha": "883724426505ec03e29a1e4fd11079797a30bd57",
+      "node_id": "C_kwDOIRbPmdoAKDg4MzcyNDQyNjUwNWVjMDNlMjlhMWU0ZmQxMTA3OTc5N2EzMGJkNTc",
+      "commit": {
+        "author": {
+          "name": "Sewen Thy",
+          "email": "mail@example.org",
+          "date": "2022-10-21T08:45:11Z"
+        },
+        "committer": {
+          "name": "Sewen Thy",
+          "email": "mail@example.org",
+          "date": "2022-10-25T04:39:40Z"
+        },
+        "message": "cfg and action: add support to ignore comments from certain users",
+        "tree": {
+          "sha": "3306d7ce0d2ac3324755dbe410d3fa3da841fe7f",
+          "url": "https://api.github.com/repos/sewenthy/monorobot/git/trees/3306d7ce0d2ac3324755dbe410d3fa3da841fe7f"
+        },
+        "url": "https://api.github.com/repos/sewenthy/monorobot/git/commits/883724426505ec03e29a1e4fd11079797a30bd57",
+        "comment_count": 0,
+        "verification": {
+          "verified": false,
+          "reason": "unsigned",
+          "signature": null,
+          "payload": null
+        }
+      },
+      "url": "https://api.github.com/repos/sewenthy/monorobot/commits/883724426505ec03e29a1e4fd11079797a30bd57",
+      "html_url": "https://github.com/sewenthy/monorobot/commit/883724426505ec03e29a1e4fd11079797a30bd57",
+      "comments_url": "https://api.github.com/repos/sewenthy/monorobot/commits/883724426505ec03e29a1e4fd11079797a30bd57/comments",
+      "author": null,
+      "committer": null,
+      "parents": [
+        {
+          "sha": "858b5e1d2de2716883a7f83f69676cb1d05a6c9f",
+          "url": "https://api.github.com/repos/sewenthy/monorobot/commits/858b5e1d2de2716883a7f83f69676cb1d05a6c9f",
+          "html_url": "https://github.com/sewenthy/monorobot/commit/858b5e1d2de2716883a7f83f69676cb1d05a6c9f"
+        }
+      ]
+    },
+    {
+      "sha": "6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "node_id": "C_kwDOIRbPmdoAKDZlYzZiNDdkMWYzMzNkMzBkNWMzODg5ZTA1ZGNhYWQwNzhmMGU3N2Q",
+      "commit": {
+        "author": {
+          "name": "Louis",
+          "email": "mail@example.org",
+          "date": "2022-10-26T00:47:59Z"
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "date": "2022-10-26T00:47:59Z"
+        },
+        "message": "Merge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users\n\nIgnore code comments from defined list of users",
+        "tree": {
+          "sha": "3306d7ce0d2ac3324755dbe410d3fa3da841fe7f",
+          "url": "https://api.github.com/repos/sewenthy/monorobot/git/trees/3306d7ce0d2ac3324755dbe410d3fa3da841fe7f"
+        },
+        "url": "https://api.github.com/repos/sewenthy/monorobot/git/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+        "comment_count": 0,
+        "verification": {
+          "verified": true,
+          "reason": "valid",
+          "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjWIO/CRBK7hj4Ov3rIwAAEWAIAI7P6ReUnb6bqigQ06Iqgzrm\nK16ReYELdE6Gp5lv24pw4fEa8vW7u5M8Rp4FndfpcnwjODyw9BRN1xzmJJ6sbNgZ\nusB12KyN6Q7MPAmRcoleKzndfcTpoAGR1chuVeDuMT6VcSjHdCbkNO8nhbXnhjPY\nDncx6uXrm8t+ak8IcbJ6nbxFvDPlqySGK7GvbsNIFhSdIy5FkvFg8kVYXssnD0mn\nhfGWCyKBfbkIAIR/w2Rdb6xXm6E2zjMFZp6BDRNhq0hv3R8/hj7GJdw6I+WwYq39\ntUIgPyYtYJpB8NK5DuTqfK7bIEiz3tXkXJ84iyx8Wscpldq60GYA0r0c2QBb7io=\n=yv18\n-----END PGP SIGNATURE-----\n",
+          "payload": "tree 3306d7ce0d2ac3324755dbe410d3fa3da841fe7f\nparent 56ada1084d6b5cc71821f65cf41f013fe6c280f3\nparent 883724426505ec03e29a1e4fd11079797a30bd57\nauthor Louis <mail@example.org> 1666745279 +0800\ncommitter GitHub <noreply@github.com> 1666745279 +0800\n\nMerge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users\n\nIgnore code comments from defined list of users"
+        }
+      },
+      "url": "https://api.github.com/repos/sewenthy/monorobot/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "html_url": "https://github.com/sewenthy/monorobot/commit/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "comments_url": "https://api.github.com/repos/sewenthy/monorobot/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/comments",
+      "author": {
+        "login": "Khady",
+        "id": 974142,
+        "node_id": "MDQ6VXNlcjk3NDE0Mg==",
+        "avatar_url": "https://avatars.githubusercontent.com/u/974142?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/Khady",
+        "html_url": "https://github.com/Khady",
+        "followers_url": "https://api.github.com/users/Khady/followers",
+        "following_url": "https://api.github.com/users/Khady/following{/other_user}",
+        "gists_url": "https://api.github.com/users/Khady/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/Khady/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/Khady/subscriptions",
+        "organizations_url": "https://api.github.com/users/Khady/orgs",
+        "repos_url": "https://api.github.com/users/Khady/repos",
+        "events_url": "https://api.github.com/users/Khady/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/Khady/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "web-flow",
+        "id": 19864447,
+        "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+        "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/web-flow",
+        "html_url": "https://github.com/web-flow",
+        "followers_url": "https://api.github.com/users/web-flow/followers",
+        "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+        "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+        "organizations_url": "https://api.github.com/users/web-flow/orgs",
+        "repos_url": "https://api.github.com/users/web-flow/repos",
+        "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/web-flow/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+          "url": "https://api.github.com/repos/sewenthy/monorobot/commits/56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+          "html_url": "https://github.com/sewenthy/monorobot/commit/56ada1084d6b5cc71821f65cf41f013fe6c280f3"
+        },
+        {
+          "sha": "883724426505ec03e29a1e4fd11079797a30bd57",
+          "url": "https://api.github.com/repos/sewenthy/monorobot/commits/883724426505ec03e29a1e4fd11079797a30bd57",
+          "html_url": "https://github.com/sewenthy/monorobot/commit/883724426505ec03e29a1e4fd11079797a30bd57"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "sha": "5cdb19a9ace7e5384d70f161de73c406353ad448",
+      "filename": "documentation/config_docs.md",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 0,
+      "changes": 4,
+      "blob_url": "https://github.com/sewenthy/monorobot/blob/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/documentation%2Fconfig_docs.md",
+      "raw_url": "https://github.com/sewenthy/monorobot/raw/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/documentation%2Fconfig_docs.md",
+      "contents_url": "https://api.github.com/repos/sewenthy/monorobot/contents/documentation%2Fconfig_docs.md?ref=6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "patch": "@@ -15,6 +15,9 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks\n ```json\n {\n     \"main_branch_name\": \"develop\",\n+    \"ignored_users\": [\n+        \"ignored_user\"\n+    ],\n     \"prefix_rules\": {\n         ...\n     },\n@@ -37,6 +40,7 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks\n | `prefix_rules` | prefix rules config object | required field |\n | `status_rules` | status rules config object | all status notifications are ignored |\n | `project_owners` | project owners config object | no project owners are defined |\n+| `ignored_users` | list of users to be ignored on all notifications | no user is ignored |\n \n ## Label Options\n "
+    },
+    {
+      "sha": "e5af97d716f75db7522d366e11ca66beb0a75a95",
+      "filename": "lib/action.ml",
+      "status": "modified",
+      "additions": 20,
+      "deletions": 1,
+      "changes": 21,
+      "blob_url": "https://github.com/sewenthy/monorobot/blob/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/lib%2Faction.ml",
+      "raw_url": "https://github.com/sewenthy/monorobot/raw/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/lib%2Faction.ml",
+      "contents_url": "https://api.github.com/repos/sewenthy/monorobot/contents/lib%2Faction.ml?ref=6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "patch": "@@ -155,9 +155,28 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct\n         )\n       )\n \n-  let generate_notifications (ctx : Context.t) req =\n+  let ignore_notifications_from_user cfg req =\n+    let sender_login =\n+      match req with\n+      | Github.Push n -> Some n.sender.login\n+      | Pull_request n -> Some n.sender.login\n+      | PR_review n -> Some n.sender.login\n+      | PR_review_comment n -> Some n.sender.login\n+      | Issue n -> Some n.sender.login\n+      | Issue_comment n -> Some n.sender.login\n+      | Commit_comment n -> Some n.sender.login\n+      | _ -> None\n+    in\n+    match sender_login with\n+    | Some sender_login -> List.exists cfg.ignored_users ~f:(String.equal sender_login)\n+    | None -> false\n+\n+  let generate_notifications (ctx : Context.t) (req : Github.t) =\n     let repo = Github.repo_of_notification req in\n     let cfg = Context.find_repo_config_exn ctx repo.url in\n+    match ignore_notifications_from_user cfg req with\n+    | true -> Lwt.return []\n+    | false ->\n     match req with\n     | Github.Push n ->\n       partition_push cfg n |> List.map ~f:(fun (channel, n) -> generate_push_notification n channel) |> Lwt.return"
+    },
+    {
+      "sha": "f1a1d68d0bf01c15ed8d6b2db8933ea1048848fc",
+      "filename": "lib/config.atd",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "blob_url": "https://github.com/sewenthy/monorobot/blob/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/lib%2Fconfig.atd",
+      "raw_url": "https://github.com/sewenthy/monorobot/raw/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/lib%2Fconfig.atd",
+      "contents_url": "https://api.github.com/repos/sewenthy/monorobot/contents/lib%2Fconfig.atd?ref=6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "patch": "@@ -35,6 +35,7 @@ type config = {\n   label_rules : label_rules;\n   ~status_rules <ocaml default=\"{allowed_pipelines = Some []; rules = []}\"> : status_rules;\n   ~project_owners <ocaml default=\"{rules = []}\"> : project_owners;\n+  ~ignored_users <ocaml default=\"[]\">: string list; (* list of ignored users *)\n   ?main_branch_name : string nullable; (* the name of the main branch; used to filter out notifications about merges of main branch into other branches *)\n }\n "
+    },
+    {
+      "sha": "9f99ea62ed08dbbbffe491b018caff0a955c67f8",
+      "filename": "mock_payloads/issue_comment.created_in_issue_by_ignored.json",
+      "status": "added",
+      "additions": 240,
+      "deletions": 0,
+      "changes": 240,
+      "blob_url": "https://github.com/sewenthy/monorobot/blob/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/mock_payloads%2Fissue_comment.created_in_issue_by_ignored.json",
+      "raw_url": "https://github.com/sewenthy/monorobot/raw/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/mock_payloads%2Fissue_comment.created_in_issue_by_ignored.json",
+      "contents_url": "https://api.github.com/repos/sewenthy/monorobot/contents/mock_payloads%2Fissue_comment.created_in_issue_by_ignored.json?ref=6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "patch": "@@ -0,0 +1,240 @@\n+{\n+  \"action\": \"created\",\n+  \"issue\": {\n+    \"url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/1\",\n+    \"repository_url\": \"https://api.github.com/repos/sewenthy/monorobot\",\n+    \"labels_url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/1/labels{/name}\",\n+    \"comments_url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/1/comments\",\n+    \"events_url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/1/events\",\n+    \"html_url\": \"https://github.com/sewenthy/monorobot/pull/1\",\n+    \"id\": 1417857388,\n+    \"node_id\": \"PR_kwDOIRbPmc5BQvSE\",\n+    \"number\": 1,\n+    \"title\": \"something test\",\n+    \"user\": {\n+      \"login\": \"sewenthy\",\n+      \"id\": 23148113,\n+      \"node_id\": \"MDQ6VXNlcjIzMTQ4MTEz\",\n+      \"avatar_url\": \"https://avatars.githubusercontent.com/u/23148113?v=4\",\n+      \"gravatar_id\": \"\",\n+      \"url\": \"https://api.github.com/users/sewenthy\",\n+      \"html_url\": \"https://github.com/sewenthy\",\n+      \"followers_url\": \"https://api.github.com/users/sewenthy/followers\",\n+      \"following_url\": \"https://api.github.com/users/sewenthy/following{/other_user}\",\n+      \"gists_url\": \"https://api.github.com/users/sewenthy/gists{/gist_id}\",\n+      \"starred_url\": \"https://api.github.com/users/sewenthy/starred{/owner}{/repo}\",\n+      \"subscriptions_url\": \"https://api.github.com/users/sewenthy/subscriptions\",\n+      \"organizations_url\": \"https://api.github.com/users/sewenthy/orgs\",\n+      \"repos_url\": \"https://api.github.com/users/sewenthy/repos\",\n+      \"events_url\": \"https://api.github.com/users/sewenthy/events{/privacy}\",\n+      \"received_events_url\": \"https://api.github.com/users/sewenthy/received_events\",\n+      \"type\": \"User\",\n+      \"site_admin\": false\n+    },\n+    \"labels\": [\n+\n+    ],\n+    \"state\": \"open\",\n+    \"locked\": false,\n+    \"assignee\": null,\n+    \"assignees\": [\n+\n+    ],\n+    \"milestone\": null,\n+    \"comments\": 1,\n+    \"created_at\": \"2022-10-21T07:04:00Z\",\n+    \"updated_at\": \"2022-10-21T07:04:47Z\",\n+    \"closed_at\": null,\n+    \"author_association\": \"OWNER\",\n+    \"active_lock_reason\": null,\n+    \"draft\": false,\n+    \"pull_request\": {\n+      \"url\": \"https://api.github.com/repos/sewenthy/monorobot/pulls/1\",\n+      \"html_url\": \"https://github.com/sewenthy/monorobot/pull/1\",\n+      \"diff_url\": \"https://github.com/sewenthy/monorobot/pull/1.diff\",\n+      \"patch_url\": \"https://github.com/sewenthy/monorobot/pull/1.patch\",\n+      \"merged_at\": null\n+    },\n+    \"body\": \"## Description of the task\\r\\n\\r\\nPlease describe the task related to this PR. Or the reason behind the\\r\\nchange.\\r\\n\\r\\n## How to test\\r\\n\\r\\nHow to test the changes? Which command to run? Which output is expected?\\r\\n\\r\\n```\\r\\n./monorobot check mock_payloads/SOME_FILE\\r\\n```\\r\\n\\r\\n## References\\r\\n\\r\\n- existing issue:\\r\\n- Slack discussion:\\r\\n- other?\\r\\n\",\n+    \"reactions\": {\n+      \"url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/1/reactions\",\n+      \"total_count\": 0,\n+      \"+1\": 0,\n+      \"-1\": 0,\n+      \"laugh\": 0,\n+      \"hooray\": 0,\n+      \"confused\": 0,\n+      \"heart\": 0,\n+      \"rocket\": 0,\n+      \"eyes\": 0\n+    },\n+    \"timeline_url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/1/timeline\",\n+    \"performed_via_github_app\": null,\n+    \"state_reason\": null\n+  },\n+  \"comment\": {\n+    \"url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/comments/1286545775\",\n+    \"html_url\": \"https://github.com/sewenthy/monorobot/pull/1#issuecomment-1286545775\",\n+    \"issue_url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/1\",\n+    \"id\": 1286545775,\n+    \"node_id\": \"IC_kwDOIRbPmc5MryFv\",\n+    \"user\": {\n+      \"login\": \"ignored_user\",\n+      \"id\": 23148113,\n+      \"node_id\": \"MDQ6VXNlcjIzMTQ4MTEz\",\n+      \"avatar_url\": \"https://avatars.githubusercontent.com/u/23148113?v=4\",\n+      \"gravatar_id\": \"\",\n+      \"url\": \"https://api.github.com/users/ignored_user\",\n+      \"html_url\": \"https://github.com/ignored_user\",\n+      \"followers_url\": \"https://api.github.com/users/ignored_user/followers\",\n+      \"following_url\": \"https://api.github.com/users/ignored_user/following{/other_user}\",\n+      \"gists_url\": \"https://api.github.com/users/ignored_user/gists{/gist_id}\",\n+      \"starred_url\": \"https://api.github.com/users/ignored_user/starred{/owner}{/repo}\",\n+      \"subscriptions_url\": \"https://api.github.com/users/ignored_user/subscriptions\",\n+      \"organizations_url\": \"https://api.github.com/users/ignored_user/orgs\",\n+      \"repos_url\": \"https://api.github.com/users/ignored_user/repos\",\n+      \"events_url\": \"https://api.github.com/users/ignored_user/events{/privacy}\",\n+      \"received_events_url\": \"https://api.github.com/users/ignored_user/received_events\",\n+      \"type\": \"User\",\n+      \"site_admin\": false\n+    },\n+    \"created_at\": \"2022-10-21T07:04:46Z\",\n+    \"updated_at\": \"2022-10-21T07:04:46Z\",\n+    \"author_association\": \"OWNER\",\n+    \"body\": \"new comment\\r\\n\",\n+    \"reactions\": {\n+      \"url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/comments/1286545775/reactions\",\n+      \"total_count\": 0,\n+      \"+1\": 0,\n+      \"-1\": 0,\n+      \"laugh\": 0,\n+      \"hooray\": 0,\n+      \"confused\": 0,\n+      \"heart\": 0,\n+      \"rocket\": 0,\n+      \"eyes\": 0\n+    },\n+    \"performed_via_github_app\": null\n+  },\n+  \"repository\": {\n+    \"id\": 555143065,\n+    \"node_id\": \"R_kgDOIRbPmQ\",\n+    \"name\": \"monorobot\",\n+    \"full_name\": \"sewenthy/monorobot\",\n+    \"private\": false,\n+    \"owner\": {\n+      \"login\": \"sewenthy\",\n+      \"id\": 23148113,\n+      \"node_id\": \"MDQ6VXNlcjIzMTQ4MTEz\",\n+      \"avatar_url\": \"https://avatars.githubusercontent.com/u/23148113?v=4\",\n+      \"gravatar_id\": \"\",\n+      \"url\": \"https://api.github.com/users/sewenthy\",\n+      \"html_url\": \"https://github.com/sewenthy\",\n+      \"followers_url\": \"https://api.github.com/users/sewenthy/followers\",\n+      \"following_url\": \"https://api.github.com/users/sewenthy/following{/other_user}\",\n+      \"gists_url\": \"https://api.github.com/users/sewenthy/gists{/gist_id}\",\n+      \"starred_url\": \"https://api.github.com/users/sewenthy/starred{/owner}{/repo}\",\n+      \"subscriptions_url\": \"https://api.github.com/users/sewenthy/subscriptions\",\n+      \"organizations_url\": \"https://api.github.com/users/sewenthy/orgs\",\n+      \"repos_url\": \"https://api.github.com/users/sewenthy/repos\",\n+      \"events_url\": \"https://api.github.com/users/sewenthy/events{/privacy}\",\n+      \"received_events_url\": \"https://api.github.com/users/sewenthy/received_events\",\n+      \"type\": \"User\",\n+      \"site_admin\": false\n+    },\n+    \"html_url\": \"https://github.com/sewenthy/monorobot\",\n+    \"description\": \"github monorepo bot - configurable directory tree notifications in slack\",\n+    \"fork\": true,\n+    \"url\": \"https://api.github.com/repos/sewenthy/monorobot\",\n+    \"forks_url\": \"https://api.github.com/repos/sewenthy/monorobot/forks\",\n+    \"keys_url\": \"https://api.github.com/repos/sewenthy/monorobot/keys{/key_id}\",\n+    \"collaborators_url\": \"https://api.github.com/repos/sewenthy/monorobot/collaborators{/collaborator}\",\n+    \"teams_url\": \"https://api.github.com/repos/sewenthy/monorobot/teams\",\n+    \"hooks_url\": \"https://api.github.com/repos/sewenthy/monorobot/hooks\",\n+    \"issue_events_url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/events{/number}\",\n+    \"events_url\": \"https://api.github.com/repos/sewenthy/monorobot/events\",\n+    \"assignees_url\": \"https://api.github.com/repos/sewenthy/monorobot/assignees{/user}\",\n+    \"branches_url\": \"https://api.github.com/repos/sewenthy/monorobot/branches{/branch}\",\n+    \"tags_url\": \"https://api.github.com/repos/sewenthy/monorobot/tags\",\n+    \"blobs_url\": \"https://api.github.com/repos/sewenthy/monorobot/git/blobs{/sha}\",\n+    \"git_tags_url\": \"https://api.github.com/repos/sewenthy/monorobot/git/tags{/sha}\",\n+    \"git_refs_url\": \"https://api.github.com/repos/sewenthy/monorobot/git/refs{/sha}\",\n+    \"trees_url\": \"https://api.github.com/repos/sewenthy/monorobot/git/trees{/sha}\",\n+    \"statuses_url\": \"https://api.github.com/repos/sewenthy/monorobot/statuses/{sha}\",\n+    \"languages_url\": \"https://api.github.com/repos/sewenthy/monorobot/languages\",\n+    \"stargazers_url\": \"https://api.github.com/repos/sewenthy/monorobot/stargazers\",\n+    \"contributors_url\": \"https://api.github.com/repos/sewenthy/monorobot/contributors\",\n+    \"subscribers_url\": \"https://api.github.com/repos/sewenthy/monorobot/subscribers\",\n+    \"subscription_url\": \"https://api.github.com/repos/sewenthy/monorobot/subscription\",\n+    \"commits_url\": \"https://api.github.com/repos/sewenthy/monorobot/commits{/sha}\",\n+    \"git_commits_url\": \"https://api.github.com/repos/sewenthy/monorobot/git/commits{/sha}\",\n+    \"comments_url\": \"https://api.github.com/repos/sewenthy/monorobot/comments{/number}\",\n+    \"issue_comment_url\": \"https://api.github.com/repos/sewenthy/monorobot/issues/comments{/number}\",\n+    \"contents_url\": \"https://api.github.com/repos/sewenthy/monorobot/contents/{+path}\",\n+    \"compare_url\": \"https://api.github.com/repos/sewenthy/monorobot/compare/{base}...{head}\",\n+    \"merges_url\": \"https://api.github.com/repos/sewenthy/monorobot/merges\",\n+    \"archive_url\": \"https://api.github.com/repos/sewenthy/monorobot/{archive_format}{/ref}\",\n+    \"downloads_url\": \"https://api.github.com/repos/sewenthy/monorobot/downloads\",\n+    \"issues_url\": \"https://api.github.com/repos/sewenthy/monorobot/issues{/number}\",\n+    \"pulls_url\": \"https://api.github.com/repos/sewenthy/monorobot/pulls{/number}\",\n+    \"milestones_url\": \"https://api.github.com/repos/sewenthy/monorobot/milestones{/number}\",\n+    \"notifications_url\": \"https://api.github.com/repos/sewenthy/monorobot/notifications{?since,all,participating}\",\n+    \"labels_url\": \"https://api.github.com/repos/sewenthy/monorobot/labels{/name}\",\n+    \"releases_url\": \"https://api.github.com/repos/sewenthy/monorobot/releases{/id}\",\n+    \"deployments_url\": \"https://api.github.com/repos/sewenthy/monorobot/deployments\",\n+    \"created_at\": \"2022-10-21T02:48:23Z\",\n+    \"updated_at\": \"2022-10-21T05:04:57Z\",\n+    \"pushed_at\": \"2022-10-21T07:04:00Z\",\n+    \"git_url\": \"git://github.com/sewenthy/monorobot.git\",\n+    \"ssh_url\": \"git@github.com:sewenthy/monorobot.git\",\n+    \"clone_url\": \"https://github.com/sewenthy/monorobot.git\",\n+    \"svn_url\": \"https://github.com/sewenthy/monorobot\",\n+    \"homepage\": \"\",\n+    \"size\": 653,\n+    \"stargazers_count\": 0,\n+    \"watchers_count\": 0,\n+    \"language\": \"OCaml\",\n+    \"has_issues\": false,\n+    \"has_projects\": true,\n+    \"has_downloads\": true,\n+    \"has_wiki\": true,\n+    \"has_pages\": false,\n+    \"forks_count\": 0,\n+    \"mirror_url\": null,\n+    \"archived\": false,\n+    \"disabled\": false,\n+    \"open_issues_count\": 1,\n+    \"license\": null,\n+    \"allow_forking\": true,\n+    \"is_template\": false,\n+    \"web_commit_signoff_required\": false,\n+    \"topics\": [\n+\n+    ],\n+    \"visibility\": \"public\",\n+    \"forks\": 0,\n+    \"open_issues\": 1,\n+    \"watchers\": 0,\n+    \"default_branch\": \"master\"\n+  },\n+  \"sender\": {\n+    \"login\": \"ignored_user\",\n+    \"id\": 23148113,\n+    \"node_id\": \"MDQ6VXNlcjIzMTQ4MTEz\",\n+    \"avatar_url\": \"https://avatars.githubusercontent.com/u/23148113?v=4\",\n+    \"gravatar_id\": \"\",\n+    \"url\": \"https://api.github.com/users/ignored_user\",\n+    \"html_url\": \"https://github.com/ignored_user\",\n+    \"followers_url\": \"https://api.github.com/users/ignored_user/followers\",\n+    \"following_url\": \"https://api.github.com/users/ignored_user/following{/other_user}\",\n+    \"gists_url\": \"https://api.github.com/users/ignored_user/gists{/gist_id}\",\n+    \"starred_url\": \"https://api.github.com/users/ignored_user/starred{/owner}{/repo}\",\n+    \"subscriptions_url\": \"https://api.github.com/users/ignored_user/subscriptions\",\n+    \"organizations_url\": \"https://api.github.com/users/ignored_user/orgs\",\n+    \"repos_url\": \"https://api.github.com/users/ignored_user/repos\",\n+    \"events_url\": \"https://api.github.com/users/ignored_user/events{/privacy}\",\n+    \"received_events_url\": \"https://api.github.com/users/ignored_user/received_events\",\n+    \"type\": \"User\",\n+    \"site_admin\": false\n+  }\n+}"
+    },
+    {
+      "sha": "111c01fcde4ad869cd5b9e681e4906d8d7cd37eb",
+      "filename": "test/monorobot.json",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 0,
+      "changes": 3,
+      "blob_url": "https://github.com/sewenthy/monorobot/blob/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/test%2Fmonorobot.json",
+      "raw_url": "https://github.com/sewenthy/monorobot/raw/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/test%2Fmonorobot.json",
+      "contents_url": "https://api.github.com/repos/sewenthy/monorobot/contents/test%2Fmonorobot.json?ref=6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "patch": "@@ -18,6 +18,9 @@\n             }\n         ]\n     },\n+    \"ignored_users\": [\n+        \"ignored_user\"\n+    ],\n     \"prefix_rules\": {\n         \"default_channel\": \"default\",\n         \"filter_main_branch\": true,"
+    },
+    {
+      "sha": "269488234ec1b6ba04683ee8b1672d44f636f0be",
+      "filename": "test/slack_payloads.expected",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "blob_url": "https://github.com/sewenthy/monorobot/blob/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/test%2Fslack_payloads.expected",
+      "raw_url": "https://github.com/sewenthy/monorobot/raw/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/test%2Fslack_payloads.expected",
+      "contents_url": "https://api.github.com/repos/sewenthy/monorobot/contents/test%2Fslack_payloads.expected?ref=6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "patch": "@@ -127,6 +127,7 @@ will notify #default\n     }\n   ]\n }\n+===== file ../mock_payloads/issue_comment.created_in_issue_by_ignored.json =====\n ===== file ../mock_payloads/issue_comment.created_in_pr.json =====\n will notify #a1-bot\n {"
+    }
+  ]
+}

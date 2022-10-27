@@ -87,13 +87,20 @@ let parse_exn headers body =
   | "member" | "create" | "delete" | "release" -> Event (event_notification_of_string body)
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
+type basehead = string
+
+(** (repo, branch) because you can compare across fork too *)
+type compare_branch = repository * string
+
 type gh_link =
   | Pull_request of repository * int
   | Issue of repository * int
   | Commit of repository * commit_hash
-  | Compare of repository * compare_branches
+  | Compare of repository * basehead * compare_branch * compare_branch
 
-let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/.\-_]+)/?$|}
+let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/.:\-_]+)/?$|}
+let commit_sha_re = Re2.create_exn {|[a-f0-9]{40}|}
+let compare_basehead_re = Re2.create_exn {|([a-zA-Z0-9:/\-_]+)([.]{3})([a-zA-Z0-9:/\-_]+)|}
 let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported
@@ -112,18 +119,15 @@ let gh_link_of_string url_str =
   | Some host ->
   match Re2.find_submatches_exn gh_link_re path with
   | [| _; prefix; Some owner; Some name; Some link_type; Some item |] ->
-    let item =
-      match String.get item (String.length item - 1) with
-      | '/' -> String.sub item ~pos:0 ~len:(String.length item - 1)
-      | _ -> item
-    in
-    let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
-    let scheme = Uri.scheme url in
-    let html_base, api_base =
-      if String.is_suffix base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
-      else custom_html_base ?scheme base owner name, custom_api_base ?scheme base owner name
-    in
-    let repo =
+    let item = Base.String.chop_suffix_if_exists item ~suffix:"/" in
+    let make_repo owner name =
+      let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
+      let scheme = Uri.scheme url in
+      let make_bases owner name =
+        if String.is_suffix base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
+        else custom_html_base ?scheme base owner name, custom_api_base ?scheme base owner name
+      in
+      let html_base, api_base = make_bases owner name in
       {
         name;
         full_name = sprintf "%s/%s" owner name;
@@ -132,15 +136,44 @@ let gh_link_of_string url_str =
         contents_url = sprintf "%s/contents/{+path}" api_base;
         pulls_url = sprintf "%s/pulls{/number}" api_base;
         issues_url = sprintf "%s/issues{/number}" api_base;
+        compare_url = sprintf "%s/compare{/basehead}" api_base;
+        branches_url = sprintf "%s/branches{/branch}" api_base;
       }
+    in
+    let repo = make_repo owner name in
+    let verify_commit_sha repo item =
+      match Re2.find_submatches_exn commit_sha_re item with
+      | [| Some sha |] -> Some (Commit (repo, sha))
+      | _ -> None
+    in
+    let make_compare_branch repo compare_branch =
+      match String.split compare_branch ~on:':' with
+      | [ owner; _; branch ] | [ owner; branch ] -> Some (make_repo owner name, branch)
+      | [ branch ] -> Some (repo, branch)
+      | _ -> None
+    in
+    let verify_compare_basehead repo basehead =
+      try
+        match Re2.find_submatches_exn compare_basehead_re basehead with
+        | [| Some basehead; Some base_branch; _; Some merge_branch |] ->
+          begin
+            match make_compare_branch repo base_branch, make_compare_branch repo merge_branch with
+            | Some base_branch, Some merge_branch -> Some (Compare (repo, basehead, base_branch, merge_branch))
+            | _ -> None
+          end
+        | _ -> None
+      with e ->
+        let msg = Exn.to_string e in
+        Stdio.printf "there was an error: %s\n" msg;
+        None
     in
     begin
       try
         match link_type with
         | "pull" -> Some (Pull_request (repo, Int.of_string item))
         | "issues" -> Some (Issue (repo, Int.of_string item))
-        | "commit" -> Some (Commit (repo, item))
-        | "compare" -> Some (Compare (repo, item))
+        | "commit" -> verify_commit_sha repo item
+        | "compare" -> verify_compare_basehead repo item
         | _ -> None
       with _ -> None
     end

@@ -1,0 +1,451 @@
+{
+  "url": "https://api.github.com/repos/ahrefs/monorobot/compare/master...yasu/slack-msg-fix-escaping-and-fallback",
+  "html_url": "https://github.com/ahrefs/monorobot/compare/master...yasu/slack-msg-fix-escaping-and-fallback",
+  "permalink_url": "https://github.com/ahrefs/monorobot/compare/ahrefs:6ec6b47...ahrefs:ee52fb2",
+  "diff_url": "https://github.com/ahrefs/monorobot/compare/master...yasu/slack-msg-fix-escaping-and-fallback.diff",
+  "patch_url": "https://github.com/ahrefs/monorobot/compare/master...yasu/slack-msg-fix-escaping-and-fallback.patch",
+  "base_commit": {
+    "sha": "6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+    "node_id": "C_kwDOC5saPNoAKDZlYzZiNDdkMWYzMzNkMzBkNWMzODg5ZTA1ZGNhYWQwNzhmMGU3N2Q",
+    "commit": {
+      "author": {
+        "name": "Louis",
+        "email": "mail@example.org",
+        "date": "2022-10-26T00:47:59Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2022-10-26T00:47:59Z"
+      },
+      "message": "Merge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users\n\nIgnore code comments from defined list of users",
+      "tree": {
+        "sha": "3306d7ce0d2ac3324755dbe410d3fa3da841fe7f",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/git/trees/3306d7ce0d2ac3324755dbe410d3fa3da841fe7f"
+      },
+      "url": "https://api.github.com/repos/ahrefs/monorobot/git/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjWIO/CRBK7hj4Ov3rIwAAEWAIAI7P6ReUnb6bqigQ06Iqgzrm\nK16ReYELdE6Gp5lv24pw4fEa8vW7u5M8Rp4FndfpcnwjODyw9BRN1xzmJJ6sbNgZ\nusB12KyN6Q7MPAmRcoleKzndfcTpoAGR1chuVeDuMT6VcSjHdCbkNO8nhbXnhjPY\nDncx6uXrm8t+ak8IcbJ6nbxFvDPlqySGK7GvbsNIFhSdIy5FkvFg8kVYXssnD0mn\nhfGWCyKBfbkIAIR/w2Rdb6xXm6E2zjMFZp6BDRNhq0hv3R8/hj7GJdw6I+WwYq39\ntUIgPyYtYJpB8NK5DuTqfK7bIEiz3tXkXJ84iyx8Wscpldq60GYA0r0c2QBb7io=\n=yv18\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree 3306d7ce0d2ac3324755dbe410d3fa3da841fe7f\nparent 56ada1084d6b5cc71821f65cf41f013fe6c280f3\nparent 883724426505ec03e29a1e4fd11079797a30bd57\nauthor Louis <mail@example.org> 1666745279 +0800\ncommitter GitHub <noreply@github.com> 1666745279 +0800\n\nMerge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users\n\nIgnore code comments from defined list of users"
+      }
+    },
+    "url": "https://api.github.com/repos/ahrefs/monorobot/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+    "html_url": "https://github.com/ahrefs/monorobot/commit/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+    "comments_url": "https://api.github.com/repos/ahrefs/monorobot/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/comments",
+    "author": {
+      "login": "Khady",
+      "id": 974142,
+      "node_id": "MDQ6VXNlcjk3NDE0Mg==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/974142?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Khady",
+      "html_url": "https://github.com/Khady",
+      "followers_url": "https://api.github.com/users/Khady/followers",
+      "following_url": "https://api.github.com/users/Khady/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Khady/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Khady/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Khady/subscriptions",
+      "organizations_url": "https://api.github.com/users/Khady/orgs",
+      "repos_url": "https://api.github.com/users/Khady/repos",
+      "events_url": "https://api.github.com/users/Khady/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Khady/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/commits/56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+        "html_url": "https://github.com/ahrefs/monorobot/commit/56ada1084d6b5cc71821f65cf41f013fe6c280f3"
+      },
+      {
+        "sha": "883724426505ec03e29a1e4fd11079797a30bd57",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/commits/883724426505ec03e29a1e4fd11079797a30bd57",
+        "html_url": "https://github.com/ahrefs/monorobot/commit/883724426505ec03e29a1e4fd11079797a30bd57"
+      }
+    ]
+  },
+  "merge_base_commit": {
+    "sha": "929b2a2ed5efce78032c44e41ac9d7064610f1de",
+    "node_id": "MDY6Q29tbWl0MTk0NzE0MTcyOjkyOWIyYTJlZDVlZmNlNzgwMzJjNDRlNDFhYzlkNzA2NDYxMGYxZGU=",
+    "commit": {
+      "author": {
+        "name": "Yasunari Watanabe",
+        "email": "mail@example.org",
+        "date": "2021-01-05T01:31:47Z"
+      },
+      "committer": {
+        "name": "Yasunari Watanabe",
+        "email": "mail@example.org",
+        "date": "2021-01-05T01:31:47Z"
+      },
+      "message": "s/pct_decode/pct_encode/",
+      "tree": {
+        "sha": "5154ef83460443ca134ababd752e219dfda20fc7",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/git/trees/5154ef83460443ca134ababd752e219dfda20fc7"
+      },
+      "url": "https://api.github.com/repos/ahrefs/monorobot/git/commits/929b2a2ed5efce78032c44e41ac9d7064610f1de",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    },
+    "url": "https://api.github.com/repos/ahrefs/monorobot/commits/929b2a2ed5efce78032c44e41ac9d7064610f1de",
+    "html_url": "https://github.com/ahrefs/monorobot/commit/929b2a2ed5efce78032c44e41ac9d7064610f1de",
+    "comments_url": "https://api.github.com/repos/ahrefs/monorobot/commits/929b2a2ed5efce78032c44e41ac9d7064610f1de/comments",
+    "author": {
+      "login": "yasunariw",
+      "id": 7478035,
+      "node_id": "MDQ6VXNlcjc0NzgwMzU=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7478035?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/yasunariw",
+      "html_url": "https://github.com/yasunariw",
+      "followers_url": "https://api.github.com/users/yasunariw/followers",
+      "following_url": "https://api.github.com/users/yasunariw/following{/other_user}",
+      "gists_url": "https://api.github.com/users/yasunariw/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/yasunariw/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/yasunariw/subscriptions",
+      "organizations_url": "https://api.github.com/users/yasunariw/orgs",
+      "repos_url": "https://api.github.com/users/yasunariw/repos",
+      "events_url": "https://api.github.com/users/yasunariw/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/yasunariw/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "yasunariw",
+      "id": 7478035,
+      "node_id": "MDQ6VXNlcjc0NzgwMzU=",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7478035?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/yasunariw",
+      "html_url": "https://github.com/yasunariw",
+      "followers_url": "https://api.github.com/users/yasunariw/followers",
+      "following_url": "https://api.github.com/users/yasunariw/following{/other_user}",
+      "gists_url": "https://api.github.com/users/yasunariw/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/yasunariw/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/yasunariw/subscriptions",
+      "organizations_url": "https://api.github.com/users/yasunariw/orgs",
+      "repos_url": "https://api.github.com/users/yasunariw/repos",
+      "events_url": "https://api.github.com/users/yasunariw/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/yasunariw/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "eb79a92fc528bfb35f9b1737feb321d264d13b2a",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/commits/eb79a92fc528bfb35f9b1737feb321d264d13b2a",
+        "html_url": "https://github.com/ahrefs/monorobot/commit/eb79a92fc528bfb35f9b1737feb321d264d13b2a"
+      }
+    ]
+  },
+  "status": "diverged",
+  "ahead_by": 3,
+  "behind_by": 113,
+  "total_commits": 3,
+  "commits": [
+    {
+      "sha": "0e222cdeeee469bf2109310d27d61a8afb86a118",
+      "node_id": "MDY6Q29tbWl0MTk0NzE0MTcyOjBlMjIyY2RlZWVlNDY5YmYyMTA5MzEwZDI3ZDYxYThhZmI4NmExMTg=",
+      "commit": {
+        "author": {
+          "name": "Yasunari Watanabe",
+          "email": "mail@example.org",
+          "date": "2021-01-05T07:23:20Z"
+        },
+        "committer": {
+          "name": "Yasunari Watanabe",
+          "email": "mail@example.org",
+          "date": "2021-01-05T07:23:20Z"
+        },
+        "message": "use plaintext for all fallback messages",
+        "tree": {
+          "sha": "7ee765766945f7e6c15c60d250da68da1818abc0",
+          "url": "https://api.github.com/repos/ahrefs/monorobot/git/trees/7ee765766945f7e6c15c60d250da68da1818abc0"
+        },
+        "url": "https://api.github.com/repos/ahrefs/monorobot/git/commits/0e222cdeeee469bf2109310d27d61a8afb86a118",
+        "comment_count": 0,
+        "verification": {
+          "verified": false,
+          "reason": "unsigned",
+          "signature": null,
+          "payload": null
+        }
+      },
+      "url": "https://api.github.com/repos/ahrefs/monorobot/commits/0e222cdeeee469bf2109310d27d61a8afb86a118",
+      "html_url": "https://github.com/ahrefs/monorobot/commit/0e222cdeeee469bf2109310d27d61a8afb86a118",
+      "comments_url": "https://api.github.com/repos/ahrefs/monorobot/commits/0e222cdeeee469bf2109310d27d61a8afb86a118/comments",
+      "author": {
+        "login": "yasunariw",
+        "id": 7478035,
+        "node_id": "MDQ6VXNlcjc0NzgwMzU=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/7478035?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/yasunariw",
+        "html_url": "https://github.com/yasunariw",
+        "followers_url": "https://api.github.com/users/yasunariw/followers",
+        "following_url": "https://api.github.com/users/yasunariw/following{/other_user}",
+        "gists_url": "https://api.github.com/users/yasunariw/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/yasunariw/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/yasunariw/subscriptions",
+        "organizations_url": "https://api.github.com/users/yasunariw/orgs",
+        "repos_url": "https://api.github.com/users/yasunariw/repos",
+        "events_url": "https://api.github.com/users/yasunariw/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/yasunariw/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "yasunariw",
+        "id": 7478035,
+        "node_id": "MDQ6VXNlcjc0NzgwMzU=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/7478035?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/yasunariw",
+        "html_url": "https://github.com/yasunariw",
+        "followers_url": "https://api.github.com/users/yasunariw/followers",
+        "following_url": "https://api.github.com/users/yasunariw/following{/other_user}",
+        "gists_url": "https://api.github.com/users/yasunariw/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/yasunariw/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/yasunariw/subscriptions",
+        "organizations_url": "https://api.github.com/users/yasunariw/orgs",
+        "repos_url": "https://api.github.com/users/yasunariw/repos",
+        "events_url": "https://api.github.com/users/yasunariw/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/yasunariw/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "929b2a2ed5efce78032c44e41ac9d7064610f1de",
+          "url": "https://api.github.com/repos/ahrefs/monorobot/commits/929b2a2ed5efce78032c44e41ac9d7064610f1de",
+          "html_url": "https://github.com/ahrefs/monorobot/commit/929b2a2ed5efce78032c44e41ac9d7064610f1de"
+        }
+      ]
+    },
+    {
+      "sha": "46b04204b085fd1d2b8c15033deaa3be0a0f9936",
+      "node_id": "MDY6Q29tbWl0MTk0NzE0MTcyOjQ2YjA0MjA0YjA4NWZkMWQyYjhjMTUwMzNkZWFhM2JlMGEwZjk5MzY=",
+      "commit": {
+        "author": {
+          "name": "Yasunari Watanabe",
+          "email": "mail@example.org",
+          "date": "2021-01-05T09:15:31Z"
+        },
+        "committer": {
+          "name": "Yasunari Watanabe",
+          "email": "mail@example.org",
+          "date": "2021-01-05T09:15:31Z"
+        },
+        "message": "escape all user text and provide pretty-printing utility functions\n\nPR titles, comments, etc. should all be escaped.",
+        "tree": {
+          "sha": "61acb8eee3ccf2b8749a29cf24f8aa4096eca933",
+          "url": "https://api.github.com/repos/ahrefs/monorobot/git/trees/61acb8eee3ccf2b8749a29cf24f8aa4096eca933"
+        },
+        "url": "https://api.github.com/repos/ahrefs/monorobot/git/commits/46b04204b085fd1d2b8c15033deaa3be0a0f9936",
+        "comment_count": 0,
+        "verification": {
+          "verified": false,
+          "reason": "unsigned",
+          "signature": null,
+          "payload": null
+        }
+      },
+      "url": "https://api.github.com/repos/ahrefs/monorobot/commits/46b04204b085fd1d2b8c15033deaa3be0a0f9936",
+      "html_url": "https://github.com/ahrefs/monorobot/commit/46b04204b085fd1d2b8c15033deaa3be0a0f9936",
+      "comments_url": "https://api.github.com/repos/ahrefs/monorobot/commits/46b04204b085fd1d2b8c15033deaa3be0a0f9936/comments",
+      "author": {
+        "login": "yasunariw",
+        "id": 7478035,
+        "node_id": "MDQ6VXNlcjc0NzgwMzU=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/7478035?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/yasunariw",
+        "html_url": "https://github.com/yasunariw",
+        "followers_url": "https://api.github.com/users/yasunariw/followers",
+        "following_url": "https://api.github.com/users/yasunariw/following{/other_user}",
+        "gists_url": "https://api.github.com/users/yasunariw/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/yasunariw/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/yasunariw/subscriptions",
+        "organizations_url": "https://api.github.com/users/yasunariw/orgs",
+        "repos_url": "https://api.github.com/users/yasunariw/repos",
+        "events_url": "https://api.github.com/users/yasunariw/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/yasunariw/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "yasunariw",
+        "id": 7478035,
+        "node_id": "MDQ6VXNlcjc0NzgwMzU=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/7478035?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/yasunariw",
+        "html_url": "https://github.com/yasunariw",
+        "followers_url": "https://api.github.com/users/yasunariw/followers",
+        "following_url": "https://api.github.com/users/yasunariw/following{/other_user}",
+        "gists_url": "https://api.github.com/users/yasunariw/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/yasunariw/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/yasunariw/subscriptions",
+        "organizations_url": "https://api.github.com/users/yasunariw/orgs",
+        "repos_url": "https://api.github.com/users/yasunariw/repos",
+        "events_url": "https://api.github.com/users/yasunariw/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/yasunariw/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "0e222cdeeee469bf2109310d27d61a8afb86a118",
+          "url": "https://api.github.com/repos/ahrefs/monorobot/commits/0e222cdeeee469bf2109310d27d61a8afb86a118",
+          "html_url": "https://github.com/ahrefs/monorobot/commit/0e222cdeeee469bf2109310d27d61a8afb86a118"
+        }
+      ]
+    },
+    {
+      "sha": "ee52fb2df818b3b46d81a3f5fa5de2c926987462",
+      "node_id": "MDY6Q29tbWl0MTk0NzE0MTcyOmVlNTJmYjJkZjgxOGIzYjQ2ZDgxYTNmNWZhNWRlMmM5MjY5ODc0NjI=",
+      "commit": {
+        "author": {
+          "name": "Yasunari Watanabe",
+          "email": "mail@example.org",
+          "date": "2021-01-05T09:25:19Z"
+        },
+        "committer": {
+          "name": "Yasunari Watanabe",
+          "email": "mail@example.org",
+          "date": "2021-01-05T09:25:19Z"
+        },
+        "message": "tests: promote with simple char escape check",
+        "tree": {
+          "sha": "e10f20a2a17fb85c275d3a099014b8e6e788e134",
+          "url": "https://api.github.com/repos/ahrefs/monorobot/git/trees/e10f20a2a17fb85c275d3a099014b8e6e788e134"
+        },
+        "url": "https://api.github.com/repos/ahrefs/monorobot/git/commits/ee52fb2df818b3b46d81a3f5fa5de2c926987462",
+        "comment_count": 0,
+        "verification": {
+          "verified": false,
+          "reason": "unsigned",
+          "signature": null,
+          "payload": null
+        }
+      },
+      "url": "https://api.github.com/repos/ahrefs/monorobot/commits/ee52fb2df818b3b46d81a3f5fa5de2c926987462",
+      "html_url": "https://github.com/ahrefs/monorobot/commit/ee52fb2df818b3b46d81a3f5fa5de2c926987462",
+      "comments_url": "https://api.github.com/repos/ahrefs/monorobot/commits/ee52fb2df818b3b46d81a3f5fa5de2c926987462/comments",
+      "author": {
+        "login": "yasunariw",
+        "id": 7478035,
+        "node_id": "MDQ6VXNlcjc0NzgwMzU=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/7478035?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/yasunariw",
+        "html_url": "https://github.com/yasunariw",
+        "followers_url": "https://api.github.com/users/yasunariw/followers",
+        "following_url": "https://api.github.com/users/yasunariw/following{/other_user}",
+        "gists_url": "https://api.github.com/users/yasunariw/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/yasunariw/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/yasunariw/subscriptions",
+        "organizations_url": "https://api.github.com/users/yasunariw/orgs",
+        "repos_url": "https://api.github.com/users/yasunariw/repos",
+        "events_url": "https://api.github.com/users/yasunariw/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/yasunariw/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "committer": {
+        "login": "yasunariw",
+        "id": 7478035,
+        "node_id": "MDQ6VXNlcjc0NzgwMzU=",
+        "avatar_url": "https://avatars.githubusercontent.com/u/7478035?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/yasunariw",
+        "html_url": "https://github.com/yasunariw",
+        "followers_url": "https://api.github.com/users/yasunariw/followers",
+        "following_url": "https://api.github.com/users/yasunariw/following{/other_user}",
+        "gists_url": "https://api.github.com/users/yasunariw/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/yasunariw/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/yasunariw/subscriptions",
+        "organizations_url": "https://api.github.com/users/yasunariw/orgs",
+        "repos_url": "https://api.github.com/users/yasunariw/repos",
+        "events_url": "https://api.github.com/users/yasunariw/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/yasunariw/received_events",
+        "type": "User",
+        "site_admin": false
+      },
+      "parents": [
+        {
+          "sha": "46b04204b085fd1d2b8c15033deaa3be0a0f9936",
+          "url": "https://api.github.com/repos/ahrefs/monorobot/commits/46b04204b085fd1d2b8c15033deaa3be0a0f9936",
+          "html_url": "https://github.com/ahrefs/monorobot/commit/46b04204b085fd1d2b8c15033deaa3be0a0f9936"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "sha": "c8fb2bc23fbd0d9650650287250c9a490be9691c",
+      "filename": "lib/slack.ml",
+      "status": "modified",
+      "additions": 68,
+      "deletions": 43,
+      "changes": 111,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/ee52fb2df818b3b46d81a3f5fa5de2c926987462/lib%2Fslack.ml",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/ee52fb2df818b3b46d81a3f5fa5de2c926987462/lib%2Fslack.ml",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/lib%2Fslack.ml?ref=ee52fb2df818b3b46d81a3f5fa5de2c926987462",
+      "patch": "@@ -34,6 +34,14 @@ let show_labels = function\n \n let pluralize name num suffix = if num = 1 then sprintf \"%s\" name else String.concat [ name; suffix ]\n \n+let escape = Mrkdwn.escape_mrkdwn\n+\n+let pp_link url text = sprintf \"<%s|%s>\" url (escape text)\n+\n+let pp_repo (repo : repository) = sprintf \"[%s]\" repo.full_name\n+\n+let pp_repo_mrkdwn (repo : repository) = pp_link repo.url @@ pp_repo repo\n+\n let generate_pull_request_notification notification channel =\n   let { action; number; sender; pull_request; repository } = notification in\n   let ({ body; title; html_url; labels; _ } : pull_request) = pull_request in\n@@ -50,8 +58,11 @@ let generate_pull_request_notification notification channel =\n   in\n   let summary =\n     Some\n-      (sprintf \"<%s|[%s]> Pull request #%d <%s|%s> %s by *%s*\" repository.url repository.full_name number html_url title\n-         action sender.login)\n+      (sprintf \"%s Pull request #%d %s %s by *%s*\" (pp_repo_mrkdwn repository) number (pp_link html_url title) action\n+         sender.login)\n+  in\n+  let fallback =\n+    Some (sprintf \"%s Pull request #%d %s %s by %s\" (pp_repo repository) number title action sender.login)\n   in\n   {\n     channel;\n@@ -62,7 +73,7 @@ let generate_pull_request_notification notification channel =\n           {\n             empty_attachments with\n             mrkdwn_in = Some [ \"text\" ];\n-            fallback = summary;\n+            fallback;\n             color = Some \"#ccc\";\n             pretext = summary;\n             text = mrkdwn_of_markdown_opt body;\n@@ -90,9 +101,10 @@ let generate_pr_review_notification notification channel =\n   in\n   let summary =\n     Some\n-      (sprintf \"<%s|[%s]> *%s* <%s|%s> #%d <%s|%s>\" repository.url repository.full_name sender.login review.html_url\n-         action_str number html_url title)\n+      (sprintf \"%s *%s* %s #%d %s\" (pp_repo_mrkdwn repository) sender.login (pp_link review.html_url action_str) number\n+         (pp_link html_url title))\n   in\n+  let fallback = Some (sprintf \"%s %s %s #%d %s\" (pp_repo repository) sender.login action_str number title) in\n   {\n     channel;\n     text = None;\n@@ -102,7 +114,7 @@ let generate_pr_review_notification notification channel =\n           {\n             empty_attachments with\n             mrkdwn_in = Some [ \"text\" ];\n-            fallback = summary;\n+            fallback;\n             color = Some \"#ccc\";\n             pretext = summary;\n             text = mrkdwn_of_markdown_opt review.body;\n@@ -124,13 +136,14 @@ let generate_pr_review_comment_notification notification channel =\n   in\n   let summary =\n     Some\n-      (sprintf \"<%s|[%s]> *%s* %s on #%d <%s|%s>\" repository.url repository.full_name sender.login action_str number\n-         html_url title)\n+      (sprintf \"%s *%s* %s on #%d %s\" (pp_repo_mrkdwn repository) sender.login action_str number\n+         (pp_link html_url title))\n   in\n+  let fallback = Some (sprintf \"%s %s %s on #%d %s\" (pp_repo repository) sender.login action_str number title) in\n   let file =\n     match comment.path with\n     | None -> None\n-    | Some a -> Some (sprintf \"New comment by %s in <%s|%s>\" sender.login comment.html_url a)\n+    | Some a -> Some (sprintf \"New comment by %s in %s\" sender.login (pp_link comment.html_url a))\n   in\n   {\n     channel;\n@@ -141,7 +154,7 @@ let generate_pr_review_comment_notification notification channel =\n           {\n             empty_attachments with\n             mrkdwn_in = Some [ \"text\" ];\n-            fallback = summary;\n+            fallback;\n             color = Some \"#ccc\";\n             pretext = summary;\n             footer = file;\n@@ -167,9 +180,10 @@ let generate_issue_notification notification channel =\n   in\n   let summary =\n     Some\n-      (sprintf \"<%s|[%s]> Issue #%d <%s|%s> %s by *%s*\" repository.url repository.full_name number html_url title action\n+      (sprintf \"%s Issue #%d %s %s by *%s*\" (pp_repo_mrkdwn repository) number (pp_link html_url title) action\n          sender.login)\n   in\n+  let fallback = Some (sprintf \"%s Issue #%d %s %s by %s\" (pp_repo repository) number title action sender.login) in\n   {\n     channel;\n     text = None;\n@@ -179,7 +193,7 @@ let generate_issue_notification notification channel =\n           {\n             empty_attachments with\n             mrkdwn_in = Some [ \"text\" ];\n-            fallback = summary;\n+            fallback;\n             color = Some \"#ccc\";\n             pretext = summary;\n             text = mrkdwn_of_markdown_opt body;\n@@ -202,9 +216,10 @@ let generate_issue_comment_notification notification channel =\n   in\n   let summary =\n     Some\n-      (sprintf \"<%s|[%s]> *%s* <%s|%s> on #%d <%s|%s>\" repository.url repository.full_name sender.login comment.html_url\n-         action_str number issue.html_url title)\n+      (sprintf \"%s *%s* %s on #%d %s\" (pp_repo_mrkdwn repository) sender.login (pp_link comment.html_url action_str)\n+         number (pp_link issue.html_url title))\n   in\n+  let fallback = Some (sprintf \"%s %s %s on #%d %s\" (pp_repo repository) sender.login action_str number title) in\n   {\n     channel;\n     text = None;\n@@ -214,7 +229,7 @@ let generate_issue_comment_notification notification channel =\n           {\n             empty_attachments with\n             mrkdwn_in = Some [ \"text\" ];\n-            fallback = summary;\n+            fallback;\n             color = Some \"#ccc\";\n             pretext = summary;\n             text = Some (mrkdwn_of_markdown comment.body);\n@@ -229,35 +244,36 @@ let generate_push_notification notification channel =\n   let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in\n   let commits_branch = Github.commits_branch_of_ref notification.ref in\n   let tree_url = String.concat ~sep:\"/\" [ repository.url; \"tree\"; Uri.pct_encode commits_branch ] in\n+  let repo_branch = sprintf \"[%s:%s]\" repository.name commits_branch in\n+  let num_commits = sprintf \"%d %s\" (List.length commits) (pluralize \"commit\" (List.length commits) \"s\") in\n+  let action = if forced then \"force-pushed\" else \"pushed\" in\n+  let dest = if created then \"to new branch \" else \"\" in\n   let title =\n     if deleted then\n-      sprintf \"<%s|[%s]> %s deleted branch <%s|%s>\" tree_url repository.name sender.login compare commits_branch\n+      sprintf \"%s %s deleted branch %s\" (pp_link tree_url repository.name) sender.login (pp_link compare commits_branch)\n     else\n-      sprintf \"<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby %s\" tree_url repository.name commits_branch compare\n-        (List.length commits)\n-        ( match commits with\n-        | [ _ ] -> \"\"\n-        | _ -> \"s\"\n-        )\n-        (if forced then \"force-\" else \"\")\n-        (if created then \"to new branch \" else \"\")\n-        sender.login\n+      sprintf \"%s %s %s %sby %s\" (pp_link tree_url repo_branch) (pp_link compare num_commits) action dest sender.login\n+  in\n+  let fallback =\n+    if deleted then sprintf \"%s %s deleted branch %s\" (pp_repo repository) sender.login commits_branch\n+    else sprintf \"%s %s %s %sby %s\" repo_branch num_commits action dest sender.login\n   in\n   let commits =\n     List.map commits ~f:(fun { url; id; message; author; _ } ->\n-      let title = first_line message in\n-      sprintf \"`<%s|%s>` %s - %s\" url (git_short_sha_hash id) title author.name)\n+      let title = escape @@ first_line message in\n+      sprintf \"`%s` %s - %s\" (pp_link url (git_short_sha_hash id)) title author.name)\n   in\n   {\n     channel;\n-    text = Some title;\n+    text = None;\n     attachments =\n       Some\n         [\n           {\n             empty_attachments with\n             mrkdwn_in = Some [ \"fields\" ];\n-            fallback = Some \"Commit pushed notification\";\n+            pretext = Some title;\n+            fallback = Some fallback;\n             color = Some \"#ccc\";\n             fields = Some [ { value = String.concat ~sep:\"\\n\" commits; title = None; short = false } ];\n           };\n@@ -290,7 +306,12 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_\n     | Some s -> Some (sprintf \"*Description*: %s.\" s)\n   in\n   let commit_info =\n-    [ sprintf \"*Commit*: `<%s|%s>` %s - %s\" html_url (git_short_sha_hash sha) (first_line message) author.login ]\n+    [\n+      sprintf \"*Commit*: `%s` %s - %s\"\n+        (pp_link html_url (git_short_sha_hash sha))\n+        (escape @@ first_line message)\n+        author.login;\n+    ]\n   in\n   let branches_info =\n     match List.map ~f:(fun { name } -> name) notification.branches with\n@@ -306,21 +327,19 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_\n       [ sprintf \"*%s*: %s\" (pluralize \"Branch\" (List.length branches) \"es\") (String.concat ~sep:\", \" branches) ]\n   in\n   let summary =\n-    match target_url with\n-    | None ->\n-      Some (sprintf \"<%s|[%s]> CI Build Status notification: %s\" repository.url repository.full_name state_info)\n-      (* in case the CI run is not using buildkite *)\n-    | Some t ->\n-      Some\n-        (sprintf \"<%s|[%s]> CI Build Status notification for <%s|%s>: %s\" repository.url repository.full_name t context\n-           state_info)\n+    let target = Option.value_map target_url ~default:\"\" ~f:(fun url -> sprintf \" for %s\" (pp_link url context)) in\n+    Some (sprintf \"%s CI Build Status notification%s: %s\" (pp_repo_mrkdwn repository) target state_info)\n+  in\n+  let fallback =\n+    let target = Option.value_map target_url ~default:\"\" ~f:(fun _ -> sprintf \" for %s\" context) in\n+    Some (sprintf \"%s CI Build Status notification%s: %s\" (pp_repo repository) target state_info)\n   in\n   let msg = String.concat ~sep:\"\\n\" @@ List.concat [ commit_info; branches_info ] in\n   let attachment =\n     {\n       empty_attachments with\n       mrkdwn_in = Some [ \"fields\"; \"text\" ];\n-      fallback = summary;\n+      fallback;\n       pretext = summary;\n       color = Some color_info;\n       text = description_info;\n@@ -339,19 +358,25 @@ let generate_commit_comment_notification api_commit notification channel =\n   in\n   let summary =\n     Some\n-      (sprintf \"<%s|[%s]> *%s* commented on `<%s|%s>` %s\" repository.url repository.full_name sender.login\n-         comment.html_url (git_short_sha_hash commit_id) (first_line commit.message))\n+      (sprintf \"%s *%s* commented on `%s` %s\" (pp_repo_mrkdwn repository) sender.login\n+         (pp_link comment.html_url (git_short_sha_hash commit_id))\n+         (escape @@ first_line commit.message))\n+  in\n+  let fallback =\n+    Some\n+      (sprintf \"%s %s commented on `%s` %s\" (pp_repo repository) sender.login (git_short_sha_hash commit_id)\n+         (first_line commit.message))\n   in\n   let path =\n     match comment.path with\n     | None -> None\n-    | Some p -> Some (sprintf \"New comment by %s in <%s|%s>\" sender.login comment.html_url p)\n+    | Some p -> Some (sprintf \"New comment by %s in %s\" sender.login (pp_link comment.html_url p))\n   in\n   let attachment =\n     {\n       empty_attachments with\n       mrkdwn_in = Some [ \"pretext\"; \"text\" ];\n-      fallback = summary;\n+      fallback;\n       color = Some \"#ccc\";\n       pretext = summary;\n       footer = path;"
+    },
+    {
+      "sha": "c8d6e3ec3e349f7662cc048213e05e6c338e83a3",
+      "filename": "mock_payloads/pull_request_review_comment.created.json",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/ee52fb2df818b3b46d81a3f5fa5de2c926987462/mock_payloads%2Fpull_request_review_comment.created.json",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/ee52fb2df818b3b46d81a3f5fa5de2c926987462/mock_payloads%2Fpull_request_review_comment.created.json",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/mock_payloads%2Fpull_request_review_comment.created.json?ref=ee52fb2df818b3b46d81a3f5fa5de2c926987462",
+      "patch": "@@ -31,7 +31,7 @@\n       \"type\": \"User\",\n       \"site_admin\": false\n     },\n-    \"body\": \"PR review comment example\",\n+    \"body\": \"PR review comment example with <escaped & characters>\",\n     \"created_at\": \"2020-05-25T07:37:52Z\",\n     \"updated_at\": \"2020-05-25T07:38:26Z\",\n     \"html_url\": \"https://github.com/xinyuluo/monorepo/pull/4#discussion_r0\","
+    },
+    {
+      "sha": "3fc0574e10ac8c590427a5d5b72aaff0b1c2f42a",
+      "filename": "test/slack_payloads.expected",
+      "status": "modified",
+      "additions": 46,
+      "deletions": 45,
+      "changes": 91,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/ee52fb2df818b3b46d81a3f5fa5de2c926987462/test%2Fslack_payloads.expected",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/ee52fb2df818b3b46d81a3f5fa5de2c926987462/test%2Fslack_payloads.expected",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/test%2Fslack_payloads.expected?ref=ee52fb2df818b3b46d81a3f5fa5de2c926987462",
+      "patch": "@@ -5,7 +5,7 @@ will notify #all-push-events\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> *xinyuluo* commented on `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-0|0d95302a>` Update README.md\",\n+        \"[ahrefs/monorepo] xinyuluo commented on `0d95302a` Update README.md\",\n       \"mrkdwn_in\": [ \"pretext\", \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -23,7 +23,7 @@ will notify #all-push-events\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF\",\n+        \"[xinyuluo/monorepo] xinyuluo commented on `cd5b85af` add new line at EOF\",\n       \"mrkdwn_in\": [ \"pretext\", \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -39,7 +39,7 @@ will notify #a1\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on `<https://github.com/xinyuluo/monorepo/commit/1edcdf5e45a8b7ed01c247b981d8f42d426a7794#commitcomment-0|1edcdf5e>` Add files via upload\",\n+        \"[xinyuluo/monorepo] xinyuluo commented on `1edcdf5e` Add files via upload\",\n       \"mrkdwn_in\": [ \"pretext\", \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -54,7 +54,7 @@ will notify #all-push-events\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on `<https://github.com/xinyuluo/monorepo/commit/1edcdf5e45a8b7ed01c247b981d8f42d426a7794#commitcomment-0|1edcdf5e>` Add files via upload\",\n+        \"[xinyuluo/monorepo] xinyuluo commented on `1edcdf5e` Add files via upload\",\n       \"mrkdwn_in\": [ \"pretext\", \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -70,7 +70,7 @@ will notify #all-push-events\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF\",\n+        \"[xinyuluo/monorepo] xinyuluo commented on `cd5b85af` add new line at EOF\",\n       \"mrkdwn_in\": [ \"pretext\", \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -89,7 +89,7 @@ will notify #all-push-events\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF\",\n+        \"[xinyuluo/monorepo] xinyuluo commented on `cd5b85af` add new line at EOF\",\n       \"mrkdwn_in\": [ \"pretext\", \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -108,7 +108,7 @@ will notify #all-push-events\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on `<https://github.com/xinyuluo/monorepo/commit/41dad1d3d41f329f00836f166a7103a262e69889#commitcomment-0|41dad1d3>` make changes in 2 files\",\n+        \"[xinyuluo/monorepo] xinyuluo commented on `41dad1d3` make changes in 2 files\",\n       \"mrkdwn_in\": [ \"pretext\", \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -124,7 +124,7 @@ will notify #all-push-events\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on `<https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|cd5b85af>` add new line at EOF\",\n+        \"[xinyuluo/monorepo] xinyuluo commented on `cd5b85af` add new line at EOF\",\n       \"mrkdwn_in\": [ \"pretext\", \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -142,7 +142,7 @@ will notify #default\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/issues/5#issuecomment-633347088|commented> on #5 <https://github.com/xinyuluo/monorepo/issues/5|handle issue event>\",\n+        \"[xinyuluo/monorepo] xinyuluo commented on #5 handle issue event\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -157,8 +157,7 @@ will notify #a1-bot\n   \"channel\": \"a1-bot\",\n   \"attachments\": [\n     {\n-      \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>\",\n+      \"fallback\": \"[xinyuluo/monorepo] xinyuluo commented on #4 README update\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -172,8 +171,7 @@ will notify #backend\n   \"channel\": \"backend\",\n   \"attachments\": [\n     {\n-      \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>\",\n+      \"fallback\": \"[xinyuluo/monorepo] xinyuluo commented on #4 README update\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -190,7 +188,7 @@ will notify #frontend-bot\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> *yasunariw* <https://github.com/ahrefs/monorepo/pull/6168#issuecomment-17123|commented> on #6168 <https://github.com/ahrefs/monorepo/pull/6168|Feature 1234>\",\n+        \"[ahrefs/monorepo] yasunariw commented on #6168 Feature 1234\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -208,7 +206,7 @@ will notify #backend\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> closed by *xinyuluo*\",\n+        \"[xinyuluo/monorepo] Issue #6 create a test for issue_notification closed by xinyuluo\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -223,7 +221,7 @@ will notify #backend\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> labeled by *xinyuluo*\",\n+        \"[xinyuluo/monorepo] Issue #6 create a test for issue_notification labeled by xinyuluo\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -239,7 +237,7 @@ will notify #default\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> opened by *xinyuluo*\",\n+        \"[xinyuluo/monorepo] Issue #6 create a test for issue_notification opened by xinyuluo\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -256,7 +254,7 @@ will notify #backend\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> reopened by *xinyuluo*\",\n+        \"[xinyuluo/monorepo] Issue #6 create a test for issue_notification reopened by xinyuluo\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -271,7 +269,7 @@ will notify #a1-bot\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by *xinyuluo*\",\n+        \"[xinyuluo/monorepo] Pull request #8 Update README.md closed by xinyuluo\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -286,7 +284,7 @@ will notify #default\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> closed by *xinyuluo*\",\n+        \"[xinyuluo/monorepo] Pull request #2 Update README.md closed by xinyuluo\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -301,7 +299,7 @@ will notify #a1-bot\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*\",\n+        \"[xinyuluo/monorepo] Pull request #4 README update labeled by xinyuluo\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -316,7 +314,7 @@ will notify #backend\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*\",\n+        \"[xinyuluo/monorepo] Pull request #4 README update labeled by xinyuluo\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -332,7 +330,7 @@ will notify #frontend-bot\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md> opened by *xinyuluo*\",\n+        \"[xinyuluo/monorepo] Pull request #3 Update README.md opened by xinyuluo\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -349,7 +347,7 @@ will notify #default\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/Khady/monorepo|[Khady/monorepo]> *Khady* <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>\",\n+        \"[Khady/monorepo] Khady approved #6 create pr_review_test.md\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -365,7 +363,7 @@ will notify #frontend-bot\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>\",\n+        \"[xinyuluo/monorepo] xinyuluo commented on #3 Update README.md\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -383,7 +381,7 @@ will notify #default\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/Khady/monorepo|[Khady/monorepo]> *Khady* <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>\",\n+        \"[Khady/monorepo] Khady requested changes on #6 create pr_review_test.md\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n@@ -400,13 +398,13 @@ will notify #a1-bot\n   \"channel\": \"a1-bot\",\n   \"attachments\": [\n     {\n-      \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>\",\n+      \"fallback\": \"[xinyuluo/monorepo] xinyuluo commented on #4 README update\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n         \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>\",\n-      \"text\": \"PR review comment example\",\n+      \"text\":\n+        \"PR review comment example with &lt;escaped &amp; characters&gt;\",\n       \"footer\":\n         \"New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>\"\n     }\n@@ -417,13 +415,13 @@ will notify #backend\n   \"channel\": \"backend\",\n   \"attachments\": [\n     {\n-      \"fallback\":\n-        \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>\",\n+      \"fallback\": \"[xinyuluo/monorepo] xinyuluo commented on #4 README update\",\n       \"mrkdwn_in\": [ \"text\" ],\n       \"color\": \"#ccc\",\n       \"pretext\":\n         \"<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>\",\n-      \"text\": \"PR review comment example\",\n+      \"text\":\n+        \"PR review comment example with &lt;escaped &amp; characters&gt;\",\n       \"footer\":\n         \"New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>\"\n     }\n@@ -435,13 +433,14 @@ will notify #backend\n will notify #all-push-events\n {\n   \"channel\": \"all-push-events\",\n-  \"text\":\n-    \"<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy\",\n   \"attachments\": [\n     {\n-      \"fallback\": \"Commit pushed notification\",\n+      \"fallback\":\n+        \"[monorepo:master] 2 commits pushed by thatportugueseguy\",\n       \"mrkdwn_in\": [ \"fields\" ],\n       \"color\": \"#ccc\",\n+      \"pretext\":\n+        \"<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy\",\n       \"fields\": [\n         {\n           \"value\":\n@@ -455,13 +454,14 @@ will notify #all-push-events\n will notify #all-push-events\n {\n   \"channel\": \"all-push-events\",\n-  \"text\":\n-    \"<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy\",\n   \"attachments\": [\n     {\n-      \"fallback\": \"Commit pushed notification\",\n+      \"fallback\":\n+        \"[monorepo:master] 2 commits pushed by thatportugueseguy\",\n       \"mrkdwn_in\": [ \"fields\" ],\n       \"color\": \"#ccc\",\n+      \"pretext\":\n+        \"<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy\",\n       \"fields\": [\n         {\n           \"value\":\n@@ -474,13 +474,14 @@ will notify #all-push-events\n will notify #longest-a1\n {\n   \"channel\": \"longest-a1\",\n-  \"text\":\n-    \"<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|1 commit> pushed by thatportugueseguy\",\n   \"attachments\": [\n     {\n-      \"fallback\": \"Commit pushed notification\",\n+      \"fallback\":\n+        \"[monorepo:master] 1 commit pushed by thatportugueseguy\",\n       \"mrkdwn_in\": [ \"fields\" ],\n       \"color\": \"#ccc\",\n+      \"pretext\":\n+        \"<https://github.com/thatportugueseguy/monorepo/tree/master|[monorepo:master]> <https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|1 commit> pushed by thatportugueseguy\",\n       \"fields\": [\n         {\n           \"value\":\n@@ -498,7 +499,7 @@ will notify #default\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: failure\",\n+        \"[ahrefs/monorepo] CI Build Status notification for buildkite/pipeline2: failure\",\n       \"mrkdwn_in\": [ \"fields\", \"text\" ],\n       \"color\": \"danger\",\n       \"pretext\":\n@@ -524,7 +525,7 @@ will notify #default\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/Codertocat/Hello-World|[Codertocat/Hello-World]> CI Build Status notification: success\",\n+        \"[Codertocat/Hello-World] CI Build Status notification: success\",\n       \"mrkdwn_in\": [ \"fields\", \"text\" ],\n       \"color\": \"good\",\n       \"pretext\":\n@@ -545,7 +546,7 @@ will notify #all-push-events\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: success\",\n+        \"[ahrefs/monorepo] CI Build Status notification for buildkite/pipeline2: success\",\n       \"mrkdwn_in\": [ \"fields\", \"text\" ],\n       \"color\": \"good\",\n       \"pretext\":\n@@ -567,7 +568,7 @@ will notify #default\n   \"attachments\": [\n     {\n       \"fallback\":\n-        \"<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: success\",\n+        \"[ahrefs/monorepo] CI Build Status notification for buildkite/pipeline2: success\",\n       \"mrkdwn_in\": [ \"fields\", \"text\" ],\n       \"color\": \"good\",\n       \"pretext\":"
+    }
+  ]
+}
