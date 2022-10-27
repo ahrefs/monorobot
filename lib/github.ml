@@ -90,13 +90,15 @@ let parse_exn headers body =
 type basehead = string
 
 (** (repo, branch) because you can compare across fork too *)
-type compare_branch = repository * string
+type comparer =
+  | Compare_Branch of repository * string
+  | Compare_Hash of repository * commit_hash
 
 type gh_link =
   | Pull_request of repository * int
   | Issue of repository * int
   | Commit of repository * commit_hash
-  | Compare of repository * basehead * compare_branch * compare_branch
+  | Compare of repository * basehead * comparer * comparer
 
 let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/.:\-_]+)/?$|}
 let commit_sha_re = Re2.create_exn {|[a-f0-9]{40}|}
@@ -141,15 +143,28 @@ let gh_link_of_string url_str =
       }
     in
     let repo = make_repo owner name in
-    let verify_commit_sha repo item =
-      match Re2.find_submatches_exn commit_sha_re item with
-      | [| Some sha |] -> Some (Commit (repo, sha))
-      | _ -> None
+    let verify_commit_sha item =
+      try
+        match Re2.find_submatches_exn commit_sha_re item with
+        | [| Some sha |] -> Some sha
+        | _ -> None
+      with _ -> None
     in
-    let make_compare_branch repo compare_branch =
-      match String.split compare_branch ~on:':' with
-      | [ owner; _; branch ] | [ owner; branch ] -> Some (make_repo owner name, branch)
-      | [ branch ] -> Some (repo, branch)
+    let make_comparer repo comparer_string =
+      match String.split comparer_string ~on:':' with
+      | [ owner; _; comparer_string ] | [ owner; comparer_string ] ->
+        let repo = make_repo owner name in
+        begin
+          match verify_commit_sha comparer_string with
+          | Some sha -> Some (Compare_Hash (repo, sha))
+          | None -> Some (Compare_Branch (repo, comparer_string))
+        end
+      | [ comparer_string ] ->
+        begin
+          match verify_commit_sha comparer_string with
+          | Some sha -> Some (Compare_Hash (repo, sha))
+          | None -> Some (Compare_Branch (repo, comparer_string))
+        end
       | _ -> None
     in
     let verify_compare_basehead repo basehead =
@@ -157,7 +172,7 @@ let gh_link_of_string url_str =
         match Re2.find_submatches_exn compare_basehead_re basehead with
         | [| Some basehead; Some base_branch; _; Some merge_branch |] ->
           begin
-            match make_compare_branch repo base_branch, make_compare_branch repo merge_branch with
+            match make_comparer repo base_branch, make_comparer repo merge_branch with
             | Some base_branch, Some merge_branch -> Some (Compare (repo, basehead, base_branch, merge_branch))
             | _ -> None
           end
@@ -172,7 +187,12 @@ let gh_link_of_string url_str =
         match link_type with
         | "pull" -> Some (Pull_request (repo, Int.of_string item))
         | "issues" -> Some (Issue (repo, Int.of_string item))
-        | "commit" -> verify_commit_sha repo item
+        | "commit" ->
+          begin
+            match verify_commit_sha item with
+            | Some sha -> Some (Commit (repo, sha))
+            | None -> None
+          end
         | "compare" -> verify_compare_basehead repo item
         | _ -> None
       with _ -> None

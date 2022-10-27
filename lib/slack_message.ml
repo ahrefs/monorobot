@@ -211,7 +211,7 @@ let populate_commit ?(for_compare = false) repository (commit : api_commit) =
     fallback = Some fallback;
   }
 
-let populate_compare repository (compare : compare) basehead =
+let populate_compare repository (compare : compare) =
   let commits_unfurl = List.map compare.commits ~f:(populate_commit ~for_compare:true repository) in
   let commits_unfurl_text =
     List.map commits_unfurl ~f:(fun commit_unfurl ->
@@ -233,9 +233,7 @@ let populate_compare repository (compare : compare) basehead =
     | "" -> ""
     | text -> sprintf "\n\n%s" text
   in
-  let repo_text =
-    sprintf "<%s|[%s:%s]>" (escape_mrkdwn compare.html_url) (escape_mrkdwn repository.name) (escape_mrkdwn basehead)
-  in
+  let repo_text = sprintf "<%s|[%s]>" (escape_mrkdwn repository.url) (escape_mrkdwn repository.name) in
   let total_commits_text =
     if compare.total_commits > 1 then sprintf "<%s|%d _commits_>" (escape_mrkdwn compare.html_url) compare.total_commits
     else sprintf "<%s|%d _commit_>" (escape_mrkdwn compare.html_url) compare.total_commits
