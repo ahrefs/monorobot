@@ -77,7 +77,17 @@ let process_slack_event ~(secrets : Config_t.secrets) path =
 let () =
   let payloads = get_mock_payloads () in
   let repo : Github_t.repository =
-    { name = ""; full_name = ""; url = ""; commits_url = ""; contents_url = ""; pulls_url = ""; issues_url = ""; compare_url = ""; branches_url = "" }
+    {
+      name = "";
+      full_name = "";
+      url = "";
+      commits_url = "";
+      contents_url = "";
+      pulls_url = "";
+      issues_url = "";
+      compare_url = "";
+      branches_url = "";
+    }
   in
   let ctx = Context.make ~state_filepath:"state.json" () in
   let slack_events = get_mock_slack_events () in

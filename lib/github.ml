@@ -89,7 +89,7 @@ let parse_exn headers body =
 
 type basehead = string
 
-(** (repo, branch) because you can compare across fork too *)
+(** (repo, branch | commit_hash) because you can compare across fork too *)
 type comparer =
   | Compare_Branch of repository * string
   | Compare_Hash of repository * commit_hash
@@ -125,11 +125,10 @@ let gh_link_of_string url_str =
     let make_repo owner name =
       let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
       let scheme = Uri.scheme url in
-      let make_bases owner name =
+      let html_base, api_base =
         if String.is_suffix base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
         else custom_html_base ?scheme base owner name, custom_api_base ?scheme base owner name
       in
-      let html_base, api_base = make_bases owner name in
       {
         name;
         full_name = sprintf "%s/%s" owner name;
@@ -170,10 +169,10 @@ let gh_link_of_string url_str =
     let verify_compare_basehead repo basehead =
       try
         match Re2.find_submatches_exn compare_basehead_re basehead with
-        | [| Some basehead; Some base_branch; _; Some merge_branch |] ->
+        | [| Some basehead; Some base; _; Some merge |] ->
           begin
-            match make_comparer repo base_branch, make_comparer repo merge_branch with
-            | Some base_branch, Some merge_branch -> Some (Compare (repo, basehead, base_branch, merge_branch))
+            match make_comparer repo base, make_comparer repo merge with
+            | Some base_comparer, Some merge_comparer -> Some (Compare (repo, basehead, base_comparer, merge_comparer))
             | _ -> None
           end
         | _ -> None
