@@ -336,18 +336,27 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         | Error _ -> Lwt.return_none
         | Ok commit -> Lwt.return_some @@ (link, Slack_message.populate_commit repo commit)
         )
-      | Compare (repo, basehead, (base_repo, base_branch), (merge_repo, merge_branch)) ->
-        ( match%lwt Github_api.get_branch ~ctx ~repo:base_repo ~name:base_branch with
-        | Error _ -> Lwt.return_none
-        | _ ->
-          ( match%lwt Github_api.get_branch ~ctx ~repo:merge_repo ~name:merge_branch with
-          | Error _ -> Lwt.return_none
-          | _ ->
-            ( match%lwt Github_api.get_compare ~ctx ~repo ~basehead with
-            | Error _ -> Lwt.return_none
-            | Ok compare -> Lwt.return_some @@ (link, Slack_message.populate_compare repo compare basehead)
+      | Compare (repo, basehead, base_comparer, merge_comparer) ->
+        let verify_comparer (comparer : Github.comparer) =
+          match comparer with
+          | Github.Compare_Branch (repo, name) ->
+            ( match%lwt Github_api.get_branch ~ctx ~repo ~name with
+            | Error _ -> Lwt.return false
+            | Ok _ -> Lwt.return true
             )
+          | Github.Compare_Hash (repo, sha) ->
+            ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
+            | Error _ -> Lwt.return false
+            | Ok _ -> Lwt.return true
+            )
+        in
+        ( match%lwt Lwt.both (verify_comparer base_comparer) (verify_comparer merge_comparer) with
+        | true, true ->
+          ( match%lwt Github_api.get_compare ~ctx ~repo ~basehead with
+          | Error _ -> Lwt.return_none
+          | Ok compare -> Lwt.return_some @@ (link, Slack_message.populate_compare repo compare)
           )
+        | _ -> Lwt.return_none
         )
     in
 

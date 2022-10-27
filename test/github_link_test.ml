@@ -59,40 +59,90 @@ let commit_cases prefix repo =
 let compare_cases prefix repo prefix_api =
   [
     ( sprintf "https://%s/ahrefs/monorepo/compare/master...develop" prefix,
-      Some (Compare (repo, "master...develop", (repo, "master"), (repo, "develop"))) );
+      Some (Compare (repo, "master...develop", Compare_Branch (repo, "master"), Compare_Branch (repo, "develop"))) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/develop...master/" prefix,
-      Some (Compare (repo, "develop...master", (repo, "develop"), (repo, "master"))) );
+      Some (Compare (repo, "develop...master", Compare_Branch (repo, "develop"), Compare_Branch (repo, "master"))) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/master...sewen/one-feature" prefix,
-      Some (Compare (repo, "master...sewen/one-feature", (repo, "master"), (repo, "sewen/one-feature"))) );
+      Some
+        (Compare
+           ( repo,
+             "master...sewen/one-feature",
+             Compare_Branch (repo, "master"),
+             Compare_Branch (repo, "sewen/one-feature")
+           )
+        ) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/master...sewen/one-feature/" prefix,
-      Some (Compare (repo, "master...sewen/one-feature", (repo, "master"), (repo, "sewen/one-feature"))) );
+      Some
+        (Compare
+           ( repo,
+             "master...sewen/one-feature",
+             Compare_Branch (repo, "master"),
+             Compare_Branch (repo, "sewen/one-feature")
+           )
+        ) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/one-feature...master/" prefix,
-      Some (Compare (repo, "sewen/one-feature...master", (repo, "sewen/one-feature"), (repo, "master"))) );
+      Some
+        (Compare
+           ( repo,
+             "sewen/one-feature...master",
+             Compare_Branch (repo, "sewen/one-feature"),
+             Compare_Branch (repo, "master")
+           )
+        ) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/one-feature...other:master/" prefix,
       Some
         (Compare
            ( repo,
              "sewen/one-feature...other:master",
-             (repo, "sewen/one-feature"),
-             (mk_repo ~owner:"other" prefix prefix_api, "master")
+             Compare_Branch (repo, "sewen/one-feature"),
+             Compare_Branch (mk_repo ~owner:"other" prefix prefix_api, "master")
            )
         ) );
-     ( sprintf "https://%s/ahrefs/monorepo/compare/master...other:monorobot:119-unfurling-commit-range-links/" prefix,
+    ( sprintf "https://%s/ahrefs/monorepo/compare/master...other:monorobot:119-unfurling-commit-range-links/" prefix,
       Some
         (Compare
            ( repo,
              "master...other:monorobot:119-unfurling-commit-range-links",
-             (repo, "master"),
-             (mk_repo ~owner:"other" prefix prefix_api, "119-unfurling-commit-range-links")
+             Compare_Branch (repo, "master"),
+             Compare_Branch (mk_repo ~owner:"other" prefix prefix_api, "119-unfurling-commit-range-links")
            )
         ) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/other:1-feature...master/" prefix,
       Some
         (Compare
-           (repo, "other:1-feature...master", (mk_repo ~owner:"other" prefix prefix_api, "1-feature"), (repo, "master"))
+           ( repo,
+             "other:1-feature...master",
+             Compare_Branch (mk_repo ~owner:"other" prefix prefix_api, "1-feature"),
+             Compare_Branch (repo, "master")
+           )
+        ) );
+    ( sprintf "https://%s/ahrefs/monorepo/compare/other:0d09a6cb71481fe77cad7c7729d400ab40fd292e...master/" prefix,
+      Some
+        (Compare
+           ( repo,
+             "other:0d09a6cb71481fe77cad7c7729d400ab40fd292e...master",
+             Compare_Hash (mk_repo ~owner:"other" prefix prefix_api, "0d09a6cb71481fe77cad7c7729d400ab40fd292e"),
+             Compare_Branch (repo, "master")
+           )
+        ) );
+    ( sprintf "https://%s/ahrefs/monorepo/compare/0d09a6cb71481fe77cad7c7729d400ab40fd292e...master/" prefix,
+      Some
+        (Compare
+           ( repo,
+             "0d09a6cb71481fe77cad7c7729d400ab40fd292e...master",
+             Compare_Hash (repo, "0d09a6cb71481fe77cad7c7729d400ab40fd292e"),
+             Compare_Branch (repo, "master")
+           )
         ) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/123_x-feature...master" prefix,
-      Some (Compare (repo, "sewen/123_x-feature...master", (repo, "sewen/123_x-feature"), (repo, "master"))) );
+      Some
+        (Compare
+           ( repo,
+             "sewen/123_x-feature...master",
+             Compare_Branch (repo, "sewen/123_x-feature"),
+             Compare_Branch (repo, "master")
+           )
+        ) );
     sprintf "https://%s/ahrefs/monorepo/compare" prefix, None;
   ]
 
@@ -124,6 +174,14 @@ let cases =
       other_cases;
     ]
 
+let comparer_output = function
+  | Compare_Branch (repo, branch) ->
+    sprintf "branch %s in repo\n %s" branch
+      (repo |> Github_j.string_of_repository |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string)
+  | Compare_Hash (repo, sha) ->
+    sprintf "sha: %s \nfor repo %s\n" sha
+      (repo |> Github_j.string_of_repository |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string)
+
 let gh_link_output = function
   | Some (Issue (repo, matched_re)) | Some (Pull_request (repo, matched_re)) ->
     sprintf "matched: %d \nfor repo %s\n" matched_re
@@ -131,11 +189,9 @@ let gh_link_output = function
   | Some (Commit (repo, matched_re)) ->
     sprintf "matched: %s \nfor repo:\n %s\n" matched_re
       (repo |> Github_j.string_of_repository |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string)
-  | Some (Compare (_, matched_re, (base, base_branch), (merge, merge_branch))) ->
-    sprintf "matched: %s \nfor base branch %s in repo\n %s\nfor merge branch %s in repo: %s\n" matched_re base_branch
-      (base |> Github_j.string_of_repository |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string)
-      merge_branch
-      (merge |> Github_j.string_of_repository |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string)
+  | Some (Compare (_, matched_re, base_comparer, merge_comparer)) ->
+    sprintf "matched: %s \nfor base %s\nfor merge %s\n" matched_re (comparer_output base_comparer)
+      (comparer_output merge_comparer)
   | None -> "{None}"
 
 let () =
