@@ -132,49 +132,62 @@ let month = function
   | 12 -> "Dec"
   | _ -> assert false
 
-let populate_commit repository (commit : api_commit) =
+let condense_file_changes files =
+  match files with
+  | [ f ] -> sprintf "_modified `%s` (+%d-%d)_" (escape_mrkdwn f.filename) f.additions f.deletions
+  | _ ->
+    let prefix_path =
+      List.map files ~f:(fun f -> f.filename)
+      |> Common.longest_common_prefix
+      |> String.split ~on:'/'
+      |> List.drop_last_exn
+      |> String.concat ~sep:"/"
+    in
+    if String.is_empty prefix_path then "" else sprintf " in `%s/`" prefix_path
+
+let populate_commit ?(for_compare = false) repository (commit : api_commit) =
   let ({ sha; commit; url; author; files; _ } : api_commit) = commit in
   let title =
-    sprintf "`<%s|%s>` *%s - <%s|%s>*" url (Slack.git_short_sha_hash sha)
-      (escape_mrkdwn @@ first_line commit.message)
-      (escape_mrkdwn author.html_url) (escape_mrkdwn commit.author.name)
+    match author with
+    | Some author ->
+      sprintf "`<%s|%s>` %s - <%s|%s>" url (Slack.git_short_sha_hash sha)
+        (escape_mrkdwn @@ first_line commit.message)
+        (escape_mrkdwn author.html_url) (escape_mrkdwn commit.author.name)
+    | None ->
+      sprintf "`<%s|%s>` %s - %s" url (Slack.git_short_sha_hash sha)
+        (escape_mrkdwn @@ first_line commit.message)
+        (escape_mrkdwn commit.author.name)
   in
   let changes =
-    match files with
-    | [ f ] -> sprintf "_modified `%s` (+%d-%d)_" (escape_mrkdwn f.filename) f.additions f.deletions
-    | _ ->
-      let prefix_path =
-        List.map files ~f:(fun f -> f.filename)
-        |> Common.longest_common_prefix
-        |> String.split ~on:'/'
-        |> List.drop_last_exn
-        |> String.concat ~sep:"/"
-      in
-      let where = if String.is_empty prefix_path then "" else sprintf " in `%s/`" prefix_path in
-      let when_ =
-        (*
+    let where = condense_file_changes files in
+    let when_ =
+      (*
         use "today" on same day, "Month Day" during same year
         even better would be to have "N units ago" and tooltip computed by slack at time of presentation
         but looks like slack doesn't provide such functionality
       *)
-        try
-          match String.split commit.author.date ~on:'T' with
-          | [ date; _ ] ->
-            let yy, mm, dd =
-              let tm = Unix.gmtime @@ Devkit.Time.now () in
-              tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday
-            in
-            ( match List.map ~f:Int.of_string @@ String.split date ~on:'-' with
-            | [ y; m; d ] when y = yy && m = mm && d = dd -> "today"
-            | [ y; m; d ] when y = yy -> sprintf " on %s %d" (month m) d
-            | _ -> date
-            )
-          | _ -> failwith "wut"
-        with _ -> " on " ^ commit.author.date
-      in
-      sprintf "modified %d files%s %s" (List.length files) where when_
+      try
+        match String.split commit.author.date ~on:'T' with
+        | [ date; _ ] ->
+          let yy, mm, dd =
+            let tm = Unix.gmtime @@ Devkit.Time.now () in
+            tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday
+          in
+          ( match List.map ~f:Int.of_string @@ String.split date ~on:'-' with
+          | [ y; m; d ] when y = yy && m = mm && d = dd -> "today"
+          | [ y; m; d ] when y = yy -> sprintf " on %s %d" (month m) d
+          | _ -> date
+          )
+        | _ -> failwith "wut"
+      with _ -> " on " ^ commit.author.date
+    in
+    sprintf "modified %d files%s %s" (List.length files) where when_
   in
-  let text = sprintf "%s\n%s" title changes in
+  let text =
+    match for_compare with
+    | true -> sprintf "%s\n" title
+    | false -> sprintf "%s\n%s" title changes
+  in
   let fallback = sprintf "[%s] %s - %s" (Slack.git_short_sha_hash sha) commit.message commit.author.name in
   {
     (base_attachment repository) with
@@ -187,7 +200,52 @@ let populate_commit repository (commit : api_commit) =
     author_name = Some author.login;
     author_link = Some author.html_url;
     *)
-    author_icon = Some author.avatar_url;
+    author_icon =
+      ( match author with
+      | Some author -> Some author.avatar_url
+      | None -> None
+      );
+    color = Some Colors.gray;
+    mrkdwn_in = Some [ "text" ];
+    text = Some text;
+    fallback = Some fallback;
+  }
+
+let populate_compare repository (compare : compare) basehead =
+  let commits_unfurl = List.map compare.commits ~f:(populate_commit ~for_compare:true repository) in
+  let commits_unfurl_text =
+    List.map commits_unfurl ~f:(fun commit_unfurl ->
+      match commit_unfurl.text with
+      | Some text -> text
+      | None -> ""
+    )
+  in
+
+  let commits_unfurl_fallback =
+    List.map commits_unfurl ~f:(fun commit_unfurl ->
+      match commit_unfurl.fallback with
+      | Some fallback -> fallback
+      | None -> ""
+    )
+  in
+  let file_stats =
+    match condense_file_changes compare.files with
+    | "" -> ""
+    | text -> sprintf "\n\n%s" text
+  in
+  let repo_text =
+    sprintf "<%s|[%s:%s]>" (escape_mrkdwn compare.html_url) (escape_mrkdwn repository.name) (escape_mrkdwn basehead)
+  in
+  let total_commits_text =
+    if compare.total_commits > 1 then sprintf "<%s|%d _commits_>" (escape_mrkdwn compare.html_url) compare.total_commits
+    else sprintf "<%s|%d _commit_>" (escape_mrkdwn compare.html_url) compare.total_commits
+  in
+  let text = sprintf "%s %s:\n%s%s" repo_text total_commits_text (String.concat commits_unfurl_text) file_stats in
+  let fallback = String.concat commits_unfurl_fallback in
+  {
+    (base_attachment repository) with
+    footer = Some (simple_footer repository);
+    author_icon = None;
     color = Some Colors.gray;
     mrkdwn_in = Some [ "text" ];
     text = Some text;

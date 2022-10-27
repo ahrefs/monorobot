@@ -1,0 +1,35 @@
+{
+  "token": "",
+  "team_id": "T0475L7BATY",
+  "api_app_id": "A047JBWSX26",
+  "event": {
+    "type": "link_shared",
+    "user": "U046XN0M2R5",
+    "channel": "C047QTRD1CH",
+    "message_ts": "1666839755.099699",
+    "links": [
+      {
+        "url": "https://github.com/sewenthy/monorobot/compare/master...ahrefs:master",
+        "domain": "github.com"
+      }
+    ],
+    "source": "conversations_history",
+    "unfurl_id": "C047QTRD1CH.1666839755.099699.5f56034bfeb3b02b4a9be7559ab15e1bd673f1d83c908768937b79e00beac5a4",
+    "is_bot_user_member": false,
+    "event_ts": "1666839755.580221"
+  },
+  "type": "event_callback",
+  "event_id": "Ev0483GEJB6J",
+  "event_time": 1666839755,
+  "authorizations": [
+    {
+      "enterprise_id": null,
+      "team_id": "T0475L7BATY",
+      "user_id": "U047X1F32SD",
+      "is_bot": true,
+      "is_enterprise_install": false
+    }
+  ],
+  "is_ext_shared_channel": false,
+  "event_context": "4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA0NzVMN0JBVFkiLCJhaWQiOiJBMDQ3SkJXU1gyNiIsImNpZCI6IkMwNDdRVFJEMUNIIn0"
+}
