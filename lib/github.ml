@@ -89,9 +89,11 @@ let parse_exn headers body =
 
 type basehead = string
 
-(** (repo, branch | commit_hash) because you can compare across fork too *)
+(** (repo, branch | commit_hash | release tags) because you can compare across
+fork too and both commit_hash | release tags are bunched into Compare_Other
+because we can't tell it apart before querying to check *)
 type comparer =
-  | Compare_Branch of repository * string
+  | Compare_Other of repository * string
   | Compare_Hash of repository * commit_hash
 
 type gh_link =
@@ -100,9 +102,9 @@ type gh_link =
   | Commit of repository * commit_hash
   | Compare of repository * basehead * comparer * comparer
 
-let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/.:\-_]+)/?$|}
+let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/:\-_.]+)/?$|}
 let commit_sha_re = Re2.create_exn {|[a-f0-9]{40}|}
-let compare_basehead_re = Re2.create_exn {|([a-zA-Z0-9:/\-_]+)([.]{3})([a-zA-Z0-9:/\-_]+)|}
+let compare_basehead_re = Re2.create_exn {|([a-zA-Z0-9:/\-_.]+)([.]{3})([a-zA-Z0-9:/\-_.]+)|}
 let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported
@@ -139,6 +141,7 @@ let gh_link_of_string url_str =
         issues_url = sprintf "%s/issues{/number}" api_base;
         compare_url = sprintf "%s/compare{/basehead}" api_base;
         branches_url = sprintf "%s/branches{/branch}" api_base;
+        releases_url = sprintf "%s/releases{/release_tag}" api_base;
       }
     in
     let repo = make_repo owner name in
@@ -156,13 +159,13 @@ let gh_link_of_string url_str =
         begin
           match verify_commit_sha comparer_string with
           | Some sha -> Some (Compare_Hash (repo, sha))
-          | None -> Some (Compare_Branch (repo, comparer_string))
+          | None -> Some (Compare_Other (repo, comparer_string))
         end
       | [ comparer_string ] ->
         begin
           match verify_commit_sha comparer_string with
           | Some sha -> Some (Compare_Hash (repo, sha))
-          | None -> Some (Compare_Branch (repo, comparer_string))
+          | None -> Some (Compare_Other (repo, comparer_string))
         end
       | _ -> None
     in

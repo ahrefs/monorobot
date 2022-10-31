@@ -212,40 +212,55 @@ let populate_commit ?(for_compare = false) repository (commit : api_commit) =
   }
 
 let populate_compare repository (compare : compare) =
-  let commits_unfurl = List.map compare.commits ~f:(populate_commit ~for_compare:true repository) in
-  let commits_unfurl_text =
-    List.map commits_unfurl ~f:(fun commit_unfurl ->
-      match commit_unfurl.text with
-      | Some text -> text
-      | None -> ""
-    )
-  in
+  if compare.total_commits = 0 then (
+    let no_commit_msg = "There are no commit difference in this compare!" in
+    {
+      (base_attachment repository) with
+      footer = Some (simple_footer repository);
+      author_icon = None;
+      color = Some Colors.gray;
+      mrkdwn_in = Some [ "text" ];
+      text = Some no_commit_msg;
+      fallback = Some no_commit_msg;
+    }
+  )
+  else (
+    let commits_unfurl = List.map compare.commits ~f:(populate_commit ~for_compare:true repository) in
+    let commits_unfurl_text =
+      List.map commits_unfurl ~f:(fun commit_unfurl ->
+        match commit_unfurl.text with
+        | Some text -> text
+        | None -> ""
+      )
+    in
 
-  let commits_unfurl_fallback =
-    List.map commits_unfurl ~f:(fun commit_unfurl ->
-      match commit_unfurl.fallback with
-      | Some fallback -> fallback
-      | None -> ""
-    )
-  in
-  let file_stats =
-    match condense_file_changes compare.files with
-    | "" -> ""
-    | text -> sprintf "\n\n%s" text
-  in
-  let repo_text = sprintf "<%s|[%s]>" (escape_mrkdwn repository.url) (escape_mrkdwn repository.name) in
-  let total_commits_text =
-    if compare.total_commits > 1 then sprintf "<%s|%d _commits_>" (escape_mrkdwn compare.html_url) compare.total_commits
-    else sprintf "<%s|%d _commit_>" (escape_mrkdwn compare.html_url) compare.total_commits
-  in
-  let text = sprintf "%s %s:\n%s%s" repo_text total_commits_text (String.concat commits_unfurl_text) file_stats in
-  let fallback = String.concat commits_unfurl_fallback in
-  {
-    (base_attachment repository) with
-    footer = Some (simple_footer repository);
-    author_icon = None;
-    color = Some Colors.gray;
-    mrkdwn_in = Some [ "text" ];
-    text = Some text;
-    fallback = Some fallback;
-  }
+    let commits_unfurl_fallback =
+      List.map commits_unfurl ~f:(fun commit_unfurl ->
+        match commit_unfurl.fallback with
+        | Some fallback -> fallback
+        | None -> ""
+      )
+    in
+    let file_stats =
+      match condense_file_changes compare.files with
+      | "" -> ""
+      | text -> sprintf "\n\n%s" text
+    in
+    let repo_text = sprintf "<%s|[%s]>" (escape_mrkdwn repository.url) (escape_mrkdwn repository.name) in
+    let total_commits_text =
+      if compare.total_commits > 1 then
+        sprintf "<%s|%d _commits_>" (escape_mrkdwn compare.html_url) compare.total_commits
+      else sprintf "<%s|%d _commit_>" (escape_mrkdwn compare.html_url) compare.total_commits
+    in
+    let text = sprintf "%s %s:\n%s%s" repo_text total_commits_text (String.concat commits_unfurl_text) file_stats in
+    let fallback = String.concat commits_unfurl_fallback in
+    {
+      (base_attachment repository) with
+      footer = Some (simple_footer repository);
+      author_icon = None;
+      color = Some Colors.gray;
+      mrkdwn_in = Some [ "text" ];
+      text = Some text;
+      fallback = Some fallback;
+    }
+  )
