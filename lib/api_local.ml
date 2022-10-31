@@ -48,6 +48,18 @@ end
 
 module Slack_base : Api.Slack = struct
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
+  let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error "undefined for local setup"
+  let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
+end
+
+module Slack : Api.Slack = struct
+  include Slack_base
+
+  let send_notification ~ctx:_ ~msg =
+    let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
+    Stdio.printf "will notify #%s\n" msg.channel;
+    Stdio.printf "%s\n" json;
+    Lwt.return @@ Ok ()
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts ~unfurls () =
     let req = Slack_j.{ channel; ts; unfurls } in
@@ -59,16 +71,6 @@ module Slack_base : Api.Slack = struct
   let send_auth_test ~ctx:_ () =
     Lwt.return
     @@ Ok ({ url = ""; team = ""; user = ""; team_id = ""; user_id = "test_slack_user" } : Slack_t.auth_test_res)
-end
-
-module Slack : Api.Slack = struct
-  include Slack_base
-
-  let send_notification ~ctx:_ ~msg =
-    let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
-    Stdio.printf "will notify #%s\n" msg.channel;
-    Stdio.printf "%s\n" json;
-    Lwt.return @@ Ok ()
 end
 
 module Slack_simple : Api.Slack = struct
@@ -83,6 +85,16 @@ module Slack_simple : Api.Slack = struct
       | Some s -> Printf.sprintf " with %S" s
       );
     Lwt.return @@ Ok ()
+
+  let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
+    Stdio.printf "will unfurl in #%s\n" channel;
+    let unfurl_text = List.map (StringMap.to_list unfurls) ~f:(fun (_, unfurl) -> unfurl.text) in
+    Stdio.printf "%s\n" (String.concat ~sep:"\n" (List.filter_opt unfurl_text));
+    Lwt.return @@ Ok ()
+
+  let send_auth_test ~ctx:_ () =
+    Lwt.return
+    @@ Ok ({ url = ""; team = ""; user = ""; team_id = ""; user_id = "test_slack_user" } : Slack_t.auth_test_res)
 end
 
 module Slack_json : Api.Slack = struct
@@ -98,4 +110,16 @@ module Slack_json : Api.Slack = struct
     log#info "%s" (Uri.to_string url);
     log#info "%s" json;
     Lwt.return @@ Ok ()
+
+  let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
+    log#info "will notify %s" channel;
+    let json = List.map (StringMap.to_list unfurls) ~f:(fun (_, unfurl) -> Slack_j.string_of_unfurl unfurl) in
+    let url = Uri.of_string "https://slack.com/api/chat.unfurl" in
+    log#info "%s" (Uri.to_string url);
+    log#info "%s" (String.concat ~sep:";\n" json);
+    Lwt.return @@ Ok ()
+
+  let send_auth_test ~ctx:_ () =
+    Lwt.return
+    @@ Ok ({ url = ""; team = ""; user = ""; team_id = ""; user_id = "test_slack_user" } : Slack_t.auth_test_res)
 end
