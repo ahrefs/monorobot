@@ -339,10 +339,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Compare (repo, basehead, base_comparer, merge_comparer) ->
         let verify_comparer (comparer : Github.comparer) =
           match comparer with
-          | Github.Compare_Branch (repo, name) ->
-            ( match%lwt Github_api.get_branch ~ctx ~repo ~name with
-            | Error _ -> Lwt.return false
-            | Ok _ -> Lwt.return true
+          | Github.Compare_Other (repo, name) ->
+            ( match%lwt
+                Lwt.both
+                  (Github_api.get_branch ~ctx ~repo ~name)
+                  (Github_api.get_release_tag ~ctx ~repo ~release_tag:name)
+              with
+            | Error _, Error _ -> Lwt.return false
+            | _ -> Lwt.return true
             )
           | Github.Compare_Hash (repo, sha) ->
             ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with

@@ -6,14 +6,18 @@ open Printf
 let cwd = Caml.Sys.getcwd ()
 let cache_dir = Caml.Filename.concat cwd "github-api-cache"
 
-(** return the file with a function f applied *)
+(** return the file with a function f applied unless the file is empty;
+ empty file:this is needed to simulate 404 returns from github *)
 let get_cache_file_f url f =
   match get_local_file url with
   | Error e ->
     let err_msg = sprintf "error while getting local file: %s\ncached for url: %s" e url in
     Stdio.print_endline err_msg;
     Lwt.return @@ Error err_msg
+  | Ok "" -> Lwt.return @@ Error "empty file"
   | Ok file -> Lwt.return @@ Ok (f file)
+
+let clean_forward_slashes = String.substr_replace_all ~pattern:"/" ~with_:"_"
 
 module Github : Api.Github = struct
   let get_config ~(ctx : Context.t) ~repo:_ =
@@ -21,9 +25,8 @@ module Github : Api.Github = struct
     get_cache_file_f url Config_j.config_of_string
 
   let get_branch ~ctx:_ ~(repo : Github_t.repository) ~name =
-    let repo_branch = sprintf "%s_branch_%s" repo.full_name name in
-    let clean_repo_branch = String.substr_replace_all ~pattern:"/" ~with_:"_" repo_branch in
-    let url = Caml.Filename.concat cache_dir clean_repo_branch in
+    let repo_branch = clean_forward_slashes (sprintf "%s_branch_%s" repo.full_name name) in
+    let url = Caml.Filename.concat cache_dir repo_branch in
     get_cache_file_f url Github_j.branch_of_string
 
   let get_api_commit ~ctx:_ ~repo:_ ~sha =
@@ -31,17 +34,24 @@ module Github : Api.Github = struct
     get_cache_file_f url Github_j.api_commit_of_string
 
   let get_pull_request ~ctx:_ ~(repo : Github_t.repository) ~number =
-    let url = Caml.Filename.concat cache_dir (sprintf "%s_pull_%d" repo.name number) in
+    let pr = clean_forward_slashes (sprintf "%s_pull_%d" repo.full_name number) in
+    let url = Caml.Filename.concat cache_dir pr in
     get_cache_file_f url Github_j.pull_request_of_string
 
   let get_issue ~ctx:_ ~(repo : Github_t.repository) ~number =
-    let url = Caml.Filename.concat cache_dir (sprintf "%s_issue_%d" repo.name number) in
+    let issue = clean_forward_slashes (sprintf "%s_issue_%d" repo.full_name number) in
+    let url = Caml.Filename.concat cache_dir issue in
     get_cache_file_f url Github_j.issue_of_string
 
   let get_compare ~ctx:_ ~(repo : Github_t.repository) ~basehead =
-    let clean_basehead = String.substr_replace_all ~pattern:"/" ~with_:"_" basehead in
-    let url = Caml.Filename.concat cache_dir (sprintf "%s_compare_%s" repo.name clean_basehead) in
+    let compare = clean_forward_slashes (sprintf "%s_compare_%s" repo.full_name basehead) in
+    let url = Caml.Filename.concat cache_dir compare in
     get_cache_file_f url Github_j.compare_of_string
+
+  let get_release_tag ~ctx:_ ~(repo : Github_t.repository) ~release_tag =
+    let release_tag = clean_forward_slashes (sprintf "%s_release_tag_%s" repo.full_name release_tag) in
+    let url = Caml.Filename.concat cache_dir release_tag in
+    get_cache_file_f url Github_j.release_tag_of_string
 
   let request_reviewers ~ctx:_ ~repo:_ ~number:_ ~reviewers:_ = Lwt.return @@ Error "undefined for local setup"
 end

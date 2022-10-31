@@ -1,0 +1,41 @@
+{
+  "url": "https://api.github.com/repos/sewenthy/monorobot/releases/81507155",
+  "assets_url": "https://api.github.com/repos/sewenthy/monorobot/releases/81507155/assets",
+  "upload_url": "https://uploads.github.com/repos/sewenthy/monorobot/releases/81507155/assets{?name,label}",
+  "html_url": "https://github.com/sewenthy/monorobot/releases/tag/v1.0.0",
+  "id": 81507155,
+  "author": {
+    "login": "sewenthy",
+    "id": 23148113,
+    "node_id": "MDQ6VXNlcjIzMTQ4MTEz",
+    "avatar_url": "https://avatars.githubusercontent.com/u/23148113?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/sewenthy",
+    "html_url": "https://github.com/sewenthy",
+    "followers_url": "https://api.github.com/users/sewenthy/followers",
+    "following_url": "https://api.github.com/users/sewenthy/following{/other_user}",
+    "gists_url": "https://api.github.com/users/sewenthy/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/sewenthy/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/sewenthy/subscriptions",
+    "organizations_url": "https://api.github.com/users/sewenthy/orgs",
+    "repos_url": "https://api.github.com/users/sewenthy/repos",
+    "events_url": "https://api.github.com/users/sewenthy/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/sewenthy/received_events",
+    "type": "User",
+    "site_admin": false
+  },
+  "node_id": "RE_kwDOIRbPmc4E27NT",
+  "tag_name": "v1.0.0",
+  "target_commitish": "119-unfurling-commit-range-links-b",
+  "name": "NEW OUT (test compare)",
+  "draft": false,
+  "prerelease": false,
+  "created_at": "2022-10-27T08:20:42Z",
+  "published_at": "2022-10-31T02:18:14Z",
+  "assets": [
+
+  ],
+  "tarball_url": "https://api.github.com/repos/sewenthy/monorobot/tarball/v1.0.0",
+  "zipball_url": "https://api.github.com/repos/sewenthy/monorobot/zipball/v1.0.0",
+  "body": ""
+}
