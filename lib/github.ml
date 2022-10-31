@@ -87,31 +87,25 @@ let parse_exn headers body =
   | "member" | "create" | "delete" | "release" -> Event (event_notification_of_string body)
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
-type basehead = string
-
-(** (repo, branch | commit_hash | release tags) because you can compare across
-fork too and both commit_hash | release tags are bunched into Compare_Other
-because we can't tell it apart before querying to check *)
-type comparer =
-  | Compare_Other of repository * string
-  | Compare_Hash of repository * commit_hash
+type basehead = string * string
 
 type gh_link =
   | Pull_request of repository * int
   | Issue of repository * int
   | Commit of repository * commit_hash
-  | Compare of repository * basehead * comparer * comparer
+  | Compare of repository * basehead
 
-let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/:\-_.]+)/?$|}
-let commit_sha_re = Re2.create_exn {|[a-f0-9]{40}|}
-let compare_basehead_re = Re2.create_exn {|([a-zA-Z0-9:/\-_.]+)([.]{3})([a-zA-Z0-9:/\-_.]+)|}
+let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/:\-_.~\^]+)/?$|}
+let commit_sha_re = Re2.create_exn {|[a-f0-9]{4,40}|}
+let comparer_re = {|([a-zA-Z0-9/:\-_.~\^]+)|}
+let compare_basehead_re = Re2.create_exn (sprintf {|%s([.]{3})%s|} comparer_re comparer_re)
 let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported
     GitHub link type, generating repository endpoints if necessary *)
 let gh_link_of_string url_str =
   let url = Uri.of_string url_str in
-  let path = Uri.path url in
+  let path = Uri.pct_decode (Uri.path url) in
   let gh_com_html_base owner name = sprintf "https://github.com/%s/%s" owner name in
   let gh_com_api_base owner name = sprintf "https://api.github.com/repos/%s/%s" owner name in
   let custom_html_base ?(scheme = "https") base owner name = sprintf "%s://%s/%s/%s" scheme base owner name in
@@ -145,39 +139,17 @@ let gh_link_of_string url_str =
       }
     in
     let repo = make_repo owner name in
-    let verify_commit_sha item =
+    let verify_commit_sha repo item =
       try
         match Re2.find_submatches_exn commit_sha_re item with
-        | [| Some sha |] -> Some sha
+        | [| Some sha |] -> Some (Commit (repo, sha))
         | _ -> None
       with _ -> None
-    in
-    let make_comparer repo comparer_string =
-      match String.split comparer_string ~on:':' with
-      | [ owner; _; comparer_string ] | [ owner; comparer_string ] ->
-        let repo = make_repo owner name in
-        begin
-          match verify_commit_sha comparer_string with
-          | Some sha -> Some (Compare_Hash (repo, sha))
-          | None -> Some (Compare_Other (repo, comparer_string))
-        end
-      | [ comparer_string ] ->
-        begin
-          match verify_commit_sha comparer_string with
-          | Some sha -> Some (Compare_Hash (repo, sha))
-          | None -> Some (Compare_Other (repo, comparer_string))
-        end
-      | _ -> None
     in
     let verify_compare_basehead repo basehead =
       try
         match Re2.find_submatches_exn compare_basehead_re basehead with
-        | [| Some basehead; Some base; _; Some merge |] ->
-          begin
-            match make_comparer repo base, make_comparer repo merge with
-            | Some base_comparer, Some merge_comparer -> Some (Compare (repo, basehead, base_comparer, merge_comparer))
-            | _ -> None
-          end
+        | [| _; Some base; _; Some merge |] -> Some (Compare (repo, (base, merge)))
         | _ -> None
       with e ->
         let msg = Exn.to_string e in
@@ -189,12 +161,7 @@ let gh_link_of_string url_str =
         match link_type with
         | "pull" -> Some (Pull_request (repo, Int.of_string item))
         | "issues" -> Some (Issue (repo, Int.of_string item))
-        | "commit" ->
-          begin
-            match verify_commit_sha item with
-            | Some sha -> Some (Commit (repo, sha))
-            | None -> None
-          end
+        | "commit" -> verify_commit_sha repo item
         | "compare" -> verify_compare_basehead repo item
         | _ -> None
       with _ -> None
