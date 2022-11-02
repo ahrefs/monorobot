@@ -216,6 +216,25 @@ let generate_issue_comment_notification notification channel =
 
 let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
+(** pretty print github commit *)
+let pp_commit ({ url; id; message; author; _ } : commit) =
+  let title = first_line message in
+  sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name
+
+(** pretty print list with previews of each item per line--will always show at most 7 and drop the rest*)
+let pp_list_with_previews ~pp_item list =
+  let num_items = List.length list in
+  (* truncation point depends on line length, but 7+3 lines seems okay for most cases *)
+  let num_shown = 7 in
+  let dropped = num_items - num_shown in
+  if dropped > 3 then begin
+    let h, list' = List.split_n list (num_shown / 2) in
+    let t = List.drop list' dropped in
+    let num_after_h = num_items - List.length h in
+    List.concat [ List.map ~f:pp_item h; [ sprintf "+%d more...\n" num_after_h ]; List.map ~f:pp_item t ]
+  end
+  else List.map ~f:pp_item list
+
 let generate_push_notification notification channel =
   let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in
   let commits_branch = Github.commits_branch_of_ref notification.ref in
@@ -241,21 +260,7 @@ let generate_push_notification notification channel =
         (if created then "to new branch " else "")
         sender.login
   in
-  let commits =
-    let pp_commit { url; id; message; author; _ } =
-      let title = first_line message in
-      sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name
-    in
-    (* truncation point depends on line length, but 7+3 lines seems okay for most cases *)
-    let num_shown = 7 in
-    let dropped = num_commits - num_shown in
-    if dropped > 3 then begin
-      let h, commits' = List.split_n commits (num_shown / 2) in
-      let t = List.drop commits' dropped in
-      List.concat [ List.map ~f:pp_commit h; [ sprintf "+%d more..." dropped ]; List.map ~f:pp_commit t ]
-    end
-    else List.map commits ~f:pp_commit
-  in
+  let commits = pp_list_with_previews ~pp_item:pp_commit commits in
   {
     channel;
     text = Some title;
