@@ -586,7 +586,7 @@ will unfurl in #C047QTRD1CH
       "mrkdwn_in": [ "text" ],
       "color": "#f6f8fa",
       "author_icon": "https://github.com/avatars/u/0",
-      "text": "`<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - <https://github.com/Khady|Louis>\nmodified 1 files_modified `README.md` (+1-1)_ 2020-06-02",
+      "text": "`<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - <https://github.com/Khady|Louis>\n_modified `README.md` (+1-1)_ on 2020-06-02",
       "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
