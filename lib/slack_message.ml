@@ -228,8 +228,11 @@ let populate_compare repository (compare : compare) =
   | false ->
     let commits_unfurl = List.map compare.commits ~f:(populate_commit ~include_changes:false repository) in
     let commits_unfurl_text =
-      List.map commits_unfurl ~f:(fun commit_unfurl -> Option.value commit_unfurl.text ~default:"")
+      Slack.pp_list_with_previews
+        ~pp_item:(fun (commit_unfurl : unfurl) -> Option.value commit_unfurl.text ~default:"")
+        commits_unfurl
     in
+
     let commits_unfurl_fallback =
       List.map commits_unfurl ~f:(fun commit_unfurl -> Option.value commit_unfurl.fallback ~default:"")
     in
