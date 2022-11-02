@@ -95,7 +95,7 @@ type gh_link =
   | Commit of repository * commit_hash
   | Compare of repository * basehead
 
-let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/:\-_.~\^]+)/?$|}
+let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/:\-_.~\^]+)$|}
 let commit_sha_re = Re2.create_exn {|[a-f0-9]{4,40}|}
 let comparer_re = {|([a-zA-Z0-9/:\-_.~\^]+)|}
 let compare_basehead_re = Re2.create_exn (sprintf {|%s([.]{3})%s|} comparer_re comparer_re)

@@ -143,7 +143,7 @@ let condense_file_changes files =
       |> List.drop_last_exn
       |> String.concat ~sep:"/"
     in
-    if String.is_empty prefix_path then "" else sprintf " in `%s/`" prefix_path
+    if String.is_empty prefix_path then "" else sprintf "modified %d files in `%s/`" (List.length files) prefix_path
 
 let populate_commit ?(include_changes = true) repository (commit : api_commit) =
   let ({ sha; commit; url; author; files; _ } : api_commit) = commit in
@@ -175,19 +175,17 @@ let populate_commit ?(include_changes = true) repository (commit : api_commit) =
           in
           ( match List.map ~f:Int.of_string @@ String.split date ~on:'-' with
           | [ y; m; d ] when y = yy && m = mm && d = dd -> "today"
-          | [ y; m; d ] when y = yy -> sprintf " on %s %d" (month m) d
-          | _ -> date
+          | [ y; m; d ] when y = yy -> sprintf "on %s %d" (month m) d
+          | _ -> "on " ^ date
           )
         | _ -> failwith "wut"
-      with _ -> " on " ^ commit.author.date
+      with _ -> "on " ^ commit.author.date
     in
-    sprintf "modified %d files%s %s" (List.length files) where when_
+    match where, when_ with
+    | "", when_ -> when_
+    | where, when_ -> sprintf "%s %s" where when_
   in
-  let text =
-    match include_changes with
-    | false -> sprintf "%s\n" title
-    | true -> sprintf "%s\n%s" title (changes ())
-  in
+  let text = sprintf "%s\n%s" title (if include_changes then changes () else "") in
   let fallback = sprintf "[%s] %s - %s" (Slack.git_short_sha_hash sha) commit.message commit.author.name in
   {
     (base_attachment repository) with
