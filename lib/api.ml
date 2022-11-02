@@ -8,7 +8,7 @@ module type Github = sig
   val get_api_commit : ctx:Context.t -> repo:repository -> sha:string -> (api_commit, string) Result.t Lwt.t
   val get_pull_request : ctx:Context.t -> repo:repository -> number:int -> (pull_request, string) Result.t Lwt.t
   val get_issue : ctx:Context.t -> repo:repository -> number:int -> (issue, string) Result.t Lwt.t
-  val get_compare : ctx:Context.t -> repo:repository -> basehead:string -> (compare, string) Result.t Lwt.t
+  val get_compare : ctx:Context.t -> repo:repository -> basehead:Github.basehead -> (compare, string) Result.t Lwt.t
   val get_release_tag : ctx:Context.t -> repo:repository -> release_tag:string -> (release_tag, string) Result.t Lwt.t
 
   val request_reviewers

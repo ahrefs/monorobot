@@ -145,7 +145,7 @@ let condense_file_changes files =
     in
     if String.is_empty prefix_path then "" else sprintf " in `%s/`" prefix_path
 
-let populate_commit ?(for_compare = false) repository (commit : api_commit) =
+let populate_commit ?(include_changes = true) repository (commit : api_commit) =
   let ({ sha; commit; url; author; files; _ } : api_commit) = commit in
   let title =
     match author with
@@ -158,7 +158,7 @@ let populate_commit ?(for_compare = false) repository (commit : api_commit) =
         (escape_mrkdwn @@ first_line commit.message)
         (escape_mrkdwn commit.author.name)
   in
-  let changes =
+  let changes () =
     let where = condense_file_changes files in
     let when_ =
       (*
@@ -184,9 +184,9 @@ let populate_commit ?(for_compare = false) repository (commit : api_commit) =
     sprintf "modified %d files%s %s" (List.length files) where when_
   in
   let text =
-    match for_compare with
-    | true -> sprintf "%s\n" title
-    | false -> sprintf "%s\n%s" title changes
+    match include_changes with
+    | false -> sprintf "%s\n" title
+    | true -> sprintf "%s\n%s" title (changes ())
   in
   let fallback = sprintf "[%s] %s - %s" (Slack.git_short_sha_hash sha) commit.message commit.author.name in
   {
@@ -212,55 +212,34 @@ let populate_commit ?(for_compare = false) repository (commit : api_commit) =
   }
 
 let populate_compare repository (compare : compare) =
-  if compare.total_commits = 0 then (
-    let no_commit_msg = "There are no commit difference in this compare!" in
+  let base =
     {
       (base_attachment repository) with
       footer = Some (simple_footer repository);
       author_icon = None;
       color = Some Colors.gray;
       mrkdwn_in = Some [ "text" ];
-      text = Some no_commit_msg;
-      fallback = Some no_commit_msg;
+      text = None;
+      fallback = None;
     }
-  )
-  else (
-    let commits_unfurl = List.map compare.commits ~f:(populate_commit ~for_compare:true repository) in
+  in
+  match compare.total_commits = 0 with
+  | true ->
+    let no_commit_msg = "There are no commit difference in this compare!" in
+    { base with text = Some no_commit_msg; fallback = Some no_commit_msg }
+  | false ->
+    let commits_unfurl = List.map compare.commits ~f:(populate_commit ~include_changes:false repository) in
     let commits_unfurl_text =
-      List.map commits_unfurl ~f:(fun commit_unfurl ->
-        match commit_unfurl.text with
-        | Some text -> text
-        | None -> ""
-      )
+      List.map commits_unfurl ~f:(fun commit_unfurl -> Option.value commit_unfurl.text ~default:"")
     in
-
     let commits_unfurl_fallback =
-      List.map commits_unfurl ~f:(fun commit_unfurl ->
-        match commit_unfurl.fallback with
-        | Some fallback -> fallback
-        | None -> ""
-      )
+      List.map commits_unfurl ~f:(fun commit_unfurl -> Option.value commit_unfurl.fallback ~default:"")
     in
     let file_stats =
       match condense_file_changes compare.files with
       | "" -> ""
       | text -> sprintf "\n\n%s" text
     in
-    let repo_text = sprintf "<%s|[%s]>" (escape_mrkdwn repository.url) (escape_mrkdwn repository.name) in
-    let total_commits_text =
-      if compare.total_commits > 1 then
-        sprintf "<%s|%d _commits_>" (escape_mrkdwn compare.html_url) compare.total_commits
-      else sprintf "<%s|%d _commit_>" (escape_mrkdwn compare.html_url) compare.total_commits
-    in
-    let text = sprintf "%s %s:\n%s%s" repo_text total_commits_text (String.concat commits_unfurl_text) file_stats in
+    let text = sprintf "%s%s" (String.concat commits_unfurl_text) file_stats in
     let fallback = String.concat commits_unfurl_fallback in
-    {
-      (base_attachment repository) with
-      footer = Some (simple_footer repository);
-      author_icon = None;
-      color = Some Colors.gray;
-      mrkdwn_in = Some [ "text" ];
-      text = Some text;
-      fallback = Some fallback;
-    }
-  )
+    { base with text = Some text; fallback = Some fallback }

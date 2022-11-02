@@ -19,8 +19,8 @@ module Github : Api.Github = struct
   let branches_url ~(repo : Github_t.repository) ~name =
     String.substr_replace_first ~pattern:"{/branch}" ~with_:(sprintf "/%s" name) repo.branches_url
 
-  let compare_url ~(repo : Github_t.repository) ~basehead =
-    String.substr_replace_first ~pattern:"{/basehead}" ~with_:(sprintf "/%s" basehead) repo.compare_url
+  let compare_url ~(repo : Github_t.repository) ~basehead:(base, merge) =
+    String.substr_replace_first ~pattern:"{/basehead}" ~with_:(sprintf "/%s...%s" base merge) repo.compare_url
 
   let releases_tags_url ~(repo : Github_t.repository) ~release_tag =
     String.substr_replace_first ~pattern:"{/release_tag}" ~with_:(sprintf "/tags/%s" release_tag) repo.releases_url
@@ -88,7 +88,6 @@ module Github : Api.Github = struct
     let%lwt res =
       compare_url ~repo ~basehead |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
     in
-
     Lwt.return @@ Result.map res ~f:Github_j.compare_of_string
 
   let get_release_tag ~(ctx : Context.t) ~(repo : Github_t.repository) ~release_tag =

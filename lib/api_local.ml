@@ -8,50 +8,50 @@ let cache_dir = Caml.Filename.concat cwd "github-api-cache"
 
 (** return the file with a function f applied unless the file is empty;
  empty file:this is needed to simulate 404 returns from github *)
-let get_cache_file_f url f =
+let with_cache_file url f =
   match get_local_file url with
   | Error e ->
     let err_msg = sprintf "error while getting local file: %s\ncached for url: %s" e url in
     Stdio.print_endline err_msg;
-    Lwt.return @@ Error err_msg
-  | Ok "" -> Lwt.return @@ Error "empty file"
-  | Ok file -> Lwt.return @@ Ok (f file)
+    Lwt.return_error err_msg
+  | Ok "" -> Lwt.return_error "empty file"
+  | Ok file -> Lwt.return_ok (f file)
 
 let clean_forward_slashes = String.substr_replace_all ~pattern:"/" ~with_:"_"
+
+(** get a member of the repo cached API call providing
+the member kind (pull, issue, commit, compare, etc),
+_ref (pr number, issue number, commit sha, compare basehead, etc),
+and its Github_j.<kind>_of_string function.
+NB: please save the cache file in the same format *)
+let get_repo_member_cache ~(repo : Github_t.repository) ~kind ~_ref ~of_string =
+  let file = clean_forward_slashes (sprintf "%s_%s_%s" repo.full_name kind _ref) in
+  let url = Caml.Filename.concat cache_dir file in
+  with_cache_file url of_string
 
 module Github : Api.Github = struct
   let get_config ~(ctx : Context.t) ~repo:_ =
     let url = Caml.Filename.concat cwd ctx.config_filename in
-    get_cache_file_f url Config_j.config_of_string
+    with_cache_file url Config_j.config_of_string
 
   let get_branch ~ctx:_ ~(repo : Github_t.repository) ~name =
-    let repo_branch = clean_forward_slashes (sprintf "%s_branch_%s" repo.full_name name) in
-    let url = Caml.Filename.concat cache_dir repo_branch in
-    get_cache_file_f url Github_j.branch_of_string
+    get_repo_member_cache ~repo ~kind:"branch" ~_ref:name ~of_string:Github_j.branch_of_string
 
-  let get_api_commit ~ctx:_ ~repo:_ ~sha =
-    let url = Caml.Filename.concat cache_dir sha in
-    get_cache_file_f url Github_j.api_commit_of_string
+  let get_api_commit ~ctx:_ ~repo ~sha =
+    get_repo_member_cache ~repo ~kind:"commit" ~_ref:sha ~of_string:Github_j.api_commit_of_string
 
   let get_pull_request ~ctx:_ ~(repo : Github_t.repository) ~number =
-    let pr = clean_forward_slashes (sprintf "%s_pull_%d" repo.full_name number) in
-    let url = Caml.Filename.concat cache_dir pr in
-    get_cache_file_f url Github_j.pull_request_of_string
+    get_repo_member_cache ~repo ~kind:"pull" ~_ref:(Int.to_string number) ~of_string:Github_j.pull_request_of_string
 
   let get_issue ~ctx:_ ~(repo : Github_t.repository) ~number =
-    let issue = clean_forward_slashes (sprintf "%s_issue_%d" repo.full_name number) in
-    let url = Caml.Filename.concat cache_dir issue in
-    get_cache_file_f url Github_j.issue_of_string
+    get_repo_member_cache ~repo ~kind:"issue" ~_ref:(Int.to_string number) ~of_string:Github_j.issue_of_string
 
-  let get_compare ~ctx:_ ~(repo : Github_t.repository) ~basehead =
-    let compare = clean_forward_slashes (sprintf "%s_compare_%s" repo.full_name basehead) in
-    let url = Caml.Filename.concat cache_dir compare in
-    get_cache_file_f url Github_j.compare_of_string
+  let get_compare ~ctx:_ ~(repo : Github_t.repository) ~basehead:(base, merge) =
+    get_repo_member_cache ~repo ~kind:"compare" ~_ref:(sprintf "%s...%s" base merge)
+      ~of_string:Github_j.compare_of_string
 
   let get_release_tag ~ctx:_ ~(repo : Github_t.repository) ~release_tag =
-    let release_tag = clean_forward_slashes (sprintf "%s_release_tag_%s" repo.full_name release_tag) in
-    let url = Caml.Filename.concat cache_dir release_tag in
-    get_cache_file_f url Github_j.release_tag_of_string
+    get_repo_member_cache ~repo ~kind:"release_tag" ~_ref:release_tag ~of_string:Github_j.release_tag_of_string
 
   let request_reviewers ~ctx:_ ~repo:_ ~number:_ ~reviewers:_ = Lwt.return @@ Error "undefined for local setup"
 end
