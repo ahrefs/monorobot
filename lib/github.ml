@@ -151,10 +151,7 @@ let gh_link_of_string url_str =
         match Re2.find_submatches_exn compare_basehead_re basehead with
         | [| _; Some base; _; Some merge |] -> Some (Compare (repo, (base, merge)))
         | _ -> None
-      with e ->
-        let msg = Exn.to_string e in
-        Stdio.printf "there was an error: %s\n" msg;
-        None
+      with Re2.Exceptions.Regex_match_failed _ -> None
     in
     begin
       try

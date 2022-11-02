@@ -337,8 +337,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         | Ok commit -> Lwt.return_some @@ (link, Slack_message.populate_commit repo commit)
         )
       | Compare (repo, (base, merge)) ->
-        let basehead = Printf.sprintf "%s...%s" base merge in
-        ( match%lwt Github_api.get_compare ~ctx ~repo ~basehead with
+        ( match%lwt Github_api.get_compare ~ctx ~repo ~basehead:(base, merge) with
         | Error _ -> Lwt.return_none
         | Ok compare -> Lwt.return_some @@ (link, Slack_message.populate_compare repo compare)
         )

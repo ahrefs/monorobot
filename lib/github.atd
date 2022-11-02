@@ -288,7 +288,7 @@ type api_commit = {
   sha: commit_hash;
   commit: inner_commit;
   html_url <ocaml name="url"> : string;
-  ?author: github_user option;
+  ?author: github_user option; (* will be none if author's email is not associated with any github account *)
   ~files <ocaml default="[]">: file list;
   ~stats <ocaml default="{total=0; additions=0; deletions=0;}">: api_commit_stats;
 }
