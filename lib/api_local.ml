@@ -24,8 +24,8 @@ the member kind (pull, issue, commit, compare, etc),
 _ref (pr number, issue number, commit sha, compare basehead, etc),
 and its Github_j.<kind>_of_string function.
 NB: please save the cache file in the same format *)
-let get_repo_member_cache ~(repo : Github_t.repository) ~kind ~_ref ~of_string =
-  let file = clean_forward_slashes (sprintf "%s_%s_%s" repo.full_name kind _ref) in
+let get_repo_member_cache ~(repo : Github_t.repository) ~kind ~ref_ ~of_string =
+  let file = clean_forward_slashes (sprintf "%s_%s_%s" repo.full_name kind ref_) in
   let url = Caml.Filename.concat cache_dir file in
   with_cache_file url of_string
 
@@ -35,23 +35,23 @@ module Github : Api.Github = struct
     with_cache_file url Config_j.config_of_string
 
   let get_branch ~ctx:_ ~(repo : Github_t.repository) ~name =
-    get_repo_member_cache ~repo ~kind:"branch" ~_ref:name ~of_string:Github_j.branch_of_string
+    get_repo_member_cache ~repo ~kind:"branch" ~ref_:name ~of_string:Github_j.branch_of_string
 
   let get_api_commit ~ctx:_ ~repo ~sha =
-    get_repo_member_cache ~repo ~kind:"commit" ~_ref:sha ~of_string:Github_j.api_commit_of_string
+    get_repo_member_cache ~repo ~kind:"commit" ~ref_:sha ~of_string:Github_j.api_commit_of_string
 
   let get_pull_request ~ctx:_ ~(repo : Github_t.repository) ~number =
-    get_repo_member_cache ~repo ~kind:"pull" ~_ref:(Int.to_string number) ~of_string:Github_j.pull_request_of_string
+    get_repo_member_cache ~repo ~kind:"pull" ~ref_:(Int.to_string number) ~of_string:Github_j.pull_request_of_string
 
   let get_issue ~ctx:_ ~(repo : Github_t.repository) ~number =
-    get_repo_member_cache ~repo ~kind:"issue" ~_ref:(Int.to_string number) ~of_string:Github_j.issue_of_string
+    get_repo_member_cache ~repo ~kind:"issue" ~ref_:(Int.to_string number) ~of_string:Github_j.issue_of_string
 
   let get_compare ~ctx:_ ~(repo : Github_t.repository) ~basehead:(base, merge) =
-    get_repo_member_cache ~repo ~kind:"compare" ~_ref:(sprintf "%s...%s" base merge)
+    get_repo_member_cache ~repo ~kind:"compare" ~ref_:(sprintf "%s...%s" base merge)
       ~of_string:Github_j.compare_of_string
 
   let get_release_tag ~ctx:_ ~(repo : Github_t.repository) ~release_tag =
-    get_repo_member_cache ~repo ~kind:"release_tag" ~_ref:release_tag ~of_string:Github_j.release_tag_of_string
+    get_repo_member_cache ~repo ~kind:"release_tag" ~ref_:release_tag ~of_string:Github_j.release_tag_of_string
 
   let request_reviewers ~ctx:_ ~repo:_ ~number:_ ~reviewers:_ = Lwt.return @@ Error "undefined for local setup"
 end
