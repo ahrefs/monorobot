@@ -158,13 +158,16 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let ignore_notifications_from_user cfg req =
     let sender_login =
       match req with
-      | Github.Push n -> Some n.sender.login
-      | Pull_request n -> Some n.sender.login
-      | PR_review n -> Some n.sender.login
-      | PR_review_comment n -> Some n.sender.login
-      | Issue n -> Some n.sender.login
-      | Issue_comment n -> Some n.sender.login
-      | Commit_comment n -> Some n.sender.login
+      | Github.Issue_comment n ->
+        Some n.sender.login
+        (*
+          | Github.Push n -> Some n.sender.login
+          | Pull_request n -> Some n.sender.login
+          | PR_review n -> Some n.sender.login
+          | PR_review_comment n -> Some n.sender.login
+          | Issue n -> Some n.sender.login
+          | Commit_comment n -> Some n.sender.login
+        *)
       | _ -> None
     in
     match sender_login with
