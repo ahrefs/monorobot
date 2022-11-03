@@ -143,7 +143,8 @@ let condense_file_changes files =
       |> List.drop_last_exn
       |> String.concat ~sep:"/"
     in
-    if String.is_empty prefix_path then "" else sprintf "modified %d files in `%s/`" (List.length files) prefix_path
+    sprintf "modified %d files%s" (List.length files)
+      (if String.is_empty prefix_path then "" else sprintf " in `%s/`" prefix_path)
 
 let populate_commit ?(include_changes = true) repository (commit : api_commit) =
   let ({ sha; commit; url; author; files; _ } : api_commit) = commit in
