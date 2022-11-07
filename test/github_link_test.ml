@@ -14,8 +14,6 @@ let mk_repo ?(owner = "ahrefs") ?(scheme = "https") prefix prefix_api : reposito
     pulls_url = sprintf "%s://%s/repos/%s/monorepo/pulls{/number}" scheme prefix_api owner;
     issues_url = sprintf "%s://%s/repos/%s/monorepo/issues{/number}" scheme prefix_api owner;
     compare_url = sprintf "%s://%s/repos/%s/monorepo/compare{/basehead}" scheme prefix_api owner;
-    branches_url = sprintf "%s://%s/repos/%s/monorepo/branches{/branch}" scheme prefix_api owner;
-    releases_url = sprintf "%s://%s/repos/%s/monorepo/releases{/release_tag}" scheme prefix_api owner;
   }
 
 let enterprise_repo1 = mk_repo "example.org" "example.org/api/v3"

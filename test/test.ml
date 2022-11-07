@@ -86,8 +86,6 @@ let () =
       pulls_url = "";
       issues_url = "";
       compare_url = "";
-      branches_url = "";
-      releases_url = "";
     }
   in
   let ctx = Context.make ~state_filepath:"state.json" () in

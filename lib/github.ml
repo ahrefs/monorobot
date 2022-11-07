@@ -134,8 +134,6 @@ let gh_link_of_string url_str =
         pulls_url = sprintf "%s/pulls{/number}" api_base;
         issues_url = sprintf "%s/issues{/number}" api_base;
         compare_url = sprintf "%s/compare{/basehead}" api_base;
-        branches_url = sprintf "%s/branches{/branch}" api_base;
-        releases_url = sprintf "%s/releases{/release_tag}" api_base;
       }
     in
     let repo = make_repo owner name in

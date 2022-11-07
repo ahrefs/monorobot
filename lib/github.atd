@@ -59,12 +59,10 @@ type repository = {
   full_name: string;
   html_url <ocaml name="url"> : string;
   commits_url: string;
-  branches_url: string;
   contents_url: string;
   pulls_url: string;
   issues_url: string;
   compare_url: string;
-  releases_url: string;
 }
 
 type commit_pushed_notification = {
@@ -133,11 +131,6 @@ type compare = {
   total_commits: int;
   commits: api_commit list;
   files: file list;
-}
-
-type release_tag = {
-  url: string;
-  name: string;
 }
 
 type pr_action = [
