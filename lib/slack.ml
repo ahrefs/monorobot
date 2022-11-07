@@ -1,6 +1,7 @@
 open Printf
 open Base
 open Common
+open Mrkdwn
 open Github_j
 open Slack_j
 
@@ -217,9 +218,18 @@ let generate_issue_comment_notification notification channel =
 let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
 (** pretty print github commit *)
-let pp_commit ({ url; id; message; author; _ } : commit) =
+let pp_commit_common url id message author =
   let title = first_line message in
-  sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author.name
+  sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) (escape_mrkdwn @@ title) author
+
+let pp_commit ({ url; id; message; author; _ } : commit) = pp_commit_common url id message (escape_mrkdwn @@ author.name)
+
+let pp_api_commit ({ sha; commit; url; author; _ } : api_commit) =
+  match author with
+  | Some author ->
+    pp_commit_common url sha commit.message
+      (sprintf "<%s|%s>" (escape_mrkdwn author.html_url) (escape_mrkdwn commit.author.name))
+  | None -> pp_commit_common url sha commit.message commit.author.name
 
 (** pretty print list with previews of each item per line--will always show at most 7 and drop the rest*)
 let pp_list_with_previews ~pp_item list =

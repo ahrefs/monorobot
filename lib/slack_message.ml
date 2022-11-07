@@ -2,7 +2,6 @@ open Base
 open Printf
 open Github_t
 open Slack_t
-open Common
 open Mrkdwn
 
 let color_of_state ?(draft = false) ?(merged = false) state =
@@ -146,19 +145,9 @@ let condense_file_changes files =
     sprintf "modified %d files%s" (List.length files)
       (if String.is_empty prefix_path then "" else sprintf " in `%s/`" prefix_path)
 
-let populate_commit ?(include_changes = true) repository (commit : api_commit) =
-  let ({ sha; commit; url; author; files; _ } : api_commit) = commit in
-  let title =
-    match author with
-    | Some author ->
-      sprintf "`<%s|%s>` %s - <%s|%s>" url (Slack.git_short_sha_hash sha)
-        (escape_mrkdwn @@ first_line commit.message)
-        (escape_mrkdwn author.html_url) (escape_mrkdwn commit.author.name)
-    | None ->
-      sprintf "`<%s|%s>` %s - %s" url (Slack.git_short_sha_hash sha)
-        (escape_mrkdwn @@ first_line commit.message)
-        (escape_mrkdwn commit.author.name)
-  in
+let populate_commit ?(include_changes = true) repository (api_commit : api_commit) =
+  let ({ sha; commit; author; files; _ } : api_commit) = api_commit in
+  let title = Slack.pp_api_commit api_commit in
   let changes () =
     let where = condense_file_changes files in
     let when_ =
@@ -190,11 +179,7 @@ let populate_commit ?(include_changes = true) repository (commit : api_commit) =
   let fallback = sprintf "[%s] %s - %s" (Slack.git_short_sha_hash sha) commit.message commit.author.name in
   {
     (base_attachment repository) with
-    footer =
-      Some
-        (simple_footer repository
-        ^ if String.equal commit.committer.date commit.author.date then "" else " " ^ commit.committer.date
-        );
+    footer = Some (simple_footer repository ^ commit.committer.date);
     (*
     author_name = Some author.login;
     author_link = Some author.html_url;
