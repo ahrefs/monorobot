@@ -601,7 +601,7 @@ will unfurl in #C047QTRD1CH
       "fallback": "[9d20f77f] test: added tests for link unfurling - Sewen Thy",
       "mrkdwn_in": [ "text" ],
       "color": "#f6f8fa",
-      "text": "`<https://github.com/ahrefs/monorobot/commit/9d20f77fd7c79f5a00978ae91340603159921cb1|9d20f77f>` test: added tests for link unfurling - Sewen Thy\n\n\nmodified 14 files",
+      "text": "`<https://github.com/ahrefs/monorobot/commit/9d20f77fd7c79f5a00978ae91340603159921cb1|9d20f77f>` test: added tests for link unfurling - Sewen Thy\n\nmodified 14 files",
       "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
@@ -616,7 +616,7 @@ will unfurl in #C047QTRD1CH
       "fallback": "[858b5e1d] test: test for ignoring user comment on PR - Sewen Thy[88372442] cfg and action: add support to ignore comments from certain users - Sewen Thy[6ec6b47d] Merge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users\n\nIgnore code comments from defined list of users - Louis",
       "mrkdwn_in": [ "text" ],
       "color": "#f6f8fa",
-      "text": "`<https://github.com/sewenthy/monorobot/commit/858b5e1d2de2716883a7f83f69676cb1d05a6c9f|858b5e1d>` test: test for ignoring user comment on PR - Sewen Thy\n`<https://github.com/sewenthy/monorobot/commit/883724426505ec03e29a1e4fd11079797a30bd57|88372442>` cfg and action: add support to ignore comments from certain users - Sewen Thy\n`<https://github.com/sewenthy/monorobot/commit/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d|6ec6b47d>` Merge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users - <https://github.com/Khady|Louis>\n\n\nmodified 6 files",
+      "text": "`<https://github.com/sewenthy/monorobot/commit/858b5e1d2de2716883a7f83f69676cb1d05a6c9f|858b5e1d>` test: test for ignoring user comment on PR - Sewen Thy\n`<https://github.com/sewenthy/monorobot/commit/883724426505ec03e29a1e4fd11079797a30bd57|88372442>` cfg and action: add support to ignore comments from certain users - Sewen Thy\n`<https://github.com/sewenthy/monorobot/commit/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d|6ec6b47d>` Merge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users - <https://github.com/Khady|Louis>\n\nmodified 6 files",
       "footer": "<https://github.com/sewenthy/monorobot|sewenthy/monorobot>"
     }
   }
@@ -631,7 +631,7 @@ will unfurl in #C047QTRD1CH
       "fallback": "[9d20f77f] test: added tests for link unfurling - Sewen Thy",
       "mrkdwn_in": [ "text" ],
       "color": "#f6f8fa",
-      "text": "`<https://github.com/ahrefs/monorobot/commit/9d20f77fd7c79f5a00978ae91340603159921cb1|9d20f77f>` test: added tests for link unfurling - Sewen Thy\n\n\nmodified 14 files",
+      "text": "`<https://github.com/ahrefs/monorobot/commit/9d20f77fd7c79f5a00978ae91340603159921cb1|9d20f77f>` test: added tests for link unfurling - Sewen Thy\n\nmodified 14 files",
       "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
@@ -646,7 +646,7 @@ will unfurl in #C047QTRD1CH
       "fallback": "[0e222cde] use plaintext for all fallback messages - Yasunari Watanabe[46b04204] escape all user text and provide pretty-printing utility functions\n\nPR titles, comments, etc. should all be escaped. - Yasunari Watanabe[ee52fb2d] tests: promote with simple char escape check - Yasunari Watanabe",
       "mrkdwn_in": [ "text" ],
       "color": "#f6f8fa",
-      "text": "`<https://github.com/ahrefs/monorobot/commit/0e222cdeeee469bf2109310d27d61a8afb86a118|0e222cde>` use plaintext for all fallback messages - <https://github.com/yasunariw|Yasunari Watanabe>\n`<https://github.com/ahrefs/monorobot/commit/46b04204b085fd1d2b8c15033deaa3be0a0f9936|46b04204>` escape all user text and provide pretty-printing utility functions - <https://github.com/yasunariw|Yasunari Watanabe>\n`<https://github.com/ahrefs/monorobot/commit/ee52fb2df818b3b46d81a3f5fa5de2c926987462|ee52fb2d>` tests: promote with simple char escape check - <https://github.com/yasunariw|Yasunari Watanabe>\n\n\nmodified 3 files",
+      "text": "`<https://github.com/ahrefs/monorobot/commit/0e222cdeeee469bf2109310d27d61a8afb86a118|0e222cde>` use plaintext for all fallback messages - <https://github.com/yasunariw|Yasunari Watanabe>\n`<https://github.com/ahrefs/monorobot/commit/46b04204b085fd1d2b8c15033deaa3be0a0f9936|46b04204>` escape all user text and provide pretty-printing utility functions - <https://github.com/yasunariw|Yasunari Watanabe>\n`<https://github.com/ahrefs/monorobot/commit/ee52fb2df818b3b46d81a3f5fa5de2c926987462|ee52fb2d>` tests: promote with simple char escape check - <https://github.com/yasunariw|Yasunari Watanabe>\n\nmodified 3 files",
       "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }

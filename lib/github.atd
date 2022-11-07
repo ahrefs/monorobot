@@ -130,7 +130,7 @@ type compare = {
   behind_by: int;
   total_commits: int;
   commits: api_commit list;
-  files: file list;
+  ~files <ocaml default="[]">: file list;
 }
 
 type pr_action = [

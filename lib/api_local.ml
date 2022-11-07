@@ -89,7 +89,7 @@ module Slack_simple : Api.Slack = struct
     log#info "will notify %s%s" msg.channel
       ( match msg.Slack_t.text with
       | None -> ""
-      | Some s -> Printf.sprintf " with %S" s
+      | Some s -> sprintf " with %S" s
       );
     Lwt.return @@ Ok ()
 

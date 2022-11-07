@@ -118,7 +118,7 @@ let gh_link_of_string url_str =
   match Re2.find_submatches_exn gh_link_re path with
   | [| _; prefix; Some owner; Some name; Some link_type; Some item |] ->
     let item = Base.String.chop_suffix_if_exists item ~suffix:"/" in
-    let make_repo owner name =
+    let repo =
       let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
       let scheme = Uri.scheme url in
       let html_base, api_base =
@@ -136,7 +136,6 @@ let gh_link_of_string url_str =
         compare_url = sprintf "%s/compare{/basehead}" api_base;
       }
     in
-    let repo = make_repo owner name in
     let verify_commit_sha repo item =
       try
         match Re2.find_submatches_exn commit_sha_re item with

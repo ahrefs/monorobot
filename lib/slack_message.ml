@@ -221,11 +221,7 @@ let populate_compare repository (compare : compare) =
     let commits_unfurl_fallback =
       List.map commits_unfurl ~f:(fun commit_unfurl -> Option.value commit_unfurl.fallback ~default:"")
     in
-    let file_stats =
-      match condense_file_changes compare.files with
-      | "" -> ""
-      | text -> sprintf "\n\n%s" text
-    in
+    let file_stats = sprintf "\n%s" (condense_file_changes compare.files) in
     let text = sprintf "%s%s" (String.concat commits_unfurl_text) file_stats in
     let fallback = String.concat commits_unfurl_fallback in
     { base with text = Some text; fallback = Some fallback }
