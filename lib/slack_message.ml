@@ -233,7 +233,6 @@ let populate_compare repository (compare : compare) =
         ~pp_item:(fun (commit_unfurl : unfurl) -> Option.value commit_unfurl.text ~default:"")
         commits_unfurl
     in
-
     let commits_unfurl_fallback =
       List.map commits_unfurl ~f:(fun commit_unfurl -> Option.value commit_unfurl.fallback ~default:"")
     in
