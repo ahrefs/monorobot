@@ -83,7 +83,7 @@ let compare_cases prefix repo =
       Some (Compare (repo, ("sewen/123ab^^^", "master"))) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/123ab~3...master" prefix,
       Some (Compare (repo, ("sewen/123ab~3", "master"))) );
-    ( (sprintf "https://%s/ahrefs/monorepo/compare/" prefix) ^ "abc%5E%5E%5E...ax~2",
+    ( sprintf "https://%s/ahrefs/monorepo/compare/" prefix ^ "abc%5E%5E%5E...ax~2",
       Some (Compare (repo, ("abc^^^", "ax~2"))) );
     sprintf "https://%s/ahrefs/monorepo/compare" prefix, None;
   ]
