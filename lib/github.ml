@@ -95,7 +95,7 @@ type gh_link =
   | Commit of repository * commit_hash
   | Compare of repository * basehead
 
-let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/:\-_.~\^]+)$|}
+let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/:\-_.~\^%]+)$|}
 let commit_sha_re = Re2.create_exn {|[a-f0-9]{4,40}|}
 let comparer_re = {|([a-zA-Z0-9/:\-_.~\^]+)|}
 let compare_basehead_re = Re2.create_exn (sprintf {|%s([.]{3})%s|} comparer_re comparer_re)
@@ -105,7 +105,7 @@ let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
     GitHub link type, generating repository endpoints if necessary *)
 let gh_link_of_string url_str =
   let url = Uri.of_string url_str in
-  let path = Uri.pct_decode (Uri.path url) in
+  let path = Uri.path url in
   let gh_com_html_base owner name = sprintf "https://github.com/%s/%s" owner name in
   let gh_com_api_base owner name = sprintf "https://api.github.com/repos/%s/%s" owner name in
   let custom_html_base ?(scheme = "https") base owner name = sprintf "%s://%s/%s/%s" scheme base owner name in
@@ -157,7 +157,9 @@ let gh_link_of_string url_str =
         | "pull" -> Some (Pull_request (repo, Int.of_string item))
         | "issues" -> Some (Issue (repo, Int.of_string item))
         | "commit" -> verify_commit_sha repo item
-        | "compare" -> verify_compare_basehead repo item
+        | "compare" ->
+          let item = Uri.pct_decode item in
+          verify_compare_basehead repo item
         | _ -> None
       with _ -> None
     end
