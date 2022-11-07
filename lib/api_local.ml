@@ -34,9 +34,6 @@ module Github : Api.Github = struct
     let url = Caml.Filename.concat cwd ctx.config_filename in
     with_cache_file url Config_j.config_of_string
 
-  let get_branch ~ctx:_ ~(repo : Github_t.repository) ~name =
-    get_repo_member_cache ~repo ~kind:"branch" ~ref_:name ~of_string:Github_j.branch_of_string
-
   let get_api_commit ~ctx:_ ~repo ~sha =
     get_repo_member_cache ~repo ~kind:"commit" ~ref_:sha ~of_string:Github_j.api_commit_of_string
 
@@ -49,9 +46,6 @@ module Github : Api.Github = struct
   let get_compare ~ctx:_ ~(repo : Github_t.repository) ~basehead:(base, merge) =
     get_repo_member_cache ~repo ~kind:"compare" ~ref_:(sprintf "%s...%s" base merge)
       ~of_string:Github_j.compare_of_string
-
-  let get_release_tag ~ctx:_ ~(repo : Github_t.repository) ~release_tag =
-    get_repo_member_cache ~repo ~kind:"release_tag" ~ref_:release_tag ~of_string:Github_j.release_tag_of_string
 
   let request_reviewers ~ctx:_ ~repo:_ ~number:_ ~reviewers:_ = Lwt.return @@ Error "undefined for local setup"
 end
