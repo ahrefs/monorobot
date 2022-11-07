@@ -179,7 +179,7 @@ let populate_commit ?(include_changes = true) repository (api_commit : api_commi
   let fallback = sprintf "[%s] %s - %s" (Slack.git_short_sha_hash sha) commit.message commit.author.name in
   {
     (base_attachment repository) with
-    footer = Some (simple_footer repository ^ commit.committer.date);
+    footer = Some (simple_footer repository ^ " " ^ commit.committer.date);
     (*
     author_name = Some author.login;
     author_link = Some author.html_url;
