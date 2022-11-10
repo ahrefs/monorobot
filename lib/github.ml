@@ -144,11 +144,11 @@ let gh_link_of_string url_str =
       with _ -> None
     in
     let verify_compare_basehead repo basehead =
-      try
+   
         match Re2.find_submatches_exn compare_basehead_re basehead with
         | [| _; Some base; _; Some merge |] -> Some (Compare (repo, (base, merge)))
-        | _ -> None
-      with Re2.Exceptions.Regex_match_failed _ -> None
+        | _
+        | exception Re2.Exceptions.Regex_match_failed _ -> None
     in
     begin
       try
