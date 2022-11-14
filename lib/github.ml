@@ -87,12 +87,18 @@ let parse_exn headers body =
   | "member" | "create" | "delete" | "release" -> Event (event_notification_of_string body)
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
+type basehead = string * string
+
 type gh_link =
   | Pull_request of repository * int
   | Issue of repository * int
   | Commit of repository * commit_hash
+  | Compare of repository * basehead
 
-let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues)/([a-z0-9]+)/?$|}
+let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/:\-_.~\^%]+)$|}
+let commit_sha_re = Re2.create_exn {|[a-f0-9]{4,40}|}
+let comparer_re = {|([a-zA-Z0-9/:\-_.~\^]+)|}
+let compare_basehead_re = Re2.create_exn (sprintf {|%s([.]{3})%s|} comparer_re comparer_re)
 let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported
@@ -111,13 +117,14 @@ let gh_link_of_string url_str =
   | Some host ->
   match Re2.find_submatches_exn gh_link_re path with
   | [| _; prefix; Some owner; Some name; Some link_type; Some item |] ->
-    let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
-    let scheme = Uri.scheme url in
-    let html_base, api_base =
-      if String.is_suffix base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
-      else custom_html_base ?scheme base owner name, custom_api_base ?scheme base owner name
-    in
+    let item = Base.String.chop_suffix_if_exists item ~suffix:"/" in
     let repo =
+      let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
+      let scheme = Uri.scheme url in
+      let html_base, api_base =
+        if String.is_suffix base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
+        else custom_html_base ?scheme base owner name, custom_api_base ?scheme base owner name
+      in
       {
         name;
         full_name = sprintf "%s/%s" owner name;
@@ -126,14 +133,30 @@ let gh_link_of_string url_str =
         contents_url = sprintf "%s/contents/{+path}" api_base;
         pulls_url = sprintf "%s/pulls{/number}" api_base;
         issues_url = sprintf "%s/issues{/number}" api_base;
+        compare_url = sprintf "%s/compare{/basehead}" api_base;
       }
+    in
+    let verify_commit_sha repo item =
+      try
+        match Re2.find_submatches_exn commit_sha_re item with
+        | [| Some sha |] -> Some (Commit (repo, sha))
+        | _ -> None
+      with _ -> None
+    in
+    let verify_compare_basehead repo basehead =
+      match Re2.find_submatches_exn compare_basehead_re basehead with
+      | [| _; Some base; _; Some merge |] -> Some (Compare (repo, (base, merge)))
+      | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
     in
     begin
       try
         match link_type with
         | "pull" -> Some (Pull_request (repo, Int.of_string item))
         | "issues" -> Some (Issue (repo, Int.of_string item))
-        | "commit" -> Some (Commit (repo, item))
+        | "commit" -> verify_commit_sha repo item
+        | "compare" ->
+          let item = Uri.pct_decode item in
+          verify_compare_basehead repo item
         | _ -> None
       with _ -> None
     end

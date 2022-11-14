@@ -16,6 +16,9 @@ module Github : Api.Github = struct
   let issues_url ~(repo : Github_t.repository) ~number =
     String.substr_replace_first ~pattern:"{/number}" ~with_:(sprintf "/%d" number) repo.issues_url
 
+  let compare_url ~(repo : Github_t.repository) ~basehead:(base, merge) =
+    String.substr_replace_first ~pattern:"{/basehead}" ~with_:(sprintf "/%s...%s" base merge) repo.compare_url
+
   let build_headers ?token () =
     let headers = [ "Accept: application/vnd.github.v3+json" ] in
     Option.value_map token ~default:headers ~f:(fun v -> sprintf "Authorization: token %s" v :: headers)
@@ -70,6 +73,12 @@ module Github : Api.Github = struct
   let get_issue ~(ctx : Context.t) ~(repo : Github_t.repository) ~number =
     let%lwt res = issues_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
     Lwt.return @@ Result.map res ~f:Github_j.issue_of_string
+
+  let get_compare ~(ctx : Context.t) ~(repo : Github_t.repository) ~basehead =
+    let%lwt res =
+      compare_url ~repo ~basehead |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
+    in
+    Lwt.return @@ Result.map res ~f:Github_j.compare_of_string
 
   let request_reviewers ~(ctx : Context.t) ~(repo : Github_t.repository) ~number ~reviewers =
     let body = Github_j.string_of_request_reviewers_req reviewers in

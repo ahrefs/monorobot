@@ -1,0 +1,35 @@
+{
+  "token": "",
+  "team_id": "T0475L7BATY",
+  "api_app_id": "A047JBWSX26",
+  "event": {
+    "type": "link_shared",
+    "user": "U046XN0M2R5",
+    "channel": "C047QTRD1CH",
+    "message_ts": "1666771760.054409",
+    "links": [
+      {
+        "url": "https://github.com/ahrefs/monorobot/pull/107/",
+        "domain": "github.com"
+      }
+    ],
+    "source": "conversations_history",
+    "unfurl_id": "C047QTRD1CH.1666771760.054409.1c923c289cf7a3dbc473bcd56f5687b448e6c53f57be71b2bc85eafcb71be3f7",
+    "is_bot_user_member": false,
+    "event_ts": "1666771760.435898"
+  },
+  "type": "event_callback",
+  "event_id": "Ev048H9WH0DP",
+  "event_time": 1666771760,
+  "authorizations": [
+    {
+      "enterprise_id": null,
+      "team_id": "T0475L7BATY",
+      "user_id": "U047X1F32SD",
+      "is_bot": true,
+      "is_enterprise_install": false
+    }
+  ],
+  "is_ext_shared_channel": false,
+  "event_context": "4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA0NzVMN0JBVFkiLCJhaWQiOiJBMDQ3SkJXU1gyNiIsImNpZCI6IkMwNDdRVFJEMUNIIn0"
+}

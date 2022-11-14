@@ -1,0 +1,392 @@
+{
+  "url": "https://api.github.com/repos/ahrefs/monorobot/compare/master...sewenthy:monorobot:119-unfurling-commit-range-links",
+  "html_url": "https://github.com/ahrefs/monorobot/compare/master...sewenthy:monorobot:119-unfurling-commit-range-links",
+  "permalink_url": "https://github.com/ahrefs/monorobot/compare/ahrefs:6ec6b47...sewenthy:9d20f77",
+  "diff_url": "https://github.com/ahrefs/monorobot/compare/master...sewenthy:monorobot:119-unfurling-commit-range-links.diff",
+  "patch_url": "https://github.com/ahrefs/monorobot/compare/master...sewenthy:monorobot:119-unfurling-commit-range-links.patch",
+  "base_commit": {
+    "sha": "6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+    "node_id": "C_kwDOC5saPNoAKDZlYzZiNDdkMWYzMzNkMzBkNWMzODg5ZTA1ZGNhYWQwNzhmMGU3N2Q",
+    "commit": {
+      "author": {
+        "name": "Louis",
+        "email": "louis.roche@ahrefs.com",
+        "date": "2022-10-26T00:47:59Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2022-10-26T00:47:59Z"
+      },
+      "message": "Merge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users\n\nIgnore code comments from defined list of users",
+      "tree": {
+        "sha": "3306d7ce0d2ac3324755dbe410d3fa3da841fe7f",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/git/trees/3306d7ce0d2ac3324755dbe410d3fa3da841fe7f"
+      },
+      "url": "https://api.github.com/repos/ahrefs/monorobot/git/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjWIO/CRBK7hj4Ov3rIwAAEWAIAI7P6ReUnb6bqigQ06Iqgzrm\nK16ReYELdE6Gp5lv24pw4fEa8vW7u5M8Rp4FndfpcnwjODyw9BRN1xzmJJ6sbNgZ\nusB12KyN6Q7MPAmRcoleKzndfcTpoAGR1chuVeDuMT6VcSjHdCbkNO8nhbXnhjPY\nDncx6uXrm8t+ak8IcbJ6nbxFvDPlqySGK7GvbsNIFhSdIy5FkvFg8kVYXssnD0mn\nhfGWCyKBfbkIAIR/w2Rdb6xXm6E2zjMFZp6BDRNhq0hv3R8/hj7GJdw6I+WwYq39\ntUIgPyYtYJpB8NK5DuTqfK7bIEiz3tXkXJ84iyx8Wscpldq60GYA0r0c2QBb7io=\n=yv18\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree 3306d7ce0d2ac3324755dbe410d3fa3da841fe7f\nparent 56ada1084d6b5cc71821f65cf41f013fe6c280f3\nparent 883724426505ec03e29a1e4fd11079797a30bd57\nauthor Louis <louis.roche@ahrefs.com> 1666745279 +0800\ncommitter GitHub <noreply@github.com> 1666745279 +0800\n\nMerge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users\n\nIgnore code comments from defined list of users"
+      }
+    },
+    "url": "https://api.github.com/repos/ahrefs/monorobot/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+    "html_url": "https://github.com/ahrefs/monorobot/commit/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+    "comments_url": "https://api.github.com/repos/ahrefs/monorobot/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/comments",
+    "author": {
+      "login": "Khady",
+      "id": 974142,
+      "node_id": "MDQ6VXNlcjk3NDE0Mg==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/974142?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Khady",
+      "html_url": "https://github.com/Khady",
+      "followers_url": "https://api.github.com/users/Khady/followers",
+      "following_url": "https://api.github.com/users/Khady/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Khady/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Khady/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Khady/subscriptions",
+      "organizations_url": "https://api.github.com/users/Khady/orgs",
+      "repos_url": "https://api.github.com/users/Khady/repos",
+      "events_url": "https://api.github.com/users/Khady/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Khady/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/commits/56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+        "html_url": "https://github.com/ahrefs/monorobot/commit/56ada1084d6b5cc71821f65cf41f013fe6c280f3"
+      },
+      {
+        "sha": "883724426505ec03e29a1e4fd11079797a30bd57",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/commits/883724426505ec03e29a1e4fd11079797a30bd57",
+        "html_url": "https://github.com/ahrefs/monorobot/commit/883724426505ec03e29a1e4fd11079797a30bd57"
+      }
+    ]
+  },
+  "merge_base_commit": {
+    "sha": "6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+    "node_id": "C_kwDOIRbPmdoAKDZlYzZiNDdkMWYzMzNkMzBkNWMzODg5ZTA1ZGNhYWQwNzhmMGU3N2Q",
+    "commit": {
+      "author": {
+        "name": "Louis",
+        "email": "louis.roche@ahrefs.com",
+        "date": "2022-10-26T00:47:59Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2022-10-26T00:47:59Z"
+      },
+      "message": "Merge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users\n\nIgnore code comments from defined list of users",
+      "tree": {
+        "sha": "3306d7ce0d2ac3324755dbe410d3fa3da841fe7f",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/git/trees/3306d7ce0d2ac3324755dbe410d3fa3da841fe7f"
+      },
+      "url": "https://api.github.com/repos/ahrefs/monorobot/git/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsBcBAABCAAQBQJjWIO/CRBK7hj4Ov3rIwAAEWAIAI7P6ReUnb6bqigQ06Iqgzrm\nK16ReYELdE6Gp5lv24pw4fEa8vW7u5M8Rp4FndfpcnwjODyw9BRN1xzmJJ6sbNgZ\nusB12KyN6Q7MPAmRcoleKzndfcTpoAGR1chuVeDuMT6VcSjHdCbkNO8nhbXnhjPY\nDncx6uXrm8t+ak8IcbJ6nbxFvDPlqySGK7GvbsNIFhSdIy5FkvFg8kVYXssnD0mn\nhfGWCyKBfbkIAIR/w2Rdb6xXm6E2zjMFZp6BDRNhq0hv3R8/hj7GJdw6I+WwYq39\ntUIgPyYtYJpB8NK5DuTqfK7bIEiz3tXkXJ84iyx8Wscpldq60GYA0r0c2QBb7io=\n=yv18\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree 3306d7ce0d2ac3324755dbe410d3fa3da841fe7f\nparent 56ada1084d6b5cc71821f65cf41f013fe6c280f3\nparent 883724426505ec03e29a1e4fd11079797a30bd57\nauthor Louis <louis.roche@ahrefs.com> 1666745279 +0800\ncommitter GitHub <noreply@github.com> 1666745279 +0800\n\nMerge pull request #126 from sewenthy/sewen/121-ignore-code-comments-from-defined-list-of-users\n\nIgnore code comments from defined list of users"
+      }
+    },
+    "url": "https://api.github.com/repos/ahrefs/monorobot/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+    "html_url": "https://github.com/ahrefs/monorobot/commit/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+    "comments_url": "https://api.github.com/repos/ahrefs/monorobot/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d/comments",
+    "author": {
+      "login": "Khady",
+      "id": 974142,
+      "node_id": "MDQ6VXNlcjk3NDE0Mg==",
+      "avatar_url": "https://avatars.githubusercontent.com/u/974142?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Khady",
+      "html_url": "https://github.com/Khady",
+      "followers_url": "https://api.github.com/users/Khady/followers",
+      "following_url": "https://api.github.com/users/Khady/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Khady/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Khady/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Khady/subscriptions",
+      "organizations_url": "https://api.github.com/users/Khady/orgs",
+      "repos_url": "https://api.github.com/users/Khady/repos",
+      "events_url": "https://api.github.com/users/Khady/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Khady/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/commits/56ada1084d6b5cc71821f65cf41f013fe6c280f3",
+        "html_url": "https://github.com/ahrefs/monorobot/commit/56ada1084d6b5cc71821f65cf41f013fe6c280f3"
+      },
+      {
+        "sha": "883724426505ec03e29a1e4fd11079797a30bd57",
+        "url": "https://api.github.com/repos/ahrefs/monorobot/commits/883724426505ec03e29a1e4fd11079797a30bd57",
+        "html_url": "https://github.com/ahrefs/monorobot/commit/883724426505ec03e29a1e4fd11079797a30bd57"
+      }
+    ]
+  },
+  "status": "ahead",
+  "ahead_by": 1,
+  "behind_by": 0,
+  "total_commits": 1,
+  "commits": [
+    {
+      "sha": "9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "node_id": "C_kwDOC5saPNoAKDlkMjBmNzdmZDdjNzlmNWEwMDk3OGFlOTEzNDA2MDMxNTk5MjFjYjE",
+      "commit": {
+        "author": {
+          "name": "Sewen Thy",
+          "email": "sewen.thy@ahrefs.com",
+          "date": "2022-10-26T04:54:54Z"
+        },
+        "committer": {
+          "name": "Sewen Thy",
+          "email": "sewen.thy@ahrefs.com",
+          "date": "2022-10-26T08:40:58Z"
+        },
+        "message": "test: added tests for link unfurling",
+        "tree": {
+          "sha": "adf3ab978fea74b9339df7fd1801ba64860b5508",
+          "url": "https://api.github.com/repos/ahrefs/monorobot/git/trees/adf3ab978fea74b9339df7fd1801ba64860b5508"
+        },
+        "url": "https://api.github.com/repos/ahrefs/monorobot/git/commits/9d20f77fd7c79f5a00978ae91340603159921cb1",
+        "comment_count": 0,
+        "verification": {
+          "verified": false,
+          "reason": "unsigned",
+          "signature": null,
+          "payload": null
+        }
+      },
+      "url": "https://api.github.com/repos/ahrefs/monorobot/commits/9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "html_url": "https://github.com/ahrefs/monorobot/commit/9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "comments_url": "https://api.github.com/repos/ahrefs/monorobot/commits/9d20f77fd7c79f5a00978ae91340603159921cb1/comments",
+      "author": null,
+      "committer": null,
+      "parents": [
+        {
+          "sha": "6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+          "url": "https://api.github.com/repos/ahrefs/monorobot/commits/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d",
+          "html_url": "https://github.com/ahrefs/monorobot/commit/6ec6b47d1f333d30d5c3889e05dcaad078f0e77d"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "sha": "1e05d2857f0fad368847ac697e8a7e72f62aba2e",
+      "filename": "lib/action.ml",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 0,
+      "changes": 4,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/lib%2Faction.ml",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/lib%2Faction.ml",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/lib%2Faction.ml?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -317,6 +317,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct\n         Lwt.return_none\n     in\n     let process link =\n+      log#info \"processing links: %s\" link;\n       match Github.gh_link_of_string link with\n       | None -> Lwt.return_none\n       | Some gh_link ->\n@@ -336,6 +337,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct\n         | Error _ -> Lwt.return_none\n         | Ok commit -> Lwt.return_some @@ (link, Slack_message.populate_commit repo commit)\n         )\n+      | Compare (_, compare_branches) ->\n+        log#info \"looking at branch %s\" compare_branches;\n+        Lwt.return_none\n     in\n     let%lwt bot_user_id =\n       match State.get_bot_user_id ctx.state with"
+    },
+    {
+      "sha": "d87b069e8c78838ab763cbdb8f4c0934047853b5",
+      "filename": "lib/api_local.ml",
+      "status": "modified",
+      "additions": 24,
+      "deletions": 4,
+      "changes": 28,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/lib%2Fapi_local.ml",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/lib%2Fapi_local.ml",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/lib%2Fapi_local.ml?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -1,6 +1,7 @@\n open Base\n open Common\n open Devkit\n+open Printf\n \n let cwd = Caml.Sys.getcwd ()\n let cache_dir = Caml.Filename.concat cwd \"github-api-cache\"\n@@ -18,15 +19,34 @@ module Github : Api.Github = struct\n     | Error e -> Lwt.return @@ fmt_error \"error while getting local file: %s\\nfailed to get api commit %s\" e url\n     | Ok file -> Lwt.return @@ Ok (Github_j.api_commit_of_string file)\n \n-  let get_pull_request ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error \"undefined for local setup\"\n-  let get_issue ~ctx:_ ~repo:_ ~number:_ = Lwt.return @@ Error \"undefined for local setup\"\n+  let get_pull_request ~ctx:_ ~(repo : Github_t.repository) ~number =\n+    let url = Caml.Filename.concat cache_dir (sprintf \"%s_pull_%d\" repo.name number) in\n+    match get_local_file url with\n+    | Error e -> Lwt.return @@ fmt_error \"error while getting local file: %s\\nfailed to get api pr %s\" e url\n+    | Ok file -> Lwt.return @@ Ok (Github_j.pull_request_of_string file)\n+\n+  let get_issue ~ctx:_ ~(repo : Github_t.repository) ~number =\n+    let url = Caml.Filename.concat cache_dir (sprintf \"%s_issue_%d\" repo.name number) in\n+    match get_local_file url with\n+    | Error e -> Lwt.return @@ fmt_error \"error while getting local file: %s\\nfailed to get api pr %s\" e url\n+    | Ok file -> Lwt.return @@ Ok (Github_j.issue_of_string file)\n+\n   let request_reviewers ~ctx:_ ~repo:_ ~number:_ ~reviewers:_ = Lwt.return @@ Error \"undefined for local setup\"\n end\n \n module Slack_base : Api.Slack = struct\n   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error \"undefined for local setup\"\n-  let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error \"undefined for local setup\"\n-  let send_auth_test ~ctx:_ () = Lwt.return @@ Error \"undefined for local setup\"\n+\n+  let send_chat_unfurl ~ctx:_ ~channel ~ts ~unfurls () =\n+    let req = Slack_j.{ channel; ts; unfurls } in\n+    let data = Slack_j.string_of_chat_unfurl_req req in\n+    Stdio.printf \"will unfurl in #%s\\n\" channel;\n+    Stdio.printf \"%s\\n\" data;\n+    Lwt.return @@ Ok ()\n+\n+  let send_auth_test ~ctx:_ () =\n+    Lwt.return\n+    @@ Ok ({ url = \"\"; team = \"\"; user = \"\"; team_id = \"\"; user_id = \"test_slack_user\" } : Slack_t.auth_test_res)\n end\n \n module Slack : Api.Slack = struct"
+    },
+    {
+      "sha": "cae92d08de4a48a9387c38fdab1fb8832117b0d3",
+      "filename": "lib/github.atd",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/lib%2Fgithub.atd",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/lib%2Fgithub.atd",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/lib%2Fgithub.atd?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -13,6 +13,7 @@ type git_user_with_date = {\n }\n \n type commit_hash = string\n+type compare_branches = string\n \n type commit = {\n   id: commit_hash;"
+    },
+    {
+      "sha": "38bab33e7d3f437999bd128736b18d153eeb52c6",
+      "filename": "lib/github.ml",
+      "status": "modified",
+      "additions": 8,
+      "deletions": 1,
+      "changes": 9,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/lib%2Fgithub.ml",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/lib%2Fgithub.ml",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/lib%2Fgithub.ml?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -91,8 +91,9 @@ type gh_link =\n   | Pull_request of repository * int\n   | Issue of repository * int\n   | Commit of repository * commit_hash\n+  | Compare of repository * compare_branches\n \n-let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues)/([a-z0-9]+)/?$|}\n+let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/.\\-_]+)/?$|}\n let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\\-]+/([a-zA-Z0-9\\-]+)|}\n \n (** [gh_link_of_string s] parses a URL string [s] to try to match a supported\n@@ -111,6 +112,11 @@ let gh_link_of_string url_str =\n   | Some host ->\n   match Re2.find_submatches_exn gh_link_re path with\n   | [| _; prefix; Some owner; Some name; Some link_type; Some item |] ->\n+    let item =\n+      match String.get item (String.length item - 1) with\n+      | '/' -> String.sub item ~pos:0 ~len:(String.length item - 1)\n+      | _ -> item\n+    in\n     let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in\n     let scheme = Uri.scheme url in\n     let html_base, api_base =\n@@ -134,6 +140,7 @@ let gh_link_of_string url_str =\n         | \"pull\" -> Some (Pull_request (repo, Int.of_string item))\n         | \"issues\" -> Some (Issue (repo, Int.of_string item))\n         | \"commit\" -> Some (Commit (repo, item))\n+        | \"compare\" -> Some (Compare (repo, item))\n         | _ -> None\n       with _ -> None\n     end"
+    },
+    {
+      "sha": "f9c2b2f64554febb66846cbed2846dcd4f86e65c",
+      "filename": "mock_slack_events/commits.one_file_modified.json",
+      "status": "added",
+      "additions": 35,
+      "deletions": 0,
+      "changes": 35,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/mock_slack_events%2Fcommits.one_file_modified.json",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/mock_slack_events%2Fcommits.one_file_modified.json",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/mock_slack_events%2Fcommits.one_file_modified.json?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -0,0 +1,35 @@\n+{\n+  \"token\": \"unknown_token\",\n+  \"team_id\": \"T0475L7BATY\",\n+  \"api_app_id\": \"A047JBWSX26\",\n+  \"event\": {\n+    \"type\": \"link_shared\",\n+    \"user\": \"U046XN0M2R5\",\n+    \"channel\": \"C047QTRD1CH\",\n+    \"message_ts\": \"1666757730.846499\",\n+    \"links\": [\n+      {\n+        \"url\": \"https://github.com/ahrefs/monorobot/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478\",\n+        \"domain\": \"github.com\"\n+      }\n+    ],\n+    \"source\": \"conversations_history\",\n+    \"unfurl_id\": \"C047QTRD1CH.1666757730.846499.c8818b241b981c0a62367919445fd5f184ccd340f0bc7b103e8d31e86ce1ee0f\",\n+    \"is_bot_user_member\": false,\n+    \"event_ts\": \"1666757731.442870\"\n+  },\n+  \"type\": \"event_callback\",\n+  \"event_id\": \"Ev047X9A1V6J\",\n+  \"event_time\": 1666757731,\n+  \"authorizations\": [\n+    {\n+      \"enterprise_id\": null,\n+      \"team_id\": \"T0475L7BATY\",\n+      \"user_id\": \"U047X1F32SD\",\n+      \"is_bot\": true,\n+      \"is_enterprise_install\": false\n+    }\n+  ],\n+  \"is_ext_shared_channel\": false,\n+  \"event_context\": \"4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA0NzVMN0JBVFkiLCJhaWQiOiJBMDQ3SkJXU1gyNiIsImNpZCI6IkMwNDdRVFJEMUNIIn0\"\n+}"
+    },
+    {
+      "sha": "3c91b4a5e1ab2e51b2cce3f39188614d65b5a05a",
+      "filename": "mock_slack_events/compare.simple_branches.json",
+      "status": "added",
+      "additions": 35,
+      "deletions": 0,
+      "changes": 35,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/mock_slack_events%2Fcompare.simple_branches.json",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/mock_slack_events%2Fcompare.simple_branches.json",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/mock_slack_events%2Fcompare.simple_branches.json?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -0,0 +1,35 @@\n+{\n+  \"token\": \"\",\n+  \"team_id\": \"T0475L7BATY\",\n+  \"api_app_id\": \"A047JBWSX26\",\n+  \"event\": {\n+    \"type\": \"link_shared\",\n+    \"user\": \"U046XN0M2R5\",\n+    \"channel\": \"C047QTRD1CH\",\n+    \"message_ts\": \"1666773089.275449\",\n+    \"links\": [\n+      {\n+        \"url\": \"https://github.com/ahrefs/monorobot/compare/master...yasu/slack-msg-fix-escaping-and-fallback\",\n+        \"domain\": \"github.com\"\n+      }\n+    ],\n+    \"source\": \"conversations_history\",\n+    \"unfurl_id\": \"C047QTRD1CH.1666773089.275449.a48ccd950c3122178618023ad492de1307ae3b7b249cc315b46c9c617ca6b40d\",\n+    \"is_bot_user_member\": false,\n+    \"event_ts\": \"1666773089.663926\"\n+  },\n+  \"type\": \"event_callback\",\n+  \"event_id\": \"Ev0481R38J69\",\n+  \"event_time\": 1666773089,\n+  \"authorizations\": [\n+    {\n+      \"enterprise_id\": null,\n+      \"team_id\": \"T0475L7BATY\",\n+      \"user_id\": \"U047X1F32SD\",\n+      \"is_bot\": true,\n+      \"is_enterprise_install\": false\n+    }\n+  ],\n+  \"is_ext_shared_channel\": false,\n+  \"event_context\": \"4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA0NzVMN0JBVFkiLCJhaWQiOiJBMDQ3SkJXU1gyNiIsImNpZCI6IkMwNDdRVFJEMUNIIn0\"\n+}"
+    },
+    {
+      "sha": "66dbb5a5ad4450f0e122057ac620bb4e67d08be3",
+      "filename": "mock_slack_events/issue.open.json",
+      "status": "added",
+      "additions": 35,
+      "deletions": 0,
+      "changes": 35,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/mock_slack_events%2Fissue.open.json",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/mock_slack_events%2Fissue.open.json",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/mock_slack_events%2Fissue.open.json?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -0,0 +1,35 @@\n+{\n+  \"token\": \"\",\n+  \"team_id\": \"T0475L7BATY\",\n+  \"api_app_id\": \"A047JBWSX26\",\n+  \"event\": {\n+    \"type\": \"link_shared\",\n+    \"user\": \"U046XN0M2R5\",\n+    \"channel\": \"C047QTRD1CH\",\n+    \"message_ts\": \"1666772724.077999\",\n+    \"links\": [\n+      {\n+        \"url\": \"https://github.com/ahrefs/monorobot/issues/124\",\n+        \"domain\": \"github.com\"\n+      }\n+    ],\n+    \"source\": \"conversations_history\",\n+    \"unfurl_id\": \"C047QTRD1CH.1666772724.077999.ee3d267ed655f98a9676ad00db7664503a791604bcd6540447bea666329bd18d\",\n+    \"is_bot_user_member\": false,\n+    \"event_ts\": \"1666772724.409821\"\n+  },\n+  \"type\": \"event_callback\",\n+  \"event_id\": \"Ev04876SDGJY\",\n+  \"event_time\": 1666772724,\n+  \"authorizations\": [\n+    {\n+      \"enterprise_id\": null,\n+      \"team_id\": \"T0475L7BATY\",\n+      \"user_id\": \"U047X1F32SD\",\n+      \"is_bot\": true,\n+      \"is_enterprise_install\": false\n+    }\n+  ],\n+  \"is_ext_shared_channel\": false,\n+  \"event_context\": \"4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA0NzVMN0JBVFkiLCJhaWQiOiJBMDQ3SkJXU1gyNiIsImNpZCI6IkMwNDdRVFJEMUNIIn0\"\n+}"
+    },
+    {
+      "sha": "bfe076ba45d004fc2399fd3b01a0040732685fc6",
+      "filename": "mock_slack_events/pr.multiple_involved.json",
+      "status": "added",
+      "additions": 35,
+      "deletions": 0,
+      "changes": 35,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/mock_slack_events%2Fpr.multiple_involved.json",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/mock_slack_events%2Fpr.multiple_involved.json",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/mock_slack_events%2Fpr.multiple_involved.json?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -0,0 +1,35 @@\n+{\n+  \"token\": \"\",\n+  \"team_id\": \"T0475L7BATY\",\n+  \"api_app_id\": \"A047JBWSX26\",\n+  \"event\": {\n+    \"type\": \"link_shared\",\n+    \"user\": \"U046XN0M2R5\",\n+    \"channel\": \"C047QTRD1CH\",\n+    \"message_ts\": \"1666771760.054409\",\n+    \"links\": [\n+      {\n+        \"url\": \"https://github.com/ahrefs/monorobot/pull/107/\",\n+        \"domain\": \"github.com\"\n+      }\n+    ],\n+    \"source\": \"conversations_history\",\n+    \"unfurl_id\": \"C047QTRD1CH.1666771760.054409.1c923c289cf7a3dbc473bcd56f5687b448e6c53f57be71b2bc85eafcb71be3f7\",\n+    \"is_bot_user_member\": false,\n+    \"event_ts\": \"1666771760.435898\"\n+  },\n+  \"type\": \"event_callback\",\n+  \"event_id\": \"Ev048H9WH0DP\",\n+  \"event_time\": 1666771760,\n+  \"authorizations\": [\n+    {\n+      \"enterprise_id\": null,\n+      \"team_id\": \"T0475L7BATY\",\n+      \"user_id\": \"U047X1F32SD\",\n+      \"is_bot\": true,\n+      \"is_enterprise_install\": false\n+    }\n+  ],\n+  \"is_ext_shared_channel\": false,\n+  \"event_context\": \"4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA0NzVMN0JBVFkiLCJhaWQiOiJBMDQ3SkJXU1gyNiIsImNpZCI6IkMwNDdRVFJEMUNIIn0\"\n+}"
+    },
+    {
+      "sha": "90a4e625d1ff1f03393841f20cf40ccc36d368ec",
+      "filename": "test/dune",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Fdune",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Fdune",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/test%2Fdune?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -9,6 +9,7 @@\n  (deps\n   (source_tree ../mock_states)\n   (source_tree ../mock_payloads)\n+  (source_tree ../mock_slack_events)\n   (source_tree github-api-cache)\n   monorobot.json\n   secrets.json)"
+    },
+    {
+      "sha": "ad39c0a8df37bb2275688dc3bff58ee9d70a3662",
+      "filename": "test/github-api-cache/monorobot_issue_124",
+      "status": "added",
+      "additions": 15,
+      "deletions": 0,
+      "changes": 15,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Fgithub-api-cache%2Fmonorobot_issue_124",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Fgithub-api-cache%2Fmonorobot_issue_124",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/test%2Fgithub-api-cache%2Fmonorobot_issue_124?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -0,0 +1,15 @@\n+{\n+  \"user\": {\n+    \"login\": \"Khady\",\n+    \"id\": 974142,\n+    \"url\": \"https://api.github.com/users/Khady\",\n+    \"html_url\": \"https://github.com/Khady\",\n+    \"avatar_url\": \"https://avatars.githubusercontent.com/u/974142?v=4\"\n+  },\n+  \"number\": 124,\n+  \"body\": \"Currently running ocaml 4.09, could move to ocaml 4.14.\\r\\n\\r\\nMight also be possible to enable some kind of caching.\",\n+  \"title\": \"Update the CI to a recent ocaml\",\n+  \"html_url\": \"https://github.com/ahrefs/monorobot/issues/124\",\n+  \"labels\": [],\n+  \"state\": \"open\"\n+}"
+    },
+    {
+      "sha": "bbc77f22771c4607ad0e38614b4b35a81979ac74",
+      "filename": "test/github-api-cache/monorobot_pull_107",
+      "status": "added",
+      "additions": 31,
+      "deletions": 0,
+      "changes": 31,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Fgithub-api-cache%2Fmonorobot_pull_107",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Fgithub-api-cache%2Fmonorobot_pull_107",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/test%2Fgithub-api-cache%2Fmonorobot_pull_107?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -0,0 +1,31 @@\n+{\n+  \"user\": {\n+    \"login\": \"yasunariw\",\n+    \"id\": 7478035,\n+    \"url\": \"https://api.github.com/users/yasunariw\",\n+    \"html_url\": \"https://github.com/yasunariw\",\n+    \"avatar_url\": \"https://avatars.githubusercontent.com/u/7478035?v=4\"\n+  },\n+  \"number\": 107,\n+  \"body\": \"## Description of the task\\r\\n\\r\\nBecause two builds on the same pipeline + branch don't necessarily always run the same build steps, the current state tracking is insufficient for handling those cases. Instead of tracking build state per pipeline, we should track it per build step.\\r\\n\\r\\n**Some details regarding Buildkite notification behavior:**\\r\\n\\r\\n- There are two types to consider -- notifications for overall builds (\\\"Build #123 failed\\\") vs those for individual steps within a larger build (\\\"step XYZ of build #123 failed\\\").\\r\\n- The only way to differentiate b/w them is to look at the `context` field, which is either `buildkite/pipeline-name` for the former or `buildkite/pipeline-name/build-step` for the latter. \\r\\n- The final notification of the overall build is always sent after the final notification for any of the build steps.\\r\\n\\r\\n**The implementation:**\\r\\n\\r\\nFor each status notification that passes the rule check (which should only be overall build notifications), we:\\r\\n1. Retrieve all status notifications associated with this commit using [GH's API](https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-commit-statuses-for-a-reference)\\r\\n2. Filter the list to only get the status notifications that belong to the same build (in case of rebuilds)\\r\\n3. Filter the list again for the most recent status notification of each build step (which should either be success or failure)\\r\\n4. Update the runtime state, which maps pipeline/build step names to per-branch build states.\\r\\n5. Just like before, this is then queried whenever there is an \\\"allow_once\\\" match. An \\\"allow_once\\\" match will generate a notification if any of the build steps associated with the current build have a different status value from the previous build.\\r\\n\\r\\n**Future work:**\\r\\n\\r\\nIt would be nice if build failure notifications also told us which build step failed. This can be done easily by making `Action.partition_status` returned the build steps that failed, so that `Slack.generate_status_notification` can include them in the final message. \\r\\n\\r\\n**Final note:**\\r\\n\\r\\nLarge diff size is due to the addition of HTTP request/response stubs - apologies.\\r\\n\\r\\n## How to test\\r\\n\\r\\nExisting tests should pass.\\r\\n\\r\\nTwo cases are added; the second handles the [behavior observed in production](https://ahrefs.slack.com/archives/CKZANG2TE/p1609971822011500) that motivated this PR.\\r\\n\\r\\n`status.success_test_different_steps_from_prev`\\r\\n\\r\\nThis is for an incoming successful build on develop branch with a single build step, \\\"notabot-test/build\\\". There exist past successes for same branch + different steps, and for different branch + same step, but not for same branch + same step. Thus, it should generate a notification.\\r\\n\\r\\n`status.success_test_not_affected_by_unrelated_success_with_different_steps`\\r\\n\\r\\nThis is for an incoming successful build on develop branch with two steps, \\\"notabot-test/{build-infra,setup}\\\". Here, previously a build with steps \\\"build-infra\\\" and \\\"setup\\\" failed on step \\\"build-infra\\\". Then a subsequent build with step \\\"build\\\" succeeded, so the overall pipeline state is a success. However, the more recent successful but unrelated build should not affect generation of another success notification, given the change in status state for \\\"build-infra\\\".\\r\\n\\r\\n```\\r\\nmake test\\r\\n```\\r\\n\\r\\n## References\\r\\n\\r\\n- existing issue: #80 \\r\\n- Slack discussion: https://ahrefs.slack.com/archives/CKZANG2TE/p1609971822011500\\r\\n- other?\\r\\n\",\n+  \"title\": \"Track status state per build step instead of per pipeline\",\n+  \"html_url\": \"https://github.com/ahrefs/monorobot/pull/107\",\n+  \"labels\": [],\n+  \"state\": \"open\",\n+  \"requested_reviewers\": [\n+    {\n+      \"login\": \"ygrek\",\n+      \"id\": 104087,\n+      \"url\": \"https://api.github.com/users/ygrek\",\n+      \"html_url\": \"https://github.com/ygrek\",\n+      \"avatar_url\": \"https://avatars.githubusercontent.com/u/104087?v=4\"\n+    },\n+    {\n+      \"login\": \"Khady\",\n+      \"id\": 974142,\n+      \"url\": \"https://api.github.com/users/Khady\",\n+      \"html_url\": \"https://github.com/Khady\",\n+      \"avatar_url\": \"https://avatars.githubusercontent.com/u/974142?v=4\"\n+    }\n+  ]\n+}"
+    },
+    {
+      "sha": "d03ba9f70f770299b86ae0276f6a1a3d44a4db9e",
+      "filename": "test/github_link_test.ml",
+      "status": "modified",
+      "additions": 25,
+      "deletions": 1,
+      "changes": 26,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Fgithub_link_test.ml",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Fgithub_link_test.ml",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/test%2Fgithub_link_test.ml?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -51,6 +51,19 @@ let commit_cases prefix repo =\n     sprintf \"https://%s/ahrefs/monorepo/commit\" prefix, None;\n   ]\n \n+let compare_cases prefix repo =\n+  [\n+    sprintf \"https://%s/ahrefs/monorepo/compare/master...develop\" prefix, Some (Compare (repo, \"master...develop\"));\n+    sprintf \"https://%s/ahrefs/monorepo/compare/develop...master/\" prefix, Some (Compare (repo, \"develop...master\"));\n+    ( sprintf \"https://%s/ahrefs/monorepo/compare/master...sewen/one-feature\" prefix,\n+      Some (Compare (repo, \"master...sewen/one-feature\")) );\n+    ( sprintf \"https://%s/ahrefs/monorepo/compare/master...sewen/one-feature/\" prefix,\n+      Some (Compare (repo, \"master...sewen/one-feature\")) );\n+    ( sprintf \"https://%s/ahrefs/monorepo/compare/sewen/one-feature...master/\" prefix,\n+      Some (Compare (repo, \"sewen/one-feature...master\")) );\n+    sprintf \"https://%s/ahrefs/monorepo/compare\" prefix, None;\n+  ]\n+\n let other_cases =\n   [\n     \"http://github.com/ahrefs/monorepo/commit/69c42640\", Some (Commit (github_repo, \"69c42640\"));\n@@ -67,13 +80,24 @@ let cases =\n       pr_cases \"www.github.com\" github_repo;\n       issue_cases \"www.github.com\" github_repo;\n       commit_cases \"www.github.com\" github_repo;\n+      compare_cases \"www.github.com\" github_repo;\n       pr_cases \"example.org\" enterprise_repo1;\n       issue_cases \"example.org\" enterprise_repo1;\n       commit_cases \"example.org\" enterprise_repo1;\n       pr_cases \"example.org/path/to/git\" enterprise_repo2;\n       issue_cases \"example.org/path/to/git\" enterprise_repo2;\n       commit_cases \"example.org/path/to/git\" enterprise_repo2;\n+      compare_cases \"example.org/path/to/git\" enterprise_repo2;\n       other_cases;\n     ]\n \n-let () = List.iter cases ~f:(fun (input, expected) -> assert (Poly.equal (gh_link_of_string input) expected))\n+let () =\n+  List.iter cases ~f:(fun (input, expected) ->\n+    assert (\n+      match Poly.equal (gh_link_of_string input) expected with\n+      | true -> true\n+      | false ->\n+        Stdio.print_endline input;\n+        false\n+    )\n+  )"
+    },
+    {
+      "sha": "e95b5d1fc964b0b0979653e28a9a797beb4eaa19",
+      "filename": "test/slack_payloads.expected",
+      "status": "modified",
+      "additions": 10,
+      "deletions": 0,
+      "changes": 10,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Fslack_payloads.expected",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Fslack_payloads.expected",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/test%2Fslack_payloads.expected?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -575,3 +575,13 @@ will notify #default\n     }\n   ]\n }\n+===== file ../mock_slack_events/commits.one_file_modified.json =====\n+will unfurl in #C047QTRD1CH\n+{\"channel\":\"C047QTRD1CH\",\"ts\":\"1666757730.846499\",\"unfurls\":{\"https://github.com/ahrefs/monorobot/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478\":{\"fallback\":\"[0d95302a] Update README.md - Louis\",\"mrkdwn_in\":[\"text\"],\"color\":\"#f6f8fa\",\"author_icon\":\"https://github.com/avatars/u/0\",\"text\":\"`<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` *Update README.md - <https://github.com/Khady|Louis>*\\n_modified `README.md` (+1-1)_\",\"footer\":\"<https://github.com/ahrefs/monorobot|ahrefs/monorobot>\"}}}\n+===== file ../mock_slack_events/compare.simple_branches.json =====\n+===== file ../mock_slack_events/issue.open.json =====\n+will unfurl in #C047QTRD1CH\n+{\"channel\":\"C047QTRD1CH\",\"ts\":\"1666772724.077999\",\"unfurls\":{\"https://github.com/ahrefs/monorobot/issues/124\":{\"fallback\":\"[ahrefs/monorobot] Update the CI to a recent ocaml\",\"mrkdwn_in\":[\"text\"],\"color\":\"#28a745\",\"author_name\":\"Khady\",\"author_link\":\"https://github.com/Khady\",\"author_icon\":\"https://avatars.githubusercontent.com/u/974142?v=4\",\"title\":\"#124 Update the CI to a recent ocaml\",\"title_link\":\"https://github.com/ahrefs/monorobot/issues/124\",\"fields\":[],\"footer\":\"<https://github.com/ahrefs/monorobot|ahrefs/monorobot>\"}}}\n+===== file ../mock_slack_events/pr.multiple_involved.json =====\n+will unfurl in #C047QTRD1CH\n+{\"channel\":\"C047QTRD1CH\",\"ts\":\"1666771760.054409\",\"unfurls\":{\"https://github.com/ahrefs/monorobot/pull/107/\":{\"fallback\":\"[ahrefs/monorobot] Track status state per build step instead of per pipeline\",\"mrkdwn_in\":[\"text\"],\"color\":\"#28a745\",\"author_name\":\"yasunariw\",\"author_link\":\"https://github.com/yasunariw\",\"author_icon\":\"https://avatars.githubusercontent.com/u/7478035?v=4\",\"title\":\"#107 Track status state per build step instead of per pipeline\",\"title_link\":\"https://github.com/ahrefs/monorobot/pull/107\",\"fields\":[{\"title\":\"Reviewers\",\"value\":\"@ygrek, @Khady\",\"short\":true}],\"footer\":\"<https://github.com/ahrefs/monorobot|ahrefs/monorobot>\"}}}"
+    },
+    {
+      "sha": "598d05f4a27c96c640ac1dabab5e9503622f690b",
+      "filename": "test/test.ml",
+      "status": "modified",
+      "additions": 30,
+      "deletions": 4,
+      "changes": 34,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Ftest.ml",
+      "raw_url": "https://github.com/ahrefs/monorobot/raw/9d20f77fd7c79f5a00978ae91340603159921cb1/test%2Ftest.ml",
+      "contents_url": "https://api.github.com/repos/ahrefs/monorobot/contents/test%2Ftest.ml?ref=9d20f77fd7c79f5a00978ae91340603159921cb1",
+      "patch": "@@ -4,21 +4,28 @@ open Lib\n let log = Devkit.Log.from \"test\"\n let mock_payload_dir = Caml.Filename.concat Caml.Filename.parent_dir_name \"mock_payloads\"\n let mock_state_dir = Caml.Filename.concat Caml.Filename.parent_dir_name \"mock_states\"\n+let mock_slack_event_dir = Caml.Filename.concat Caml.Filename.parent_dir_name \"mock_slack_events\"\n \n module Action_local = Action.Action (Api_local.Github) (Api_local.Slack)\n \n-let get_mock_payloads () =\n-  let files = Caml.Sys.readdir mock_payload_dir in\n+let get_sorted_files_from dir =\n+  let files = Caml.Sys.readdir dir in\n   Array.sort files ~compare:String.compare;\n   Array.to_list files\n+\n+let get_mock_payloads () =\n+  get_sorted_files_from mock_payload_dir\n   |> List.filter_map ~f:(fun fn -> Github.event_of_filename fn |> Option.map ~f:(fun kind -> kind, fn))\n   |> List.map ~f:(fun (kind, fn) ->\n        let payload_path = Caml.Filename.concat mock_payload_dir fn in\n        let state_path = Caml.Filename.concat mock_state_dir fn in\n        if Caml.Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None\n      )\n \n-let process ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =\n+let get_mock_slack_events () =\n+  List.map (get_sorted_files_from mock_slack_event_dir) ~f:(Caml.Filename.concat mock_slack_event_dir)\n+\n+let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =\n   let headers = [ \"x-github-event\", kind ] in\n   let make_test_context event =\n     let repo = Github.repo_of_notification @@ Github.parse_exn headers event in\n@@ -51,20 +58,39 @@ let process ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =\n     let%lwt _ctx = Action_local.process_github_notification ctx headers event in\n     Lwt.return_unit\n \n+let process_slack_event ~(secrets : Config_t.secrets) path =\n+  let ctx = Context.make () in\n+  ctx.secrets <- Some secrets;\n+  State.set_bot_user_id ctx.state \"bot_user\";\n+  Stdio.printf \"===== file %s =====\\n\" path;\n+  match Common.get_local_file path with\n+  | Error e -> Lwt.return @@ log#error \"failed to read %s: %s\" path e\n+  | Ok body ->\n+  match Slack_j.event_notification_of_string body with\n+  | Url_verification _ -> Lwt.return ()\n+  | Event_callback notification ->\n+  match notification.event with\n+  | Link_shared event ->\n+    let%lwt _ctx = Action_local.process_link_shared_event ctx event in\n+    Lwt.return_unit\n+\n let () =\n   let payloads = get_mock_payloads () in\n   let repo : Github_t.repository =\n     { name = \"\"; full_name = \"\"; url = \"\"; commits_url = \"\"; contents_url = \"\"; pulls_url = \"\"; issues_url = \"\" }\n   in\n   let ctx = Context.make ~state_filepath:\"state.json\" () in\n+  let slack_events = get_mock_slack_events () in\n   Lwt_main.run\n     ( match%lwt Api_local.Github.get_config ~ctx ~repo with\n     | Error e ->\n       log#error \"%s\" e;\n       Lwt.return_unit\n     | Ok config ->\n     match Context.refresh_secrets ctx with\n-    | Ok ctx -> Lwt_list.iter_s (process ~secrets:(Option.value_exn ctx.secrets) ~config) payloads\n+    | Ok ctx ->\n+      let%lwt () = Lwt_list.iter_s (process_gh_payload ~secrets:(Option.value_exn ctx.secrets) ~config) payloads in\n+      Lwt_list.iter_s (process_slack_event ~secrets:(Option.value_exn ctx.secrets)) slack_events\n     | Error e ->\n       log#error \"failed to read secrets:\";\n       log#error \"%s\" e;"
+    }
+  ]
+}

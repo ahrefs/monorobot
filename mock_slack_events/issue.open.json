@@ -1,0 +1,35 @@
+{
+  "token": "",
+  "team_id": "T0475L7BATY",
+  "api_app_id": "A047JBWSX26",
+  "event": {
+    "type": "link_shared",
+    "user": "U046XN0M2R5",
+    "channel": "C047QTRD1CH",
+    "message_ts": "1666772724.077999",
+    "links": [
+      {
+        "url": "https://github.com/ahrefs/monorobot/issues/124",
+        "domain": "github.com"
+      }
+    ],
+    "source": "conversations_history",
+    "unfurl_id": "C047QTRD1CH.1666772724.077999.ee3d267ed655f98a9676ad00db7664503a791604bcd6540447bea666329bd18d",
+    "is_bot_user_member": false,
+    "event_ts": "1666772724.409821"
+  },
+  "type": "event_callback",
+  "event_id": "Ev04876SDGJY",
+  "event_time": 1666772724,
+  "authorizations": [
+    {
+      "enterprise_id": null,
+      "team_id": "T0475L7BATY",
+      "user_id": "U047X1F32SD",
+      "is_bot": true,
+      "is_enterprise_install": false
+    }
+  ],
+  "is_ext_shared_channel": false,
+  "event_context": "4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA0NzVMN0JBVFkiLCJhaWQiOiJBMDQ3SkJXU1gyNiIsImNpZCI6IkMwNDdRVFJEMUNIIn0"
+}
