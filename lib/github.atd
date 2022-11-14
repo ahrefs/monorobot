@@ -27,6 +27,16 @@ type commit = {
   modified: string list;
 }
 
+type file = {
+  sha: commit_hash;
+  filename: string;
+  status: string;
+  additions: int;
+  deletions: int;
+  changes: int;
+  blob_url <ocaml name="url"> : string;
+}
+
 type github_user = {
   login: string;
   id: int;
@@ -52,6 +62,7 @@ type repository = {
   contents_url: string;
   pulls_url: string;
   issues_url: string;
+  compare_url: string;
 }
 
 type commit_pushed_notification = {
@@ -104,6 +115,22 @@ type issue = {
   state: abstract_issue_state;
   ~assignees <ocaml default="[]">: github_user list;
   ~comments <ocaml default="0">: int;
+}
+
+type compare = {
+  url: string;
+  html_url: string;
+  permalink_url: string;
+  diff_url: string;
+  patch_url: string;
+  base_commit: api_commit;
+  merge_base_commit: api_commit;
+  status: string;
+  ahead_by: int;
+  behind_by: int;
+  total_commits: int;
+  commits: api_commit list;
+  ~files <ocaml default="[]">: file list;
 }
 
 type pr_action = [
@@ -244,16 +271,6 @@ type status_notification = {
   updated_at: string;
 }
 
-type file = {
-  sha: commit_hash;
-  filename: string;
-  status: string;
-  additions: int;
-  deletions: int;
-  changes: int;
-  blob_url <ocaml name="url"> : string;
-}
-
 type api_commit_stats = {
   total: int;
   additions: int;
@@ -264,9 +281,9 @@ type api_commit = {
   sha: commit_hash;
   commit: inner_commit;
   html_url <ocaml name="url"> : string;
-  author: github_user;
-  files: file list;
-  stats: api_commit_stats;
+  ?author: github_user option; (* will be none if author's email is not associated with any github account *)
+  ~files <ocaml default="[]">: file list;
+  ~stats <ocaml default="{total=0; additions=0; deletions=0;}">: api_commit_stats;
 }
 
 type commit_comment_notification = {

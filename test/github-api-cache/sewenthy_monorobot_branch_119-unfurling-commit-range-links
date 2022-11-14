@@ -1,0 +1,62 @@
+{
+  "name": "119-unfurling-commit-range-links",
+  "commit": {
+    "sha": "c7d51fb8c85a50afc926dc12b94eaedea98ab20e",
+    "node_id": "C_kwDOIRbPmdoAKGM3ZDUxZmI4Yzg1YTUwYWZjOTI2ZGMxMmI5NGVhZWRlYTk4YWIyMGU",
+    "commit": {
+      "author": {
+        "name": "Sewen Thy",
+        "email": "mail@example.org",
+        "date": "2022-10-25T03:55:43Z"
+      },
+      "committer": {
+        "name": "Sewen Thy",
+        "email": "mail@example.org",
+        "date": "2022-10-25T03:55:43Z"
+      },
+      "message": "notify me?",
+      "tree": {
+        "sha": "6a4b81f18e8fb5869782fb13c11792fffba3ba08",
+        "url": "https://api.github.com/repos/sewenthy/monorobot/git/trees/6a4b81f18e8fb5869782fb13c11792fffba3ba08"
+      },
+      "url": "https://api.github.com/repos/sewenthy/monorobot/git/commits/c7d51fb8c85a50afc926dc12b94eaedea98ab20e",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    },
+    "url": "https://api.github.com/repos/sewenthy/monorobot/commits/c7d51fb8c85a50afc926dc12b94eaedea98ab20e",
+    "html_url": "https://github.com/sewenthy/monorobot/commit/c7d51fb8c85a50afc926dc12b94eaedea98ab20e",
+    "comments_url": "https://api.github.com/repos/sewenthy/monorobot/commits/c7d51fb8c85a50afc926dc12b94eaedea98ab20e/comments",
+    "author": null,
+    "committer": null,
+    "parents": [
+      {
+        "sha": "3612e3c0d3f9d000db907d2141f4a641800363b1",
+        "url": "https://api.github.com/repos/sewenthy/monorobot/commits/3612e3c0d3f9d000db907d2141f4a641800363b1",
+        "html_url": "https://github.com/sewenthy/monorobot/commit/3612e3c0d3f9d000db907d2141f4a641800363b1"
+      }
+    ]
+  },
+  "_links": {
+    "self": "https://api.github.com/repos/sewenthy/monorobot/branches/master",
+    "html": "https://github.com/sewenthy/monorobot/tree/master"
+  },
+  "protected": false,
+  "protection": {
+    "enabled": false,
+    "required_status_checks": {
+      "enforcement_level": "off",
+      "contexts": [
+
+      ],
+      "checks": [
+
+      ]
+    }
+  },
+  "protection_url": "https://api.github.com/repos/sewenthy/monorobot/branches/master/protection"
+}

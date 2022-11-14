@@ -320,25 +320,29 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         Lwt.return_none
     in
     let process link =
+      let with_gh_result_populate_slack (type a) ~(api_result : (a, string) Result.t)
+        ~(populate : repository -> a -> Slack_t.message_attachment) ~repo
+        =
+        match api_result with
+        | Error _ -> Lwt.return_none
+        | Ok item -> Lwt.return_some @@ (link, populate repo item)
+      in
       match Github.gh_link_of_string link with
       | None -> Lwt.return_none
       | Some gh_link ->
       match gh_link with
       | Pull_request (repo, number) ->
-        ( match%lwt Github_api.get_pull_request ~ctx ~repo ~number with
-        | Error _ -> Lwt.return_none
-        | Ok pr -> Lwt.return_some @@ (link, Slack_message.populate_pull_request repo pr)
-        )
+        let%lwt result = Github_api.get_pull_request ~ctx ~repo ~number in
+        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_pull_request ~repo
       | Issue (repo, number) ->
-        ( match%lwt Github_api.get_issue ~ctx ~repo ~number with
-        | Error _ -> Lwt.return_none
-        | Ok issue -> Lwt.return_some @@ (link, Slack_message.populate_issue repo issue)
-        )
+        let%lwt result = Github_api.get_issue ~ctx ~repo ~number in
+        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_issue ~repo
       | Commit (repo, sha) ->
-        ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
-        | Error _ -> Lwt.return_none
-        | Ok commit -> Lwt.return_some @@ (link, Slack_message.populate_commit repo commit)
-        )
+        let%lwt result = Github_api.get_api_commit ~ctx ~repo ~sha in
+        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_commit ~repo
+      | Compare (repo, basehead) ->
+        let%lwt result = Github_api.get_compare ~ctx ~repo ~basehead in
+        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_compare ~repo
     in
     let%lwt bot_user_id =
       match State.get_bot_user_id ctx.state with
