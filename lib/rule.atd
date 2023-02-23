@@ -86,6 +86,7 @@ type label_rule = {
    - teams: "org/team"
 *)
 type project_owners_rule = {
-  label: string;
+  ?label: string option;
+  ~labels <ocaml default="[]">: string list;
   owners: string list;
 }

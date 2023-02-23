@@ -127,8 +127,26 @@ module Label = struct
 end
 
 module Project_owners = struct
-  let match_rules (l : Github_t.label) ~rules =
-    match List.find rules ~f:(fun { label; _ } -> String.equal label l.name) with
-    | Some { owners = []; _ } | None -> []
-    | Some { owners; _ } -> owners
+  module SS = Caml.Set.Make (String)
+
+  let match_rules pr_labels rules =
+    match pr_labels with
+    | [] -> []
+    | _ :: _ ->
+      let pr_labels_set = List.map ~f:(fun (l : Github_t.label) -> l.name) pr_labels |> SS.of_list in
+      let do_match { label; labels; owners } =
+        let labels =
+          match labels with
+          | [] -> Option.value_map label ~f:(fun l -> [ l ]) ~default:[]
+          | labels -> labels
+        in
+        match owners with
+        | [] -> false
+        | _ :: _ ->
+        match labels with
+        | [] -> false
+        | [ label ] -> SS.mem label pr_labels_set
+        | labels -> SS.subset (SS.of_list labels) pr_labels_set
+      in
+      List.find ~f:do_match rules |> Option.value_map ~default:[] ~f:(fun l -> l.owners)
 end

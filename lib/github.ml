@@ -163,7 +163,7 @@ let gh_link_of_string url_str =
   | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
 
 let get_project_owners (pr : pull_request) ({ rules } : Config_t.project_owners) =
-  List.fold_left pr.labels ~init:[] ~f:(fun acc l -> List.rev_append (Rule.Project_owners.match_rules l ~rules) acc)
+  Rule.Project_owners.match_rules pr.labels rules
   |> List.dedup_and_sort ~compare:String.compare
   |> List.partition_map ~f:(fun reviewer ->
        try
