@@ -251,7 +251,7 @@ You can optionally provide a **status condition** to specify additional requirem
 
 In GitHub, ["code owners"](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners) are the users/teams whose review is automatically requested when a PR modifying code in a given directory is opened. **Project owners** behave similarly, with two differences.
 
-- Owners are defined _per PR label_, instead of _per directory_ (or directory pattern)
+- Owners are defined _per PR label (or set of labels)_, instead of _per directory_ (or directory pattern)
 - Definitions should be placed in the per-repo Monorobot configuration file, instead of a `CODEOWNERS` file
 
 Draft PR behavior is similar to code owners. From GitHub documentation:
@@ -272,7 +272,7 @@ Note that the owner of the personal access token cannot be a project owner, as G
                 "owners": ["user1", "user2", "org/team1"]
             },
             {
-                "label": "Label 2",
+                "labels": ["Label 2", "Label 3"],  # rule matches if PR has all labels in the list
                 "owners": ["org/team2", "user3"]
             }
         ]
