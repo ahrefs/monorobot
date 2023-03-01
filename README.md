@@ -33,6 +33,7 @@ Run the `_build/default/src/monorobot.exe` binary. The following commands are su
 2. Place a **secrets** file locally on the server.
 3. Configure GitHub
     1. If targeting a private repository, set up a [personal access token](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) with `repo` scope and store it in the `gh_token` field of the secrets file.
+       To use the "Project Owners" feature, the token owner must have write access to the repository.
     2. [Create a webhook](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/creating-webhooks#setting-up-a-webhook) for the repository you are targeting. Set the *Payload URL* to be `<server_domain>/github`.
     3. You can optionally [secure the webhook](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/securing-your-webhooks) with a token, and store it in the `gh_hook_token` field of the secrets file.
 4. Configure Slack

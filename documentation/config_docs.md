@@ -260,7 +260,11 @@ Draft PR behavior is similar to code owners. From GitHub documentation:
 
 The syntax for listing users is `username`. For teams, it is `org/team-name`.
 
-Note that the owner of the personal access token cannot be a project owner, as GitHub disallows a user from self-requesting a review. Consider provisioning a separate bot user, or authenticating using a [GitHub App](https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#accessing-api-endpoints-as-a-github-app) instead.
+Some prerequisites apply to using this feature.
+
+1. The owner of the personal access token must have write access to the repository.
+2. The owner of the personal access token cannot be a project owner, as GitHub disallows a user from self-requesting a review.
+   Consider provisioning a separate bot user, or authenticating using a [GitHub App](https://docs.github.com/en/developers/apps/building-github-apps/authenticating-with-github-apps#accessing-api-endpoints-as-a-github-app) instead.
 
 ```json
 {
