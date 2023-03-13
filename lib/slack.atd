@@ -65,6 +65,20 @@ type post_message_req = {
 
 type post_message_res = {
   channel: string;
+  ts: string;
+}
+
+type update_message_req = {
+  channel: string;
+  ts: string;
+  ?text: string nullable;
+  ?attachments: message_attachment list nullable;
+  ?blocks: message_block list nullable;
+}
+
+type update_message_res = {
+  channel: string;
+  ts: string;
 }
 
 type link_shared_link = {

@@ -139,12 +139,44 @@ module Slack : Api.Slack = struct
       log#info "data: %s" data;
       if webhook_mode then begin
         match%lwt http_request ~body ~headers `POST url with
-        | Ok _res -> Lwt.return @@ Ok ()
+        | Ok res -> Lwt.return_ok @@ Slack_j.post_message_res_of_string res
         | Error e -> Lwt.return @@ build_error (query_error_msg url e)
       end
       else begin
         match%lwt slack_api_request ~body ~headers `POST url Slack_j.read_post_message_res with
-        | Ok _res -> Lwt.return @@ Ok ()
+        | Ok res -> Lwt.return_ok res
+        | Error e -> Lwt.return @@ build_error e
+      end
+
+  (** [update_notification ctx msg] update a message at [msg.ts] in [msg.channel]
+      with the payload [msg]; uses web API with access token if available, or with
+      webhook otherwise *)
+  let update_notification ~(ctx : Context.t) ~(msg : Slack_t.update_message_req) =
+    log#info "sending to %s" msg.channel;
+    let build_error e = fmt_error "%s\nfailed to send Slack notification" e in
+    let secrets = Context.get_secrets_exn ctx in
+    let headers, url, webhook_mode =
+      match Context.hook_of_channel ctx msg.channel with
+      | Some url -> [], Some url, true
+      | None ->
+      match secrets.slack_access_token with
+      | Some access_token -> [ bearer_token_header access_token ], Some "https://slack.com/api/chat.update", false
+      | None -> [], None, false
+    in
+    match url with
+    | None -> Lwt.return @@ build_error @@ sprintf "no token or webhook configured to notify channel %s" msg.channel
+    | Some url ->
+      let data = Slack_j.string_of_update_message_req msg in
+      let body = `Raw ("application/json", data) in
+      log#info "data: %s" data;
+      if webhook_mode then begin
+        match%lwt http_request ~body ~headers `POST url with
+        | Ok (_res : string) -> Lwt.return_ok ()
+        | Error e -> Lwt.return @@ build_error (query_error_msg url e)
+      end
+      else begin
+        match%lwt slack_api_request ~body ~headers `POST url Slack_j.read_update_message_res with
+        | Ok (_res : Slack_t.update_message_res) -> Lwt.return_ok ()
         | Error e -> Lwt.return @@ build_error e
       end
 

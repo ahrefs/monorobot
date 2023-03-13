@@ -57,7 +57,7 @@ let check_slack_action file secrets =
       | Error e ->
         log#error "%s" e;
         Lwt.return_unit
-      | Ok () -> Lwt.return_unit
+      | Ok (_res : Slack_t.post_message_res) -> Lwt.return_unit
       )
 
 (* flags *)

@@ -53,6 +53,7 @@ end
 (** The base implementation for local check payload debugging and mocking tests *)
 module Slack_base : Api.Slack = struct
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
+  let update_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
   let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error "undefined for local setup"
   let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
 end
@@ -64,6 +65,14 @@ module Slack : Api.Slack = struct
   let send_notification ~ctx:_ ~msg =
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
     Stdio.printf "will notify #%s\n" msg.channel;
+    Stdio.printf "%s\n" json;
+    Lwt.return @@ Ok ({ channel = msg.channel; ts = "SOMETS" } : Slack_t.post_message_res)
+
+  let update_notification ~ctx:_ ~msg =
+    let json =
+      msg |> Slack_j.string_of_update_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string
+    in
+    Stdio.printf "will update msg in #%s\n" msg.channel;
     Stdio.printf "%s\n" json;
     Lwt.return @@ Ok ()
 
@@ -91,6 +100,14 @@ module Slack_simple : Api.Slack = struct
       | None -> ""
       | Some s -> sprintf " with %S" s
       );
+    Lwt.return @@ Ok ({ channel = msg.channel; ts = "SOMETS" } : Slack_t.post_message_res)
+
+  let update_notification ~ctx:_ ~(msg : Slack_t.update_message_req) =
+    log#info "will update msg in #%s: %s\n" msg.channel
+      ( match msg.Slack_t.text with
+      | None -> ""
+      | Some s -> sprintf " with %S" s
+      );
     Lwt.return @@ Ok ()
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
@@ -113,6 +130,15 @@ module Slack_json : Api.Slack = struct
   let send_notification ~ctx:_ ~(msg : Slack_t.post_message_req) =
     log#info "will notify %s" msg.channel;
     let json = Slack_j.string_of_post_message_req msg in
+    let url = Uri.of_string "https://api.slack.com/docs/messages/builder" in
+    let url = Uri.add_query_param url ("msg", [ json ]) in
+    log#info "%s" (Uri.to_string url);
+    log#info "%s" json;
+    Lwt.return @@ Ok ({ channel = msg.channel; ts = "SOMETS" } : Slack_t.post_message_res)
+
+  let update_notification ~ctx:_ ~(msg : Slack_t.update_message_req) =
+    log#info "will notify %s" msg.channel;
+    let json = Slack_j.string_of_update_message_req msg in
     let url = Uri.of_string "https://api.slack.com/docs/messages/builder" in
     let url = Uri.add_query_param url ("msg", [ json ]) in
     log#info "%s" (Uri.to_string url);
