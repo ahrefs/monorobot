@@ -3,5 +3,11 @@
     "buildkite/pipeline2": {
       "master": "failure"
     }
+  },
+ "comments_map": {
+    "0": {
+      "channel": "some channel",
+      "ts": "some ts"
+    }
   }
 }

@@ -5,6 +5,10 @@ open Mrkdwn
 open Github_j
 open Slack_j
 
+type notify =
+  | New_message of Slack_t.post_message_req
+  | Update_message of Slack_t.update_message_req
+
 let empty_attachments =
   {
     mrkdwn_in = None;
@@ -55,21 +59,22 @@ let generate_pull_request_notification notification channel =
     sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
       (pp_link ~url:html_url title) action sender.login
   in
-  {
-    channel;
-    text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = mrkdwn_of_markdown_opt body;
-          };
-        ];
-    blocks = None;
-  }
+  New_message
+    {
+      channel;
+      text = Some summary;
+      attachments =
+        Some
+          [
+            {
+              empty_attachments with
+              mrkdwn_in = Some [ "text" ];
+              color = Some "#ccc";
+              text = mrkdwn_of_markdown_opt body;
+            };
+          ];
+      blocks = None;
+    }
 
 let generate_pr_review_notification notification channel =
   let { action; sender; pull_request; review; repository } = notification in
@@ -93,28 +98,29 @@ let generate_pr_review_notification notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
       number (pp_link ~url:html_url title)
   in
-  {
-    channel;
-    text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = mrkdwn_of_markdown_opt review.body;
-          };
-        ];
-    blocks = None;
-  }
+  New_message
+    {
+      channel;
+      text = Some summary;
+      attachments =
+        Some
+          [
+            {
+              empty_attachments with
+              mrkdwn_in = Some [ "text" ];
+              color = Some "#ccc";
+              text = mrkdwn_of_markdown_opt review.body;
+            };
+          ];
+      blocks = None;
+    }
 
-let generate_pr_review_comment_notification notification channel =
+let generate_pr_review_comment_notification (ctx : Context.t) notification channel =
   let { action; pull_request; sender; comment; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
-    | Created -> "commented"
+    | Created | Edited -> "commented"
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
@@ -130,22 +136,27 @@ let generate_pr_review_comment_notification notification channel =
     | None -> None
     | Some a -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url a)
   in
-  {
-    channel;
-    text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            footer = file;
-            text = Some (mrkdwn_of_markdown comment.body);
-          };
-        ];
-    blocks = None;
-  }
+  let attachments =
+    Some
+      [
+        {
+          empty_attachments with
+          mrkdwn_in = Some [ "text" ];
+          color = Some "#ccc";
+          footer = file;
+          text = Some (mrkdwn_of_markdown comment.body);
+        };
+      ]
+  in
+  match action with
+  | Created -> New_message { channel; text = Some summary; attachments; blocks = None }
+  | Edited ->
+    ( match State.get_comment_map ctx.state repository.url comment.id with
+    | Some ({ channel; ts } : post_message_res) ->
+      Update_message { channel; ts; text = Some summary; attachments; blocks = None }
+    | None -> invalid_arg (sprintf "could not find comment %d in %s" comment.id repository.url)
+    )
+  | _ -> invalid_arg "impossible"
 
 let generate_issue_notification notification channel =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
@@ -166,28 +177,29 @@ let generate_issue_notification notification channel =
     sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number (pp_link ~url:html_url title)
       action sender.login
   in
-  {
-    channel;
-    text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = mrkdwn_of_markdown_opt body;
-          };
-        ];
-    blocks = None;
-  }
+  New_message
+    {
+      channel;
+      text = Some summary;
+      attachments =
+        Some
+          [
+            {
+              empty_attachments with
+              mrkdwn_in = Some [ "text" ];
+              color = Some "#ccc";
+              text = mrkdwn_of_markdown_opt body;
+            };
+          ];
+      blocks = None;
+    }
 
-let generate_issue_comment_notification notification channel =
+let generate_issue_comment_notification (ctx : Context.t) notification channel =
   let { action; issue; sender; comment; repository } = notification in
   let { number; title; _ } = issue in
   let action_str =
     match action with
-    | Created -> "commented"
+    | Created | Edited -> "commented"
     | _ ->
       invalid_arg
         (sprintf
@@ -199,21 +211,26 @@ let generate_issue_comment_notification notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> on #%d %s" repository.url repository.full_name sender.login comment.html_url
       action_str number (pp_link ~url:issue.html_url title)
   in
-  {
-    channel;
-    text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = Some (mrkdwn_of_markdown comment.body);
-          };
-        ];
-    blocks = None;
-  }
+  let attachments =
+    Some
+      [
+        {
+          empty_attachments with
+          mrkdwn_in = Some [ "text" ];
+          color = Some "#ccc";
+          text = Some (mrkdwn_of_markdown comment.body);
+        };
+      ]
+  in
+  match action with
+  | Created -> New_message { channel; text = Some summary; attachments; blocks = None }
+  | Edited ->
+    ( match State.get_comment_map ctx.state repository.url comment.id with
+    | Some ({ channel; ts } : post_message_res) ->
+      Update_message { channel; ts; text = Some summary; attachments; blocks = None }
+    | None -> invalid_arg (sprintf "could not find comment %d in %s" comment.id repository.url)
+    )
+  | _ -> invalid_arg "impossible"
 
 let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
@@ -271,21 +288,22 @@ let generate_push_notification notification channel =
         sender.login
   in
   let commits = pp_list_with_previews ~pp_item:pp_commit commits in
-  {
-    channel;
-    text = Some title;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "fields" ];
-            color = Some "#ccc";
-            fields = Some [ { value = String.concat ~sep:"\n" commits; title = None; short = false } ];
-          };
-        ];
-    blocks = None;
-  }
+  New_message
+    {
+      channel;
+      text = Some title;
+      attachments =
+        Some
+          [
+            {
+              empty_attachments with
+              mrkdwn_in = Some [ "fields" ];
+              color = Some "#ccc";
+              fields = Some [ { value = String.concat ~sep:"\n" commits; title = None; short = false } ];
+            };
+          ];
+      blocks = None;
+    }
 
 let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
@@ -347,11 +365,11 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       fields = Some [ { title = None; value = msg; short = false } ];
     }
   in
-  { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
+  New_message { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
 
-let generate_commit_comment_notification api_commit notification channel =
+let generate_commit_comment_notification (ctx : Context.t) api_commit notification channel =
   let { commit; _ } = api_commit in
-  let { sender; comment; repository; _ } = notification in
+  let { sender; comment; repository; action; _ } = notification in
   let commit_id =
     match comment.commit_id with
     | None -> invalid_arg "commit id not found"
@@ -376,7 +394,15 @@ let generate_commit_comment_notification api_commit notification channel =
       text = Some (mrkdwn_of_markdown comment.body);
     }
   in
-  { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
+  match action with
+  | Created -> New_message { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
+  | Edited ->
+    ( match State.get_comment_map ctx.state repository.url comment.id with
+    | Some ({ channel; ts } : post_message_res) ->
+      Update_message { channel; ts; text = Some summary; attachments = Some [ attachment ]; blocks = None }
+    | None -> invalid_arg (sprintf "could not find comment %d in %s" comment.id repository.url)
+    )
+  | _ -> invalid_arg "impossible"
 
 let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match signing_key with

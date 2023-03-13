@@ -7,7 +7,7 @@ type t = {
   lock : Lwt_mutex.t;  (** protect access to mutable string map `pipeline_statuses` *)
 }
 
-let empty_repo_state () : State_t.repo_state = { pipeline_statuses = StringMap.empty }
+let empty_repo_state () : State_t.repo_state = { pipeline_statuses = StringMap.empty; comments_map = StringMap.empty }
 
 let empty () : t =
   let state = State_t.{ repos = Stringtbl.empty (); bot_user_id = None } in
@@ -33,6 +33,16 @@ let set_repo_pipeline_status { state; lock } repo_url ~pipeline ~(branches : Git
   let repo_state = find_or_add_repo' state repo_url in
   repo_state.pipeline_statuses <- Map.update repo_state.pipeline_statuses pipeline ~f:set_branch_status;
   Lwt.return_unit
+
+let add_comment_map { state; lock } repo_url comment_id post_message_res =
+  Lwt_mutex.with_lock lock @@ fun () ->
+  let repo_state = find_or_add_repo' state repo_url in
+  repo_state.comments_map <- Map.set repo_state.comments_map ~key:(Int.to_string comment_id) ~data:post_message_res;
+  Lwt.return_unit
+
+let get_comment_map { state; _ } repo_url comment_id =
+  let repo_state = find_or_add_repo' state repo_url in
+  Map.find repo_state.comments_map (Int.to_string comment_id)
 
 let set_bot_user_id { state; _ } user_id = state.State_t.bot_user_id <- Some user_id
 let get_bot_user_id { state; _ } = state.State_t.bot_user_id

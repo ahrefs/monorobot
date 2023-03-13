@@ -58,12 +58,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
 
   let partition_pr_review_comment cfg (n : pr_review_comment_notification) =
     match n.action with
-    | Created -> partition_label cfg n.pull_request.labels
+    | Created | Edited -> partition_label cfg n.pull_request.labels
     | _ -> []
 
   let partition_issue_comment cfg (n : issue_comment_notification) =
     match n.action with
-    | Created -> partition_label cfg n.issue.labels
+    | Created | Edited -> partition_label cfg n.issue.labels
     | _ -> []
 
   let partition_pr_review cfg (n : pr_review_notification) =
@@ -186,13 +186,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Pull_request n -> partition_pr cfg n |> List.map ~f:(generate_pull_request_notification n) |> Lwt.return
     | PR_review n -> partition_pr_review cfg n |> List.map ~f:(generate_pr_review_notification n) |> Lwt.return
     | PR_review_comment n ->
-      partition_pr_review_comment cfg n |> List.map ~f:(generate_pr_review_comment_notification n) |> Lwt.return
+      partition_pr_review_comment cfg n |> List.map ~f:(generate_pr_review_comment_notification ctx n) |> Lwt.return
     | Issue n -> partition_issue cfg n |> List.map ~f:(generate_issue_notification n) |> Lwt.return
     | Issue_comment n ->
-      partition_issue_comment cfg n |> List.map ~f:(generate_issue_comment_notification n) |> Lwt.return
+      partition_issue_comment cfg n |> List.map ~f:(generate_issue_comment_notification ctx n) |> Lwt.return
     | Commit_comment n ->
       let%lwt channels, api_commit = partition_commit_comment ctx n in
-      let notifs = List.map ~f:(generate_commit_comment_notification api_commit n) channels in
+      let notifs = List.map ~f:(generate_commit_comment_notification ctx api_commit n) channels in
       Lwt.return notifs
     | Status n ->
       let%lwt channels = partition_status ctx n in
@@ -200,12 +200,27 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       Lwt.return notifs
     | _ -> Lwt.return []
 
-  let send_notifications (ctx : Context.t) notifications =
-    let notify (msg : Slack_t.post_message_req) =
-      match%lwt Slack_api.send_notification ~ctx ~msg with
-      | Ok () -> Lwt.return_unit
-      | Error e -> action_error e
+  let send_notifications (ctx : Context.t) (req : Github.t) notifications =
+    let update_comment_mapping message =
+      match req with
+      | Github.PR_review_comment n -> State.add_comment_map ctx.state n.repository.url n.comment.id message
+      | Issue_comment n -> State.add_comment_map ctx.state n.repository.url n.comment.id message
+      | Commit_comment n -> State.add_comment_map ctx.state n.repository.url n.comment.id message
+      | _ -> Lwt.return_unit
     in
+    let notify = function
+      | New_message (msg : Slack_t.post_message_req) ->
+        ( match%lwt Slack_api.send_notification ~ctx ~msg with
+        | Ok res -> update_comment_mapping res
+        | Error e -> action_error e
+        )
+      | Update_message msg ->
+        ( match%lwt Slack_api.update_notification ~ctx ~msg with
+        | Ok () -> Lwt.return_unit
+        | Error e -> action_error e
+        )
+    in
+
     Lwt_list.iter_s notify notifications
 
   (** [refresh_repo_config ctx n] fetches the latest repo config if it's
@@ -278,7 +293,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Error e -> action_error e
           | Ok () ->
             let%lwt notifications = generate_notifications ctx payload in
-            let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx repo payload ] in
+            let%lwt () = Lwt.join [ send_notifications ctx payload notifications; do_github_tasks ctx repo payload ] in
             ( match ctx.state_filepath with
             | None -> Lwt.return_unit
             | Some path ->
