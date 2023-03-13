@@ -335,6 +335,34 @@ will notify #frontend-bot
 }
 ===== file ../mock_payloads/pull_request_review.dismissed.json =====
 ===== file ../mock_payloads/pull_request_review.edited.json =====
+will update msg in #some channel
+{
+  "channel": "some channel",
+  "ts": "some ts",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#pullrequestreview-0|commented on> #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "pr review comment test"
+    }
+  ]
+}
+will update msg in #some channel
+{
+  "channel": "some channel",
+  "ts": "some ts",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#pullrequestreview-0|commented on> #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "pr review comment test"
+    }
+  ]
+}
 ===== file ../mock_payloads/pull_request_review.request_changes.json =====
 will notify #default
 {

@@ -9,5 +9,11 @@
       "channel": "some channel",
       "ts": "some ts"
     }
+  },
+  "reviews_map": {
+    "0": {
+      "channel": "some channel",
+      "ts": "some ts"
+    }
   }
 }

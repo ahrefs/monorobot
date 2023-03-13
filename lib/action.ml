@@ -79,7 +79,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
 
        in both cases, since pull_request_review_comment is already handled by another type of event, information in the pull_request_review payload
        does not provide any insightful information and will thus be ignored. *)
-    | Submitted, _, _ -> partition_label cfg n.pull_request.labels
+    | (Submitted | Edited), _, _ -> partition_label cfg n.pull_request.labels
     | _ -> []
 
   let partition_commit (cfg : Config_t.config) files =
@@ -184,7 +184,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Github.Push n ->
       partition_push cfg n |> List.map ~f:(fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
     | Pull_request n -> partition_pr cfg n |> List.map ~f:(generate_pull_request_notification n) |> Lwt.return
-    | PR_review n -> partition_pr_review cfg n |> List.map ~f:(generate_pr_review_notification n) |> Lwt.return
+    | PR_review n -> partition_pr_review cfg n |> List.map ~f:(generate_pr_review_notification ctx n) |> Lwt.return
     | PR_review_comment n ->
       partition_pr_review_comment cfg n |> List.map ~f:(generate_pr_review_comment_notification ctx n) |> Lwt.return
     | Issue n -> partition_issue cfg n |> List.map ~f:(generate_issue_notification n) |> Lwt.return
@@ -206,6 +206,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Github.PR_review_comment n -> State.add_comment_map ctx.state n.repository.url n.comment.id message
       | Issue_comment n -> State.add_comment_map ctx.state n.repository.url n.comment.id message
       | Commit_comment n -> State.add_comment_map ctx.state n.repository.url n.comment.id message
+      | PR_review n -> State.add_review_map ctx.state n.repository.url n.review.id message
       | _ -> Lwt.return_unit
     in
     let notify = function

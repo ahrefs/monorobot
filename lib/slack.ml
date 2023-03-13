@@ -76,12 +76,12 @@ let generate_pull_request_notification notification channel =
       blocks = None;
     }
 
-let generate_pr_review_notification notification channel =
+let generate_pr_review_notification (ctx : Context.t) notification channel =
   let { action; sender; pull_request; review; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
-    | Submitted ->
+    | Submitted | Edited ->
       ( match review.state with
       | "commented" -> "commented on"
       | "approved" -> "approved"
@@ -98,22 +98,26 @@ let generate_pr_review_notification notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
       number (pp_link ~url:html_url title)
   in
-  New_message
-    {
-      channel;
-      text = Some summary;
-      attachments =
-        Some
-          [
-            {
-              empty_attachments with
-              mrkdwn_in = Some [ "text" ];
-              color = Some "#ccc";
-              text = mrkdwn_of_markdown_opt review.body;
-            };
-          ];
-      blocks = None;
-    }
+  let attachments =
+    Some
+      [
+        {
+          empty_attachments with
+          mrkdwn_in = Some [ "text" ];
+          color = Some "#ccc";
+          text = mrkdwn_of_markdown_opt review.body;
+        };
+      ]
+  in
+  match action with
+  | Submitted -> New_message { channel; text = Some summary; attachments; blocks = None }
+  | Edited ->
+    ( match State.get_review_map ctx.state repository.url review.id with
+    | Some ({ channel; ts } : post_message_res) ->
+      Update_message { channel; ts; text = Some summary; attachments; blocks = None }
+    | None -> invalid_arg (sprintf "could not find comment %d in %s" review.id repository.url)
+    )
+  | _ -> invalid_arg "impossible"
 
 let generate_pr_review_comment_notification (ctx : Context.t) notification channel =
   let { action; pull_request; sender; comment; repository } = notification in

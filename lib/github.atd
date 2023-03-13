@@ -185,6 +185,7 @@ type pr_notification = {
 
 type review = {
   ?body: string nullable;
+  id: int;
   html_url: string;
   state: string;
 }

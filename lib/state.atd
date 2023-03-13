@@ -11,12 +11,13 @@ type branch_statuses = status_state map_as_object
 type pipeline_statuses = branch_statuses map_as_object
 
 type post_message_res <ocaml from="Slack"> = abstract
-type slack_comment_map = post_message_res map_as_object
+type post_msg_map = post_message_res map_as_object
 
 (* The runtime state of a given GitHub repository *)
 type repo_state = {
   pipeline_statuses <ocaml mutable>: pipeline_statuses;
-  comments_map <ocaml mutable>: slack_comment_map;
+  comments_map <ocaml mutable>: post_msg_map;
+  reviews_map <ocaml mutable>: post_msg_map;
 }
 
 (* The serializable runtime state of the bot *)
