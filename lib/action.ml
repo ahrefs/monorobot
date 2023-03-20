@@ -273,7 +273,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
 
   let cleanup_state (ctx : Context.t) (payload : Github.t) =
     match payload with
-    | Github.Pull_request { action = Closed; pull_request = { number; _ }; repository = { url; _ }; _ } ->
+    | Github.Pull_request { action = Closed; pull_request = { number; _ }; repository = { url; _ }; _ }
+    | Issue { action = Closed; issue = { number; _ }; repository = { url; _ }; _ } ->
       State.close_issue ctx.state url number
     | _ -> Lwt.return_unit
 
