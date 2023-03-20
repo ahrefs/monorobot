@@ -65,7 +65,7 @@ let get_review_msg { state; _ } repo_url ~issue_num review_id =
 let close_issue { state; lock } repo_url issue_num =
   Lwt_mutex.with_lock lock @@ fun () ->
   let repo_state = find_or_add_repo' state repo_url in
-  Stringtbl.remove repo_state.issue_tbl issue_num;
+  Stringtbl.remove repo_state.issue_tbl (Int.to_string issue_num);
   Lwt.return_unit
 
 let set_bot_user_id { state; _ } user_id = state.State_t.bot_user_id <- Some user_id

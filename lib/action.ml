@@ -271,6 +271,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       end
     | _ -> Lwt.return_unit
 
+  let cleanup_state (ctx : Context.t) (payload : Github.t) =
+    match payload with
+    | Github.Pull_request { action = Closed; pull_request = { number; _ }; repository = { url; _ }; _ } ->
+      State.close_issue ctx.state url number
+    | _ -> Lwt.return_unit
+
   let process_github_notification (ctx : Context.t) headers body =
     let validate_signature secrets payload =
       let repo = Github.repo_of_notification payload in
@@ -300,6 +306,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
             ( match ctx.state_filepath with
             | None -> Lwt.return_unit
             | Some path ->
+              let%lwt () = cleanup_state ctx payload in
               ( match%lwt State.save ctx.state path with
               | Ok () -> Lwt.return_unit
               | Error e -> action_error e
