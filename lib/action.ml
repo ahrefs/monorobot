@@ -192,7 +192,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       partition_issue_comment cfg n |> List.map ~f:(generate_issue_comment_notification ctx n) |> Lwt.return
     | Commit_comment n ->
       let%lwt channels, api_commit = partition_commit_comment ctx n in
-      let notifs = List.map ~f:(generate_commit_comment_notification ctx api_commit n) channels in
+      let notifs = List.map ~f:(generate_commit_comment_notification api_commit n) channels in
       Lwt.return notifs
     | Status n ->
       let%lwt channels = partition_status ctx n in
@@ -203,10 +203,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let send_notifications (ctx : Context.t) (req : Github.t) notifications =
     let update_comment_mapping message =
       match req with
-      | Github.PR_review_comment n -> State.add_comment_map ctx.state n.repository.url n.comment.id message
-      | Issue_comment n -> State.add_comment_map ctx.state n.repository.url n.comment.id message
-      | Commit_comment n -> State.add_comment_map ctx.state n.repository.url n.comment.id message
-      | PR_review n -> State.add_review_map ctx.state n.repository.url n.review.id message
+      | Github.PR_review_comment n ->
+        State.add_comment_msg ctx.state n.repository.url ~issue_num:n.pull_request.number n.comment.id message
+      | Issue_comment n ->
+        State.add_comment_msg ctx.state n.repository.url ~issue_num:n.issue.number n.comment.id message
+      | PR_review n ->
+        State.add_review_msg ctx.state n.repository.url ~issue_num:n.pull_request.number n.review.id message
       | _ -> Lwt.return_unit
     in
     let notify = function

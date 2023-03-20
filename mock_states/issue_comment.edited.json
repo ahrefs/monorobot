@@ -1,23 +1,27 @@
 
 {
-  "pipeline_statuses": {
-    "default": {
-      "master": "failure"
+    "pipeline_statuses": {
+        "default": {
+            "master": "failure"
+        },
+        "buildkite/pipeline2": {
+            "master": "success"
+        }
     },
-    "buildkite/pipeline2": {
-      "master": "success"
+    "issue_tbl" : {
+        "4" : {
+            "comments": {
+                "0": {
+                    "channel": "some channel",
+                    "ts": "some ts"
+                }
+            },
+            "reviews": {
+                "0": {
+                    "channel": "some channel",
+                    "ts": "some ts"
+                }
+            }
+        }
     }
-  },
-  "comments_map": {
-    "0": {
-      "channel": "some channel",
-      "ts": "some ts"
-    }
-  },
-  "reviews_map": {
-    "0": {
-      "channel": "some channel",
-      "ts": "some ts"
-    }
-  }
 }

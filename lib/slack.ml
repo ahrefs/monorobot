@@ -112,10 +112,10 @@ let generate_pr_review_notification (ctx : Context.t) notification channel =
   match action with
   | Submitted -> New_message { channel; text = Some summary; attachments; blocks = None }
   | Edited ->
-    ( match State.get_review_map ctx.state repository.url review.id with
+    ( match State.get_review_msg ctx.state repository.url ~issue_num:number review.id with
     | Some ({ channel; ts } : post_message_res) ->
       Update_message { channel; ts; text = Some summary; attachments; blocks = None }
-    | None -> invalid_arg (sprintf "could not find comment %d in %s" review.id repository.url)
+    | None -> invalid_arg (sprintf "could not find review %d in %s for PR #%n" review.id repository.url number)
     )
   | _ -> invalid_arg "impossible"
 
@@ -155,10 +155,10 @@ let generate_pr_review_comment_notification (ctx : Context.t) notification chann
   match action with
   | Created -> New_message { channel; text = Some summary; attachments; blocks = None }
   | Edited ->
-    ( match State.get_comment_map ctx.state repository.url comment.id with
+    ( match State.get_comment_msg ctx.state repository.url ~issue_num:number comment.id with
     | Some ({ channel; ts } : post_message_res) ->
       Update_message { channel; ts; text = Some summary; attachments; blocks = None }
-    | None -> invalid_arg (sprintf "could not find comment %d in %s" comment.id repository.url)
+    | None -> invalid_arg (sprintf "could not find comment %d in %s for PR #%n" comment.id repository.url number)
     )
   | _ -> invalid_arg "impossible"
 
@@ -229,10 +229,10 @@ let generate_issue_comment_notification (ctx : Context.t) notification channel =
   match action with
   | Created -> New_message { channel; text = Some summary; attachments; blocks = None }
   | Edited ->
-    ( match State.get_comment_map ctx.state repository.url comment.id with
+    ( match State.get_comment_msg ctx.state repository.url ~issue_num:number comment.id with
     | Some ({ channel; ts } : post_message_res) ->
       Update_message { channel; ts; text = Some summary; attachments; blocks = None }
-    | None -> invalid_arg (sprintf "could not find comment %d in %s" comment.id repository.url)
+    | None -> invalid_arg (sprintf "could not find comment %d in %s for issue %n" comment.id repository.url number)
     )
   | _ -> invalid_arg "impossible"
 
@@ -371,9 +371,9 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   in
   New_message { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
 
-let generate_commit_comment_notification (ctx : Context.t) api_commit notification channel =
+let generate_commit_comment_notification api_commit notification channel =
   let { commit; _ } = api_commit in
-  let { sender; comment; repository; action; _ } = notification in
+  let { sender; comment; repository; _ } = notification in
   let commit_id =
     match comment.commit_id with
     | None -> invalid_arg "commit id not found"
@@ -398,15 +398,7 @@ let generate_commit_comment_notification (ctx : Context.t) api_commit notificati
       text = Some (mrkdwn_of_markdown comment.body);
     }
   in
-  match action with
-  | Created -> New_message { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
-  | Edited ->
-    ( match State.get_comment_map ctx.state repository.url comment.id with
-    | Some ({ channel; ts } : post_message_res) ->
-      Update_message { channel; ts; text = Some summary; attachments = Some [ attachment ]; blocks = None }
-    | None -> invalid_arg (sprintf "could not find comment %d in %s" comment.id repository.url)
-    )
-  | _ -> invalid_arg "impossible"
+  New_message { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
 
 let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match signing_key with

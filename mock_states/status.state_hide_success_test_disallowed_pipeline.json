@@ -1,19 +1,23 @@
 {
-  "pipeline_statuses": {
-    "buildkite/pipeline2": {
-      "master": "failure"
+    "pipeline_statuses": {
+        "buildkite/pipeline2": {
+            "master": "failure"
+        }
+    },
+    "issue_tbl" : {
+        "4": {
+            "comments": {
+                "0": {
+                    "channel": "some channel",
+                    "ts": "some ts"
+                }
+            },
+            "reviews": {
+                "0": {
+                    "channel": "some channel",
+                    "ts": "some ts"
+                }
+            }
+        }
     }
-  },
- "comments_map": {
-    "0": {
-      "channel": "some channel",
-      "ts": "some ts"
-    }
-  },
-  "reviews_map": {
-    "0": {
-      "channel": "some channel",
-      "ts": "some ts"
-    }
-  }
 }

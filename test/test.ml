@@ -27,52 +27,60 @@ let get_mock_slack_events () =
 
 let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =
   let headers = [ "x-github-event", kind ] in
-  let make_test_context event =
-    let repo = Github.repo_of_notification @@ Github.parse_exn headers event in
-    (* overwrite repo url in secrets with that of notification for this test case *)
-    let secrets = { secrets with repos = [ { url = repo.url; gh_token = None; gh_hook_token = None } ] } in
-    let ctx = Context.make () in
-    ctx.secrets <- Some secrets;
-    let%lwt _ = State.find_or_add_repo ctx.state repo.url in
-    match state_path with
-    | None ->
-      Context.set_repo_config ctx repo.url config;
-      Lwt.return ctx
-    | Some state_path ->
-    match Common.get_local_file state_path with
-    | Error e ->
-      log#error "failed to read %s: %s" state_path e;
-      Lwt.return ctx
-    | Ok file ->
-      let repo_state = State_j.repo_state_of_string file in
-      let%lwt () = State.set_repo_state ctx.state repo.url repo_state in
-      Context.set_repo_config ctx repo.url config;
-      Lwt.return ctx
-  in
-  Stdio.printf "===== file %s =====\n" path;
-  let headers = [ "x-github-event", kind ] in
-  match Common.get_local_file path with
-  | Error e -> Lwt.return @@ log#error "failed to read %s: %s" path e
-  | Ok event ->
-    let%lwt ctx = make_test_context event in
-    let%lwt _ctx = Action_local.process_github_notification ctx headers event in
-    Lwt.return_unit
+  try%lwt
+    let make_test_context event =
+      let repo = Github.repo_of_notification @@ Github.parse_exn headers event in
+      (* overwrite repo url in secrets with that of notification for this test case *)
+      let secrets = { secrets with repos = [ { url = repo.url; gh_token = None; gh_hook_token = None } ] } in
+      let ctx = Context.make () in
+      ctx.secrets <- Some secrets;
+      let%lwt _ = State.find_or_add_repo ctx.state repo.url in
+      match state_path with
+      | None ->
+        Context.set_repo_config ctx repo.url config;
+        Lwt.return ctx
+      | Some state_path ->
+      match Common.get_local_file state_path with
+      | Error e ->
+        log#error "failed to read %s: %s" state_path e;
+        Lwt.return ctx
+      | Ok file ->
+        let repo_state = State_j.repo_state_of_string file in
+        let%lwt () = State.set_repo_state ctx.state repo.url repo_state in
+        Context.set_repo_config ctx repo.url config;
+        Lwt.return ctx
+    in
+    Stdio.printf "===== file %s =====\n" path;
+    let headers = [ "x-github-event", kind ] in
+    match Common.get_local_file path with
+    | Error e -> Lwt.return @@ log#error "failed to read %s: %s" path e
+    | Ok event ->
+      let%lwt ctx = make_test_context event in
+      let%lwt _ctx = Action_local.process_github_notification ctx headers event in
+      Lwt.return_unit
+  with exn ->
+    log#error ~exn "failed to run github payload test from %s" path;
+    Caml.exit 1
 
 let process_slack_event ~(secrets : Config_t.secrets) path =
-  let ctx = Context.make () in
-  ctx.secrets <- Some secrets;
-  State.set_bot_user_id ctx.state "bot_user";
-  Stdio.printf "===== file %s =====\n" path;
-  match Common.get_local_file path with
-  | Error e -> Lwt.return @@ log#error "failed to read %s: %s" path e
-  | Ok body ->
-  match Slack_j.event_notification_of_string body with
-  | Url_verification _ -> Lwt.return ()
-  | Event_callback notification ->
-  match notification.event with
-  | Link_shared event ->
-    let%lwt _ctx = Action_local.process_link_shared_event ctx event in
-    Lwt.return_unit
+  try%lwt
+    let ctx = Context.make () in
+    ctx.secrets <- Some secrets;
+    State.set_bot_user_id ctx.state "bot_user";
+    Stdio.printf "===== file %s =====\n" path;
+    match Common.get_local_file path with
+    | Error e -> Lwt.return @@ log#error "failed to read %s: %s" path e
+    | Ok body ->
+    match Slack_j.event_notification_of_string body with
+    | Url_verification _ -> Lwt.return ()
+    | Event_callback notification ->
+    match notification.event with
+    | Link_shared event ->
+      let%lwt _ctx = Action_local.process_link_shared_event ctx event in
+      Lwt.return_unit
+  with exn ->
+    log#error ~exn "failed to run slack unfurl test from %s" path;
+    Caml.exit 1
 
 let () =
   let payloads = get_mock_payloads () in
