@@ -84,7 +84,7 @@ let parse_exn headers body =
   | "issue_comment" -> Issue_comment (issue_comment_notification_of_string body)
   | "status" -> Status (status_notification_of_string body)
   | "commit_comment" -> Commit_comment (commit_comment_notification_of_string body)
-  | "member" | "create" | "delete" | "release" -> Event (event_notification_of_string body)
+  | "create" | "delete" | "member" | "ping" | "release" -> Event (event_notification_of_string body)
   | event -> failwith @@ sprintf "unsupported event : %s" event
 
 type basehead = string * string
