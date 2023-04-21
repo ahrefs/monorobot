@@ -51,6 +51,8 @@ let commit_cases prefix repo =
       Some (Commit (repo, "0d09a6cb71481fe77cad7c7729d400ab40fd292e")) );
     ( sprintf "https://%s/ahrefs/monorepo/commit/0d09a6cb71481fe77cad7c7729d400ab40fd292e?arg1=123" prefix,
       Some (Commit (repo, "0d09a6cb71481fe77cad7c7729d400ab40fd292e")) );
+    ( sprintf "https://%s/ahrefs/monorepo/pull/2938/commits/0d09a6cb71481fe77cad7c7729d400ab40fd292e?arg1=123" prefix,
+      Some (Commit (repo, "0d09a6cb71481fe77cad7c7729d400ab40fd292e")) );
     sprintf "https://%s/ahrefs/monorepo/commit/" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/commit" prefix, None;
   ]
@@ -83,6 +85,10 @@ let compare_cases prefix repo =
       Some (Compare (repo, ("sewen/123ab^^^", "master"))) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/123ab~3...master" prefix,
       Some (Compare (repo, ("sewen/123ab~3", "master"))) );
+    ( sprintf
+        "https://%s/ahrefs/monorepo/pull/523/files/6260c936f9f6959c272aecb430a8a263915412c9...81f5a6c7af12d4b5af113d5372d1abd3743f65cb/"
+        prefix,
+      Some (Compare (repo, ("6260c936f9f6959c272aecb430a8a263915412c9", "81f5a6c7af12d4b5af113d5372d1abd3743f65cb"))) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/" prefix ^ "abc%5E%5E%5E...ax~2",
       Some (Compare (repo, ("abc^^^", "ax~2"))) );
     sprintf "https://%s/ahrefs/monorepo/compare" prefix, None;
