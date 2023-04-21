@@ -95,7 +95,6 @@ type gh_link =
   | Commit of repository * commit_hash
   | Compare of repository * basehead
 
-let gh_link_re = Re2.create_exn {|^(.*)/(.+)/(.+)/(commit|pull|issues|compare)/([a-zA-Z0-9/:\-_.~\^%]+)$|}
 let commit_sha_re = Re2.create_exn {|[a-f0-9]{4,40}|}
 let comparer_re = {|([a-zA-Z0-9/:\-_.~\^]+)|}
 let compare_basehead_re = Re2.create_exn (sprintf {|%s([.]{3})%s|} comparer_re comparer_re)
@@ -115,11 +114,12 @@ let gh_link_of_string url_str =
   match Uri.host url with
   | None -> None
   | Some host ->
-  match Re2.find_submatches_exn gh_link_re path with
-  | [| _; prefix; Some owner; Some name; Some link_type; Some item |] ->
-    let item = Base.String.chop_suffix_if_exists item ~suffix:"/" in
-    let repo =
-      let base = Option.value_map prefix ~default:host ~f:(fun p -> String.concat [ host; p ]) in
+  match String.chop_prefix path ~prefix:"/" with
+  | None -> None
+  | Some path ->
+    let path = Web.urldecode path |> String.chop_suffix_if_exists ~suffix:"/" |> flip Stre.nsplitc '/' in
+    let make_repo ~prefix ~owner ~name =
+      let base = String.concat ~sep:"/" (List.rev prefix) in
       let scheme = Uri.scheme url in
       let html_base, api_base =
         if String.is_suffix base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
@@ -136,31 +136,31 @@ let gh_link_of_string url_str =
         compare_url = sprintf "%s/compare{/basehead}" api_base;
       }
     in
-    let verify_commit_sha repo item =
+    let rec extract_link_type ~prefix path =
       try
-        match Re2.find_submatches_exn commit_sha_re item with
-        | [| Some sha |] -> Some (Commit (repo, sha))
-        | _ -> None
-      with _ -> None
+        match path with
+        | [ owner; name; "pull"; n ] ->
+          let repo = make_repo ~prefix ~owner ~name in
+          Some (Pull_request (repo, Int.of_string n))
+        | [ owner; name; "issues"; n ] ->
+          let repo = make_repo ~prefix ~owner ~name in
+          Some (Issue (repo, Int.of_string n))
+        | [ owner; name; "commit"; commit_hash ] ->
+          let repo = make_repo ~prefix ~owner ~name in
+          if Re2.matches commit_sha_re commit_hash then Some (Commit (repo, commit_hash)) else None
+        | owner :: name :: "compare" :: base_head ->
+          let base_head = String.concat ~sep:"/" base_head in
+          let repo = make_repo ~prefix ~owner ~name in
+          begin
+            match Re2.find_submatches_exn compare_basehead_re base_head with
+            | [| _; Some base; _; Some merge |] -> Some (Compare (repo, (base, merge)))
+            | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
+          end
+        | [] -> None
+        | next :: path -> extract_link_type ~prefix:(next :: prefix) path
+      with _exn -> (* no hard fail when invalid format, slack user can compose any url string *) None
     in
-    let verify_compare_basehead repo basehead =
-      match Re2.find_submatches_exn compare_basehead_re basehead with
-      | [| _; Some base; _; Some merge |] -> Some (Compare (repo, (base, merge)))
-      | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
-    in
-    begin
-      try
-        match link_type with
-        | "pull" -> Some (Pull_request (repo, Int.of_string item))
-        | "issues" -> Some (Issue (repo, Int.of_string item))
-        | "commit" -> verify_commit_sha repo item
-        | "compare" ->
-          let item = Uri.pct_decode item in
-          verify_compare_basehead repo item
-        | _ -> None
-      with _ -> None
-    end
-  | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
+    extract_link_type ~prefix:[ host ] path
 
 let get_project_owners (pr : pull_request) ({ rules } : Config_t.project_owners) =
   Rule.Project_owners.match_rules pr.labels rules
