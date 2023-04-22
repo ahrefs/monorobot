@@ -10,11 +10,10 @@ type branch_statuses = status_state map_as_object
    branch *)
 type pipeline_statuses = branch_statuses map_as_object
 
-type post_message_res <ocaml from="Slack"> = abstract
-type post_msg_map = post_message_res map_as_object
+type ts_map = string map_as_object
 type issue_state = {
-  comments <ocaml mutable>: post_msg_map;
-  reviews <ocaml mutable>: post_msg_map;
+  comments <ocaml mutable>: ts_map;
+  reviews <ocaml mutable>: ts_map;
 }
 
 (* The runtime state of a given GitHub repository

@@ -171,10 +171,9 @@ will notify #frontend-bot
   ]
 }
 ===== file ../mock_payloads/issue_comment.edited.json =====
-will update msg in #some channel
+will update msg in #a1-bot
 {
-  "channel": "some channel",
-  "ts": "some ts",
+  "channel": "a1-bot",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344369|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
   "attachments": [
     {
@@ -183,12 +182,12 @@ will update msg in #some channel
       "color": "#ccc",
       "text": "issue comment edited test"
     }
-  ]
+  ],
+  "ts": "1.00"
 }
-will update msg in #some channel
+will update msg in #backend
 {
-  "channel": "some channel",
-  "ts": "some ts",
+  "channel": "backend",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344369|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
   "attachments": [
     {
@@ -197,7 +196,8 @@ will update msg in #some channel
       "color": "#ccc",
       "text": "issue comment edited test"
     }
-  ]
+  ],
+  "ts": "1.00"
 }
 ===== file ../mock_payloads/issues.closed.json =====
 will notify #backend
@@ -335,10 +335,9 @@ will notify #frontend-bot
 }
 ===== file ../mock_payloads/pull_request_review.dismissed.json =====
 ===== file ../mock_payloads/pull_request_review.edited.json =====
-will update msg in #some channel
+will update msg in #a1-bot
 {
-  "channel": "some channel",
-  "ts": "some ts",
+  "channel": "a1-bot",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#pullrequestreview-0|commented on> #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
   "attachments": [
     {
@@ -347,12 +346,12 @@ will update msg in #some channel
       "color": "#ccc",
       "text": "pr review comment test"
     }
-  ]
+  ],
+  "ts": "2.00"
 }
-will update msg in #some channel
+will update msg in #backend
 {
-  "channel": "some channel",
-  "ts": "some ts",
+  "channel": "backend",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#pullrequestreview-0|commented on> #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
   "attachments": [
     {
@@ -361,7 +360,8 @@ will update msg in #some channel
       "color": "#ccc",
       "text": "pr review comment test"
     }
-  ]
+  ],
+  "ts": "2.00"
 }
 ===== file ../mock_payloads/pull_request_review.request_changes.json =====
 will notify #default
@@ -410,10 +410,9 @@ will notify #backend
 }
 ===== file ../mock_payloads/pull_request_review_comment.deleted.json =====
 ===== file ../mock_payloads/pull_request_review_comment.edited.json =====
-will update msg in #some channel
+will update msg in #a1-bot
 {
-  "channel": "some channel",
-  "ts": "some ts",
+  "channel": "a1-bot",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
   "attachments": [
     {
@@ -423,12 +422,12 @@ will update msg in #some channel
       "text": "Edited test comment",
       "footer": "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
     }
-  ]
+  ],
+  "ts": "1.00"
 }
-will update msg in #some channel
+will update msg in #backend
 {
-  "channel": "some channel",
-  "ts": "some ts",
+  "channel": "backend",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
   "attachments": [
     {
@@ -438,7 +437,8 @@ will update msg in #some channel
       "text": "Edited test comment",
       "footer": "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
     }
-  ]
+  ],
+  "ts": "1.00"
 }
 ===== file ../mock_payloads/push.branch_filter_default.json =====
 will notify #all-push-events

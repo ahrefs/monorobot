@@ -69,11 +69,8 @@ type post_message_res = {
 }
 
 type update_message_req = {
-  channel: string;
+  inherit post_message_req;
   ts: string;
-  ?text: string nullable;
-  ?attachments: message_attachment list nullable;
-  ?blocks: message_block list nullable;
 }
 
 type update_message_res = {

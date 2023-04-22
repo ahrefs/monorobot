@@ -11,16 +11,10 @@
     "issue_tbl" : {
         "4": {
             "comments": {
-                "0": {
-                    "channel": "some channel",
-                    "ts": "some ts"
-                }
+                "0": "1.00"
             },
             "reviews": {
-                "0": {
-                    "channel": "some channel",
-                    "ts": "some ts"
-                }
+                "0": "2.00"
             }
         }
     }
