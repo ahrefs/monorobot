@@ -16,11 +16,10 @@ type issue_state = {
   reviews <ocaml mutable>: ts_map;
 }
 
-(* The runtime state of a given GitHub repository
-   NB: issue number is the same as PR number for github APIs
-*)
+(* The runtime state of a given GitHub repository *)
 type repo_state = {
   pipeline_statuses <ocaml mutable>: pipeline_statuses;
+  (* issue number is the same as PR number for github APIs *)
   issue_tbl <ocaml mutable>: issue_state table_as_object;
 }
 

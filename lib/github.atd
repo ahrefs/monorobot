@@ -288,7 +288,7 @@ type api_commit = {
 }
 
 type commit_comment_notification = {
-  action: comment_action;
+  action: string;
   repository: repository;
   comment: comment;
   sender: github_user;
