@@ -117,7 +117,7 @@ let gh_link_of_string url_str =
   match String.chop_prefix path ~prefix:"/" with
   | None -> None
   | Some path ->
-    let path = Web.urldecode path |> String.chop_suffix_if_exists ~suffix:"/" |> flip Stre.nsplitc '/' in
+    let path = String.chop_suffix_if_exists ~suffix:"/" path |> flip Stre.nsplitc '/' |> List.map ~f:Web.urldecode in
     let make_repo ~prefix ~owner ~name =
       let base = String.concat ~sep:"/" (List.rev prefix) in
       let scheme = Uri.scheme url in
