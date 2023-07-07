@@ -254,6 +254,8 @@ In GitHub, ["code owners"](https://docs.github.com/en/repositories/managing-your
 - Owners are defined _per PR label (or set of labels)_, instead of _per directory_ (or directory pattern)
 - Definitions should be placed in the per-repo Monorobot configuration file, instead of a `CODEOWNERS` file
 
+A rule matches if all of its `labels` (or `label`) are present in the PR. All matching rules are applied.
+
 Draft PR behavior is similar to code owners. From GitHub documentation:
 
 > Code owners are not automatically requested to review draft pull requests. [...] When you mark a draft pull request as ready for review, code owners are automatically notified.

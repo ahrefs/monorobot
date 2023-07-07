@@ -127,20 +127,23 @@ module Label = struct
 end
 
 module Project_owners = struct
-  module SS = Caml.Set.Make (String)
-
   let match_rules pr_labels rules =
     match pr_labels with
     | [] -> []
     | _ :: _ ->
-      let pr_labels_set = List.map ~f:(fun (l : Github_t.label) -> l.name) pr_labels |> SS.of_list in
-      let do_match { label; labels; owners } =
-        match owners with
-        | [] -> false
-        | _ :: _ ->
-        match Option.to_list label @ labels with
-        | [] -> false
-        | labels -> SS.subset (SS.of_list labels) pr_labels_set
-      in
-      List.find ~f:do_match rules |> Option.value_map ~default:[] ~f:(fun l -> l.owners)
+      let pr_labels_set = List.map ~f:(fun (l : Github_t.label) -> l.name) pr_labels |> Set.of_list (module String) in
+      List.fold rules
+        ~init:(Set.empty (module String))
+        ~f:(fun results_set { label; labels; owners } ->
+          match owners with
+          | [] -> results_set
+          | _ :: _ ->
+          match Option.to_list label @ labels with
+          | [] -> results_set
+          | labels ->
+          match Set.is_subset (Set.of_list (module String) labels) ~of_:pr_labels_set with
+          | false -> results_set
+          | true -> List.fold owners ~init:results_set ~f:Set.add
+        )
+      |> Set.to_list
 end

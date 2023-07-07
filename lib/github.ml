@@ -164,7 +164,6 @@ let gh_link_of_string url_str =
 
 let get_project_owners (pr : pull_request) ({ rules } : Config_t.project_owners) =
   Rule.Project_owners.match_rules pr.labels rules
-  |> List.dedup_and_sort ~compare:String.compare
   |> List.partition_map ~f:(fun reviewer ->
        try
          let team = Re2.find_first_exn ~sub:(`Index 1) gh_org_team_re reviewer in
