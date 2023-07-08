@@ -42,7 +42,8 @@ let decode_string_pad s =
   String.rstrip ~drop:(List.mem [ '='; ' '; '\n'; '\r'; '\t' ] ~equal:Char.equal) s |> Base64.decode_exn ~pad:false
 
 let http_request ?headers ?body meth path =
-  match%lwt Web.http_request_lwt ~ua:"monorobot" ~verbose:true ?headers ?body meth path with
+  let setup h = Curl.set_followlocation h true in
+  match%lwt Web.http_request_lwt ~setup ~ua:"monorobot" ~verbose:true ?headers ?body meth path with
   | `Ok s -> Lwt.return @@ Ok s
   | `Error e -> Lwt.return @@ Error e
 
