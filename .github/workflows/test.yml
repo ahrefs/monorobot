@@ -11,31 +11,24 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-        ocaml-version:
-          - 4.09.1
+        ocaml-compiler:
+          - 4.14
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: avsm/setup-ocaml@v1
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-version: ${{ matrix.ocaml-version }}
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
-      - run: opam pin add monorobot.dev . --no-action
-
-      - run: sudo apt update
-      - run: opam depext monorobot --yes
-      # https://github.com/ocaml/opam-repository/issues/16663
-      # - run: opam depext monorobot --yes --with-doc
-      - run: opam depext monorobot --yes --with-test
-
-      - run: opam install . --deps-only --with-doc --with-test
-
-      - run: opam install ocamlformat.0.20.1
+          # apt update is implicit
+          # pinning package implicit
+          # depext install implicit
+      - run: opam install . ocamlformat.0.20.1
 
       - name: compile
         run: opam exec -- make
