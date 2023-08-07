@@ -117,36 +117,46 @@ module Slack : Api.Slack = struct
     (* must read whole response to update lexer state *)
     ignore (Slack_j.read_ok_res s l)
 
+  let webhook_channel_request (ctx : Context.t) ~channel ~build_error read body =
+    match Context.hook_of_channel ctx channel with
+    | Some url ->
+      ( match%lwt http_request ~body ~headers:[] `POST url with
+      | Ok res -> Lwt.return_ok @@ read res
+      | Error e -> Lwt.return @@ build_error (query_error_msg url e)
+      )
+    | None -> Lwt.return @@ build_error (sprintf "no hook for channel: %s" channel)
+
   (** [send_notification ctx msg] notifies [msg.channel] with the payload [msg];
       uses web API with access token if available, or with webhook otherwise *)
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =
     log#info "sending to %s" msg.channel;
     let build_error e = fmt_error "%s\nfailed to send Slack notification" e in
-    let secrets = Context.get_secrets_exn ctx in
-    let headers, url, webhook_mode =
-      match Context.hook_of_channel ctx msg.channel with
-      | Some url -> [], Some url, true
-      | None ->
-      match secrets.slack_access_token with
-      | Some access_token -> [ bearer_token_header access_token ], Some "https://slack.com/api/chat.postMessage", false
-      | None -> [], None, false
-    in
-    match url with
-    | None -> Lwt.return @@ build_error @@ sprintf "no token or webhook configured to notify channel %s" msg.channel
-    | Some url ->
-      let data = Slack_j.string_of_post_message_req msg in
-      let body = `Raw ("application/json", data) in
-      log#info "data: %s" data;
-      if webhook_mode then begin
-        match%lwt http_request ~body ~headers `POST url with
-        | Ok _res -> Lwt.return @@ Ok ()
-        | Error e -> Lwt.return @@ build_error (query_error_msg url e)
-      end
-      else begin
-        match%lwt slack_api_request ~body ~headers `POST url Slack_j.read_post_message_res with
-        | Ok _res -> Lwt.return @@ Ok ()
-        | Error e -> Lwt.return @@ build_error e
-      end
+    let data = Slack_j.string_of_post_message_req msg in
+    let body = `Raw ("application/json", data) in
+    log#info "data: %s" data;
+    match%lwt webhook_channel_request ctx ~channel:msg.channel ~build_error Slack_j.post_message_res_of_string body with
+    | Ok res -> Lwt.return_ok res
+    | Error e ->
+      log#warn "failed to run webhook call: %s" e;
+      request_token_auth ~name:"post message to channel" ~body ~ctx `POST "chat.postMessage"
+        Slack_j.read_post_message_res
+
+  (** [update_notification ctx msg] update a message at [msg.ts] in [msg.channel]
+      with the payload [msg]; uses web API with access token if available, or with
+      webhook otherwise *)
+  let update_notification ~(ctx : Context.t) ~(msg : Slack_t.update_message_req) =
+    log#info "sending to %s" msg.channel;
+    let build_error e = fmt_error "%s\nfailed to update Slack notification" e in
+    let data = Slack_j.string_of_update_message_req msg in
+    let body = `Raw ("application/json", data) in
+    log#info "data: %s" data;
+    match%lwt
+      webhook_channel_request ctx ~channel:msg.channel ~build_error Slack_j.update_message_res_of_string body
+    with
+    | Ok (_res : Slack_t.update_message_res) -> Lwt.return_ok ()
+    | Error e ->
+      log#warn "failed to run webhook call: %s" e;
+      request_token_auth ~name:"update message in channel" ~body ~ctx `POST "chat.update" read_unit
 
   let send_chat_unfurl ~(ctx : Context.t) ~channel ~ts ~unfurls () =
     let req = Slack_j.{ channel; ts; unfurls } in

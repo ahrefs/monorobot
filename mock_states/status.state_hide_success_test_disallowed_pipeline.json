@@ -1,7 +1,17 @@
 {
-  "pipeline_statuses": {
-    "buildkite/pipeline2": {
-      "master": "failure"
+    "pipeline_statuses": {
+        "buildkite/pipeline2": {
+            "master": "failure"
+        }
+    },
+    "issue_tbl" : {
+        "4": {
+            "comments": {
+                "0": "1.00"
+            },
+            "reviews": {
+                "0": "2.00"
+            }
+        }
     }
-  }
 }

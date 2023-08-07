@@ -58,12 +58,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
 
   let partition_pr_review_comment cfg (n : pr_review_comment_notification) =
     match n.action with
-    | Created -> partition_label cfg n.pull_request.labels
+    | Created | Edited -> partition_label cfg n.pull_request.labels
     | _ -> []
 
   let partition_issue_comment cfg (n : issue_comment_notification) =
     match n.action with
-    | Created -> partition_label cfg n.issue.labels
+    | Created | Edited -> partition_label cfg n.issue.labels
     | _ -> []
 
   let partition_pr_review cfg (n : pr_review_notification) =
@@ -79,7 +79,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
 
        in both cases, since pull_request_review_comment is already handled by another type of event, information in the pull_request_review payload
        does not provide any insightful information and will thus be ignored. *)
-    | Submitted, _, _ -> partition_label cfg n.pull_request.labels
+    | (Submitted | Edited), _, _ -> partition_label cfg n.pull_request.labels
     | _ -> []
 
   let partition_commit (cfg : Config_t.config) files =
@@ -174,6 +174,46 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Some sender_login -> List.exists cfg.ignored_users ~f:(String.equal sender_login)
     | None -> false
 
+  let generate_stateful_notification (ctx : Context.t) content req channel =
+    match req with
+    | Github.PR_review_comment n ->
+      ( match n.action with
+      | Github_t.Created -> Some (generate_new_message content channel)
+      | Edited ->
+        ( match State.get_comment_msg ctx.state n.repository.url ~issue_num:n.pull_request.number n.comment.id with
+        | None ->
+          log#warn "could not find comment %d in %s for PR #%n" n.comment.id n.repository.url n.pull_request.number;
+          None
+        | Some ts -> Some (generate_update_message content ~ts channel)
+        )
+      | _ -> None
+      )
+    | Issue_comment n ->
+      ( match n.action with
+      | Github_t.Created -> Some (generate_new_message content channel)
+      | Edited ->
+        ( match State.get_comment_msg ctx.state n.repository.url ~issue_num:n.issue.number n.comment.id with
+        | None ->
+          log#warn "could not find comment %d in %s for issue #%n" n.comment.id n.repository.url n.issue.number;
+          None
+        | Some ts -> Some (generate_update_message content ~ts channel)
+        )
+      | _ -> None
+      )
+    | PR_review n ->
+      ( match n.action with
+      | Github_t.Submitted -> Some (generate_new_message content channel)
+      | Edited ->
+        ( match State.get_review_msg ctx.state n.repository.url ~issue_num:n.pull_request.number n.review.id with
+        | None ->
+          log#warn "could not find review %d in %s for PR #%n" n.review.id n.repository.url n.pull_request.number;
+          None
+        | Some ts -> Some (generate_update_message content ~ts channel)
+        )
+      | _ -> None
+      )
+    | _ -> Some (generate_new_message content channel)
+
   let generate_notifications (ctx : Context.t) (req : Github.t) =
     let repo = Github.repo_of_notification req in
     let cfg = Context.find_repo_config_exn ctx repo.url in
@@ -182,30 +222,84 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | false ->
     match req with
     | Github.Push n ->
-      partition_push cfg n |> List.map ~f:(fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
-    | Pull_request n -> partition_pr cfg n |> List.map ~f:(generate_pull_request_notification n) |> Lwt.return
-    | PR_review n -> partition_pr_review cfg n |> List.map ~f:(generate_pr_review_notification n) |> Lwt.return
+      partition_push cfg n
+      |> List.map ~f:(fun (channel, n) ->
+           generate_stateful_notification ctx (generate_push_notification_content n) req channel
+         )
+      |> Lwt.return
+    | Pull_request n ->
+      partition_pr cfg n
+      |> List.map ~f:(fun channel ->
+           generate_stateful_notification ctx (generate_pull_request_notification_content n) req channel
+         )
+      |> Lwt.return
+    | PR_review n ->
+      partition_pr_review cfg n
+      |> List.map ~f:(fun channel ->
+           generate_stateful_notification ctx (generate_pr_review_notification_content n) req channel
+         )
+      |> Lwt.return
     | PR_review_comment n ->
-      partition_pr_review_comment cfg n |> List.map ~f:(generate_pr_review_comment_notification n) |> Lwt.return
-    | Issue n -> partition_issue cfg n |> List.map ~f:(generate_issue_notification n) |> Lwt.return
+      partition_pr_review_comment cfg n
+      |> List.map ~f:(fun channel ->
+           generate_stateful_notification ctx (generate_pr_review_comment_notification_content n) req channel
+         )
+      |> Lwt.return
+    | Issue n ->
+      partition_issue cfg n
+      |> List.map ~f:(fun channel ->
+           generate_stateful_notification ctx (generate_issue_notification_content n) req channel
+         )
+      |> Lwt.return
     | Issue_comment n ->
-      partition_issue_comment cfg n |> List.map ~f:(generate_issue_comment_notification n) |> Lwt.return
+      partition_issue_comment cfg n
+      |> List.map ~f:(fun channel ->
+           (* not sure why but when I remove "fun channel" it evaluates the [generate_issue_comment_notification_content n] before the partition so I got errors but when I add this, it's completely fine, probably some compiler optimization? *)
+           generate_stateful_notification ctx (generate_issue_comment_notification_content n) req channel
+         )
+      |> Lwt.return
     | Commit_comment n ->
       let%lwt channels, api_commit = partition_commit_comment ctx n in
-      let notifs = List.map ~f:(generate_commit_comment_notification api_commit n) channels in
+      let notifs =
+        List.map
+          ~f:(generate_stateful_notification ctx (generate_commit_comment_notification_content api_commit n) req)
+          channels
+      in
       Lwt.return notifs
     | Status n ->
       let%lwt channels = partition_status ctx n in
-      let notifs = List.map ~f:(generate_status_notification cfg n) channels in
+      let notifs =
+        List.map
+          ~f:(fun channel -> generate_stateful_notification ctx (generate_status_notification_content cfg n) req channel)
+          channels
+      in
       Lwt.return notifs
     | _ -> Lwt.return []
 
-  let send_notifications (ctx : Context.t) notifications =
-    let notify (msg : Slack_t.post_message_req) =
-      match%lwt Slack_api.send_notification ~ctx ~msg with
-      | Ok () -> Lwt.return_unit
-      | Error e -> action_error e
+  let send_notifications (ctx : Context.t) (req : Github.t) notifications =
+    let update_comment_mapping message =
+      match req with
+      | Github.PR_review_comment n ->
+        State.add_comment_msg ctx.state n.repository.url ~issue_num:n.pull_request.number n.comment.id message
+      | Issue_comment n ->
+        State.add_comment_msg ctx.state n.repository.url ~issue_num:n.issue.number n.comment.id message
+      | PR_review n ->
+        State.add_review_msg ctx.state n.repository.url ~issue_num:n.pull_request.number n.review.id message
+      | _ -> Lwt.return_unit
     in
+    let notify = function
+      | New_message (msg : Slack_t.post_message_req) ->
+        ( match%lwt Slack_api.send_notification ~ctx ~msg with
+        | Ok res -> update_comment_mapping res.ts
+        | Error e -> action_error e
+        )
+      | Update_message msg ->
+        ( match%lwt Slack_api.update_notification ~ctx ~msg with
+        | Ok () -> Lwt.return_unit
+        | Error e -> action_error e
+        )
+    in
+
     Lwt_list.iter_s notify notifications
 
   (** [refresh_repo_config ctx n] fetches the latest repo config if it's
@@ -253,6 +347,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       end
     | _ -> Lwt.return_unit
 
+  let cleanup_state (ctx : Context.t) (payload : Github.t) =
+    match payload with
+    | Github.Pull_request { action = Closed; pull_request = { number; _ }; repository = { url; _ }; _ }
+    | Issue { action = Closed; issue = { number; _ }; repository = { url; _ }; _ } ->
+      State.close_issue ctx.state url number
+    | _ -> Lwt.return_unit
+
   let process_github_notification (ctx : Context.t) headers body =
     let validate_signature secrets payload =
       let repo = Github.repo_of_notification payload in
@@ -278,10 +379,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Error e -> action_error e
           | Ok () ->
             let%lwt notifications = generate_notifications ctx payload in
-            let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx repo payload ] in
+            let%lwt () =
+              Lwt.join
+                [ send_notifications ctx payload (List.filter_opt notifications); do_github_tasks ctx repo payload ]
+            in
             ( match ctx.state_filepath with
             | None -> Lwt.return_unit
             | Some path ->
+              let%lwt () = cleanup_state ctx payload in
               ( match%lwt State.save ctx.state path with
               | Ok () -> Lwt.return_unit
               | Error e -> action_error e

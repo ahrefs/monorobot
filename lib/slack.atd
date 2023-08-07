@@ -65,6 +65,17 @@ type post_message_req = {
 
 type post_message_res = {
   channel: string;
+  ts: string;
+}
+
+type update_message_req = {
+  inherit post_message_req;
+  ts: string;
+}
+
+type update_message_res = {
+  channel: string;
+  ts: string;
 }
 
 type link_shared_link = {

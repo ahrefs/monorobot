@@ -36,7 +36,7 @@ let show_labels = function
 
 let pluralize name num suffix = if num = 1 then sprintf "%s" name else String.concat [ name; suffix ]
 
-let generate_pull_request_notification notification channel =
+let generate_pull_request_notification_content notification =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
   let action, body =
@@ -55,28 +55,17 @@ let generate_pull_request_notification notification channel =
     sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
       (pp_link ~url:html_url title) action sender.login
   in
-  {
-    channel;
-    text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = mrkdwn_of_markdown_opt body;
-          };
-        ];
-    blocks = None;
-  }
+  let attachments =
+    [ { empty_attachments with mrkdwn_in = Some [ "text" ]; color = Some "#ccc"; text = mrkdwn_of_markdown_opt body } ]
+  in
+  attachments, summary
 
-let generate_pr_review_notification notification channel =
+let generate_pr_review_notification_content notification =
   let { action; sender; pull_request; review; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
-    | Submitted ->
+    | Submitted | Edited ->
       ( match review.state with
       | "commented" -> "commented on"
       | "approved" -> "approved"
@@ -93,28 +82,24 @@ let generate_pr_review_notification notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
       number (pp_link ~url:html_url title)
   in
-  {
-    channel;
-    text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = mrkdwn_of_markdown_opt review.body;
-          };
-        ];
-    blocks = None;
-  }
+  let attachments =
+    [
+      {
+        empty_attachments with
+        mrkdwn_in = Some [ "text" ];
+        color = Some "#ccc";
+        text = mrkdwn_of_markdown_opt review.body;
+      };
+    ]
+  in
+  attachments, summary
 
-let generate_pr_review_comment_notification notification channel =
+let generate_pr_review_comment_notification_content notification =
   let { action; pull_request; sender; comment; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
-    | Created -> "commented"
+    | Created | Edited -> "commented"
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
@@ -130,24 +115,20 @@ let generate_pr_review_comment_notification notification channel =
     | None -> None
     | Some a -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url a)
   in
-  {
-    channel;
-    text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            footer = file;
-            text = Some (mrkdwn_of_markdown comment.body);
-          };
-        ];
-    blocks = None;
-  }
+  let attachments =
+    [
+      {
+        empty_attachments with
+        mrkdwn_in = Some [ "text" ];
+        color = Some "#ccc";
+        footer = file;
+        text = Some (mrkdwn_of_markdown comment.body);
+      };
+    ]
+  in
+  attachments, summary
 
-let generate_issue_notification notification channel =
+let generate_issue_notification_content notification =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
   let { number; body; title; html_url; labels; _ } = issue in
   let action, body =
@@ -166,28 +147,17 @@ let generate_issue_notification notification channel =
     sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number (pp_link ~url:html_url title)
       action sender.login
   in
-  {
-    channel;
-    text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = mrkdwn_of_markdown_opt body;
-          };
-        ];
-    blocks = None;
-  }
+  let attachments =
+    [ { empty_attachments with mrkdwn_in = Some [ "text" ]; color = Some "#ccc"; text = mrkdwn_of_markdown_opt body } ]
+  in
+  attachments, summary
 
-let generate_issue_comment_notification notification channel =
+let generate_issue_comment_notification_content notification =
   let { action; issue; sender; comment; repository } = notification in
   let { number; title; _ } = issue in
   let action_str =
     match action with
-    | Created -> "commented"
+    | Created | Edited -> "commented"
     | _ ->
       invalid_arg
         (sprintf
@@ -199,21 +169,17 @@ let generate_issue_comment_notification notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> on #%d %s" repository.url repository.full_name sender.login comment.html_url
       action_str number (pp_link ~url:issue.html_url title)
   in
-  {
-    channel;
-    text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = Some (mrkdwn_of_markdown comment.body);
-          };
-        ];
-    blocks = None;
-  }
+  let attachments =
+    [
+      {
+        empty_attachments with
+        mrkdwn_in = Some [ "text" ];
+        color = Some "#ccc";
+        text = Some (mrkdwn_of_markdown comment.body);
+      };
+    ]
+  in
+  attachments, summary
 
 let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
@@ -245,7 +211,7 @@ let pp_list_with_previews ~pp_item list =
   end
   else List.map ~f:pp_item list
 
-let generate_push_notification notification channel =
+let generate_push_notification_content notification =
   let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in
   let commits_branch = Github.commits_branch_of_ref notification.ref in
   let tree_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode commits_branch ] in
@@ -271,23 +237,19 @@ let generate_push_notification notification channel =
         sender.login
   in
   let commits = pp_list_with_previews ~pp_item:pp_commit commits in
-  {
-    channel;
-    text = Some title;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "fields" ];
-            color = Some "#ccc";
-            fields = Some [ { value = String.concat ~sep:"\n" commits; title = None; short = false } ];
-          };
-        ];
-    blocks = None;
-  }
+  let attachments =
+    [
+      {
+        empty_attachments with
+        mrkdwn_in = Some [ "fields" ];
+        color = Some "#ccc";
+        fields = Some [ { value = String.concat ~sep:"\n" commits; title = None; short = false } ];
+      };
+    ]
+  in
+  attachments, title
 
-let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
+let generate_status_notification_content (cfg : Config_t.config) (notification : status_notification) =
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
@@ -338,18 +300,20 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         context state_info
   in
   let msg = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] in
-  let attachment =
-    {
-      empty_attachments with
-      mrkdwn_in = Some [ "fields"; "text" ];
-      color = Some color_info;
-      text = description_info;
-      fields = Some [ { title = None; value = msg; short = false } ];
-    }
+  let attachments =
+    [
+      {
+        empty_attachments with
+        mrkdwn_in = Some [ "fields"; "text" ];
+        color = Some color_info;
+        text = description_info;
+        fields = Some [ { title = None; value = msg; short = false } ];
+      };
+    ]
   in
-  { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
+  attachments, summary
 
-let generate_commit_comment_notification api_commit notification channel =
+let generate_commit_comment_notification_content api_commit notification =
   let { commit; _ } = api_commit in
   let { sender; comment; repository; _ } = notification in
   let commit_id =
@@ -367,16 +331,28 @@ let generate_commit_comment_notification api_commit notification channel =
     | None -> None
     | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
   in
-  let attachment =
-    {
-      empty_attachments with
-      mrkdwn_in = Some [ "pretext"; "text" ];
-      color = Some "#ccc";
-      footer = path;
-      text = Some (mrkdwn_of_markdown comment.body);
-    }
+  let attachments =
+    [
+      {
+        empty_attachments with
+        mrkdwn_in = Some [ "pretext"; "text" ];
+        color = Some "#ccc";
+        footer = path;
+        text = Some (mrkdwn_of_markdown comment.body);
+      };
+    ]
   in
-  { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
+  attachments, summary
+
+type send_notification_mode =
+  | New_message of Slack_t.post_message_req
+  | Update_message of Slack_t.update_message_req
+
+let generate_new_message (attachments, summary) channel =
+  New_message { channel; text = Some summary; attachments = Some attachments; blocks = None }
+
+let generate_update_message (attachments, summary) ~ts channel =
+  Update_message { channel; ts; text = Some summary; attachments = Some attachments; blocks = None }
 
 let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match signing_key with

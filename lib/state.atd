@@ -10,9 +10,17 @@ type branch_statuses = status_state map_as_object
    branch *)
 type pipeline_statuses = branch_statuses map_as_object
 
+type ts_map = string map_as_object
+type issue_state = {
+  comments <ocaml mutable>: ts_map;
+  reviews <ocaml mutable>: ts_map;
+}
+
 (* The runtime state of a given GitHub repository *)
 type repo_state = {
-  pipeline_statuses <ocaml mutable>: pipeline_statuses
+  pipeline_statuses <ocaml mutable>: pipeline_statuses;
+  (* issue number is the same as PR number for github APIs *)
+  issue_tbl <ocaml mutable>: issue_state table_as_object;
 }
 
 (* The serializable runtime state of the bot *)
