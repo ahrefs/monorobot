@@ -99,7 +99,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
     let action_on_match (branches : branch list) =
-      let default = Option.to_list cfg.prefix_rules.default_channel in
+      let%lwt default =
+        match%lwt Slack_api.lookup_user ~ctx ~email:n.commit.commit.author.email with
+        (* To send a DM, channel parameter is set to the user id of the recipient *)
+        | Ok res -> Lwt.return [ res.user.id ]
+        | Error e -> log#error "%s: nowhere to send status update" e;
+          Lwt.return []
+      in
       let%lwt () = State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status in
       match List.is_empty branches with
       | true -> Lwt.return []
