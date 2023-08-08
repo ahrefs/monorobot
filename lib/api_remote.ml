@@ -117,6 +117,23 @@ module Slack : Api.Slack = struct
     (* must read whole response to update lexer state *)
     ignore (Slack_j.read_ok_res s l)
 
+  (** [lookup_user ctx email] queries slack for a user profile with [email] *)
+  let lookup_user ~(ctx: Context.t) ~email =
+    log#info "looking up %s\n" email;
+    let build_error e = fmt_error "%s\nfailed to lookup Slack user" e in
+    let secrets = Context.get_secrets_exn ctx in
+    match secrets.slack_access_token with
+    | None -> Lwt.return @@ build_error @@ sprintf "no token configured to lookup user email %s" email
+    | Some access_token ->
+      let headers = [ bearer_token_header access_token ] in
+      let data = {Slack_t.email = email} |> Slack_j.string_of_lookup_user_req in
+      let body = `Raw ("application/json", data) in
+      let url ="https://slack.com/api/users.lookupByEmail" in
+      log#info "data: %s" data;
+      match%lwt slack_api_request ~body ~headers `GET url Slack_j.read_lookup_user_res with
+      | Ok res -> Lwt.return @@ Ok res
+      | Error e -> Lwt.return @@ build_error e
+
   (** [send_notification ctx msg] notifies [msg.channel] with the payload [msg];
       uses web API with access token if available, or with webhook otherwise *)
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =

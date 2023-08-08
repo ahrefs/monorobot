@@ -67,6 +67,20 @@ type post_message_res = {
   channel: string;
 }
 
+type lookup_user_req = {
+  email: string;
+}
+
+type lookup_user_res = {
+  user: user;
+}
+
+type user = {
+  id: string;
+  name: string;
+  real_name: string;
+}
+
 type link_shared_link = {
   domain: string;
   url: string;

@@ -52,6 +52,7 @@ end
 
 (** The base implementation for local check payload debugging and mocking tests *)
 module Slack_base : Api.Slack = struct
+  let lookup_user ~ctx:_ ~email:_ = Lwt.return @@ Error "undefined for local setup"
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
   let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error "undefined for local setup"
   let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
@@ -60,6 +61,15 @@ end
 (** Module for mocking test requests to slack--will output on Stdio *)
 module Slack : Api.Slack = struct
   include Slack_base
+
+  let lookup_user ~ctx:_ ~email =
+    let msg = {Slack_t.email = email} in
+    let json = msg |> Slack_j.string_of_lookup_user_req  |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
+    Stdio.printf "looking up slack user by email %s\n" email;
+    Stdio.printf "%s\n" json;
+    let mock_user = {Slack_t.id = "mock_id"; name="mock_name"; real_name="mock_real_name"} in
+    let mock_response = {Slack_t.user = mock_user} in
+    Lwt.return @@ Ok mock_response
 
   let send_notification ~ctx:_ ~msg =
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
