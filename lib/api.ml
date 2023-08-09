@@ -19,7 +19,6 @@ end
 
 module type Slack = sig
   val lookup_user : ctx:Context.t -> email:string -> lookup_user_res slack_response Lwt.t
-
   val send_notification : ctx:Context.t -> msg:post_message_req -> unit slack_response Lwt.t
 
   val send_chat_unfurl
