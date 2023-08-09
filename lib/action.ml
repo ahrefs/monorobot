@@ -103,8 +103,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         match%lwt Slack_api.lookup_user ~ctx ~email:n.commit.commit.author.email with
         (* To send a DM, channel parameter is set to the user id of the recipient *)
         | Ok res -> Lwt.return [ res.user.id ]
-        | Error e -> log#error "%s: nowhere to send status update" e;
-          Lwt.return []
+        | Error e ->
+          log#warn "couldn't match commit email to slack profile: %s" e;
+          Lwt.return (Option.to_list cfg.prefix_rules.default_channel)
       in
       let%lwt () = State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status in
       match List.is_empty branches with
