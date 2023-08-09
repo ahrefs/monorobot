@@ -163,7 +163,7 @@ The following takes place when a status notification is received.
    - `failure`: `allow`
    - `error`: `allow`
    - `success`: `allow_once`
-1. For those payloads allowed by step 1, if it isn't a main branch build notification, route to the default channel to reduce spam in topic channels. Otherwise, check the notification commit's files according to the prefix rules.
+1. For those payloads allowed by step 1, if it isn't a main branch build notification, query for a slack profile that matches the author of the commit and direct message them. If no profile is found, route to default channel to reduce spam in topic channels. Otherwise, check the notification commit's files according to the prefix rules.
 
 Internally, the bot keeps track of the status of the last allowed payload, for a given pipeline and branch. This information is used to evaluate the status rules (see below).
 
