@@ -497,9 +497,9 @@ will notify #longest-a1
 }
 ===== file ../mock_payloads/status.cancelled_test.json =====
 ===== file ../mock_payloads/status.failure_test.json =====
-will notify #id[mail@example.org]
+will notify #id[slack_mail@example.com]
 {
-  "channel": "id[mail@example.org]",
+  "channel": "id[slack_mail@example.com]",
   "text": "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: failure",
   "attachments": [
     {
@@ -557,9 +557,9 @@ will notify #all-push-events
   ]
 }
 ===== file ../mock_payloads/status.success_test_non_main_branch.json =====
-will notify #id[mail@example.org]
+will notify #id[slack_mail@example.com]
 {
-  "channel": "id[mail@example.org]",
+  "channel": "id[slack_mail@example.com]",
   "text": "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: success",
   "attachments": [
     {

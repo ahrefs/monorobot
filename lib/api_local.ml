@@ -52,7 +52,7 @@ end
 
 (** The base implementation for local check payload debugging and mocking tests *)
 module Slack_base : Api.Slack = struct
-  let lookup_user ~ctx:_ ~email:_ = Lwt.return @@ Error "undefined for local setup"
+  let lookup_user ~ctx:_ ~cfg:_ ~email:_ = Lwt.return @@ Error "undefined for local setup"
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
   let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error "undefined for local setup"
   let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
@@ -62,7 +62,8 @@ end
 module Slack : Api.Slack = struct
   include Slack_base
 
-  let lookup_user ~ctx:_ ~email =
+  let lookup_user ~ctx:_ ~(cfg : Config_t.config) ~email =
+    let email = List.Assoc.find cfg.user_mappings ~equal:String.equal email |> Option.value ~default:email in
     let mock_user =
       {
         Slack_t.id = sprintf "id[%s]" email;

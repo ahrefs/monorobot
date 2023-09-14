@@ -37,6 +37,7 @@ type config = {
   ~project_owners <ocaml default="{rules = []}"> : project_owners;
   ~ignored_users <ocaml default="[]">: string list; (* list of ignored users *)
   ?main_branch_name : string nullable; (* the name of the main branch; used to filter out notifications about merges of main branch into other branches *)
+  ~user_mappings <ocaml default="[]">: (string * string) list <json repr="object"> (* list of github to slack profile mappings *)
 }
 
 (* This specifies the Slack webhook to query to post to the channel with the given name *)

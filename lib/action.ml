@@ -100,7 +100,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let rules = cfg.status_rules.rules in
     let action_on_match (branches : branch list) =
       let%lwt default =
-        match%lwt Slack_api.lookup_user ~ctx ~email:n.commit.commit.author.email with
+        match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email with
         (* To send a DM, channel parameter is set to the user id of the recipient *)
         | Ok res -> Lwt.return [ res.user.id ]
         | Error e ->

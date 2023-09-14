@@ -95,5 +95,8 @@
                 "channel": "frontend-bot"
             }
         ]
+    },
+    "user_mappings": {
+        "mail@example.org": "slack_mail@example.com"
     }
 }
