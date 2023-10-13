@@ -1,15 +1,17 @@
 open Base
 open Lib
+module Filename = Stdlib.Filename
+module Sys = Stdlib.Sys
 
 let log = Devkit.Log.from "test"
-let mock_payload_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_payloads"
-let mock_state_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_states"
-let mock_slack_event_dir = Caml.Filename.concat Caml.Filename.parent_dir_name "mock_slack_events"
+let mock_payload_dir = Filename.concat Filename.parent_dir_name "mock_payloads"
+let mock_state_dir = Filename.concat Filename.parent_dir_name "mock_states"
+let mock_slack_event_dir = Filename.concat Filename.parent_dir_name "mock_slack_events"
 
 module Action_local = Action.Action (Api_local.Github) (Api_local.Slack)
 
 let get_sorted_files_from dir =
-  let files = Caml.Sys.readdir dir in
+  let files = Sys.readdir dir in
   Array.sort files ~compare:String.compare;
   Array.to_list files
 
@@ -17,13 +19,13 @@ let get_mock_payloads () =
   get_sorted_files_from mock_payload_dir
   |> List.filter_map ~f:(fun fn -> Github.event_of_filename fn |> Option.map ~f:(fun kind -> kind, fn))
   |> List.map ~f:(fun (kind, fn) ->
-       let payload_path = Caml.Filename.concat mock_payload_dir fn in
-       let state_path = Caml.Filename.concat mock_state_dir fn in
-       if Caml.Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None
+       let payload_path = Filename.concat mock_payload_dir fn in
+       let state_path = Filename.concat mock_state_dir fn in
+       if Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None
      )
 
 let get_mock_slack_events () =
-  List.map (get_sorted_files_from mock_slack_event_dir) ~f:(Caml.Filename.concat mock_slack_event_dir)
+  List.map (get_sorted_files_from mock_slack_event_dir) ~f:(Filename.concat mock_slack_event_dir)
 
 let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =
   let headers = [ "x-github-event", kind ] in

@@ -1,6 +1,7 @@
 open Base
 open Common
 open Devkit
+module Sys = Stdlib.Sys
 
 exception Context_error of string
 
@@ -92,7 +93,7 @@ let refresh_state ctx =
   match ctx.state_filepath with
   | None -> Ok ctx
   | Some path ->
-    if Caml.Sys.file_exists path then begin
+    if Sys.file_exists path then begin
       log#info "loading saved state from file %s" path;
       match get_local_file path with
       | Error e -> fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path

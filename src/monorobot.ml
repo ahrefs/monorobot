@@ -1,8 +1,8 @@
 open Devkit
 open Base
 open Lib
-module Arg = Caml.Arg
 open Cmdliner
+module Filename = Stdlib.Filename
 
 let log = Log.from "monorobot"
 
@@ -21,7 +21,7 @@ let http_server_action addr port config secrets state =
 (** In check mode, instead of actually sending the message to slack, we
     simply print it in the console *)
 let check_gh_action file json config secrets state =
-  match Github.event_of_filename (Caml.Filename.basename file) with
+  match Github.event_of_filename (Filename.basename file) with
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file
   | Some kind ->
@@ -124,4 +124,4 @@ let default, info =
 let () =
   let cmds = [ run; check_gh; check_slack ] in
   let group = Cmd.group ~default info cmds in
-  Caml.exit @@ Cmd.eval group
+  Stdlib.exit @@ Cmd.eval group

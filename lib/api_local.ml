@@ -2,9 +2,11 @@ open Base
 open Common
 open Devkit
 open Printf
+module Filename = Stdlib.Filename
+module Sys = Stdlib.Sys
 
-let cwd = Caml.Sys.getcwd ()
-let cache_dir = Caml.Filename.concat cwd "github-api-cache"
+let cwd = Sys.getcwd ()
+let cache_dir = Filename.concat cwd "github-api-cache"
 
 (** return the file with a function f applied unless the file is empty;
  empty file:this is needed to simulate 404 returns from github *)
@@ -26,12 +28,12 @@ and its Github_j.<kind>_of_string function.
 NB: please save the cache file in the same format *)
 let get_repo_member_cache ~(repo : Github_t.repository) ~kind ~ref_ ~of_string =
   let file = clean_forward_slashes (sprintf "%s_%s_%s" repo.full_name kind ref_) in
-  let url = Caml.Filename.concat cache_dir file in
+  let url = Filename.concat cache_dir file in
   with_cache_file url of_string
 
 module Github : Api.Github = struct
   let get_config ~(ctx : Context.t) ~repo:_ =
-    let url = Caml.Filename.concat cwd ctx.config_filename in
+    let url = Filename.concat cwd ctx.config_filename in
     with_cache_file url Config_j.config_of_string
 
   let get_api_commit ~ctx:_ ~repo ~sha =
