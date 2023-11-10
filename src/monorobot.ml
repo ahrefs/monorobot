@@ -8,15 +8,27 @@ let log = Log.from "monorobot"
 
 (* entrypoints *)
 
-let http_server_action addr port config secrets state =
-  log#info "monorobot starting";
-  let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
-  match Context.refresh_secrets ctx with
-  | Error e -> log#error "%s" e
-  | Ok ctx ->
-  match Context.refresh_state ctx with
-  | Error e -> log#error "%s" e
-  | Ok ctx -> Lwt_main.run (Request_handler.run ~ctx ~addr ~port)
+let http_server_action addr port config secrets state logfile loglevel =
+  Daemon.logfile := logfile;
+  Option.iter ~f:Log.set_loglevels loglevel;
+  Log.reopen !Daemon.logfile;
+  Signal.setup_lwt ();
+  Daemon.install_signal_handlers ();
+  Lwt_main.run
+    begin
+      log#info "monorobot starting";
+      let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
+      match Context.refresh_secrets ctx with
+      | Error e ->
+        log#error "failed to refresh secrets: %s" e;
+        Lwt.return_unit
+      | Ok ctx ->
+      match Context.refresh_state ctx with
+      | Error e ->
+        log#error "failed to refresh state: %s" e;
+        Lwt.return_unit
+      | Ok ctx -> Request_handler.run ~ctx ~addr ~port
+    end
 
 (** In check mode, instead of actually sending the message to slack, we
     simply print it in the console *)
@@ -85,6 +97,14 @@ let state =
   in
   Arg.(value & opt (some string) None & info [ "state" ] ~docv:"STATE" ~doc)
 
+let logfile =
+  let doc = "log file (output to stderr if absent)" in
+  Arg.(value & opt (some string) None & info [ "logfile" ] ~docv:"LOGFILE" ~doc)
+
+let loglevel =
+  let doc = "log level, matching the following grammar: ([<facil|prefix*>=]debug|info|warn|error[,])+" in
+  Arg.(value & opt (some string) None & info [ "loglevel" ] ~docv:"LOGLEVEL" ~doc)
+
 let gh_payload =
   let doc = "path to a JSON file containing a github webhook payload" in
   Arg.(required & pos 0 (some file) None & info [] ~docv:"GH_PAYLOAD" ~doc)
@@ -102,7 +122,7 @@ let json =
 let run =
   let doc = "launch the http server" in
   let info = Cmd.info "run" ~doc in
-  let term = Term.(const http_server_action $ addr $ port $ config $ secrets $ state) in
+  let term = Term.(const http_server_action $ addr $ port $ config $ secrets $ state $ logfile $ loglevel) in
   Cmd.v info term
 
 let check_gh =
