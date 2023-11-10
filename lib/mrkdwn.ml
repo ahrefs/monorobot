@@ -208,4 +208,4 @@ let rec mrkdwn_of_md md =
   end;
   Buffer.contents b
 
-let mrkdwn_of_markdown str = mrkdwn_of_md @@ of_string str
+let mrkdwn_of_markdown str = String.strip @@ mrkdwn_of_md @@ of_string str

@@ -24,10 +24,7 @@ let empty_attachments =
     footer = None;
   }
 
-let mrkdwn_of_markdown str = String.strip @@ Mrkdwn.mrkdwn_of_markdown str
-let mrkdwn_of_markdown_opt = Option.map ~f:mrkdwn_of_markdown
-let escape = Mrkdwn.escape_mrkdwn
-let pp_link ~url text = sprintf "<%s|%s>" url (escape text)
+let pp_link ~url text = sprintf "<%s|%s>" url (Mrkdwn.escape_mrkdwn text)
 
 let show_labels = function
   | [] -> None
@@ -35,6 +32,17 @@ let show_labels = function
     Some (sprintf "Labels: %s" @@ String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels))
 
 let pluralize name num suffix = if num = 1 then sprintf "%s" name else String.concat [ name; suffix ]
+
+let markdown_text_attachment ~footer markdown_body =
+  [
+    {
+      empty_attachments with
+      mrkdwn_in = Some [ "text" ];
+      color = Some "#ccc";
+      footer;
+      text = Some (Mrkdwn.mrkdwn_of_markdown markdown_body);
+    };
+  ]
 
 let generate_pull_request_notification notification channel =
   let { action; number; sender; pull_request; repository } = notification in
@@ -58,16 +66,7 @@ let generate_pull_request_notification notification channel =
   {
     channel;
     text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = mrkdwn_of_markdown_opt body;
-          };
-        ];
+    attachments = Option.map ~f:(markdown_text_attachment ~footer:None) body;
     blocks = None;
   }
 
@@ -96,16 +95,7 @@ let generate_pr_review_notification notification channel =
   {
     channel;
     text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = mrkdwn_of_markdown_opt review.body;
-          };
-        ];
+    attachments = Option.map ~f:(markdown_text_attachment ~footer:None) review.body;
     blocks = None;
   }
 
@@ -133,17 +123,7 @@ let generate_pr_review_comment_notification notification channel =
   {
     channel;
     text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            footer = file;
-            text = Some (mrkdwn_of_markdown comment.body);
-          };
-        ];
+    attachments = Some (markdown_text_attachment ~footer:file comment.body);
     blocks = None;
   }
 
@@ -169,16 +149,7 @@ let generate_issue_notification notification channel =
   {
     channel;
     text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = mrkdwn_of_markdown_opt body;
-          };
-        ];
+    attachments = Option.map ~f:(markdown_text_attachment ~footer:None) body;
     blocks = None;
   }
 
@@ -202,16 +173,7 @@ let generate_issue_comment_notification notification channel =
   {
     channel;
     text = Some summary;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "text" ];
-            color = Some "#ccc";
-            text = Some (mrkdwn_of_markdown comment.body);
-          };
-        ];
+    attachments = Some (markdown_text_attachment ~footer:None comment.body);
     blocks = None;
   }
 
@@ -360,23 +322,19 @@ let generate_commit_comment_notification api_commit notification channel =
   let summary =
     sprintf "<%s|[%s]> *%s* commented on `%s` %s" repository.url repository.full_name sender.login
       (pp_link ~url:comment.html_url (git_short_sha_hash commit_id))
-      (first_line (escape commit.message))
+      (first_line (Mrkdwn.escape_mrkdwn commit.message))
   in
   let path =
     match comment.path with
     | None -> None
     | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
   in
-  let attachment =
-    {
-      empty_attachments with
-      mrkdwn_in = Some [ "pretext"; "text" ];
-      color = Some "#ccc";
-      footer = path;
-      text = Some (mrkdwn_of_markdown comment.body);
-    }
-  in
-  { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
+  {
+    channel;
+    text = Some summary;
+    attachments = Some (markdown_text_attachment ~footer:path comment.body);
+    blocks = None;
+  }
 
 let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match signing_key with

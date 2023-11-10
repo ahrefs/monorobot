@@ -6,7 +6,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback": null,
-      "mrkdwn_in": [ "pretext", "text" ],
+      "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "text": "comment here",
       "footer": "New comment by xinyuluo in <https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-0|README.md>"
@@ -21,7 +21,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback": null,
-      "mrkdwn_in": [ "pretext", "text" ],
+      "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "text": "add a commit comment"
     }
@@ -35,7 +35,7 @@ will notify #a1
   "attachments": [
     {
       "fallback": null,
-      "mrkdwn_in": [ "pretext", "text" ],
+      "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "text": "this is a test for general commit comment with multiple paths"
     }
@@ -48,7 +48,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback": null,
-      "mrkdwn_in": [ "pretext", "text" ],
+      "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "text": "this is a test for general commit comment with multiple paths"
     }
@@ -62,7 +62,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback": null,
-      "mrkdwn_in": [ "pretext", "text" ],
+      "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "text": "this can be written shorter:\n`\n| Some obj -&gt; Obj.is_valid obj o\n| None -&gt; false`",
       "footer": "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|main.ml>"
@@ -77,7 +77,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback": null,
-      "mrkdwn_in": [ "pretext", "text" ],
+      "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "text": "*header 1*\n\n*header 2*\n\n*header 3*\n\n*header 4*\n\n*header 5*\n\n*header 6*\n\n* * *\nparagraph 1 *bold*, _italic_, ~strikethrough~, *_bold italic_*, _*italic bold*_\n\nparagraph 2\nhard line break\n\n> blockquote\n\n> > > multi\n> > \n> > level\n> \n> blockquote\n\n- list-element 1\n- list-element 2\n    - list-element 2.1\n        - list-element 2.1.1\n    - <www.google.com|list-element 2.2>\n\n1. list-element 1\n2. list-element 2\n    1. list-element 2.1\n        1. list-element 2.1.1\n    2. <www.google.com|list-element 2.2>\n3. list-element 3\n\n<www.google.com|link with title - some link text>\n\n- > quote in list\n\n> - list in quote\n\n<https://via.placeholder.com/20x20|image>\n\n<https://via.placeholder.com/20x20|with title - image>\n\n<https://via.placeholder.com/20x20|no alt - >\n\n<https://via.placeholder.com/20x20|>\n\n```\n&lt;div&gt;html block with &lt;i&gt;styling&lt;/i&gt;&lt;/div&gt;\n```\n```\nStdio.printf \"hello ocaml\"\n```\ninline `code block`\n\nescape these \\()[]`*  `but keep \\`\n\n```\nand keep \\\n```",
       "footer": "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|main.ml>"
@@ -92,7 +92,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback": null,
-      "mrkdwn_in": [ "pretext", "text" ],
+      "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "text": "make a comment"
     }
@@ -106,7 +106,7 @@ will notify #all-push-events
   "attachments": [
     {
       "fallback": null,
-      "mrkdwn_in": [ "pretext", "text" ],
+      "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "text": "add a single comment on the code in a commit",
       "footer": "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|main.ml>"
@@ -175,10 +175,7 @@ will notify #frontend-bot
 will notify #backend
 {
   "channel": "backend",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> closed by *xinyuluo*",
-  "attachments": [
-    { "fallback": null, "mrkdwn_in": [ "text" ], "color": "#ccc" }
-  ]
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> closed by *xinyuluo*"
 }
 ===== file ../mock_payloads/issues.labeled.json =====
 will notify #backend
@@ -212,28 +209,19 @@ will notify #default
 will notify #backend
 {
   "channel": "backend",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> reopened by *xinyuluo*",
-  "attachments": [
-    { "fallback": null, "mrkdwn_in": [ "text" ], "color": "#ccc" }
-  ]
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> reopened by *xinyuluo*"
 }
 ===== file ../mock_payloads/pull_request.closed_capitalized.json =====
 will notify #a1-bot
 {
   "channel": "a1-bot",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by *xinyuluo*",
-  "attachments": [
-    { "fallback": null, "mrkdwn_in": [ "text" ], "color": "#ccc" }
-  ]
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by *xinyuluo*"
 }
 ===== file ../mock_payloads/pull_request.closed_no_labels.json =====
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> merged by *xinyuluo*",
-  "attachments": [
-    { "fallback": null, "mrkdwn_in": [ "text" ], "color": "#ccc" }
-  ]
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> merged by *xinyuluo*"
 }
 ===== file ../mock_payloads/pull_request.labeled_two_labels.json =====
 will notify #a1-bot
