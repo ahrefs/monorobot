@@ -80,10 +80,14 @@ let validate_signature ?signing_key ~headers body =
   | None -> Error "unable to find header x-hub-signature"
   | Some signature -> if is_valid_signature ~secret signature body then Ok () else Error "signatures don't match"
 
-(* Parse a payload. The type of the payload is detected from the headers. *)
+(** Parse a payload. The type of the payload is detected from the headers.
+
+    @raise Failure if unable to extract event from header *)
 let parse_exn headers body =
-  match List.Assoc.find_exn headers "x-github-event" ~equal:String.equal with
-  | exception exn -> Exn.fail ~exn "unable to read x-github-event"
+  match List.Assoc.find headers "x-github-event" ~equal:String.equal with
+  | None -> Exn.fail "header x-github-event not found"
+  | Some event ->
+  match event with
   | "push" -> Push (commit_pushed_notification_of_string body)
   | "pull_request" -> Pull_request (pr_notification_of_string body)
   | "pull_request_review" -> PR_review (pr_review_notification_of_string body)
@@ -93,7 +97,7 @@ let parse_exn headers body =
   | "status" -> Status (status_notification_of_string body)
   | "commit_comment" -> Commit_comment (commit_comment_notification_of_string body)
   | "create" | "delete" | "member" | "ping" | "release" -> Event (event_notification_of_string body)
-  | event -> failwith @@ sprintf "unsupported event : %s" event
+  | event -> Exn.fail "unhandled event type : %s" event
 
 type basehead = string * string
 

@@ -265,7 +265,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
       match Github.parse_exn headers body with
-      | exception exn -> Exn_lwt.fail ~exn "failed to parse payload"
+      | exception Failure msg ->
+        log#warn "skipping event : %s" msg;
+        Lwt.return_unit
       | payload ->
       match validate_signature secrets payload with
       | Error e -> action_error e
