@@ -31,7 +31,7 @@ let show_labels = function
   | (labels : label list) ->
     Some (sprintf "Labels: %s" @@ String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels))
 
-let pluralize name num suffix = if num = 1 then sprintf "%s" name else String.concat [ name; suffix ]
+let pluralize ~suf ~len name = if len = 1 then sprintf "%s" name else String.concat [ name; suf ]
 
 let markdown_text_attachment ~footer markdown_body =
   [
@@ -208,46 +208,54 @@ let pp_list_with_previews ~pp_item list =
   else List.map ~f:pp_item list
 
 let generate_push_notification notification channel =
-  let { sender; created; deleted; forced; compare; commits; repository; _ } = notification in
-  let commits_branch = Github.commits_branch_of_ref notification.ref in
-  let tree_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode commits_branch ] in
-  let num_commits = List.length commits in
-  let compare =
-    (* if single commit, don't show compare *)
-    match commits with
-    | [ { url; _ } ] -> url
-    | _ -> compare
+  let make_attachments commits =
+    let commits = pp_list_with_previews ~pp_item:pp_commit commits in
+    [
+      {
+        empty_attachments with
+        mrkdwn_in = Some [ "fields" ];
+        color = Some "#ccc";
+        fields = Some [ { value = String.concat ~sep:"\n" commits; title = None; short = false } ];
+      };
+    ]
   in
-  let title =
-    if deleted then
-      sprintf "<%s|[%s]> %s deleted branch <%s|%s>" tree_url repository.name sender.login compare commits_branch
-    else
-      sprintf "<%s|[%s:%s]> <%s|%i commit%s> %spushed %sby %s" tree_url repository.name commits_branch compare
-        num_commits
-        ( match commits with
-        | [ _ ] -> ""
-        | _ -> "s"
-        )
-        (if forced then "force-" else "")
-        (if created then "to new branch " else "")
-        sender.login
+  let deleted_branch_title ~repo_name ~branch_name ~branch_url ~sender ~compare () =
+    sprintf "<%s|[%s]> %s deleted branch <%s|%s>" branch_url repo_name sender.login compare branch_name
   in
-  let commits = pp_list_with_previews ~pp_item:pp_commit commits in
-  {
-    channel;
-    text = Some title;
-    attachments =
-      Some
-        [
-          {
-            empty_attachments with
-            mrkdwn_in = Some [ "fields" ];
-            color = Some "#ccc";
-            fields = Some [ { value = String.concat ~sep:"\n" commits; title = None; short = false } ];
-          };
-        ];
-    blocks = None;
-  }
+  let single_commit_title ~repo_name ~branch_name ~branch_url ~commit () =
+    sprintf "<%s|[%s:%s]> %s" branch_url repo_name branch_name (pp_commit commit)
+  in
+  let multi_commit_title ~repo_name ~branch_name ~branch_url ~forced ~created ~sender ~compare ~commits () =
+    let num_commits = List.length commits in
+    sprintf "<%s|[%s:%s]> <%s|%i %s> %spushed %sby %s" branch_url repo_name branch_name compare num_commits
+      (pluralize ~suf:"s" ~len:num_commits "commit")
+      (if forced then "force-" else "")
+      (if created then "to new branch " else "")
+      sender.login
+  in
+  let make ~title ?attachments () = { channel; text = Some title; attachments; blocks = None } in
+  let { sender; pusher; created; deleted; forced; compare; commits; repository; _ } = notification in
+  let branch_name = Github.commits_branch_of_ref notification.ref in
+  let branch_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode branch_name ] in
+  let repo_name = repository.name in
+  match deleted with
+  | true ->
+    let title = deleted_branch_title ~repo_name ~branch_name ~branch_url ~sender ~compare () in
+    make ~title ~attachments:(make_attachments commits) ()
+  | false ->
+  match commits with
+  | [ commit ] ->
+    if String.equal commit.author.email pusher.email && (not forced) && not created then
+      make ~title:(single_commit_title ~repo_name ~branch_name ~branch_url ~commit ()) ()
+    else begin
+      let title =
+        multi_commit_title ~repo_name ~branch_name ~branch_url ~forced ~created ~sender ~compare:commit.url ~commits ()
+      in
+      make ~title ~attachments:(make_attachments commits) ()
+    end
+  | _ ->
+    let title = multi_commit_title ~repo_name ~branch_name ~branch_url ~forced ~created ~sender ~compare ~commits () in
+    make ~title ~attachments:(make_attachments commits) ()
 
 let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
@@ -288,7 +296,9 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
           [ main ]
         | _ -> notification_branches
       in
-      [ sprintf "*%s*: %s" (pluralize "Branch" (List.length branches) "es") (String.concat ~sep:", " branches) ]
+      [
+        sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ~sep:", " branches);
+      ]
   in
   let summary =
     match target_url with
