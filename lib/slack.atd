@@ -58,6 +58,7 @@ type message_block = [
 
 type post_message_req = {
   channel: string;
+  ?username : string nullable;
   ?text: string nullable;
   ?attachments: message_attachment list nullable;
   ?blocks: message_block list nullable;

@@ -44,6 +44,8 @@ let markdown_text_attachment ~footer markdown_body =
     };
   ]
 
+let make_message ?username ?text ?attachments ?blocks ~channel () = { channel; text; attachments; blocks; username }
+
 let generate_pull_request_notification notification channel =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
@@ -63,12 +65,7 @@ let generate_pull_request_notification notification channel =
     sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
       (pp_link ~url:html_url title) action sender.login
   in
-  {
-    channel;
-    text = Some summary;
-    attachments = Option.map ~f:(markdown_text_attachment ~footer:None) body;
-    blocks = None;
-  }
+  make_message ~text:summary ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) body) ~channel ()
 
 let generate_pr_review_notification notification channel =
   let { action; sender; pull_request; review; repository } = notification in
@@ -92,12 +89,9 @@ let generate_pr_review_notification notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
       number (pp_link ~url:html_url title)
   in
-  {
-    channel;
-    text = Some summary;
-    attachments = Option.map ~f:(markdown_text_attachment ~footer:None) review.body;
-    blocks = None;
-  }
+  make_message ~text:summary
+    ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) review.body)
+    ~channel ()
 
 let generate_pr_review_comment_notification notification channel =
   let { action; pull_request; sender; comment; repository } = notification in
@@ -120,12 +114,7 @@ let generate_pr_review_comment_notification notification channel =
     | None -> None
     | Some a -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url a)
   in
-  {
-    channel;
-    text = Some summary;
-    attachments = Some (markdown_text_attachment ~footer:file comment.body);
-    blocks = None;
-  }
+  make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:file comment.body) ~channel ()
 
 let generate_issue_notification notification channel =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
@@ -146,12 +135,7 @@ let generate_issue_notification notification channel =
     sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number (pp_link ~url:html_url title)
       action sender.login
   in
-  {
-    channel;
-    text = Some summary;
-    attachments = Option.map ~f:(markdown_text_attachment ~footer:None) body;
-    blocks = None;
-  }
+  make_message ~text:summary ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) body) ~channel ()
 
 let generate_issue_comment_notification notification channel =
   let { action; issue; sender; comment; repository } = notification in
@@ -170,12 +154,7 @@ let generate_issue_comment_notification notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> on #%d %s" repository.url repository.full_name sender.login comment.html_url
       action_str number (pp_link ~url:issue.html_url title)
   in
-  {
-    channel;
-    text = Some summary;
-    attachments = Some (markdown_text_attachment ~footer:None comment.body);
-    blocks = None;
-  }
+  make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:None comment.body) ~channel ()
 
 let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
 
@@ -208,54 +187,30 @@ let pp_list_with_previews ~pp_item list =
   else List.map ~f:pp_item list
 
 let generate_push_notification notification channel =
-  let make_attachments commits =
-    let commits = pp_list_with_previews ~pp_item:pp_commit commits in
-    [
-      {
-        empty_attachments with
-        mrkdwn_in = Some [ "fields" ];
-        color = Some "#ccc";
-        fields = Some [ { value = String.concat ~sep:"\n" commits; title = None; short = false } ];
-      };
-    ]
-  in
-  let deleted_branch_title ~repo_name ~branch_name ~branch_url ~sender ~compare () =
-    sprintf "<%s|[%s]> %s deleted branch <%s|%s>" branch_url repo_name sender.login compare branch_name
-  in
-  let single_commit_title ~repo_name ~branch_name ~branch_url ~commit () =
-    sprintf "<%s|[%s:%s]> %s" branch_url repo_name branch_name (pp_commit commit)
-  in
-  let multi_commit_title ~repo_name ~branch_name ~branch_url ~forced ~created ~sender ~compare ~commits () =
+  let deleted_branch_title ~sender ~compare () = sprintf "%s deleted <%s|branch>" sender.login compare in
+  let multi_commit_title ~forced ~created ~sender ~compare ~commits () =
     let num_commits = List.length commits in
-    sprintf "<%s|[%s:%s]> <%s|%i %s> %spushed %sby %s" branch_url repo_name branch_name compare num_commits
+    sprintf "<%s|%i %s> %spushed %sby %s\n%s" compare num_commits
       (pluralize ~suf:"s" ~len:num_commits "commit")
       (if forced then "force-" else "")
       (if created then "to new branch " else "")
       sender.login
+      (String.concat ~sep:"\n" (pp_list_with_previews ~pp_item:pp_commit commits))
   in
-  let make ~title ?attachments () = { channel; text = Some title; attachments; blocks = None } in
   let { sender; pusher; created; deleted; forced; compare; commits; repository; _ } = notification in
   let branch_name = Github.commits_branch_of_ref notification.ref in
-  let branch_url = String.concat ~sep:"/" [ repository.url; "tree"; Uri.pct_encode branch_name ] in
-  let repo_name = repository.name in
+  let make_message ?attachments ~text () =
+    make_message ?attachments ~text ~username:(sprintf "%s:%s" repository.name branch_name) ~channel ()
+  in
   match deleted with
-  | true ->
-    let title = deleted_branch_title ~repo_name ~branch_name ~branch_url ~sender ~compare () in
-    make ~title ~attachments:(make_attachments commits) ()
+  | true -> make_message ~text:(deleted_branch_title ~sender ~compare ()) ()
   | false ->
   match commits with
   | [ commit ] ->
     if String.equal commit.author.email pusher.email && (not forced) && not created then
-      make ~title:(single_commit_title ~repo_name ~branch_name ~branch_url ~commit ()) ()
-    else begin
-      let title =
-        multi_commit_title ~repo_name ~branch_name ~branch_url ~forced ~created ~sender ~compare:commit.url ~commits ()
-      in
-      make ~title ~attachments:(make_attachments commits) ()
-    end
-  | _ ->
-    let title = multi_commit_title ~repo_name ~branch_name ~branch_url ~forced ~created ~sender ~compare ~commits () in
-    make ~title ~attachments:(make_attachments commits) ()
+      make_message ~text:(pp_commit commit) ()
+    else make_message ~text:(multi_commit_title ~forced ~created ~sender ~compare:commit.url ~commits ()) ()
+  | _ -> make_message ~text:(multi_commit_title ~forced ~created ~sender ~compare ~commits ()) ()
 
 let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
@@ -319,7 +274,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       fields = Some [ { title = None; value = msg; short = false } ];
     }
   in
-  { channel; text = Some summary; attachments = Some [ attachment ]; blocks = None }
+  make_message ~text:summary ~attachments:[ attachment ] ~channel ()
 
 let generate_commit_comment_notification api_commit notification channel =
   let { commit; _ } = api_commit in
@@ -339,12 +294,7 @@ let generate_commit_comment_notification api_commit notification channel =
     | None -> None
     | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
   in
-  {
-    channel;
-    text = Some summary;
-    attachments = Some (markdown_text_attachment ~footer:path comment.body);
-    blocks = None;
-  }
+  make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:path comment.body) ~channel ()
 
 let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match signing_key with
