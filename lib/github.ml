@@ -3,6 +3,8 @@ open Devkit
 open Printf
 open Github_j
 
+let log = Log.from "github"
+
 type t =
   | Push of commit_pushed_notification
   | Pull_request of pr_notification
@@ -84,18 +86,76 @@ let validate_signature ?signing_key ~headers body =
 
     @raise Failure if unable to extract event from header *)
 let parse_exn headers body =
+  let string_of_abstract_issue_state = function
+    | Open -> "open"
+    | Closed -> "closed"
+  in
+  let string_of_comment_action = function
+    | Created -> "created"
+    | Edited -> "edited"
+    | Deleted -> "deleted"
+  in
+  let string_of_pr_review_action = function
+    | Submitted -> "submitted"
+    | Dismissed -> "dismissed"
+    | Edited -> "edited"
+  in
+  let string_of_status_state = function
+    | Success -> "success"
+    | Failure -> "failure"
+    | Pending -> "pending"
+    | Error -> "error"
+  in
+  let print_opt f v = Option.value_map ~f ~default:"none" v in
+  let print_comment_preview = Stre.shorten ~escape:true 40 in
+  let print_commit_hash s = String.prefix s 8 in
   match List.Assoc.find headers "x-github-event" ~equal:String.equal with
   | None -> Exn.fail "header x-github-event not found"
   | Some event ->
   match event with
-  | "push" -> Push (commit_pushed_notification_of_string body)
-  | "pull_request" -> Pull_request (pr_notification_of_string body)
-  | "pull_request_review" -> PR_review (pr_review_notification_of_string body)
-  | "pull_request_review_comment" -> PR_review_comment (pr_review_comment_notification_of_string body)
-  | "issues" -> Issue (issue_notification_of_string body)
-  | "issue_comment" -> Issue_comment (issue_comment_notification_of_string body)
-  | "status" -> Status (status_notification_of_string body)
-  | "commit_comment" -> Commit_comment (commit_comment_notification_of_string body)
+  | "push" ->
+    let n = commit_pushed_notification_of_string body in
+    log#info "[%s] event %s: sender=%s, head=%s, ref=%s" n.repository.full_name event n.sender.login
+      (print_opt (fun c -> print_commit_hash c.id) n.head_commit)
+      n.ref;
+    Push n
+  | "pull_request" ->
+    let n = pr_notification_of_string body in
+    log#info "[%s] event %s: number=%d, state=%s" n.repository.full_name event n.pull_request.number
+      (string_of_abstract_issue_state n.pull_request.state);
+    Pull_request n
+  | "pull_request_review" ->
+    let n = pr_review_notification_of_string body in
+    log#info "[%s] event %s: number=%d, sender=%s, action=%s, body=%S" n.repository.full_name event
+      n.pull_request.number n.sender.login (string_of_pr_review_action n.action)
+      (print_opt print_comment_preview n.review.body);
+    PR_review n
+  | "pull_request_review_comment" ->
+    let n = pr_review_comment_notification_of_string body in
+    log#info "[%s] event %s: number=%d, sender=%s, action=%s, body=%S" n.repository.full_name event
+      n.pull_request.number n.sender.login (string_of_comment_action n.action) (print_comment_preview n.comment.body);
+    PR_review_comment n
+  | "issues" ->
+    let n = issue_notification_of_string body in
+    log#info "[%s] event %s: number=%d, state=%s" n.repository.full_name event n.issue.number
+      (string_of_abstract_issue_state n.issue.state);
+    Issue n
+  | "issue_comment" ->
+    let n = issue_comment_notification_of_string body in
+    log#info "[%s] event %s: number=%d, sender=%s, action=%s, body=%S" n.repository.full_name event n.issue.number
+      n.sender.login (string_of_comment_action n.action) (print_comment_preview n.comment.body);
+    Issue_comment n
+  | "status" ->
+    let n = status_notification_of_string body in
+    log#info "[%s] event %s: commit=%s, state=%s, context=%s, target_url=%s" n.repository.full_name event
+      (print_commit_hash n.commit.sha) (string_of_status_state n.state) n.context (print_opt id n.target_url);
+    Status n
+  | "commit_comment" ->
+    let n = commit_comment_notification_of_string body in
+    log#info "[%s] event %s: commit=%s, sender=%s, action=%s, body=%S" n.repository.full_name event
+      (print_opt print_commit_hash n.comment.commit_id)
+      n.sender.login n.action (print_comment_preview n.comment.body);
+    Commit_comment n
   | "create" | "delete" | "member" | "ping" | "release" -> Event (event_notification_of_string body)
   | event -> Exn.fail "unhandled event type : %s" event
 

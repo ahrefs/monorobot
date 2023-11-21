@@ -1,12 +1,18 @@
 open Base
+open Devkit
 open Lib
 module Filename = Stdlib.Filename
 module Sys = Stdlib.Sys
 
-let log = Devkit.Log.from "test"
+let log = Log.from "test"
 let mock_payload_dir = Filename.concat Filename.parent_dir_name "mock_payloads"
 let mock_state_dir = Filename.concat Filename.parent_dir_name "mock_states"
 let mock_slack_event_dir = Filename.concat Filename.parent_dir_name "mock_slack_events"
+
+let () =
+  (* silence most app level logging *)
+  Log.set_filter `Error;
+  Log.set_filter ~name:"test" `Info
 
 module Action_local = Action.Action (Api_local.Github) (Api_local.Slack)
 
