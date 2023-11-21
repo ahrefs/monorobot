@@ -348,14 +348,21 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     log#info "slack link shared: channel=%s, user=%s, message_ts=%s, links=[%s]" event.channel event.user
       event.message_ts
       (Stre.catmap ~sep:"; " (fun (l : Slack_t.link_shared_link) -> l.url) event.links);
-    let%lwt bot_user_id =
-      match State.get_bot_user_id ctx.state with
-      | Some id -> Lwt.return_some id
-      | None -> fetch_bot_user_id ()
+    let%lwt is_self_bot_user =
+      match String.equal event.user "U00" with
+      | true ->
+        (* field has value "U00" when the message containing the link was sent by a bot with a custom username set *)
+        Lwt.return_true
+      | false ->
+        let%lwt bot_user_id =
+          match State.get_bot_user_id ctx.state with
+          | Some id -> Lwt.return_some id
+          | None -> fetch_bot_user_id ()
+        in
+        Lwt.return (Option.value_map ~default:false ~f:(String.equal event.user) bot_user_id)
     in
     if List.length event.links > 2 then Lwt.return "ignored: more than two links present"
-    else if Option.value_map bot_user_id ~default:false ~f:(String.equal event.user) then
-      Lwt.return "ignored: is bot user"
+    else if is_self_bot_user then Lwt.return "ignored: is bot user"
     else begin
       let links = List.map event.links ~f:(fun l -> l.url) in
       let%lwt unfurls = List.map links ~f:process |> Lwt.all |> Lwt.map List.filter_opt |> Lwt.map StringMap.of_list in
