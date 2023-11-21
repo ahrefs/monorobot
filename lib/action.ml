@@ -198,7 +198,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       let%lwt channels = partition_status ctx n in
       let notifs = List.map ~f:(generate_status_notification cfg n) channels in
       Lwt.return notifs
-    | _ -> Lwt.return []
 
   let send_notifications (ctx : Context.t) notifications =
     let notify (msg : Slack_t.post_message_req) =

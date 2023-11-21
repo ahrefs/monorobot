@@ -14,8 +14,6 @@ type t =
   | Issue_comment of issue_comment_notification
   | Commit_comment of commit_comment_notification
   | Status of status_notification
-  (* all other events *)
-  | Event of event_notification
 
 let repo_of_notification = function
   | Push n -> n.repository
@@ -26,7 +24,6 @@ let repo_of_notification = function
   | Issue_comment n -> n.repository
   | Commit_comment n -> n.repository
   | Status n -> n.repository
-  | Event n -> n.repository
 
 let commits_branch_of_ref ref =
   match String.split ~on:'/' ref with
@@ -156,7 +153,6 @@ let parse_exn headers body =
       (print_opt print_commit_hash n.comment.commit_id)
       n.sender.login n.action (print_comment_preview n.comment.body);
     Commit_comment n
-  | "create" | "delete" | "member" | "ping" | "release" -> Event (event_notification_of_string body)
   | event -> Exn.fail "unhandled event type : %s" event
 
 type basehead = string * string
