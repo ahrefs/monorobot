@@ -32,11 +32,11 @@ let run ~ctx ~addr ~port =
           | Ok res -> ret ~typ:"application/json" res
           )
         | _, [ "github" ] ->
-          log#debug "%s" request.body;
+          log#debug "github event: %s" request.body;
           let%lwt () = Action.process_github_notification ctx request.headers request.body in
           ret "ok"
         | _, [ "slack"; "events" ] ->
-          log#info "%s" request.body;
+          log#debug "slack event: %s" request.body;
           let%lwt res = Action.process_slack_event ctx request.headers request.body in
           ret res
         | _, _ ->

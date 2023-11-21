@@ -346,6 +346,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         let%lwt result = Github_api.get_compare ~ctx ~repo ~basehead in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_compare ~repo
     in
+    log#info "slack link shared: channel=%s, user=%s, message_ts=%s, links=[%s]" event.channel event.user
+      event.message_ts
+      (Stre.catmap ~sep:"; " (fun (l : Slack_t.link_shared_link) -> l.url) event.links);
     let%lwt bot_user_id =
       match State.get_bot_user_id ctx.state with
       | Some id -> Lwt.return_some id
