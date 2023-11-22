@@ -44,7 +44,8 @@ let markdown_text_attachment ~footer markdown_body =
     };
   ]
 
-let make_message ?username ?text ?attachments ?blocks ~channel () = { channel; text; attachments; blocks; username }
+let make_message ?username ?text ?attachments ?blocks ~channel () =
+  { channel; text; attachments; blocks; username; unfurl_links = Some false; unfurl_media = None }
 
 let generate_pull_request_notification notification channel =
   let { action; number; sender; pull_request; repository } = notification in

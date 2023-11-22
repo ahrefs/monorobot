@@ -11,7 +11,8 @@ will notify #all-push-events
       "text": "comment here",
       "footer": "New comment by xinyuluo in <https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478#commitcomment-0|README.md>"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/commit_comment.general_comment.json =====
 will notify #all-push-events
@@ -25,7 +26,8 @@ will notify #all-push-events
       "color": "#ccc",
       "text": "add a commit comment"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/commit_comment.general_comment_multiple_path.json =====
 will notify #a1
@@ -39,7 +41,8 @@ will notify #a1
       "color": "#ccc",
       "text": "this is a test for general commit comment with multiple paths"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 will notify #all-push-events
 {
@@ -52,7 +55,8 @@ will notify #all-push-events
       "color": "#ccc",
       "text": "this is a test for general commit comment with multiple paths"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/commit_comment.long_comment.json =====
 will notify #all-push-events
@@ -67,7 +71,8 @@ will notify #all-push-events
       "text": "this can be written shorter:\n`\n| Some obj -&gt; Obj.is_valid obj o\n| None -&gt; false`",
       "footer": "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|main.ml>"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/commit_comment.mrkdwn_comment.json =====
 will notify #all-push-events
@@ -82,7 +87,8 @@ will notify #all-push-events
       "text": "*header 1*\n\n*header 2*\n\n*header 3*\n\n*header 4*\n\n*header 5*\n\n*header 6*\n\n* * *\nparagraph 1 *bold*, _italic_, ~strikethrough~, *_bold italic_*, _*italic bold*_\n\nparagraph 2\nhard line break\n\n> blockquote\n\n> > > multi\n> > \n> > level\n> \n> blockquote\n\n- list-element 1\n- list-element 2\n    - list-element 2.1\n        - list-element 2.1.1\n    - <www.google.com|list-element 2.2>\n\n1. list-element 1\n2. list-element 2\n    1. list-element 2.1\n        1. list-element 2.1.1\n    2. <www.google.com|list-element 2.2>\n3. list-element 3\n\n<www.google.com|link with title - some link text>\n\n- > quote in list\n\n> - list in quote\n\n<https://via.placeholder.com/20x20|image>\n\n<https://via.placeholder.com/20x20|with title - image>\n\n<https://via.placeholder.com/20x20|no alt - >\n\n<https://via.placeholder.com/20x20|>\n\n```\n&lt;div&gt;html block with &lt;i&gt;styling&lt;/i&gt;&lt;/div&gt;\n```\n```\nStdio.printf \"hello ocaml\"\n```\ninline `code block`\n\nescape these \\()[]`*  `but keep \\`\n\n```\nand keep \\\n```",
       "footer": "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|main.ml>"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/commit_comment.multiple_paths.json =====
 will notify #all-push-events
@@ -96,7 +102,8 @@ will notify #all-push-events
       "color": "#ccc",
       "text": "make a comment"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/commit_comment.short_comment.json =====
 will notify #all-push-events
@@ -111,7 +118,8 @@ will notify #all-push-events
       "text": "add a single comment on the code in a commit",
       "footer": "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/commit/cd5b85afa306840e0790b62e349ee1f828b2a3c2#commitcomment-0|main.ml>"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/issue_comment.created_in_issue.json =====
 will notify #default
@@ -125,7 +133,8 @@ will notify #default
       "color": "#ccc",
       "text": "handle issue comment"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/issue_comment.created_in_issue_by_ignored.json =====
 ===== file ../mock_payloads/issue_comment.created_in_pr.json =====
@@ -140,7 +149,8 @@ will notify #a1-bot
       "color": "#ccc",
       "text": "comment example"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 will notify #backend
 {
@@ -153,7 +163,8 @@ will notify #backend
       "color": "#ccc",
       "text": "comment example"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/issue_comment.deleted.json =====
 ===== file ../mock_payloads/issue_comment.draft_pr.json =====
@@ -168,14 +179,16 @@ will notify #frontend-bot
       "color": "#ccc",
       "text": "> I do not understand this\n\nDo you have access to the logs on the website?"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/issue_comment.edited.json =====
 ===== file ../mock_payloads/issues.closed.json =====
 will notify #backend
 {
   "channel": "backend",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> closed by *xinyuluo*"
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> closed by *xinyuluo*",
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/issues.labeled.json =====
 will notify #backend
@@ -189,7 +202,8 @@ will notify #backend
       "color": "#ccc",
       "text": "Labels: backend"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/issues.opened.json =====
 will notify #default
@@ -203,25 +217,29 @@ will notify #default
       "color": "#ccc",
       "text": "consider multiple cases including labeled/opened/closed/reopened"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/issues.reopened.json =====
 will notify #backend
 {
   "channel": "backend",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> reopened by *xinyuluo*"
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> reopened by *xinyuluo*",
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/pull_request.closed_capitalized.json =====
 will notify #a1-bot
 {
   "channel": "a1-bot",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by *xinyuluo*"
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by *xinyuluo*",
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/pull_request.closed_no_labels.json =====
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> merged by *xinyuluo*"
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> merged by *xinyuluo*",
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/pull_request.labeled_two_labels.json =====
 will notify #a1-bot
@@ -235,7 +253,8 @@ will notify #a1-bot
       "color": "#ccc",
       "text": "Labels: a1, backend"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 will notify #backend
 {
@@ -248,7 +267,8 @@ will notify #backend
       "color": "#ccc",
       "text": "Labels: a1, backend"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/pull_request.opened_one_label.json =====
 will notify #frontend-bot
@@ -262,7 +282,8 @@ will notify #frontend-bot
       "color": "#ccc",
       "text": ""
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/pull_request.review_requested_one_label.json =====
 ===== file ../mock_payloads/pull_request_review.approved.json =====
@@ -277,7 +298,8 @@ will notify #default
       "color": "#ccc",
       "text": "approve review"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/pull_request_review.commented.json =====
 will notify #frontend-bot
@@ -291,7 +313,8 @@ will notify #frontend-bot
       "color": "#ccc",
       "text": "submit a PR review"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/pull_request_review.dismissed.json =====
 ===== file ../mock_payloads/pull_request_review.edited.json =====
@@ -307,7 +330,8 @@ will notify #default
       "color": "#ccc",
       "text": "request changes review"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/pull_request_review.submitted_no_comment.json =====
 ===== file ../mock_payloads/pull_request_review.submitted_null_body.json =====
@@ -324,7 +348,8 @@ will notify #a1-bot
       "text": "PR review comment example",
       "footer": "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 will notify #backend
 {
@@ -338,7 +363,8 @@ will notify #backend
       "text": "PR review comment example",
       "footer": "New comment by xinyuluo in <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/pull_request_review_comment.deleted.json =====
 ===== file ../mock_payloads/pull_request_review_comment.edited.json =====
@@ -347,53 +373,61 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "username": "test-repo:develop",
-  "text": "<https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|3 commits> pushed by octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - octocat\n`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|90452f69>` Update readme 2 - octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|f2173f38>` Add TESTING.md 2 - octocat"
+  "text": "<https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|3 commits> pushed by octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - octocat\n`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|90452f69>` Update readme 2 - octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|f2173f38>` Add TESTING.md 2 - octocat",
+  "unfurl_links": false
 }
 will notify #backend1
 {
   "channel": "backend1",
   "username": "test-repo:develop",
-  "text": "`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - octocat"
+  "text": "`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - octocat",
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/push.branch_filter_local.json =====
 will notify #backend1
 {
   "channel": "backend1",
   "username": "test-repo:master",
-  "text": "`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - octocat"
+  "text": "`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - octocat",
+  "unfurl_links": false
 }
 will notify #backend2
 {
   "channel": "backend2",
   "username": "test-repo:master",
-  "text": "<https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by octocat\n`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|90452f69>` Update readme 2 - octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|f2173f38>` Add TESTING.md 2 - octocat"
+  "text": "<https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by octocat\n`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|90452f69>` Update readme 2 - octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|f2173f38>` Add TESTING.md 2 - octocat",
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/push.branch_filter_nomatch.json =====
 will notify #default
 {
   "channel": "default",
   "username": "test-repo:feature/f1",
-  "text": "`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme 2 - octocat"
+  "text": "`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme 2 - octocat",
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/push.two_commits.json =====
 will notify #all-push-events
 {
   "channel": "all-push-events",
   "username": "monorepo:develop",
-  "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira"
+  "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/push.two_commits_longest_match.json =====
 will notify #all-push-events
 {
   "channel": "all-push-events",
   "username": "monorepo:develop",
-  "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira"
+  "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "unfurl_links": false
 }
 will notify #longest-a1
 {
   "channel": "longest-a1",
   "username": "monorepo:develop",
-  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira"
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/status.cancelled_test.json =====
 ===== file ../mock_payloads/status.failure_test.json =====
@@ -413,7 +447,8 @@ will notify #default
         }
       ]
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/status.merge_develop.json =====
 ===== file ../mock_payloads/status.pending_test.json =====
@@ -435,7 +470,8 @@ will notify #default
         }
       ]
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/status.success_test_main_branch.json =====
 will notify #all-push-events
@@ -454,7 +490,8 @@ will notify #all-push-events
         }
       ]
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/status.success_test_non_main_branch.json =====
 will notify #default
@@ -473,7 +510,8 @@ will notify #default
         }
       ]
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_slack_events/commits.one_file_modified.json =====
 will unfurl in #C047QTRD1CH
