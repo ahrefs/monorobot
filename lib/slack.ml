@@ -182,8 +182,7 @@ let pp_list_with_previews ~pp_item list =
   if dropped > 3 then begin
     let h, list' = List.split_n list (num_shown / 2) in
     let t = List.drop list' dropped in
-    let num_after_h = num_items - List.length h in
-    List.concat [ List.map ~f:pp_item h; [ sprintf "+%d more...\n" num_after_h ]; List.map ~f:pp_item t ]
+    List.concat [ List.map ~f:pp_item h; [ sprintf "+%d more...\n" dropped ]; List.map ~f:pp_item t ]
   end
   else List.map ~f:pp_item list
 
