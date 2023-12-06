@@ -206,6 +206,11 @@ let generate_push_notification notification channel =
         && List.for_all ~f:(fun commit -> String.equal commit.author.email pusher.email) commits
       then commits_preview_lines
       else begin
+        let compare =
+          match commits with
+          | [ commit ] -> commit.url
+          | _ -> compare
+        in
         let descriptive_title =
           sprintf "<%s|%i %s> %spushed %sby %s" compare num_commits
             (pluralize ~suf:"s" ~len:num_commits "commit")
