@@ -373,7 +373,7 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "username": "test-repo:develop",
-  "text": "<https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|3 commits> pushed by octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - octocat\n`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|90452f69>` Update readme 2 - octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|f2173f38>` Add TESTING.md 2 - octocat",
+  "text": "`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - octocat\n`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|90452f69>` Update readme 2 - octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|f2173f38>` Add TESTING.md 2 - octocat",
   "unfurl_links": false
 }
 will notify #backend1
@@ -395,7 +395,7 @@ will notify #backend2
 {
   "channel": "backend2",
   "username": "test-repo:master",
-  "text": "<https://github.com/octocat/test-repo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by octocat\n`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|90452f69>` Update readme 2 - octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|f2173f38>` Add TESTING.md 2 - octocat",
+  "text": "`<https://github.com/octocat/test-repo/commit/80452f696a8988e7234063d47720a62e902f2afc|90452f69>` Update readme 2 - octocat\n`<https://github.com/octocat/test-repo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|f2173f38>` Add TESTING.md 2 - octocat",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/push.branch_filter_nomatch.json =====
@@ -411,7 +411,7 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "username": "monorepo:develop",
-  "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/push.two_commits_longest_match.json =====
@@ -419,7 +419,7 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "username": "monorepo:develop",
-  "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|2 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false
 }
 will notify #longest-a1

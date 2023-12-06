@@ -188,30 +188,36 @@ let pp_list_with_previews ~pp_item list =
   else List.map ~f:pp_item list
 
 let generate_push_notification notification channel =
-  let deleted_branch_title ~sender ~compare () = sprintf "%s deleted <%s|branch>" sender.login compare in
-  let multi_commit_title ~forced ~created ~sender ~compare ~commits () =
-    let num_commits = List.length commits in
-    sprintf "<%s|%i %s> %spushed %sby %s\n%s" compare num_commits
-      (pluralize ~suf:"s" ~len:num_commits "commit")
-      (if forced then "force-" else "")
-      (if created then "to new branch " else "")
-      sender.login
-      (String.concat ~sep:"\n" (pp_list_with_previews ~pp_item:pp_commit commits))
-  in
   let { sender; pusher; created; deleted; forced; compare; commits; repository; _ } = notification in
+  let show_descriptive_title_min_commits = 4 in
   let branch_name = Github.commits_branch_of_ref notification.ref in
-  let make_message ?attachments ~text () =
-    make_message ?attachments ~text ~username:(sprintf "%s:%s" repository.name branch_name) ~channel ()
-  in
+  let username = sprintf "%s:%s" repository.name branch_name in
   match deleted with
-  | true -> make_message ~text:(deleted_branch_title ~sender ~compare ()) ()
+  | true ->
+    let deleted_branch_title = sprintf "%s deleted <%s|branch>" sender.login compare in
+    make_message ~username ~channel ~text:deleted_branch_title ()
   | false ->
-  match commits with
-  | [ commit ] ->
-    if String.equal commit.author.email pusher.email && (not forced) && not created then
-      make_message ~text:(pp_commit commit) ()
-    else make_message ~text:(multi_commit_title ~forced ~created ~sender ~compare:commit.url ~commits ()) ()
-  | _ -> make_message ~text:(multi_commit_title ~forced ~created ~sender ~compare ~commits ()) ()
+    let commits_preview_lines = pp_list_with_previews ~pp_item:pp_commit commits in
+    let num_commits = List.length commits in
+    let lines =
+      if
+        num_commits < show_descriptive_title_min_commits
+        && (not forced)
+        && (not created)
+        && List.for_all ~f:(fun commit -> String.equal commit.author.email pusher.email) commits
+      then commits_preview_lines
+      else begin
+        let descriptive_title =
+          sprintf "<%s|%i %s> %spushed %sby %s" compare num_commits
+            (pluralize ~suf:"s" ~len:num_commits "commit")
+            (if forced then "force-" else "")
+            (if created then "to new branch " else "")
+            sender.login
+        in
+        descriptive_title :: commits_preview_lines
+      end
+    in
+    make_message ~username ~channel ~text:(String.concat ~sep:"\n" lines) ()
 
 let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
