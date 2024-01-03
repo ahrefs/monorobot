@@ -48,10 +48,10 @@ let gh_token_of_secrets (secrets : Config_t.secrets) repo_url =
   | None -> None
   | Some repos -> repos.gh_token
 
-let gh_hook_token_of_secrets (secrets : Config_t.secrets) repo_url =
+let gh_hook_secret_token_of_secrets (secrets : Config_t.secrets) repo_url =
   match List.find secrets.repos ~f:(fun r -> String.equal r.Config_t.url repo_url) with
   | None -> None
-  | Some repos -> repos.gh_hook_token
+  | Some repos -> repos.gh_hook_secret
 
 let hook_of_channel ctx channel_name =
   let secrets = get_secrets_exn ctx in
@@ -107,9 +107,9 @@ let refresh_state ctx =
 let print_config ctx repo_url =
   let cfg = find_repo_config_exn ctx repo_url in
   let secrets = get_secrets_exn ctx in
-  let token = gh_hook_token_of_secrets secrets repo_url in
+  let secret_token = gh_hook_secret_token_of_secrets secrets repo_url in
   log#info "using prefix routing:";
   Rule.Prefix.print_prefix_routing cfg.prefix_rules.rules;
   log#info "using label routing:";
   Rule.Label.print_label_routing cfg.label_rules.rules;
-  log#info "signature checking %s" (if Option.is_some token then "enabled" else "disabled")
+  log#info "signature checking %s" (if Option.is_some secret_token then "enabled" else "disabled")

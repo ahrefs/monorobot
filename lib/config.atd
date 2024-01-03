@@ -50,8 +50,8 @@ type repo_config = {
   url : string;
   (* GitHub personal access token, if repo access requires it *)
   ?gh_token : string nullable;
-  (* GitHub webhook token to secure the webhook *)
-  ?gh_hook_token : string nullable;
+  (* GitHub webhook secret token to secure the webhook *)
+  ?gh_hook_secret : string nullable;
 }
 
 (* This is the structure of the secrets file which stores sensitive information, and

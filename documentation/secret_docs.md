@@ -40,7 +40,7 @@ Specifies which repositories to accept events from, along with any repository-sp
   {
     "url": "https://example.org/ahrefs/coyote",
     "gh_token": "XXX",
-    "gh_hook_token": "XXX"
+    "gh_hook_secret": "XXX"
   }
 ]
 ```
@@ -49,7 +49,7 @@ Specifies which repositories to accept events from, along with any repository-sp
 |-|-|-|-|
 | `url` | the repository url. | No | - |
 | `gh_token` | specify to grant the bot access to private repositories; omit for public repositories | Yes | - |
-| `gh_hook_token` | specify to ensure the bot only receives GitHub notifications from pre-approved repositories | Yes | - |
+| `gh_hook_secret` | shared secret token to authenticate the GitHub repository sending a notification | Yes | - |
 
 ### `repos`
 
@@ -59,9 +59,9 @@ Repository URLs should be fully qualified (include the protocol), with no traili
 
 Some operations, such as fetching a config file from a private repository, or the commit corresponding to a commit comment event, require a personal access token. Refer [here](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) for detailed instructions on token generation.
 
-### `gh_hook_token`
+### `gh_hook_secret`
 
-Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/securing-your-webhooks) for more information on securing webhooks with a token.
+Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks-and-events/securing-your-webhooks) for more information on securing webhooks with a secret token.
 
 ## `slack_access_token`
 

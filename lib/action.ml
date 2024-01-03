@@ -255,7 +255,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let process_github_notification (ctx : Context.t) headers body =
     let validate_signature secrets payload =
       let repo = Github.repo_of_notification payload in
-      let signing_key = Context.gh_hook_token_of_secrets secrets repo.url in
+      let signing_key = Context.gh_hook_secret_token_of_secrets secrets repo.url in
       Github.validate_signature ?signing_key ~headers body
     in
     let repo_is_supported secrets (repo : Github_t.repository) =
