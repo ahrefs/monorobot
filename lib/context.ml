@@ -2,6 +2,8 @@ open Base
 open Common
 open Devkit
 
+let log = Log.from "context"
+
 exception Context_error of string
 
 let context_error fmt = Printf.ksprintf (fun msg -> raise (Context_error msg)) fmt
@@ -69,7 +71,10 @@ let is_pipeline_allowed ctx repo_url ~pipeline =
   | Some allowed_pipelines when not @@ List.exists allowed_pipelines ~f:(String.equal pipeline) -> false
   | _ -> true
 
-let log = Log.from "context"
+let is_status_direct_message_enabled ctx repo_url =
+  match find_repo_config ctx repo_url with
+  | None -> true
+  | Some config -> Option.value config.status_rules.enable_direct_message ~default:false
 
 let refresh_secrets ctx =
   let path = ctx.secrets_filepath in
