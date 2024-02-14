@@ -99,23 +99,34 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
     let action_on_match (branches : branch list) =
+      let%lwt direct_message =
+        match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email with
+        (* To send a DM, channel parameter is set to the user id of the recipient *)
+        | Ok res -> Lwt.return [ res.user.id ]
+        | Error e ->
+          log#warn "couldn't match commit email to slack profile: %s" e;
+          Lwt.return []
+      in
       let default = Option.to_list cfg.prefix_rules.default_channel in
       let%lwt () = State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status in
-      match List.is_empty branches with
-      | true -> Lwt.return []
-      | false ->
-      match cfg.main_branch_name with
-      | None -> Lwt.return default
-      | Some main_branch_name ->
-      (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
-      match List.exists branches ~f:(fun { name } -> String.equal name main_branch_name) with
-      | false -> Lwt.return default
-      | true ->
-        let sha = n.commit.sha in
-        ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
-        | Error e -> action_error e
-        | Ok commit -> Lwt.return @@ partition_commit cfg commit.files
-        )
+      let%lwt chans =
+        match List.is_empty branches with
+        | true -> Lwt.return []
+        | false ->
+        match cfg.main_branch_name with
+        | None -> Lwt.return default
+        | Some main_branch_name ->
+        (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
+        match List.exists branches ~f:(fun { name } -> String.equal name main_branch_name) with
+        | false -> Lwt.return default
+        | true ->
+          let sha = n.commit.sha in
+          ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
+          | Error e -> action_error e
+          | Ok commit -> Lwt.return @@ partition_commit cfg commit.files
+          )
+      in
+      Lwt.return (direct_message @ chans)
     in
     if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
       let%lwt repo_state = State.find_or_add_repo ctx.state repo.url in

@@ -117,6 +117,15 @@ module Slack : Api.Slack = struct
     (* must read whole response to update lexer state *)
     ignore (Slack_j.read_ok_res s l)
 
+  (** [lookup_user cfg email] queries slack for a user profile with [email] *)
+  let lookup_user ~(ctx : Context.t) ~(cfg : Config_t.config) ~email =
+    (* Check if config holds the Github to Slack email mapping  *)
+    let email = List.Assoc.find cfg.user_mappings ~equal:String.equal email |> Option.value ~default:email in
+    let data = Slack_j.string_of_lookup_user_req { Slack_t.email } in
+    request_token_auth ~name:"lookup user by email"
+      ~body:(`Raw ("application/json", data))
+      ~ctx `GET "users.lookupByEmail" Slack_j.read_lookup_user_res
+
   (** [send_notification ctx msg] notifies [msg.channel] with the payload [msg];
       uses web API with access token if available, or with webhook otherwise *)
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =

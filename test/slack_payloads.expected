@@ -431,6 +431,24 @@ will notify #longest-a1
 }
 ===== file ../mock_payloads/status.cancelled_test.json =====
 ===== file ../mock_payloads/status.failure_test.json =====
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
+  "text": "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: failure",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "text": "*Description*: Build #2 failed (20 seconds).",
+      "fields": [
+        {
+          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: master"
+        }
+      ]
+    }
+  ]
+}
 will notify #default
 {
   "channel": "default",
@@ -453,8 +471,43 @@ will notify #default
 ===== file ../mock_payloads/status.merge_develop.json =====
 ===== file ../mock_payloads/status.pending_test.json =====
 ===== file ../mock_payloads/status.state_hide_success_test.json =====
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
+  "text": "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: success",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "good",
+      "text": "*Description*: Build #2 passed (5 minutes, 19 seconds).",
+      "fields": [
+        {
+          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: master"
+        }
+      ]
+    }
+  ]
+}
 ===== file ../mock_payloads/status.state_hide_success_test_disallowed_pipeline.json =====
 ===== file ../mock_payloads/status.success_public_repo_no_buildkite.json =====
+will notify #id[21031067+Codertocat@users.noreply.github.com]
+{
+  "channel": "id[21031067+Codertocat@users.noreply.github.com]",
+  "text": "<https://github.com/Codertocat/Hello-World|[Codertocat/Hello-World]> CI Build Status notification: success",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "good",
+      "fields": [
+        {
+          "value": "*Commit*: `<https://github.com/Codertocat/Hello-World/commit/6113728f27ae82c7b1a177c8d03f9e96e0adf246|6113728f>` Initial commit - Codertocat\n*Branches*: master, changes, gh-pages"
+        }
+      ]
+    }
+  ]
+}
 will notify #default
 {
   "channel": "default",
@@ -474,6 +527,24 @@ will notify #default
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.success_test_main_branch.json =====
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
+  "text": "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: success",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "good",
+      "text": "*Description*: Build #2 passed (5 minutes, 19 seconds).",
+      "fields": [
+        {
+          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: develop"
+        }
+      ]
+    }
+  ]
+}
 will notify #all-push-events
 {
   "channel": "all-push-events",
@@ -494,6 +565,24 @@ will notify #all-push-events
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.success_test_non_main_branch.json =====
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
+  "text": "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2/builds/2|buildkite/pipeline2>: success",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "good",
+      "text": "*Description*: Build #2 passed (5 minutes, 19 seconds).",
+      "fields": [
+        {
+          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: master"
+        }
+      ]
+    }
+  ]
+}
 will notify #default
 {
   "channel": "default",

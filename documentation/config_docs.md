@@ -163,7 +163,7 @@ The following takes place when a status notification is received.
    - `failure`: `allow`
    - `error`: `allow`
    - `success`: `allow_once`
-1. For those payloads allowed by step 1, if it isn't a main branch build notification, route to the default channel to reduce spam in topic channels. Otherwise, check the notification commit's files according to the prefix rules.
+1. For those payloads allowed by step 1, if it isn't a main branch build notification, route to the default channel to reduce spam in topic channels. Otherwise, check the notification commit's files according to the prefix rules. In addition, query for a slack profile that matches the author of the commit and direct message them.
 
 Internally, the bot keeps track of the status of the last allowed payload, for a given pipeline and branch. This information is used to evaluate the status rules (see below).
 
@@ -175,6 +175,7 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
         "default",
         "buildkite/monorobot-test"
     ],
+    "enable_direct_message": true,
     "rules": [
         {
             "on": ["failure"],
@@ -196,6 +197,7 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
 | value | description | default |
 |-|-|-|
 | `allowed_pipelines` | a list of pipeline names; if specified, payloads whose pipeline name is not in the list will be ignored immediately, without checking the **status rules** | all pipelines included in the status rule check |
+| `enable_direct_message` | control direct message sent to notify about build status | false |
 | `rules` | a list of **status rules** to determine whether to *allow* or *ignore* a payload for further processing | required field |
 
 ### Status Rules
