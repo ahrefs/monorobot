@@ -447,7 +447,8 @@ will notify #id[slack_mail@example.com]
         }
       ]
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 will notify #default
 {
@@ -487,7 +488,8 @@ will notify #id[slack_mail@example.com]
         }
       ]
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 ===== file ../mock_payloads/status.state_hide_success_test_disallowed_pipeline.json =====
 ===== file ../mock_payloads/status.success_public_repo_no_buildkite.json =====
@@ -506,7 +508,8 @@ will notify #id[21031067+Codertocat@users.noreply.github.com]
         }
       ]
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 will notify #default
 {
@@ -543,7 +546,8 @@ will notify #id[slack_mail@example.com]
         }
       ]
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 will notify #all-push-events
 {
@@ -581,7 +585,8 @@ will notify #id[slack_mail@example.com]
         }
       ]
     }
-  ]
+  ],
+  "unfurl_links": false
 }
 will notify #default
 {

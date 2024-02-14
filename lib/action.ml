@@ -100,12 +100,15 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let rules = cfg.status_rules.rules in
     let action_on_match (branches : branch list) =
       let%lwt direct_message =
-        match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email with
-        (* To send a DM, channel parameter is set to the user id of the recipient *)
-        | Ok res -> Lwt.return [ res.user.id ]
-        | Error e ->
-          log#warn "couldn't match commit email to slack profile: %s" e;
-          Lwt.return []
+        if Context.is_status_direct_message_enabled ctx repo.url then begin
+          match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email with
+          (* To send a DM, channel parameter is set to the user id of the recipient *)
+          | Ok res -> Lwt.return [ res.user.id ]
+          | Error e ->
+            log#warn "couldn't match commit email to slack profile: %s" e;
+            Lwt.return []
+        end
+        else Lwt.return []
       in
       let default = Option.to_list cfg.prefix_rules.default_channel in
       let%lwt () = State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status in

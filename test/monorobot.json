@@ -5,6 +5,7 @@
             "default",
             "buildkite/pipeline2"
         ],
+	"enable_direct_message": true,
         "rules": [
             {
                 "on": ["failure"],
