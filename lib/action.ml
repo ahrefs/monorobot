@@ -98,9 +98,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let pipeline = n.context in
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
-    let action_on_match (branches : branch list) =
+    let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
+      let%lwt () = State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status in
       let%lwt direct_message =
-        if Context.is_status_direct_message_enabled ctx repo.url then begin
+        if notify_dm then begin
           match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email with
           (* To send a DM, channel parameter is set to the user id of the recipient *)
           | Ok res -> Lwt.return [ res.user.id ]
@@ -110,9 +111,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         end
         else Lwt.return []
       in
-      let default = Option.to_list cfg.prefix_rules.default_channel in
-      let%lwt () = State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status in
       let%lwt chans =
+        let default = Option.to_list cfg.prefix_rules.default_channel in
+        match notify_channels with
+        | false -> Lwt.return []
+        | true ->
         match List.is_empty branches with
         | true -> Lwt.return []
         | false ->
@@ -134,9 +137,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
       let%lwt repo_state = State.find_or_add_repo ctx.state repo.url in
       match Rule.Status.match_rules ~rules n with
-      | Some Ignore | None -> Lwt.return []
-      | Some Allow -> action_on_match n.branches
-      | Some Allow_once ->
+      | Some (Ignore, _, _) | None -> Lwt.return []
+      | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
+      | Some (Allow_once, notify_channels, notify_dm) ->
       match Map.find repo_state.pipeline_statuses pipeline with
       | Some branch_statuses ->
         let has_same_status_state_as_prev (branch : branch) =
@@ -145,8 +148,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Some state -> Poly.equal state current_status
         in
         let branches = List.filter n.branches ~f:(Fn.non @@ has_same_status_state_as_prev) in
-        action_on_match branches
-      | None -> action_on_match n.branches
+        action_on_match branches ~notify_channels ~notify_dm
+      | None -> action_on_match n.branches ~notify_channels ~notify_dm
     end
     else Lwt.return []
 

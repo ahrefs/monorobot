@@ -44,6 +44,8 @@ type status_rule = {
   trigger <json name="on"> : build_status list;
   ?condition <json name="when"> : status_condition nullable;
   policy : status_policy;
+  ~notify_channels <ocaml default="true">: bool;
+  ~notify_dm <ocaml default="false">: bool;
 }
 
 (* A filename matches a prefix rule with the channel name if it isn't in the ignore
@@ -63,7 +65,7 @@ type status_rule = {
 
    or
 
-   ignore should be ["some/other"] 
+   ignore should be ["some/other"]
 *)
 type prefix_rule = {
   ?allow <json name="match"> : string list nullable;

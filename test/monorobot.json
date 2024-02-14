@@ -5,10 +5,11 @@
             "default",
             "buildkite/pipeline2"
         ],
-	"enable_direct_message": true,
         "rules": [
             {
-                "on": ["failure"],
+                "on": [
+                    "failure"
+                ],
                 "when": {
                     "match": {
                         "field": "description",
@@ -16,6 +17,14 @@
                     }
                 },
                 "policy": "ignore"
+            },
+            {
+                "on": [
+                    "failure",
+                    "error"
+                ],
+                "policy": "allow",
+                "notify_dm": true
             }
         ]
     },

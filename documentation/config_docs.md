@@ -175,7 +175,6 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
         "default",
         "buildkite/monorobot-test"
     ],
-    "enable_direct_message": true,
     "rules": [
         {
             "on": ["failure"],
@@ -187,9 +186,9 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
             },
             "policy": "ignore"
         },
-        { "on": ["pending"], "policy": "ignore"},
-        { "on": ["failure", "error"], "policy": "allow"},
-        { "on": ["success"], "policy": "allow_once"}
+        { "on": ["pending"], "policy": "ignore", "notify_channels": false },
+        { "on": ["failure", "error"], "policy": "allow", "notify_dm": true },
+        { "on": ["success"], "policy": "allow_once" }
     ]
 }
 ```
@@ -197,7 +196,6 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
 | value | description | default |
 |-|-|-|
 | `allowed_pipelines` | a list of pipeline names; if specified, payloads whose pipeline name is not in the list will be ignored immediately, without checking the **status rules** | all pipelines included in the status rule check |
-| `enable_direct_message` | control direct message sent to notify about build status | false |
 | `rules` | a list of **status rules** to determine whether to *allow* or *ignore* a payload for further processing | required field |
 
 ### Status Rules

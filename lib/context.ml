@@ -72,11 +72,6 @@ let is_pipeline_allowed ctx repo_url ~pipeline =
   | Some allowed_pipelines when not @@ List.exists allowed_pipelines ~f:(String.equal pipeline) -> false
   | _ -> true
 
-let is_status_direct_message_enabled ctx repo_url =
-  match find_repo_config ctx repo_url with
-  | None -> true
-  | Some config -> Option.value config.status_rules.enable_direct_message ~default:false
-
 let refresh_secrets ctx =
   let path = ctx.secrets_filepath in
   match get_local_file path with

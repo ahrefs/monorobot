@@ -4,9 +4,9 @@ open Rule_t
 module Status = struct
   let default_rules =
     [
-      { trigger = [ Pending ]; condition = None; policy = Ignore };
-      { trigger = [ Failure; Error ]; condition = None; policy = Allow };
-      { trigger = [ Success ]; condition = None; policy = Allow_once };
+      { trigger = [ Pending ]; condition = None; policy = Ignore; notify_channels = false; notify_dm = false };
+      { trigger = [ Failure; Error ]; condition = None; policy = Allow; notify_channels = true; notify_dm = false };
+      { trigger = [ Success ]; condition = None; policy = Allow_once; notify_channels = true; notify_dm = false };
     ]
 
   (** [match_rules n rs] returns the policy declared by the first rule in [rs]
@@ -29,7 +29,7 @@ module Status = struct
       if
         List.exists ~f:(Poly.equal notification.state) rule.trigger
         && rule.condition |> Option.map ~f:match_condition |> Option.value ~default:true
-      then Some rule.policy
+      then Some (rule.policy, rule.notify_channels, rule.notify_dm)
       else None
     in
     List.find_map (List.append rules default_rules) ~f:match_rule
