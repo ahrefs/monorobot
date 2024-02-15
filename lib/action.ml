@@ -102,7 +102,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       let%lwt () = State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status in
       let%lwt direct_message =
         if notify_dm then begin
-          match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email with
+          match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email () with
           (* To send a DM, channel parameter is set to the user id of the recipient *)
           | Ok res -> Lwt.return [ res.user.id ]
           | Error e ->
