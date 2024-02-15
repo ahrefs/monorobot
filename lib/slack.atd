@@ -70,10 +70,6 @@ type post_message_res = {
   channel: string;
 }
 
-type lookup_user_req = {
-  email: string;
-}
-
 type lookup_user_res = {
   user: user;
 }

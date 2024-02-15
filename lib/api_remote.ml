@@ -121,10 +121,10 @@ module Slack : Api.Slack = struct
   let lookup_user ~(ctx : Context.t) ~(cfg : Config_t.config) ~email =
     (* Check if config holds the Github to Slack email mapping  *)
     let email = List.Assoc.find cfg.user_mappings ~equal:String.equal email |> Option.value ~default:email in
-    let data = Slack_j.string_of_lookup_user_req { Slack_t.email } in
-    request_token_auth ~name:"lookup user by email"
-      ~body:(`Raw ("application/json", data))
-      ~ctx `GET "users.lookupByEmail" Slack_j.read_lookup_user_res
+    let url_args = Web.make_url_args [ "email", email ] in
+    request_token_auth ~name:"lookup user by email" ~ctx `GET
+      (sprintf "users.lookupByEmail?%s" url_args)
+      Slack_j.read_lookup_user_res
 
   (** [send_notification ctx msg] notifies [msg.channel] with the payload [msg];
       uses web API with access token if available, or with webhook otherwise *)
