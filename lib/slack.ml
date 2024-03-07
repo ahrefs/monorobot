@@ -1,5 +1,4 @@
 open Printf
-open Base
 open Common
 open Mrkdwn
 open Github_j
@@ -29,9 +28,9 @@ let pp_link ~url text = sprintf "<%s|%s>" url (Mrkdwn.escape_mrkdwn text)
 let show_labels = function
   | [] -> None
   | (labels : label list) ->
-    Some (sprintf "Labels: %s" @@ String.concat ~sep:", " (List.map ~f:(fun x -> x.name) labels))
+    Some (sprintf "Labels: %s" @@ String.concat ", " (List.map (fun (x : label) -> x.name) labels))
 
-let pluralize ~suf ~len name = if len = 1 then sprintf "%s" name else String.concat [ name; suf ]
+let pluralize ~suf ~len name = if len = 1 then sprintf "%s" name else String.concat "" [ name; suf ]
 
 let markdown_text_attachment ~footer markdown_body =
   [
@@ -66,7 +65,7 @@ let generate_pull_request_notification notification channel =
     sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
       (pp_link ~url:html_url title) action sender.login
   in
-  make_message ~text:summary ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) body) ~channel ()
+  make_message ~text:summary ?attachments:(Option.map (markdown_text_attachment ~footer:None) body) ~channel ()
 
 let generate_pr_review_notification notification channel =
   let { action; sender; pull_request; review; repository } = notification in
@@ -91,7 +90,7 @@ let generate_pr_review_notification notification channel =
       number (pp_link ~url:html_url title)
   in
   make_message ~text:summary
-    ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) review.body)
+    ?attachments:(Option.map (markdown_text_attachment ~footer:None) review.body)
     ~channel ()
 
 let generate_pr_review_comment_notification notification channel =
@@ -136,7 +135,7 @@ let generate_issue_notification notification channel =
     sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number (pp_link ~url:html_url title)
       action sender.login
   in
-  make_message ~text:summary ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) body) ~channel ()
+  make_message ~text:summary ?attachments:(Option.map (markdown_text_attachment ~footer:None) body) ~channel ()
 
 let generate_issue_comment_notification notification channel =
   let { action; issue; sender; comment; repository } = notification in
@@ -157,7 +156,7 @@ let generate_issue_comment_notification notification channel =
   in
   make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:None comment.body) ~channel ()
 
-let git_short_sha_hash hash = String.sub ~pos:0 ~len:8 hash
+let git_short_sha_hash hash = String.sub hash 0 8
 
 (** pretty print github commit *)
 let pp_commit_common url id message author =
@@ -180,11 +179,11 @@ let pp_list_with_previews ~pp_item list =
   let num_shown = 7 in
   let dropped = num_items - num_shown in
   if dropped > 3 then begin
-    let h, list' = List.split_n list (num_shown / 2) in
-    let t = List.drop list' dropped in
-    List.concat [ List.map ~f:pp_item h; [ sprintf "+%d more...\n" dropped ]; List.map ~f:pp_item t ]
+    let h, list' = ExtLib.List.split_nth (num_shown / 2) list  in
+    let t = ExtLib.List.drop dropped list' in
+    List.concat [ List.map pp_item h; [ sprintf "+%d more...\n" dropped ]; List.map pp_item t ]
   end
-  else List.map ~f:pp_item list
+  else List.map pp_item list
 
 let generate_push_notification notification channel =
   let { sender; pusher; created; deleted; forced; compare; commits; repository; _ } = notification in
@@ -203,7 +202,7 @@ let generate_push_notification notification channel =
         num_commits < show_descriptive_title_min_commits
         && (not forced)
         && (not created)
-        && List.for_all ~f:(fun commit -> String.equal commit.author.email pusher.email) commits
+        && List.for_all (fun commit -> String.equal commit.author.email pusher.email) commits
       then commits_preview_lines
       else begin
         let compare =
@@ -221,7 +220,7 @@ let generate_push_notification notification channel =
         descriptive_title :: commits_preview_lines
       end
     in
-    make_message ~username ~channel ~text:(String.concat ~sep:"\n" lines) ()
+    make_message ~username ~channel ~text:(String.concat "\n" lines) ()
 
 let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
@@ -252,18 +251,18 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
     [ sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message) author.login ]
   in
   let branches_info =
-    match List.map ~f:(fun { name } -> name) notification.branches with
+    match List.map (fun ({ name } : branch) -> name) notification.branches with
     | [] -> [] (* happens when branch is force-pushed by the time CI notification arrives *)
     | notification_branches ->
       let branches =
         match cfg.main_branch_name with
-        | Some main when List.mem notification_branches main ~equal:String.equal ->
+        | Some main when List.mem main notification_branches ->
           (* happens when new branches are branched before CI finishes *)
           [ main ]
         | _ -> notification_branches
       in
       [
-        sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ~sep:", " branches);
+        sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ", " branches);
       ]
   in
   let summary =
@@ -275,7 +274,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name target_url
         context state_info
   in
-  let msg = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] in
+  let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info ] in
   let attachment =
     {
       empty_attachments with
@@ -311,12 +310,12 @@ let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match signing_key with
   | None -> Ok ()
   | Some key ->
-  match List.Assoc.find headers "x-slack-signature" ~equal:String.equal with
+  match List.find_opt (fun (k, _) -> String.equal k "x-slack-signature") headers with
   | None -> Error "unable to find header X-Slack-Signature"
-  | Some signature ->
-  match List.Assoc.find headers "x-slack-request-timestamp" ~equal:String.equal with
+  | Some (_, signature) ->
+  match List.find_opt (fun (k, _) -> String.equal k "x-slack-signature") headers with
   | None -> Error "unable to find header X-Slack-Request-Timestamp"
-  | Some timestamp ->
+  | Some (_, timestamp) ->
     let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
     let expected_signature = Printf.sprintf "%s=%s" version (Common.sign_string_sha256 ~key ~basestring) in
     if String.equal expected_signature signature then Ok () else Error "signatures don't match"

@@ -10,6 +10,9 @@ module StringMap = struct
   let of_list (m : (string * 'a) list) : 'a t = List.to_seq m |> Map.of_seq
   let wrap = of_list
   let unwrap = to_list
+  let of_list_multi (m : (string * 'a) list) : 'a list t =
+    let update v = function None -> Some [v] | Some vs -> Some (v :: vs) in
+    List.fold_right (fun (k, v) b -> Map.update k (update v) b) m empty
 end
 
 module Stringtbl = struct
@@ -53,7 +56,7 @@ let http_request ?headers ?body meth path =
 let get_local_file path = try Ok (Std.input_file path) with exn -> fmt_error "%s" (Exn.to_string exn)
 
 let write_to_local_file ~data path =
-  try Ok (Devkit.Files.save_as path (fun oc -> Stdio.Out_channel.fprintf oc "%s" data))
+  try Ok (Devkit.Files.save_as path (fun oc -> Printf.fprintf oc "%s" data))
   with exn -> fmt_error "%s" (Exn.to_string exn)
 
 let longest_common_prefix xs =
@@ -67,7 +70,10 @@ let sign_string_sha256 ~key ~basestring =
 
 let dedup_and_sort ~compare l =
   List.fold_right
-    (fun s (last, l) -> if Some s != last then (Some s, s :: l) else (last, l))
+    (fun s (last, l) ->
+      match last with
+      | None -> (Some s, s :: l)
+      | Some last -> if compare s last == 0 then (Some last, l) else (Some s, s :: l))
     (List.sort compare l)
     (None, [])
   |> snd

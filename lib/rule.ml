@@ -58,7 +58,9 @@ module Prefix = struct
   let match_rules filename ~rules =
     let max_elt t =
       let compare a b = Int.compare (snd a) (snd b) in
-      List.fold_left (fun a b -> if a = None || compare b (Option.get a) > 0 then Some b else a) None t in
+      match t with
+      | [] -> None
+      | v :: vs -> Some (List.fold_left (fun a b -> if compare b a > 0 then b else a) v vs) in
     let is_prefix prefix = Stre.starts_with filename prefix in
     let match_rule (rule : prefix_rule) =
       match rule.ignore with
@@ -82,14 +84,14 @@ module Prefix = struct
     |> List.iter (fun (rule : prefix_rule) ->
          begin
            match rule.allow, rule.ignore with
-           | None, None -> Stdio.printf "  any"
-           | None, Some [] -> Stdio.printf "  any"
-           | None, Some l -> Stdio.printf "  not %s" (show_match l)
-           | Some l, None -> Stdio.printf "  %s" (show_match l)
-           | Some l, Some [] -> Stdio.printf "  %s" (show_match l)
-           | Some l, Some i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
+           | None, None -> Printf.printf "  any"
+           | None, Some [] -> Printf.printf "  any"
+           | None, Some l -> Printf.printf "  not %s" (show_match l)
+           | Some l, None -> Printf.printf "  %s" (show_match l)
+           | Some l, Some [] -> Printf.printf "  %s" (show_match l)
+           | Some l, Some i -> Printf.printf "  %s and not %s" (show_match l) (show_match i)
          end;
-         Stdio.printf " -> #%s\n%!" rule.channel_name
+         Printf.printf " -> #%s\n%!" rule.channel_name
        )
 end
 
@@ -118,14 +120,14 @@ module Label = struct
     |> List.iter (fun (rule : label_rule) ->
          begin
            match rule.allow, rule.ignore with
-           | None, None -> Stdio.printf "  any"
-           | None, Some [] -> Stdio.printf "  any"
-           | None, Some l -> Stdio.printf "  not %s" (show_match l)
-           | Some l, None -> Stdio.printf "  %s" (show_match l)
-           | Some l, Some [] -> Stdio.printf "  %s" (show_match l)
-           | Some l, Some i -> Stdio.printf "  %s and not %s" (show_match l) (show_match i)
+           | None, None -> Printf.printf "  any"
+           | None, Some [] -> Printf.printf "  any"
+           | None, Some l -> Printf.printf "  not %s" (show_match l)
+           | Some l, None -> Printf.printf "  %s" (show_match l)
+           | Some l, Some [] -> Printf.printf "  %s" (show_match l)
+           | Some l, Some i -> Printf.printf "  %s and not %s" (show_match l) (show_match i)
          end;
-         Stdio.printf " -> #%s\n%!" rule.channel_name
+         Printf.printf " -> #%s\n%!" rule.channel_name
        )
 end
 

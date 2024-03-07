@@ -1,4 +1,3 @@
-open Base
 open Devkit
 open Lib
 module Filename = Stdlib.Filename
@@ -18,20 +17,20 @@ module Action_local = Action.Action (Api_local.Github) (Api_local.Slack)
 
 let get_sorted_files_from dir =
   let files = Sys.readdir dir in
-  Array.sort files ~compare:String.compare;
+  Array.sort String.compare files;
   Array.to_list files
 
 let get_mock_payloads () =
   get_sorted_files_from mock_payload_dir
-  |> List.filter_map ~f:(fun fn -> Github.event_of_filename fn |> Option.map ~f:(fun kind -> kind, fn))
-  |> List.map ~f:(fun (kind, fn) ->
+  |> List.filter_map (fun fn -> Github.event_of_filename fn |> Option.map (fun kind -> kind, fn))
+  |> List.map (fun (kind, fn) ->
        let payload_path = Filename.concat mock_payload_dir fn in
        let state_path = Filename.concat mock_state_dir fn in
        if Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None
      )
 
 let get_mock_slack_events () =
-  List.map (get_sorted_files_from mock_slack_event_dir) ~f:(Filename.concat mock_slack_event_dir)
+  List.map (Filename.concat mock_slack_event_dir) (get_sorted_files_from mock_slack_event_dir)
 
 let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =
   let headers = [ "x-github-event", kind ] in
@@ -57,7 +56,7 @@ let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_
       Context.set_repo_config ctx repo.url config;
       Lwt.return ctx
   in
-  Stdio.printf "===== file %s =====\n" path;
+  Printf.printf "===== file %s =====\n" path;
   let headers = [ "x-github-event", kind ] in
   match Common.get_local_file path with
   | Error e -> Lwt.return @@ log#error "failed to read %s: %s" path e
@@ -70,7 +69,7 @@ let process_slack_event ~(secrets : Config_t.secrets) path =
   let ctx = Context.make () in
   ctx.secrets <- Some secrets;
   State.set_bot_user_id ctx.state "bot_user";
-  Stdio.printf "===== file %s =====\n" path;
+  Printf.printf "===== file %s =====\n" path;
   match Common.get_local_file path with
   | Error e -> Lwt.return @@ log#error "failed to read %s: %s" path e
   | Ok body ->
@@ -106,8 +105,8 @@ let () =
     | Ok config ->
     match Context.refresh_secrets ctx with
     | Ok ctx ->
-      let%lwt () = Lwt_list.iter_s (process_gh_payload ~secrets:(Option.value_exn ctx.secrets) ~config) payloads in
-      Lwt_list.iter_s (process_slack_event ~secrets:(Option.value_exn ctx.secrets)) slack_events
+      let%lwt () = Lwt_list.iter_s (process_gh_payload ~secrets:(Option.get ctx.secrets) ~config) payloads in
+      Lwt_list.iter_s (process_slack_event ~secrets:(Option.get ctx.secrets)) slack_events
     | Error e ->
       log#error "failed to read secrets:";
       log#error "%s" e;

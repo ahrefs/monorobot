@@ -1,4 +1,3 @@
-open Base
 open Github_t
 open Slack_t
 

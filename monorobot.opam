@@ -15,7 +15,6 @@ depends: [
  "atd" {>= "2.2.1"}
  "atdgen" {>= "2.2.1"}
  "atdgen-runtime" {>= "2.2.1"}
- "base" {>= "v0.13.0"}
  "base64" {>= "3.0.0"}
  "biniou"
  "cmdliner" {>= "1.1.0"}
@@ -27,7 +26,6 @@ depends: [
  "lwt_ppx" {>= "2.0.0"}
  "nocrypto"
  "re2"
- "stdio"
  "uri"
  "omd" {< "2"}
  "yojson"
