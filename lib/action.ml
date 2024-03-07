@@ -140,10 +140,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Some (Ignore, _, _) | None -> Lwt.return []
       | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
       | Some (Allow_once, notify_channels, notify_dm) ->
-      match Map.find repo_state.pipeline_statuses pipeline with
+      match StringMap.find_opt pipeline repo_state.pipeline_statuses with
       | Some branch_statuses ->
         let has_same_status_state_as_prev (branch : branch) =
-          match Map.find branch_statuses branch.name with
+          match StringMap.find_opt branch.name branch_statuses with
           | None -> false
           | Some state -> Poly.equal state current_status
         in
@@ -383,7 +383,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     else begin
       let links = List.map event.links ~f:(fun l -> l.url) in
       let%lwt unfurls = List.map links ~f:process |> Lwt.all |> Lwt.map List.filter_opt |> Lwt.map StringMap.of_list in
-      if Map.is_empty unfurls then Lwt.return "ignored: no links to unfurl"
+      if StringMap.is_empty unfurls then Lwt.return "ignored: no links to unfurl"
       else begin
         match%lwt Slack_api.send_chat_unfurl ~ctx ~channel:event.channel ~ts:event.message_ts ~unfurls () with
         | Ok () -> Lwt.return "ok"

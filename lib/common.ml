@@ -1,23 +1,22 @@
-open Base
-
 module StringMap = struct
-  type 'a t = 'a Map.M(String).t
+  module Map = Map.Make(String)
+  include Map
+  type 'a t = 'a Map.t
 
-  let empty : 'a t = Map.empty (module String)
-  let to_list (l : 'a t) : (string * 'a) list = Map.to_alist l
-  let of_list (m : (string * 'a) list) : 'a t = Map.of_alist_exn (module String) m
+  let empty : 'a t = Map.empty
+  let to_list (l : 'a t) : (string * 'a) list = Map.to_seq l |> List.of_seq
+  let of_list (m : (string * 'a) list) : 'a t = List.to_seq m |> Map.of_seq
   let wrap = of_list
   let unwrap = to_list
 end
 
 module Stringtbl = struct
   include Hashtbl
+  type 'a t = (string, 'a) Hashtbl.t
 
-  type 'a t = 'a Hashtbl.M(String).t
-
-  let empty () = Hashtbl.create (module String)
-  let to_list (l : 'a t) : (string * 'a) list = Hashtbl.to_alist l
-  let of_list (m : (string * 'a) list) : 'a t = Hashtbl.of_alist_exn (module String) m
+  let empty () = Hashtbl.create 0
+  let to_list (l : 'a t) : (string * 'a) list = Hashtbl.to_seq l |> List.of_seq
+  let of_list (m : (string * 'a) list) : 'a t = List.to_seq m |> Hashtbl.of_seq
   let wrap = of_list
   let unwrap = to_list
 end
@@ -34,12 +33,11 @@ open Devkit
 let fmt_error fmt = Printf.ksprintf (fun s -> Error s) fmt
 
 let first_line s =
-  match String.split ~on:'\n' s with
+  match String.split_on_char '\n' s with
   | x :: _ -> x
   | [] -> s
 
-let decode_string_pad s =
-  String.rstrip ~drop:(List.mem [ '='; ' '; '\n'; '\r'; '\t' ] ~equal:Char.equal) s |> Base64.decode_exn ~pad:false
+let decode_string_pad s = Stre.rstrip ~chars:"= \n\r\t" s |> Base64.decode_exn ~pad:false
 
 let http_request ?headers ?body meth path =
   let setup h =
@@ -60,7 +58,7 @@ let longest_common_prefix xs =
   match xs with
   | [] -> ""
   | [ x ] -> x
-  | x :: _ -> String.sub x ~pos:0 ~len:(Stre.common_prefix x (List.sort xs ~compare:String.compare |> List.last_exn))
+  | x :: _ -> String.sub x 0 (Stre.common_prefix x (List.sort String.compare xs |> List.rev |> List.hd))
 
 let sign_string_sha256 ~key ~basestring =
   Cstruct.of_string basestring |> Nocrypto.Hash.SHA256.hmac ~key:(Cstruct.of_string key) |> Hex.of_cstruct |> Hex.show

@@ -36,14 +36,14 @@ let get_secrets_exn ctx =
   | None -> context_error "secrets is uninitialized"
   | Some secrets -> secrets
 
-let find_repo_config ctx repo_url = Stringtbl.find ctx.config repo_url
+let find_repo_config ctx repo_url = Stringtbl.find_opt ctx.config repo_url
 
 let find_repo_config_exn ctx repo_url =
   match find_repo_config ctx repo_url with
   | None -> context_error "config uninitialized for repo %s" repo_url
   | Some config -> config
 
-let set_repo_config ctx repo_url config = Stringtbl.set ctx.config ~key:repo_url ~data:config
+let set_repo_config ctx repo_url config = Stringtbl.replace ctx.config repo_url config
 
 let gh_token_of_secrets (secrets : Config_t.secrets) repo_url =
   match List.find secrets.repos ~f:(fun r -> String.equal r.Config_t.url repo_url) with
