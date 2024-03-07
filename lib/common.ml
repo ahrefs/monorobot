@@ -1,3 +1,5 @@
+module StringSet = Set.Make(String)
+
 module StringMap = struct
   module Map = Map.Make(String)
   include Map
@@ -62,3 +64,10 @@ let longest_common_prefix xs =
 
 let sign_string_sha256 ~key ~basestring =
   Cstruct.of_string basestring |> Nocrypto.Hash.SHA256.hmac ~key:(Cstruct.of_string key) |> Hex.of_cstruct |> Hex.show
+
+let dedup_and_sort ~compare l =
+  List.fold_right
+    (fun s (last, l) -> if Some s != last then (Some s, s :: l) else (last, l))
+    (List.sort compare l)
+    (None, [])
+  |> snd

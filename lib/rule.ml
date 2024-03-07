@@ -1,4 +1,5 @@
-open Base
+open Devkit
+open Common
 open Rule_t
 
 module Status = struct
@@ -21,18 +22,18 @@ module Status = struct
         | Target_url -> notification.target_url
       in
       let rec match_condition = function
-        | Match { field; re } -> value_of_field field |> Option.map ~f:(Re2.matches re) |> Option.value ~default:false
-        | All_of conditions -> List.for_all conditions ~f:match_condition
-        | One_of conditions -> List.exists conditions ~f:match_condition
+        | Match { field; re } -> value_of_field field |> Option.map (Re2.matches re) |> Option.default false
+        | All_of conditions -> List.for_all match_condition conditions
+        | One_of conditions -> List.exists match_condition conditions
         | Not condition -> not @@ match_condition condition
       in
       if
-        List.exists ~f:(Poly.equal notification.state) rule.trigger
-        && rule.condition |> Option.map ~f:match_condition |> Option.value ~default:true
+        List.exists ((==) notification.state) rule.trigger
+        && rule.condition |> Option.map match_condition |> Option.default true
       then Some (rule.policy, rule.notify_channels, rule.notify_dm)
       else None
     in
-    List.find_map (List.append rules default_rules) ~f:match_rule
+    List.find_map match_rule (List.append rules default_rules)
 end
 
 module Prefix = struct
@@ -41,7 +42,7 @@ module Prefix = struct
       if no filter is matched. *)
   let filter_by_branch ~branch ~main_branch ~distinct rule =
     match rule.branch_filters with
-    | Some (_ :: _ as filters) -> List.mem filters branch ~equal:String.equal
+    | Some (_ :: _ as filters) -> List.mem branch filters
     | Some [] -> distinct
     | None ->
     match main_branch with
@@ -55,28 +56,30 @@ module Prefix = struct
       allow list is considered a prefix match of length 0. The ignore list is
       evaluated before the allow list. *)
   let match_rules filename ~rules =
-    let compare a b = Int.compare (snd a) (snd b) in
-    let is_prefix prefix = String.is_prefix filename ~prefix in
+    let max_elt t =
+      let compare a b = Int.compare (snd a) (snd b) in
+      List.fold_left (fun a b -> if a = None || compare b (Option.get a) > 0 then Some b else a) None t in
+    let is_prefix prefix = Stre.starts_with filename prefix in
     let match_rule (rule : prefix_rule) =
       match rule.ignore with
-      | Some ignore_list when List.exists ignore_list ~f:is_prefix -> None
+      | Some ignore_list when List.exists is_prefix ignore_list -> None
       | _ ->
       match rule.allow with
       | None | Some [] -> Some (rule, 0)
       | Some allow_list ->
         allow_list
-        |> List.filter_map ~f:(fun p -> if is_prefix p then Some (rule, String.length p) else None)
-        |> List.max_elt ~compare
+        |> List.filter_map (fun p -> if is_prefix p then Some (rule, String.length p) else None)
+        |> max_elt
     in
     rules
-    |> List.filter_map ~f:match_rule
-    |> List.max_elt ~compare
-    |> Option.map ~f:(fun (res : prefix_rule * int) -> (fst res).channel_name)
+    |> List.filter_map match_rule
+    |> max_elt
+    |> Option.map (fun (res : prefix_rule * int) -> (fst res).channel_name)
 
   let print_prefix_routing rules =
-    let show_match l = String.concat ~sep:" or " @@ List.map ~f:(fun s -> s ^ "*") l in
+    let show_match l = String.concat " or " @@ List.map (fun s -> s ^ "*") l in
     rules
-    |> List.iter ~f:(fun (rule : prefix_rule) ->
+    |> List.iter (fun (rule : prefix_rule) ->
          begin
            match rule.allow, rule.ignore with
            | None, None -> Stdio.printf "  any"
@@ -97,22 +100,22 @@ module Label = struct
       comparison is case insensitive. An undefined allow list is considered a
       match. The ignore list is evaluated before the allow list. *)
   let match_rules (label : Github_t.label) ~rules =
-    let label_name = String.lowercase label.name in
-    let label_name_equal name = String.equal label_name (String.lowercase name) in
+    let label_name = String.lowercase_ascii label.name in
+    let label_name_equal name = String.equal label_name (String.lowercase_ascii name) in
     let match_rule rule =
       match rule.ignore with
-      | Some ignore_list when List.exists ignore_list ~f:label_name_equal -> None
+      | Some ignore_list when List.exists label_name_equal ignore_list -> None
       | _ ->
       match rule.allow with
       | None | Some [] -> Some rule.channel_name
-      | Some allow_list -> if List.exists allow_list ~f:label_name_equal then Some rule.channel_name else None
+      | Some allow_list -> if List.exists label_name_equal allow_list then Some rule.channel_name else None
     in
-    rules |> List.filter_map ~f:match_rule |> List.dedup_and_sort ~compare:String.compare
+    rules |> List.filter_map match_rule |> dedup_and_sort ~compare:String.compare
 
   let print_label_routing rules =
-    let show_match l = String.concat ~sep:" or " l in
+    let show_match l = String.concat " or " l in
     rules
-    |> List.iter ~f:(fun (rule : label_rule) ->
+    |> List.iter (fun (rule : label_rule) ->
          begin
            match rule.allow, rule.ignore with
            | None, None -> Stdio.printf "  any"
@@ -131,19 +134,20 @@ module Project_owners = struct
     match pr_labels with
     | [] -> []
     | _ :: _ ->
-      let pr_labels_set = List.map ~f:(fun (l : Github_t.label) -> l.name) pr_labels |> Set.of_list (module String) in
-      List.fold rules
-        ~init:(Set.empty (module String))
-        ~f:(fun results_set { label; labels; owners } ->
+      let pr_labels_set = List.map (fun (l : Github_t.label) -> l.name) pr_labels |> StringSet.of_list in
+      List.fold_left
+        (fun results_set { label; labels; owners } ->
           match owners with
           | [] -> results_set
           | _ :: _ ->
-          match Option.to_list label @ labels with
+          match Stdlib.Option.to_list label @ labels with
           | [] -> results_set
           | labels ->
-          match Set.is_subset (Set.of_list (module String) labels) ~of_:pr_labels_set with
+          match StringSet.subset (StringSet.of_list labels) pr_labels_set with
           | false -> results_set
-          | true -> List.fold owners ~init:results_set ~f:Set.add
+          | true -> List.fold_left (fun a s -> StringSet.add s a) results_set owners
         )
-      |> Set.to_list
+        StringSet.empty
+        rules
+      |> StringSet.to_seq |> List.of_seq
 end

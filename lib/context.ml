@@ -1,4 +1,3 @@
-open Base
 open Common
 open Devkit
 module Sys = Stdlib.Sys
@@ -23,8 +22,8 @@ let default_secrets_filepath = "secrets.json"
 
 let make ?config_filename ?secrets_filepath ?state_filepath () =
   {
-    config_filename = Option.value config_filename ~default:default_config_filename;
-    secrets_filepath = Option.value secrets_filepath ~default:default_secrets_filepath;
+    config_filename = Option.default default_config_filename config_filename;
+    secrets_filepath = Option.default default_secrets_filepath secrets_filepath;
     state_filepath;
     secrets = None;
     config = Stringtbl.empty ();
@@ -46,18 +45,18 @@ let find_repo_config_exn ctx repo_url =
 let set_repo_config ctx repo_url config = Stringtbl.replace ctx.config repo_url config
 
 let gh_token_of_secrets (secrets : Config_t.secrets) repo_url =
-  match List.find secrets.repos ~f:(fun r -> String.equal r.Config_t.url repo_url) with
+  match List.find_opt (fun r -> String.equal r.Config_t.url repo_url) secrets.repos with
   | None -> None
   | Some repos -> repos.gh_token
 
 let gh_hook_secret_token_of_secrets (secrets : Config_t.secrets) repo_url =
-  match List.find secrets.repos ~f:(fun r -> String.equal r.Config_t.url repo_url) with
+  match List.find_opt (fun r -> String.equal r.Config_t.url repo_url) secrets.repos with
   | None -> None
   | Some repos -> repos.gh_hook_secret
 
 let hook_of_channel ctx channel_name =
   let secrets = get_secrets_exn ctx in
-  match List.find secrets.slack_hooks ~f:(fun webhook -> String.equal webhook.channel channel_name) with
+  match List.find_opt (fun (webhook : Config_t.webhook) -> String.equal webhook.channel channel_name) secrets.slack_hooks with
   | Some hook -> Some hook.url
   | None -> None
 
@@ -69,7 +68,7 @@ let is_pipeline_allowed ctx repo_url ~pipeline =
   | None -> true
   | Some config ->
   match config.status_rules.allowed_pipelines with
-  | Some allowed_pipelines when not @@ List.exists allowed_pipelines ~f:(String.equal pipeline) -> false
+  | Some allowed_pipelines when not @@ List.mem pipeline allowed_pipelines -> false
   | _ -> true
 
 let refresh_secrets ctx =
