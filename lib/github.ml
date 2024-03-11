@@ -53,7 +53,8 @@ let is_merge_commit_to_ignore ~(cfg : Config_t.config) ~branch commit =
     begin
       match Re2.find_submatches_exn merge_commit_re title with
       | [| Some _; Some incoming_branch; receiving_branch |] ->
-        let receiving_branch = Option.map (fun s -> Stre.drop_prefix s " into ") receiving_branch in (* Should this raise when prefix isn't present? *)
+        let receiving_branch = Option.map (fun s -> Stre.drop_prefix s " into ") receiving_branch in
+        (* Should this raise when prefix isn't present? *)
         String.equal branch incoming_branch || Option.map_default (not $ String.equal branch) false receiving_branch
       | _ -> false
       | exception Re2.Exceptions.Regex_match_failed _ -> false
@@ -185,7 +186,8 @@ let gh_link_of_string url_str =
   | false -> None
   | true ->
     let path =
-      Stre.drop_prefix path "/" |> flip Stre.drop_suffix "/" |> flip Stre.nsplitc '/' |> List.map Web.urldecode in
+      Stre.drop_prefix path "/" |> flip Stre.drop_suffix "/" |> flip Stre.nsplitc '/' |> List.map Web.urldecode
+    in
     let make_repo ~prefix ~owner ~name =
       let base = String.concat "/" (List.rev prefix) in
       let scheme = Uri.scheme url in

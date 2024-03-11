@@ -89,9 +89,7 @@ let generate_pr_review_notification notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
       number (pp_link ~url:html_url title)
   in
-  make_message ~text:summary
-    ?attachments:(Option.map (markdown_text_attachment ~footer:None) review.body)
-    ~channel ()
+  make_message ~text:summary ?attachments:(Option.map (markdown_text_attachment ~footer:None) review.body) ~channel ()
 
 let generate_pr_review_comment_notification notification channel =
   let { action; pull_request; sender; comment; repository } = notification in
@@ -179,7 +177,7 @@ let pp_list_with_previews ~pp_item list =
   let num_shown = 7 in
   let dropped = num_items - num_shown in
   if dropped > 3 then begin
-    let h, list' = ExtLib.List.split_nth (num_shown / 2) list  in
+    let h, list' = ExtLib.List.split_nth (num_shown / 2) list in
     let t = ExtLib.List.drop dropped list' in
     List.concat [ List.map pp_item h; [ sprintf "+%d more...\n" dropped ]; List.map pp_item t ]
   end
@@ -261,9 +259,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
           [ main ]
         | _ -> notification_branches
       in
-      [
-        sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ", " branches);
-      ]
+      [ sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ", " branches) ]
   in
   let summary =
     match target_url with
@@ -310,7 +306,7 @@ let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match signing_key with
   | None -> Ok ()
   | Some key ->
-  match List.assoc_opt  "x-slack-signature" headers with
+  match List.assoc_opt "x-slack-signature" headers with
   | None -> Error "unable to find header X-Slack-Signature"
   | Some signature ->
   match List.assoc_opt "x-slack-signature" headers with

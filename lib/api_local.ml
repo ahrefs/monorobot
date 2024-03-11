@@ -19,7 +19,7 @@ let with_cache_file url f =
   | Ok file -> Lwt.return_ok (f file)
 
 let rec clean_forward_slashes str =
-  let (cont, ns) = ExtLib.String.replace ~str ~sub:"/" ~by:"_" in
+  let cont, ns = ExtLib.String.replace ~str ~sub:"/" ~by:"_" in
   if cont then clean_forward_slashes ns else ns
 
 (** get a member of the repo cached API call providing
@@ -111,9 +111,9 @@ module Slack_simple : Api.Slack = struct
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
     Printf.printf "will unfurl in #%s\n" channel;
-    let unfurl_text = List.map
-      (fun ((_, unfurl) : string * Slack_t.message_attachment) -> unfurl.text)
-      (StringMap.to_list unfurls) in
+    let unfurl_text =
+      List.map (fun ((_, unfurl) : string * Slack_t.message_attachment) -> unfurl.text) (StringMap.to_list unfurls)
+    in
     Printf.printf "%s\n" (String.concat "\n" (List.filter_map id unfurl_text));
     Lwt.return @@ Ok ()
 

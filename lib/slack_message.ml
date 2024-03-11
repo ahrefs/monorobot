@@ -135,8 +135,9 @@ let condense_file_changes files =
   | [ f ] -> sprintf "_modified `%s` (+%d-%d)_" (escape_mrkdwn f.filename) f.additions f.deletions
   | _ ->
     let rec drop_last = function
-      | [_] | [] -> [] (* Should raise when empty instead? *)
-      | v :: vs -> v :: drop_last vs in
+      | [ _ ] | [] -> [] (* Should raise when empty instead? *)
+      | v :: vs -> v :: drop_last vs
+    in
     let prefix_path =
       List.map (fun f -> f.filename) files
       |> Common.longest_common_prefix
@@ -144,8 +145,7 @@ let condense_file_changes files =
       |> drop_last
       |> String.concat "/"
     in
-    sprintf "modified %d files%s" (List.length files)
-      (if prefix_path = "" then "" else sprintf " in `%s/`" prefix_path)
+    sprintf "modified %d files%s" (List.length files) (if prefix_path = "" then "" else sprintf " in `%s/`" prefix_path)
 
 let populate_commit ?(include_changes = true) repository (api_commit : api_commit) =
   let ({ sha; commit; author; files; _ } : api_commit) = api_commit in

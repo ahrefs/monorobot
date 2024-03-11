@@ -128,13 +128,15 @@ let gh_link_output = function
   | None -> "{None}"
 
 let () =
-  List.iter (fun (input, expected) ->
-    assert (
-      let got = gh_link_of_string input in
-      match got = expected with
-      | true -> true
-      | false ->
-        Printf.printf "for: %s | expected: %s but got %s" input (gh_link_output expected) (gh_link_output got);
-        false
+  List.iter
+    (fun (input, expected) ->
+      assert (
+        let got = gh_link_of_string input in
+        match got = expected with
+        | true -> true
+        | false ->
+          Printf.printf "for: %s | expected: %s but got %s" input (gh_link_output expected) (gh_link_output got);
+          false
+      )
     )
-  ) cases
+    cases

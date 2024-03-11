@@ -28,7 +28,7 @@ module Status = struct
         | Not condition -> not @@ match_condition condition
       in
       if
-        List.exists ((=) notification.state) rule.trigger
+        List.exists (( = ) notification.state) rule.trigger
         && rule.condition |> Option.map match_condition |> Option.default true
       then Some (rule.policy, rule.notify_channels, rule.notify_dm)
       else None
@@ -60,7 +60,8 @@ module Prefix = struct
       let compare a b = Int.compare (snd a) (snd b) in
       match t with
       | [] -> None
-      | v :: vs -> Some (List.fold_left (fun a b -> if compare b a > 0 then b else a) v vs) in
+      | v :: vs -> Some (List.fold_left (fun a b -> if compare b a > 0 then b else a) v vs)
+    in
     let is_prefix prefix = Stre.starts_with filename prefix in
     let match_rule (rule : prefix_rule) =
       match rule.ignore with
@@ -69,9 +70,7 @@ module Prefix = struct
       match rule.allow with
       | None | Some [] -> Some (rule, 0)
       | Some allow_list ->
-        allow_list
-        |> List.filter_map (fun p -> if is_prefix p then Some (rule, String.length p) else None)
-        |> max_elt
+        allow_list |> List.filter_map (fun p -> if is_prefix p then Some (rule, String.length p) else None) |> max_elt
     in
     rules
     |> List.filter_map match_rule
@@ -149,7 +148,7 @@ module Project_owners = struct
           | false -> results_set
           | true -> List.fold_left (fun a s -> StringSet.add s a) results_set owners
         )
-        StringSet.empty
-        rules
-      |> StringSet.to_seq |> List.of_seq
+        StringSet.empty rules
+      |> StringSet.to_seq
+      |> List.of_seq
 end

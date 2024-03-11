@@ -29,9 +29,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
            |> List.filter_map (Rule.Prefix.match_rules ~rules)
            |> List.sort_uniq String.compare
          in
-         let channel_names =
-           if matched_channel_names = [] && commit.distinct then default else matched_channel_names
-         in
+         let channel_names = if matched_channel_names = [] && commit.distinct then default else matched_channel_names in
          List.map (fun n -> n, commit) channel_names
        )
     |> StringMap.of_list_multi
@@ -41,8 +39,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let partition_label (cfg : Config_t.config) (labels : label list) =
     let default = cfg.label_rules.default_channel in
     let rules = cfg.label_rules.rules in
-    labels |> List.concat_map (Rule.Label.match_rules ~rules) |> List.sort_uniq String.compare
-    |> fun channel_names -> if channel_names = [] then Stdlib.Option.to_list default else channel_names
+    labels |> List.concat_map (Rule.Label.match_rules ~rules) |> List.sort_uniq String.compare |> fun channel_names ->
+    if channel_names = [] then Stdlib.Option.to_list default else channel_names
 
   let partition_pr cfg (n : pr_notification) =
     match n.action with
@@ -204,8 +202,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | PR_review_comment n ->
       partition_pr_review_comment cfg n |> List.map (generate_pr_review_comment_notification n) |> Lwt.return
     | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification n) |> Lwt.return
-    | Issue_comment n ->
-      partition_issue_comment cfg n |> List.map (generate_issue_comment_notification n) |> Lwt.return
+    | Issue_comment n -> partition_issue_comment cfg n |> List.map (generate_issue_comment_notification n) |> Lwt.return
     | Commit_comment n ->
       let%lwt channels, api_commit = partition_commit_comment ctx n in
       let notifs = List.map (generate_commit_comment_notification api_commit n) channels in
@@ -323,13 +320,15 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Ok { user_id; _ } ->
         State.set_bot_user_id ctx.state user_id;
         let%lwt () =
-          Option.map (fun path ->
-            match%lwt State.save ctx.state path with
-            | Ok () -> Lwt.return_unit
-            | Error msg ->
-              log#warn "failed to save state file %s : %s" path msg;
-              Lwt.return_unit
-          ) ctx.state_filepath
+          Option.map
+            (fun path ->
+              match%lwt State.save ctx.state path with
+              | Ok () -> Lwt.return_unit
+              | Error msg ->
+                log#warn "failed to save state file %s : %s" path msg;
+                Lwt.return_unit
+            )
+            ctx.state_filepath
           |> Option.default Lwt.return_unit
         in
         Lwt.return_some user_id
@@ -382,7 +381,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     else if is_self_bot_user then Lwt.return "ignored: is bot user"
     else begin
       let links = List.map (fun (l : Slack_t.link_shared_link) -> l.url) event.links in
-      let%lwt unfurls = List.map process links |> Lwt.all |> Lwt.map (List.filter_map id) |> Lwt.map StringMap.of_list in
+      let%lwt unfurls =
+        List.map process links |> Lwt.all |> Lwt.map (List.filter_map id) |> Lwt.map StringMap.of_list
+      in
       if StringMap.is_empty unfurls then Lwt.return "ignored: no links to unfurl"
       else begin
         match%lwt Slack_api.send_chat_unfurl ~ctx ~channel:event.channel ~ts:event.message_ts ~unfurls () with

@@ -40,7 +40,10 @@ module Github : Api.Github = struct
       | "base64" ->
         begin
           try
-            response.content |> Re2.rewrite_exn (Re2.wrap "\n") ~template:"" |> decode_string_pad |> Config_j.config_of_string
+            response.content
+            |> Re2.rewrite_exn (Re2.wrap "\n") ~template:""
+            |> decode_string_pad
+            |> Config_j.config_of_string
             |> fun res -> Lwt.return @@ Ok res
           with exn ->
             let e = Exn.to_string exn in
