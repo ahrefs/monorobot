@@ -26,6 +26,8 @@ module type Slack = sig
     unit ->
     lookup_user_res slack_response Lwt.t
 
+  val lookup_github_user : ctx:Context.t -> cfg:Config_t.config -> github_user:github_user -> lookup_user_res slack_response Lwt.t
+
   val send_notification : ctx:Context.t -> msg:post_message_req -> unit slack_response Lwt.t
 
   val send_chat_unfurl
