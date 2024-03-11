@@ -28,7 +28,7 @@ module Status = struct
         | Not condition -> not @@ match_condition condition
       in
       if
-        List.exists ((==) notification.state) rule.trigger
+        List.exists ((=) notification.state) rule.trigger
         && rule.condition |> Option.map match_condition |> Option.default true
       then Some (rule.policy, rule.notify_channels, rule.notify_dm)
       else None
@@ -112,7 +112,7 @@ module Label = struct
       | None | Some [] -> Some rule.channel_name
       | Some allow_list -> if List.exists label_name_equal allow_list then Some rule.channel_name else None
     in
-    rules |> List.filter_map match_rule |> dedup_and_sort ~compare:String.compare
+    rules |> List.filter_map match_rule |> List.sort_uniq String.compare
 
   let print_label_routing rules =
     let show_match l = String.concat " or " l in

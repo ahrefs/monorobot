@@ -74,9 +74,9 @@ let validate_signature ?signing_key ~headers body =
   match signing_key with
   | None -> Ok ()
   | Some secret ->
-  match List.find_opt (fun (k, _) -> String.equal k "x-hub-signature") headers with
+  match List.assoc_opt "x-hub-signature" headers with
   | None -> Error "unable to find header x-hub-signature"
-  | Some (_, signature) -> if is_valid_signature ~secret signature body then Ok () else Error "signatures don't match"
+  | Some signature -> if is_valid_signature ~secret signature body then Ok () else Error "signatures don't match"
 
 (** Parse a payload. The type of the payload is detected from the headers.
 
@@ -105,9 +105,9 @@ let parse_exn headers body =
   let print_opt f v = Option.map_default f "none" v in
   let print_comment_preview = Stre.shorten ~escape:true 40 in
   let print_commit_hash s = String.sub s 0 (min 8 @@ String.length s) in
-  match List.find_opt (fun (k, _) -> String.equal k "x-github-event") headers with
+  match List.assoc_opt "x-github-event" headers with
   | None -> Exn.fail "header x-github-event not found"
-  | Some (_, event) ->
+  | Some event ->
   match event with
   | "push" ->
     let n = commit_pushed_notification_of_string body in
@@ -181,16 +181,16 @@ let gh_link_of_string url_str =
   match Uri.host url with
   | None -> None
   | Some host ->
-  match (if Stre.starts_with path "/" then Some (Stre.drop_prefix path "/") else None) with
-  (* match String.chop_prefix path ~prefix:"/" with *)
-  | None -> None
-  | Some path ->
-    let path = Stre.drop_suffix path "/" |> flip Stre.nsplitc '/' |> List.map Web.urldecode in
+  match Stre.starts_with path "/" with
+  | false -> None
+  | true ->
+    let path =
+      Stre.drop_suffix (Stre.drop_prefix path "/") "/" |> flip Stre.nsplitc '/' |> List.map Web.urldecode in
     let make_repo ~prefix ~owner ~name =
       let base = String.concat "/" (List.rev prefix) in
       let scheme = Uri.scheme url in
       let html_base, api_base =
-        if Stre.drop_suffix base "github.com" != base then gh_com_html_base owner name, gh_com_api_base owner name
+        if Stre.drop_suffix base "github.com" <> base then gh_com_html_base owner name, gh_com_api_base owner name
         else custom_html_base ?scheme base owner name, custom_api_base ?scheme base owner name
       in
       {

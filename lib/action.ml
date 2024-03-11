@@ -27,7 +27,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
          let matched_channel_names =
            Github.modified_files_of_commit commit
            |> List.filter_map (Rule.Prefix.match_rules ~rules)
-           |> dedup_and_sort ~compare:String.compare
+           |> List.sort_uniq String.compare
          in
          let channel_names =
            if matched_channel_names = [] && commit.distinct then default else matched_channel_names
@@ -41,7 +41,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let partition_label (cfg : Config_t.config) (labels : label list) =
     let default = cfg.label_rules.default_channel in
     let rules = cfg.label_rules.rules in
-    labels |> List.concat_map (Rule.Label.match_rules ~rules) |> dedup_and_sort ~compare:String.compare
+    labels |> List.concat_map (Rule.Label.match_rules ~rules) |> List.sort_uniq String.compare
     |> fun channel_names -> if channel_names = [] then Stdlib.Option.to_list default else channel_names
 
   let partition_pr cfg (n : pr_notification) =
@@ -87,7 +87,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let matched_channel_names =
       List.map (fun f -> f.filename) files
       |> List.filter_map (Rule.Prefix.match_rules ~rules)
-      |> dedup_and_sort ~compare:String.compare
+      |> List.sort_uniq String.compare
     in
     if matched_channel_names = [] then default else matched_channel_names
 
@@ -141,12 +141,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Some (Allow_once, notify_channels, notify_dm) ->
       match StringMap.find_opt pipeline repo_state.pipeline_statuses with
       | Some branch_statuses ->
-        let has_different_status_state_from_prev (branch : branch) =
-          not @@ match StringMap.find_opt branch.name branch_statuses with
+        let has_same_status_as_prev (branch : branch) =
+          match StringMap.find_opt branch.name branch_statuses with
           | None -> false
           | Some state -> state = current_status
         in
-        let branches = List.filter has_different_status_state_from_prev n.branches in
+        let branches = List.filter (Fun.negate has_same_status_as_prev) n.branches in
         action_on_match branches ~notify_channels ~notify_dm
       | None -> action_on_match n.branches ~notify_channels ~notify_dm
     end
@@ -376,7 +376,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Some id -> Lwt.return_some id
           | None -> fetch_bot_user_id ()
         in
-        Lwt.return (Option.map (String.equal event.user) bot_user_id |> Option.default false)
+        Lwt.return (Option.map_default (String.equal event.user) false bot_user_id)
     in
     if List.length event.links > 2 then Lwt.return "ignored: more than two links present"
     else if is_self_bot_user then Lwt.return "ignored: is bot user"

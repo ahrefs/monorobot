@@ -4,19 +4,19 @@ open Common
 
 module Github : Api.Github = struct
   let commits_url ~(repo : Github_t.repository) ~sha =
-    snd @@ ExtLib.String.replace ~sub:"{/sha}" ~by:("/" ^ sha) ~str:repo.commits_url
+    ExtLib.String.replace ~sub:"{/sha}" ~by:("/" ^ sha) ~str:repo.commits_url |> snd
 
   let contents_url ~(repo : Github_t.repository) ~path =
-    snd @@ ExtLib.String.replace ~sub:"{+path}" ~by:path ~str:repo.contents_url
+    ExtLib.String.replace ~sub:"{+path}" ~by:path ~str:repo.contents_url |> snd
 
   let pulls_url ~(repo : Github_t.repository) ~number =
-    snd @@ ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.pulls_url
+    ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.pulls_url |> snd
 
   let issues_url ~(repo : Github_t.repository) ~number =
-    snd @@ ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.issues_url
+    ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.issues_url |> snd
 
   let compare_url ~(repo : Github_t.repository) ~basehead:(base, merge) =
-    snd @@ ExtLib.String.replace ~sub:"{/basehead}" ~by:(sprintf "/%s...%s" base merge) ~str:repo.compare_url
+    ExtLib.String.replace ~sub:"{/basehead}" ~by:(sprintf "/%s...%s" base merge) ~str:repo.compare_url |> snd
 
   let build_headers ?token () =
     let headers = [ "Accept: application/vnd.github.v3+json" ] in
@@ -35,7 +35,7 @@ module Github : Api.Github = struct
       | "base64" ->
         begin
           try
-            response.content |> String.split_on_char '\n' |> String.concat "" |> decode_string_pad |> Config_j.config_of_string
+            response.content |> Re2.rewrite_exn (Re2.wrap "\n") ~template:"" |> decode_string_pad |> Config_j.config_of_string
             |> fun res -> Lwt.return @@ Ok res
           with exn ->
             let e = Exn.to_string exn in
@@ -120,8 +120,7 @@ module Slack : Api.Slack = struct
 
   let lookup_user' ~(ctx : Context.t) ~(cfg : Config_t.config) ~email () =
     (* Check if config holds the Github to Slack email mapping  *)
-    let signature_email_opt = List.find_opt (fun (k, _) -> String.equal k email) cfg.user_mappings in
-    let email = Option.map_default snd email signature_email_opt in
+    let email = List.assoc_opt email cfg.user_mappings |> Option.default email in
     let url_args = Web.make_url_args [ "email", email ] in
     match%lwt
       request_token_auth ~name:"lookup user by email" ~ctx `GET

@@ -1,25 +1,22 @@
 module StringSet = Set.Make(String)
 
 module StringMap = struct
-  module Map = Map.Make(String)
-  include Map
-  type 'a t = 'a Map.t
+  include Map.Make(String)
 
-  let empty : 'a t = Map.empty
-  let to_list (l : 'a t) : (string * 'a) list = Map.to_seq l |> List.of_seq
-  let of_list (m : (string * 'a) list) : 'a t = List.to_seq m |> Map.of_seq
+  let to_list (l : 'a t) : (string * 'a) list = to_seq l |> List.of_seq
+  let of_list (m : (string * 'a) list) : 'a t = List.to_seq m |> of_seq
   let wrap = of_list
   let unwrap = to_list
   let of_list_multi (m : (string * 'a) list) : 'a list t =
-    let update v = function None -> Some [v] | Some vs -> Some (v :: vs) in
-    List.fold_right (fun (k, v) b -> Map.update k (update v) b) m empty
+    let update_f v = function None -> Some [v] | Some vs -> Some (v :: vs) in
+    List.fold_right (fun (k, v) b -> update k (update_f v) b) m empty
 end
 
 module Stringtbl = struct
   include Hashtbl
   type 'a t = (string, 'a) Hashtbl.t
 
-  let empty () = Hashtbl.create 0
+  let empty () = Hashtbl.create 1
   let to_list (l : 'a t) : (string * 'a) list = Hashtbl.to_seq l |> List.of_seq
   let of_list (m : (string * 'a) list) : 'a t = List.to_seq m |> Hashtbl.of_seq
   let wrap = of_list
@@ -67,13 +64,3 @@ let longest_common_prefix xs =
 
 let sign_string_sha256 ~key ~basestring =
   Cstruct.of_string basestring |> Nocrypto.Hash.SHA256.hmac ~key:(Cstruct.of_string key) |> Hex.of_cstruct |> Hex.show
-
-let dedup_and_sort ~compare l =
-  List.fold_right
-    (fun s (last, l) ->
-      match last with
-      | None -> (Some s, s :: l)
-      | Some last -> if compare s last == 0 then (Some last, l) else (Some s, s :: l))
-    (List.sort compare l)
-    (None, [])
-  |> snd

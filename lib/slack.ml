@@ -310,12 +310,12 @@ let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match signing_key with
   | None -> Ok ()
   | Some key ->
-  match List.find_opt (fun (k, _) -> String.equal k "x-slack-signature") headers with
+  match List.assoc_opt  "x-slack-signature" headers with
   | None -> Error "unable to find header X-Slack-Signature"
-  | Some (_, signature) ->
-  match List.find_opt (fun (k, _) -> String.equal k "x-slack-signature") headers with
+  | Some signature ->
+  match List.assoc_opt "x-slack-signature" headers with
   | None -> Error "unable to find header X-Slack-Request-Timestamp"
-  | Some (_, timestamp) ->
+  | Some timestamp ->
     let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
     let expected_signature = Printf.sprintf "%s=%s" version (Common.sign_string_sha256 ~key ~basestring) in
     if String.equal expected_signature signature then Ok () else Error "signatures don't match"
