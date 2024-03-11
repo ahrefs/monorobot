@@ -4,19 +4,24 @@ open Common
 
 module Github : Api.Github = struct
   let commits_url ~(repo : Github_t.repository) ~sha =
-    ExtLib.String.replace ~sub:"{/sha}" ~by:("/" ^ sha) ~str:repo.commits_url |> snd
+    let _, url = ExtLib.String.replace ~sub:"{/sha}" ~by:("/" ^ sha) ~str:repo.commits_url in
+    url
 
   let contents_url ~(repo : Github_t.repository) ~path =
-    ExtLib.String.replace ~sub:"{+path}" ~by:path ~str:repo.contents_url |> snd
+    let _, url = ExtLib.String.replace ~sub:"{+path}" ~by:path ~str:repo.contents_url in
+    url
 
   let pulls_url ~(repo : Github_t.repository) ~number =
-    ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.pulls_url |> snd
+    let _, url = ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.pulls_url in
+    url
 
   let issues_url ~(repo : Github_t.repository) ~number =
-    ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.issues_url |> snd
+    let _, url = ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.issues_url in
+    url
 
   let compare_url ~(repo : Github_t.repository) ~basehead:(base, merge) =
-    ExtLib.String.replace ~sub:"{/basehead}" ~by:(sprintf "/%s...%s" base merge) ~str:repo.compare_url |> snd
+    let _, url = ExtLib.String.replace ~sub:"{/basehead}" ~by:(sprintf "/%s...%s" base merge) ~str:repo.compare_url in
+    url
 
   let build_headers ?token () =
     let headers = [ "Accept: application/vnd.github.v3+json" ] in
