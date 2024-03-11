@@ -47,7 +47,7 @@ let markdown_text_attachment ~footer markdown_body =
 let make_message ?username ?text ?attachments ?blocks ~channel () =
   { channel; text; attachments; blocks; username; unfurl_links = Some false; unfurl_media = None }
 
-let generate_pull_request_notification notification channel =
+let generate_pull_request_notification ?sender_slack_id notification channel =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
   let action, body =
@@ -63,12 +63,13 @@ let generate_pull_request_notification notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
+    sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*%s" repository.url repository.full_name number
       (pp_link ~url:html_url title) action sender.login
+      (Option.value_map ~default:"" ~f:(fun slack_id -> sprintf " (<@%s>)" slack_id) sender_slack_id)
   in
   make_message ~text:summary ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) body) ~channel ()
 
-let generate_pr_review_notification notification channel =
+let generate_pr_review_notification ?sender_slack_id notification channel =
   let { action; sender; pull_request; review; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -87,14 +88,16 @@ let generate_pr_review_notification notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
+    sprintf "<%s|[%s]> *%s*%s <%s|%s> #%d %s" repository.url repository.full_name sender.login
+      (Option.value_map ~default:"" ~f:(fun slack_id -> sprintf " (<@%s>)" slack_id) sender_slack_id)
+      review.html_url action_str
       number (pp_link ~url:html_url title)
   in
   make_message ~text:summary
     ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) review.body)
     ~channel ()
 
-let generate_pr_review_comment_notification notification channel =
+let generate_pr_review_comment_notification ?sender_slack_id notification channel =
   let { action; pull_request; sender; comment; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -106,18 +109,22 @@ let generate_pr_review_comment_notification notification channel =
            (string_of_comment_action action)
         )
   in
+  let sender_slack_field =
+    (Option.value_map ~default:"" ~f:(fun slack_id -> sprintf " (<@%s>)" slack_id) sender_slack_id) in
   let summary =
-    sprintf "<%s|[%s]> *%s* %s on #%d %s" repository.url repository.full_name sender.login action_str number
+    sprintf "<%s|[%s]> *%s*%s %s on #%d %s" repository.url repository.full_name sender.login
+      sender_slack_field
+      action_str number
       (pp_link ~url:html_url title)
   in
   let file =
     match comment.path with
     | None -> None
-    | Some a -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url a)
+    | Some a -> Some (sprintf "New comment by %s%s in <%s|%s>" sender.login sender_slack_field comment.html_url a)
   in
   make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:file comment.body) ~channel ()
 
-let generate_issue_notification notification channel =
+let generate_issue_notification ?sender_slack_id notification channel =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
   let { number; body; title; html_url; labels; _ } = issue in
   let action, body =
@@ -133,12 +140,13 @@ let generate_issue_notification notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number (pp_link ~url:html_url title)
-      action sender.login
+    sprintf "<%s|[%s]> Issue #%d %s %s by *%s*%s" repository.url repository.full_name number (pp_link ~url:html_url title)
+      action sender.login (Option.value_map ~default:"" ~f:(fun slack_id -> sprintf " (<@%s>)" slack_id) sender_slack_id)
+
   in
   make_message ~text:summary ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) body) ~channel ()
 
-let generate_issue_comment_notification notification channel =
+let generate_issue_comment_notification ?sender_slack_id notification channel =
   let { action; issue; sender; comment; repository } = notification in
   let { number; title; _ } = issue in
   let action_str =
@@ -152,8 +160,9 @@ let generate_issue_comment_notification notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> *%s* <%s|%s> on #%d %s" repository.url repository.full_name sender.login comment.html_url
-      action_str number (pp_link ~url:issue.html_url title)
+    sprintf "<%s|[%s]> *%s*%s <%s|%s> on #%d %s" repository.url repository.full_name sender.login
+      (Option.value_map ~default:"" ~f:(fun slack_id -> sprintf " (<@%s>)" slack_id) sender_slack_id)
+      comment.html_url action_str number (pp_link ~url:issue.html_url title)
   in
   make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:None comment.body) ~channel ()
 
@@ -186,14 +195,16 @@ let pp_list_with_previews ~pp_item list =
   end
   else List.map ~f:pp_item list
 
-let generate_push_notification notification channel =
+let generate_push_notification ?sender_slack_id notification channel =
   let { sender; pusher; created; deleted; forced; compare; commits; repository; _ } = notification in
   let show_descriptive_title_min_commits = 4 in
   let branch_name = Github.commits_branch_of_ref notification.ref in
   let username = sprintf "%s:%s" repository.name branch_name in
+  let sender_slack_field =
+    (Option.value_map ~default:"" ~f:(fun slack_id -> sprintf " (<@%s>)" slack_id) sender_slack_id) in
   match deleted with
   | true ->
-    let deleted_branch_title = sprintf "%s deleted <%s|branch>" sender.login compare in
+    let deleted_branch_title = sprintf "%s%s deleted <%s|branch>" sender.login sender_slack_field compare in
     make_message ~username ~channel ~text:deleted_branch_title ()
   | false ->
     let commits_preview_lines = pp_list_with_previews ~pp_item:pp_commit commits in
@@ -212,11 +223,11 @@ let generate_push_notification notification channel =
           | _ -> compare
         in
         let descriptive_title =
-          sprintf "<%s|%i %s> %spushed %sby %s" compare num_commits
+          sprintf "<%s|%i %s> %spushed %sby %s%s" compare num_commits
             (pluralize ~suf:"s" ~len:num_commits "commit")
             (if forced then "force-" else "")
             (if created then "to new branch " else "")
-            sender.login
+            sender.login sender_slack_field
         in
         descriptive_title :: commits_preview_lines
       end
@@ -287,7 +298,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   in
   make_message ~text:summary ~attachments:[ attachment ] ~channel ()
 
-let generate_commit_comment_notification api_commit notification channel =
+let generate_commit_comment_notification ?sender_slack_id api_commit notification channel =
   let { commit; _ } = api_commit in
   let { sender; comment; repository; _ } = notification in
   let commit_id =
@@ -295,15 +306,17 @@ let generate_commit_comment_notification api_commit notification channel =
     | None -> invalid_arg "commit id not found"
     | Some c -> c
   in
+  let sender_slack_field =
+    (Option.value_map ~default:"" ~f:(fun slack_id -> sprintf " (<@%s>)" slack_id) sender_slack_id) in
   let summary =
-    sprintf "<%s|[%s]> *%s* commented on `%s` %s" repository.url repository.full_name sender.login
+    sprintf "<%s|[%s]> *%s*%s commented on `%s` %s" repository.url repository.full_name sender.login sender_slack_field
       (pp_link ~url:comment.html_url (git_short_sha_hash commit_id))
       (first_line (Mrkdwn.escape_mrkdwn commit.message))
   in
   let path =
     match comment.path with
     | None -> None
-    | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
+    | Some p -> Some (sprintf "New comment by %s%s in <%s|%s>" sender.login sender_slack_field comment.html_url p)
   in
   make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:path comment.body) ~channel ()
 
