@@ -185,7 +185,7 @@ let gh_link_of_string url_str =
   | false -> None
   | true ->
     let path =
-      Stre.drop_suffix (Stre.drop_prefix path "/") "/" |> flip Stre.nsplitc '/' |> List.map Web.urldecode in
+      Stre.drop_prefix path "/" |> flip Stre.drop_suffix "/" |> flip Stre.nsplitc '/' |> List.map Web.urldecode in
     let make_repo ~prefix ~owner ~name =
       let base = String.concat "/" (List.rev prefix) in
       let scheme = Uri.scheme url in
