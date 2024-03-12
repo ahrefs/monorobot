@@ -1,14 +1,14 @@
 open Omd
 
 (* https://api.slack.com/reference/surfaces/formatting#escaping *)
-let escape_mrkdwn =
+let escape_mrkdwn s =
   let c_map = function
     | '<' -> "&lt;"
     | '>' -> "&gt;"
     | '&' -> "&amp;"
     | c -> String.make 1 c
   in
-  ExtLib.String.fold_left (fun s c -> s ^ c_map c) ""
+  s |> ExtLib.String.explode |> Devkit.Stre.catmap c_map
 
 (** Translates omd AST to a Slack mrkdwn string. Code heavily adapted
     from omd 1.3.1 source.
@@ -120,14 +120,13 @@ let rec mrkdwn_of_md md =
       loop list_indent tl
     | Ol l ->
       nl_if_needed_above b;
-      List.iteri
+      l |> List.iteri
         (fun i li ->
           add_spaces list_indent;
           Printf.bprintf b "%d. " (i + 1);
           loop ~is_in_list:true (list_indent + 4) li;
           nl_if_needed_above b
-        )
-        l;
+        );
       if list_indent = 0 then nl b;
       loop list_indent tl
     | Ulp l ->
