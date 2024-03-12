@@ -434,7 +434,7 @@ will notify #longest-a1
 will notify #id[slack_mail@example.com]
 {
   "channel": "id[slack_mail@example.com]",
-  "text": "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2|buildkite/pipeline2>: failure",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build failed for \"Update README.md\"",
   "attachments": [
     {
       "fallback": null,
@@ -453,7 +453,7 @@ will notify #id[slack_mail@example.com]
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2|buildkite/pipeline2>: failure",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build failed for \"Update README.md\"",
   "attachments": [
     {
       "fallback": null,
@@ -477,7 +477,7 @@ will notify #default
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/Codertocat/Hello-World|[Codertocat/Hello-World]> CI Build Status notification: success",
+  "text": "<https://github.com/Codertocat/Hello-World|[Codertocat/Hello-World]>: Build succeeded for \"Initial commit\"",
   "attachments": [
     {
       "fallback": null,
@@ -496,7 +496,7 @@ will notify #default
 will notify #all-push-events
 {
   "channel": "all-push-events",
-  "text": "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2|buildkite/pipeline2>: success",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build succeeded for \"Update README.md\"",
   "attachments": [
     {
       "fallback": null,
@@ -516,7 +516,7 @@ will notify #all-push-events
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/ahrefs/monorepo|[ahrefs/monorepo]> CI Build Status notification for <https://buildkite.com/org/pipeline2|buildkite/pipeline2>: success",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build succeeded for \"Update README.md\"",
   "attachments": [
     {
       "fallback": null,

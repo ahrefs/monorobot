@@ -227,17 +227,6 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
-  let state_info =
-    match state with
-    | Success -> "success"
-    | Failure -> "failure"
-    | Error -> "error"
-    | _ ->
-      invalid_arg
-        (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s of %s"
-           (string_of_status_state state) sha
-        )
-  in
   let color_info =
     match state with
     | Success -> "good"
@@ -267,9 +256,21 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       ]
   in
   let summary =
+    let state_info =
+      match state with
+      | Success -> "succeeded"
+      | Failure -> "failed"
+      | Error -> "error"
+      | _ ->
+        invalid_arg
+          (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s of %s"
+             (string_of_status_state state) sha
+          )
+    in
+    let commit_message = first_line message in
     match target_url with
     | None ->
-      sprintf "<%s|[%s]> CI Build Status notification: %s" repository.url repository.full_name state_info
+      sprintf "<%s|[%s]>: Build %s for \"%s\"" repository.url repository.full_name state_info commit_message
       (* in case the CI run is not using buildkite *)
     | Some target_url ->
       (* try to compute the pipeline_url based on the `context` (e.g. buildkite/pipeline) and the `target_url` (link to the build) *)
@@ -289,12 +290,8 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
           loop [] (String.split ~on:'/' target_url)
       in
       ( match pipeline_url with
-      | None ->
-        sprintf "<%s|[%s]> CI Build Status notification for %s: %s" repository.url repository.full_name context
-          state_info
-      | Some pipeline_url ->
-        sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name
-          pipeline_url context state_info
+      | None -> sprintf "%s: Build %s for \"%s\"" context state_info commit_message
+      | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url context state_info commit_message
       )
   in
   let msg = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] in
