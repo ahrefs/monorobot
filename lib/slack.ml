@@ -272,8 +272,30 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       sprintf "<%s|[%s]> CI Build Status notification: %s" repository.url repository.full_name state_info
       (* in case the CI run is not using buildkite *)
     | Some target_url ->
-      sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name target_url
-        context state_info
+      (* try to compute the pipeline_url based on the `context` (e.g. buildkite/pipeline) and the `target_url` (link to the build) *)
+      let pipeline_url =
+        let pipeline_name = context |> String.split ~on:'/' |> List.last in
+        match pipeline_name with
+        | None -> None
+        | Some pipeline_name ->
+          let rec loop acc els =
+            match els with
+            | [] -> None
+            | s :: _ when String.(s = pipeline_name) ->
+              let url = pipeline_name :: acc |> List.rev |> String.concat ~sep:"/" in
+              Some url
+            | s :: els -> loop (s :: acc) els
+          in
+          loop [] (String.split ~on:'/' target_url)
+      in
+      ( match pipeline_url with
+      | None ->
+        sprintf "<%s|[%s]> CI Build Status notification for %s: %s" repository.url repository.full_name context
+          state_info
+      | Some pipeline_url ->
+        sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name
+          pipeline_url context state_info
+      )
   in
   let msg = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] in
   let attachment =
