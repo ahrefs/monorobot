@@ -41,7 +41,7 @@ module Github : Api.Github = struct
         begin
           try
             response.content
-            |> Re2.rewrite_exn (Re2.wrap "\n") ~template:""
+            |> Re2.rewrite_exn (Re2.create_exn "\n") ~template:""
             |> decode_string_pad
             |> Config_j.config_of_string
             |> fun res -> Lwt.return @@ Ok res
