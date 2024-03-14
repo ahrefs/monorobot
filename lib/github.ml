@@ -182,7 +182,7 @@ let gh_link_of_string url_str =
   match Uri.host url with
   | None -> None
   | Some host ->
-  match Stre.starts_with path "/" with
+  match String.starts_with path ~prefix:"/" with
   | false -> None
   | true ->
     let path =
@@ -192,7 +192,7 @@ let gh_link_of_string url_str =
       let base = String.concat "/" (List.rev prefix) in
       let scheme = Uri.scheme url in
       let html_base, api_base =
-        if ExtLib.String.ends_with base "github.com" then gh_com_html_base owner name, gh_com_api_base owner name
+        if String.ends_with base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
         else custom_html_base ?scheme base owner name, custom_api_base ?scheme base owner name
       in
       {

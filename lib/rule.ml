@@ -1,4 +1,3 @@
-open Devkit
 open Common
 open Rule_t
 
@@ -62,7 +61,7 @@ module Prefix = struct
       | [] -> None
       | v :: vs -> Some (List.fold_left (fun a b -> if compare b a > 0 then b else a) v vs)
     in
-    let is_prefix prefix = Stre.starts_with filename prefix in
+    let is_prefix prefix = String.starts_with filename ~prefix in
     let match_rule (rule : prefix_rule) =
       match rule.ignore with
       | Some ignore_list when List.exists is_prefix ignore_list -> None

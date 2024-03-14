@@ -55,7 +55,7 @@ let check_gh_action file json config secrets state =
     )
 
 let check_slack_action file secrets =
-  let data = ExtLib.input_file file in
+  let data = In_channel.(with_open_bin file input_all) in
   let ctx = Context.make ~secrets_filepath:secrets () in
   match Slack_j.post_message_req_of_string data with
   | exception exn -> log#error ~exn "unable to parse notification"
