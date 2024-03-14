@@ -113,9 +113,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         match notify_channels with
         | false -> Lwt.return []
         | true ->
-        match branches = [] with
-        | true -> Lwt.return []
-        | false ->
+        match branches with
+        | [] -> Lwt.return []
+        | _ ->
         match cfg.main_branch_name with
         | None -> Lwt.return default
         | Some main_branch_name ->
@@ -141,8 +141,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Some branch_statuses ->
         let has_same_status_as_prev (branch : branch) =
           match StringMap.find_opt branch.name branch_statuses with
-          | None -> false
-          | Some state -> state = current_status
+          | Some state when state = current_status -> true
+          | _ -> false
         in
         let branches = List.filter (Fun.negate has_same_status_as_prev) n.branches in
         action_on_match branches ~notify_channels ~notify_dm
@@ -320,7 +320,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Ok { user_id; _ } ->
         State.set_bot_user_id ctx.state user_id;
         let%lwt () =
-          Option.map
+          ctx.state_filepath
+          |> Option.map_default
             (fun path ->
               match%lwt State.save ctx.state path with
               | Ok () -> Lwt.return_unit
@@ -328,8 +329,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
                 log#warn "failed to save state file %s : %s" path msg;
                 Lwt.return_unit
             )
-            ctx.state_filepath
-          |> Option.default Lwt.return_unit
+            Lwt.return_unit
         in
         Lwt.return_some user_id
       | Error msg ->
