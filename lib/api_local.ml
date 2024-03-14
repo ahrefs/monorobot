@@ -55,6 +55,7 @@ end
 (** The base implementation for local check payload debugging and mocking tests *)
 module Slack_base : Api.Slack = struct
   let lookup_user ?cache:_ ~ctx:_ ~cfg:_ ~email:_ () = Lwt.return @@ Error "undefined for local setup"
+  let list_users ?cursor:_  ?limit:_ ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
   let lookup_github_user ~ctx:_ ~cfg:_ ~github_user:_ = Lwt.return @@ Error "undefined for local setup"
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
   let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error "undefined for local setup"
@@ -72,6 +73,7 @@ module Slack : Api.Slack = struct
         Slack_t.id = sprintf "id[%s]" email;
         name = sprintf "name[%s]" email;
         real_name = sprintf "real_name[%s]" email;
+        profile = { email = Some email }
       }
     in
     let mock_response = { Slack_t.user = mock_user } in
@@ -87,9 +89,34 @@ module Slack : Api.Slack = struct
         Slack_t.id = sprintf "id[%s]" email;
         name = sprintf "name[%s]" "Tester";
         real_name = sprintf "real_name[%s]" "Tester";
+        profile = { email = Some email }
       }
     in
     let mock_response = { Slack_t.user = mock_user } in
+    Lwt.return @@ Ok mock_response
+
+  let list_users ?cursor:_ ?limit:_ ~ctx:_ () =
+    let mock_users = [
+      {
+        Slack_t.id = sprintf "id[%s]" "U06PUSUR2Q1";
+        name = sprintf "name[%s]" "Test";
+        real_name = sprintf "real_name[%s]" "Test";
+        profile = { email = Some "phong.ulus+etc@testdomain.com" }
+      };
+      {
+        Slack_t.id = sprintf "id[%s]" "some_slack_id";
+        name = sprintf "name[%s]" "Test";
+        real_name = sprintf "real_name[%s]" "Test";
+        profile = { email = Some "phong.le@notahrefs.com" }
+      };
+    ]
+    in
+    let mock_response = {
+      Slack_t.ok = true;
+      members = mock_users;
+      response_metadata = [ "ignore", "this" ]
+    }
+    in
     Lwt.return @@ Ok mock_response
 
   let send_notification ~ctx:_ ~msg =

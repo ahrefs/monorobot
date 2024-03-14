@@ -74,10 +74,21 @@ type lookup_user_res = {
   user: user;
 }
 
+type profile = {
+  ?email: string nullable
+}
+
 type user = {
   id: string;
   name: string;
   real_name: string;
+  profile: profile
+}
+
+type list_users_res = {
+  ok: bool;
+  members: user list;
+  response_metadata: (string * string) list <json repr="object">;
 }
 
 type link_shared_link = {

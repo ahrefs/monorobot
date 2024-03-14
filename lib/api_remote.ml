@@ -142,7 +142,28 @@ module Slack : Api.Slack = struct
     | Some user -> Lwt.return_ok user
     | None -> lookup_user' ~ctx ~cfg ~email ()
 
-  let lookup_github_user ~ctx:(ctx : Context.t) ~(cfg : Config_t.config) ~(github_user : Github_t.github_user) =
+  let list_users ?cursor ?limit ~(ctx : Context.t) ()  =
+    let url_options =
+      match cursor with
+      | None -> []
+      | Some cursor -> [ "cursor", cursor ] in
+    let url_options =
+      match limit with
+      | None -> url_options
+      | Some limit -> ("limit", Int.to_string limit) :: url_options in
+    let url_args =
+      match url_options with
+      | [] -> ""
+      | _ -> Web.make_url_args url_options in
+    match%lwt
+      request_token_auth ~name:"list users" ~ctx `GET
+        (sprintf "users.list?%s" url_args)
+        Slack_j.read_list_users_res
+    with
+    | Error _ as e -> Lwt.return e
+    | Ok users_list -> Lwt.return_ok users_list
+
+  let lookup_github_user ~(ctx : Context.t) ~(cfg : Config_t.config) ~(github_user : Github_t.github_user) =
     let email_opt = List.Assoc.find cfg.user_mappings ~equal:String.equal github_user.login in
     match email_opt with
     | None -> Lwt.return @@ Error (sprintf "no email mapped to '%s' found in config" github_user.login)

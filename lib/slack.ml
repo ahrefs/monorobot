@@ -47,7 +47,7 @@ let markdown_text_attachment ~footer markdown_body =
 let make_message ?username ?text ?attachments ?blocks ~channel () =
   { channel; text; attachments; blocks; username; unfurl_links = Some false; unfurl_media = None }
 
-let generate_pull_request_notification ?sender_slack_id notification channel =
+let generate_pull_request_notification sender_slack_id notification channel =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
   let action, body =
@@ -69,7 +69,7 @@ let generate_pull_request_notification ?sender_slack_id notification channel =
   in
   make_message ~text:summary ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) body) ~channel ()
 
-let generate_pr_review_notification ?sender_slack_id notification channel =
+let generate_pr_review_notification sender_slack_id notification channel =
   let { action; sender; pull_request; review; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -97,7 +97,7 @@ let generate_pr_review_notification ?sender_slack_id notification channel =
     ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) review.body)
     ~channel ()
 
-let generate_pr_review_comment_notification ?sender_slack_id notification channel =
+let generate_pr_review_comment_notification sender_slack_id notification channel =
   let { action; pull_request; sender; comment; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -124,7 +124,7 @@ let generate_pr_review_comment_notification ?sender_slack_id notification channe
   in
   make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:file comment.body) ~channel ()
 
-let generate_issue_notification ?sender_slack_id notification channel =
+let generate_issue_notification sender_slack_id notification channel =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
   let { number; body; title; html_url; labels; _ } = issue in
   let action, body =
@@ -146,7 +146,7 @@ let generate_issue_notification ?sender_slack_id notification channel =
   in
   make_message ~text:summary ?attachments:(Option.map ~f:(markdown_text_attachment ~footer:None) body) ~channel ()
 
-let generate_issue_comment_notification ?sender_slack_id notification channel =
+let generate_issue_comment_notification sender_slack_id notification channel =
   let { action; issue; sender; comment; repository } = notification in
   let { number; title; _ } = issue in
   let action_str =
@@ -195,7 +195,7 @@ let pp_list_with_previews ~pp_item list =
   end
   else List.map ~f:pp_item list
 
-let generate_push_notification ?sender_slack_id notification channel =
+let generate_push_notification sender_slack_id notification channel =
   let { sender; pusher; created; deleted; forced; compare; commits; repository; _ } = notification in
   let show_descriptive_title_min_commits = 4 in
   let branch_name = Github.commits_branch_of_ref notification.ref in
@@ -211,7 +211,8 @@ let generate_push_notification ?sender_slack_id notification channel =
     let num_commits = List.length commits in
     let lines =
       if
-        num_commits < show_descriptive_title_min_commits
+        Option.is_none sender_slack_id
+        && num_commits < show_descriptive_title_min_commits
         && (not forced)
         && (not created)
         && List.for_all ~f:(fun commit -> String.equal commit.author.email pusher.email) commits
@@ -298,7 +299,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   in
   make_message ~text:summary ~attachments:[ attachment ] ~channel ()
 
-let generate_commit_comment_notification ?sender_slack_id api_commit notification channel =
+let generate_commit_comment_notification sender_slack_id api_commit notification channel =
   let { commit; _ } = api_commit in
   let { sender; comment; repository; _ } = notification in
   let commit_id =
