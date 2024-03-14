@@ -163,22 +163,6 @@ module Slack : Api.Slack = struct
     | Error _ as e -> Lwt.return e
     | Ok users_list -> Lwt.return_ok users_list
 
-  let lookup_github_user ~(ctx : Context.t) ~(cfg : Config_t.config) ~(github_user : Github_t.github_user) =
-    let email_opt = List.Assoc.find cfg.user_mappings ~equal:String.equal github_user.login in
-    match email_opt with
-    | None -> Lwt.return @@ Error (sprintf "no email mapped to '%s' found in config" github_user.login)
-    | Some email ->
-    let url_args = Web.make_url_args [ "email", email ] in
-    match%lwt
-      request_token_auth ~name:"lookup user by email" ~ctx `GET
-        (sprintf "users.lookupByEmail?%s" url_args)
-        Slack_j.read_lookup_user_res
-    with
-    | Error _ as e -> Lwt.return e
-    | Ok user ->
-      Stdlib.Hashtbl.replace lookup_user_cache email user;
-      Lwt.return_ok user
-
   (** [send_notification ctx msg] notifies [msg.channel] with the payload [msg];
       uses web API with access token if available, or with webhook otherwise *)
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =

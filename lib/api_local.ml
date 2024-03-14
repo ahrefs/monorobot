@@ -56,7 +56,6 @@ end
 module Slack_base : Api.Slack = struct
   let lookup_user ?cache:_ ~ctx:_ ~cfg:_ ~email:_ () = Lwt.return @@ Error "undefined for local setup"
   let list_users ?cursor:_  ?limit:_ ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
-  let lookup_github_user ~ctx:_ ~cfg:_ ~github_user:_ = Lwt.return @@ Error "undefined for local setup"
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
   let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error "undefined for local setup"
   let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
@@ -73,22 +72,6 @@ module Slack : Api.Slack = struct
         Slack_t.id = sprintf "id[%s]" email;
         name = sprintf "name[%s]" email;
         real_name = sprintf "real_name[%s]" email;
-        profile = { email = Some email }
-      }
-    in
-    let mock_response = { Slack_t.user = mock_user } in
-    Lwt.return @@ Ok mock_response
-
-  let lookup_github_user ~ctx:_ ~(cfg : Config_t.config) ~(github_user : Github_t.github_user) =
-    let email_opt = List.Assoc.find cfg.user_mappings ~equal:String.equal github_user.login in
-    match email_opt with
-    | None -> Lwt.return @@ Error (sprintf "no email mapped to '%s' found in config" github_user.login)
-    | Some email ->
-    let mock_user =
-      {
-        Slack_t.id = sprintf "id[%s]" email;
-        name = sprintf "name[%s]" "Tester";
-        real_name = sprintf "real_name[%s]" "Tester";
         profile = { email = Some email }
       }
     in
