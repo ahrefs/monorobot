@@ -229,6 +229,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
+  let is_buildkite = String.is_prefix context ~prefix:"buildkite" in
   let color_info =
     match state with
     | Success -> "good"
@@ -241,6 +242,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       let text =
         match target_url with
         | None -> s
+        | Some target_url when not is_buildkite -> sprintf "*Description*: %s." target_url
         | Some target_url ->
         (* Specific to buildkite *)
         match Re2.find_submatches_exn buildkite_description_re s with
@@ -285,7 +287,6 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
     match target_url with
     | None -> sprintf "<%s|[%s]> CI Build Status notification: %s" repository.url repository.full_name state_info
     | Some target_url ->
-      let is_buildkite = String.is_prefix context ~prefix:"buildkite" in
       let default_summary =
         sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name target_url
           context state_info
