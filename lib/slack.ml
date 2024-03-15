@@ -287,21 +287,15 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       sprintf "<%s|[%s]>: Build %s for \"%s\"" repository.url repository.full_name state_info commit_message
       (* in case the CI run is not using buildkite *)
     | Some target_url ->
-      (* try to compute the pipeline_url based on the `context` (e.g. buildkite/pipeline) and the `target_url` (link to the build) *)
+      (* Keep only the portion of the url before /builds/... *)
       let pipeline_url =
-        let pipeline_name = context |> String.split ~on:'/' |> List.last in
-        match pipeline_name with
-        | None -> None
-        | Some pipeline_name ->
-          let rec loop acc els =
-            match els with
-            | [] -> None
-            | s :: _ when String.(s = pipeline_name) ->
-              let url = pipeline_name :: acc |> List.rev |> String.concat ~sep:"/" in
-              Some url
-            | s :: els -> loop (s :: acc) els
-          in
-          loop [] (String.split ~on:'/' target_url)
+        let rec loop = function
+          | [] -> None
+          | "builds" :: l -> Some (List.rev l |> String.concat ~sep:"/")
+          | _ :: l -> loop l
+        in
+        let url_parts = target_url |> String.split ~on:'/' |> List.rev in
+        loop url_parts
       in
       ( match pipeline_url with
       | None -> sprintf "%s: Build %s for \"%s\"" context state_info commit_message
