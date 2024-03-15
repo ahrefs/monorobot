@@ -246,7 +246,21 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   let description_info =
     match description with
     | None -> None
-    | Some s -> Some (sprintf "*Description*: %s." s)
+    | Some s ->
+      let text =
+        match target_url with
+        | None -> s
+        | Some target_url ->
+          (* Specific to buildkite *)
+          let re = Re2.create_exn {|^Build #(\d+)(.*)|} in
+          ( match Re2.find_submatches_exn re s with
+          | [| Some _; Some build_nr; Some rest |] ->
+            (* We use a zero-with space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
+            sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
+          | _ -> s
+          )
+      in
+      Some (sprintf "*Description*: %s." text)
   in
   let commit_info =
     [ sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message) author.login ]
