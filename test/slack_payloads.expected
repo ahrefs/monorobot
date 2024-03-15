@@ -477,7 +477,7 @@ will notify #default
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/Codertocat/Hello-World|[Codertocat/Hello-World]>: Build succeeded for \"Initial commit\"",
+  "text": "<https://github.com/Codertocat/Hello-World|[Codertocat/Hello-World]> CI Build Status notification: succeeded",
   "attachments": [
     {
       "fallback": null,

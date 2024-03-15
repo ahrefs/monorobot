@@ -283,23 +283,28 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
     in
     let commit_message = first_line message in
     match target_url with
-    | None ->
-      sprintf "<%s|[%s]>: Build %s for \"%s\"" repository.url repository.full_name state_info commit_message
-      (* in case the CI run is not using buildkite *)
+    | None -> sprintf "<%s|[%s]> CI Build Status notification: %s" repository.url repository.full_name state_info
     | Some target_url ->
-      (* Keep only the portion of the url before /builds/... *)
-      let pipeline_url =
-        let rec loop = function
-          | [] -> None
-          | "builds" :: l -> Some (List.rev l |> String.concat ~sep:"/")
-          | _ :: l -> loop l
-        in
-        let url_parts = target_url |> String.split ~on:'/' |> List.rev in
-        loop url_parts
+      let is_buildkite = String.is_prefix context ~prefix:"buildkite" in
+      let default_summary =
+        sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name target_url
+          context state_info
       in
-      ( match pipeline_url with
-      | None -> sprintf "%s: Build %s for \"%s\"" context state_info commit_message
-      | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url context state_info commit_message
+      if not is_buildkite then default_summary
+      else (
+        (* Keep only the portion of the url before /builds/... *)
+        let pipeline_url =
+          let rec loop = function
+            | [] -> None
+            | "builds" :: l -> Some (List.rev l |> String.concat ~sep:"/")
+            | _ :: l -> loop l
+          in
+          let url_parts = target_url |> String.split ~on:'/' |> List.rev in
+          loop url_parts
+        in
+        match pipeline_url with
+        | None -> default_summary
+        | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url context state_info commit_message
       )
   in
   let msg = String.concat ~sep:"\n" @@ List.concat [ commit_info; branches_info ] in
