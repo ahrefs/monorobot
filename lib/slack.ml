@@ -223,6 +223,8 @@ let generate_push_notification notification channel =
     in
     make_message ~username ~channel ~text:(String.concat ~sep:"\n" lines) ()
 
+let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
+
 let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
@@ -251,14 +253,12 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         match target_url with
         | None -> s
         | Some target_url ->
-          (* Specific to buildkite *)
-          let re = Re2.create_exn {|^Build #(\d+)(.*)|} in
-          ( match Re2.find_submatches_exn re s with
-          | [| Some _; Some build_nr; Some rest |] ->
-            (* We use a zero-with space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
-            sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
-          | _ -> s
-          )
+        (* Specific to buildkite *)
+        match Re2.find_submatches_exn buildkite_description_re s with
+        | [| Some _; Some build_nr; Some rest |] ->
+          (* We use a zero-with space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
+          sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
+        | _ -> s
       in
       Some (sprintf "*Description*: %s." text)
   in
