@@ -11,7 +11,7 @@ let action_error msg = raise (Action_error msg)
 let log = Log.from "action"
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
-  let email_to_slack_id_tbl = Stringtbl.empty ()
+  let username_to_slack_id_tbl = Stringtbl.empty ()
 
   let canonicalize_username username =
     username |> String.split_on_chars ~on:[ '.'; '-' ] |> String.concat |> String.lowercase
@@ -21,7 +21,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     |> Re2.replace_exn ~f:(fun _ -> "") (Re2.create_exn "\\+[^]]*|@[^]]*") (* Remove email domain and everything after '+' *)
     |> canonicalize_username
 
-  let refresh_email_to_slack_id_tbl ~ctx =
+  let refresh_username_to_slack_id_tbl ~ctx =
     match%lwt Slack_api.list_users ~ctx () with
     | Error e ->
       log#warn "couldn't fetch list of Slack users: %s" e;
@@ -34,22 +34,22 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Some email ->
           let username = canonicalize_email_username email in
           log#info "logging email username %s" username;
-          Stringtbl.update email_to_slack_id_tbl username ~f:(fun _ -> user.id)
+          Stringtbl.update username_to_slack_id_tbl username ~f:(fun _ -> user.id)
           );
       Lwt.return_unit
 
   let match_github_user_to_slack_id ?(force_query = false) ~ctx user =
     let%lwt () =
       if force_query
-      then refresh_email_to_slack_id_tbl ~ctx
+      then refresh_username_to_slack_id_tbl ~ctx
       else Lwt.return_unit
     in
     let canonicalized_login = canonicalize_username user.login in
-    match Stringtbl.find email_to_slack_id_tbl canonicalized_login with
+    match Stringtbl.find username_to_slack_id_tbl canonicalized_login with
     | Some slack_id -> Lwt.return_some slack_id
     | None ->
-    let%lwt () = refresh_email_to_slack_id_tbl ~ctx in
-    match Stringtbl.find email_to_slack_id_tbl canonicalized_login with
+    let%lwt () = refresh_username_to_slack_id_tbl ~ctx in
+    match Stringtbl.find username_to_slack_id_tbl canonicalized_login with
     | Some slack_id -> Lwt.return_some slack_id
     | None -> Lwt.return_none (* Still can't find after updating Slack user mappings *)
 
