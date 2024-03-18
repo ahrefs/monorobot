@@ -65,7 +65,7 @@ let longest_common_prefix xs =
   match xs with
   | [] -> ""
   | [ x ] -> x
-  | x :: _ -> String.sub x 0 (Stre.common_prefix x (List.sort String.compare xs |> List.rev |> List.hd))
+  | x :: _ -> List.sort (Fun.flip String.compare) xs |> List.hd |> Stre.common_prefix x |> String.sub x 0
 
 let sign_string_sha256 ~key ~basestring =
   Cstruct.of_string basestring |> Nocrypto.Hash.SHA256.hmac ~key:(Cstruct.of_string key) |> Hex.of_cstruct |> Hex.show
