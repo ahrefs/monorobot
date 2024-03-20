@@ -322,14 +322,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         let%lwt () =
           ctx.state_filepath
           |> Option.map_default
-            (fun path ->
-              match%lwt State.save ctx.state path with
-              | Ok () -> Lwt.return_unit
-              | Error msg ->
-                log#warn "failed to save state file %s : %s" path msg;
-                Lwt.return_unit
-            )
-            Lwt.return_unit
+               (fun path ->
+                 match%lwt State.save ctx.state path with
+                 | Ok () -> Lwt.return_unit
+                 | Error msg ->
+                   log#warn "failed to save state file %s : %s" path msg;
+                   Lwt.return_unit
+               )
+               Lwt.return_unit
         in
         Lwt.return_some user_id
       | Error msg ->

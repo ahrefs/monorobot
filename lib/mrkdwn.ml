@@ -120,13 +120,13 @@ let rec mrkdwn_of_md md =
       loop list_indent tl
     | Ol l ->
       nl_if_needed_above b;
-      l |> List.iteri
-        (fun i li ->
-          add_spaces list_indent;
-          Printf.bprintf b "%d. " (i + 1);
-          loop ~is_in_list:true (list_indent + 4) li;
-          nl_if_needed_above b
-        );
+      l
+      |> List.iteri (fun i li ->
+           add_spaces list_indent;
+           Printf.bprintf b "%d. " (i + 1);
+           loop ~is_in_list:true (list_indent + 4) li;
+           nl_if_needed_above b
+         );
       if list_indent = 0 then nl b;
       loop list_indent tl
     | Ulp l ->
