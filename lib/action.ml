@@ -41,7 +41,6 @@ module SlackUsername (Slack_api : Api.Slack) = struct
           | None -> ()
           | Some email ->
           let username = canonicalize_email_username email in
-          log#debug "logging email username %s" username;
           Stringtbl.replace username_to_slack_id_tbl username user.id
           )
         res.members;
@@ -53,10 +52,7 @@ module SlackUsername (Slack_api : Api.Slack) = struct
     refresh_username_to_slack_id_tbl_background_lwt ~ctx
 
   let match_github_user_to_slack_id user =
-    let canonicalized_login = canonicalize_username user.login in
-    match Stringtbl.find_opt username_to_slack_id_tbl canonicalized_login with
-    | Some slack_id -> Lwt.return_some slack_id
-    | None -> Lwt.return_none (* We don't want to fail just because we can't match *)
+    user.login |> canonicalize_username |> Stringtbl.find_opt username_to_slack_id_tbl
 end
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
@@ -249,25 +245,25 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | false ->
     match req with
     | Github.Push n ->
-      let%lwt sender_slack_id_opt = match_github_user_to_slack_id n.sender in
+      let sender_slack_id_opt = match_github_user_to_slack_id n.sender in
       partition_push cfg n |> List.map (fun (channel, n) -> generate_push_notification ~sender_slack_id_opt n channel) |> Lwt.return
     | Pull_request n ->
-      let%lwt sender_slack_id_opt = match_github_user_to_slack_id n.sender in
+      let sender_slack_id_opt = match_github_user_to_slack_id n.sender in
       partition_pr cfg n |> List.map (generate_pull_request_notification ~sender_slack_id_opt n) |> Lwt.return
     | PR_review n -> 
-      let%lwt sender_slack_id_opt = match_github_user_to_slack_id n.sender in
+      let sender_slack_id_opt = match_github_user_to_slack_id n.sender in
       partition_pr_review cfg n |> List.map (generate_pr_review_notification ~sender_slack_id_opt n) |> Lwt.return
     | PR_review_comment n ->
-      let%lwt sender_slack_id_opt = match_github_user_to_slack_id n.sender in
+      let sender_slack_id_opt = match_github_user_to_slack_id n.sender in
       partition_pr_review_comment cfg n |> List.map (generate_pr_review_comment_notification ~sender_slack_id_opt n) |> Lwt.return
     | Issue n -> 
-      let%lwt sender_slack_id_opt = match_github_user_to_slack_id n.sender in
+      let sender_slack_id_opt = match_github_user_to_slack_id n.sender in
       partition_issue cfg n |> List.map (generate_issue_notification ~sender_slack_id_opt n) |> Lwt.return
     | Issue_comment n ->
-      let%lwt sender_slack_id_opt = match_github_user_to_slack_id n.sender in
+      let sender_slack_id_opt = match_github_user_to_slack_id n.sender in
       partition_issue_comment cfg n |> List.map (generate_issue_comment_notification ~sender_slack_id_opt n) |> Lwt.return
     | Commit_comment n ->
-      let%lwt sender_slack_id_opt = match_github_user_to_slack_id n.sender in
+      let sender_slack_id_opt = match_github_user_to_slack_id n.sender in
       let%lwt channels, api_commit = partition_commit_comment ctx n in
       let notifs = List.map (generate_commit_comment_notification ~sender_slack_id_opt api_commit n) channels in
       Lwt.return notifs
@@ -401,12 +397,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         Lwt.return_none
     in
     let process link =
-      let with_gh_result_populate_slack (type a) ~(api_result : (a, string) Result.t)
-        ~(populate : repository -> a -> Slack_t.message_attachment) ~repo
+      let with_gh_result_populate_slack (type a)
+        ~(api_result : (a, string) Result.t)
+        ~(populate : (github_user -> string option) -> repository -> a -> Slack_t.message_attachment) ~repo
         =
         match api_result with
         | Error _ -> Lwt.return_none
-        | Ok item -> Lwt.return_some @@ (link, populate repo item)
+        | Ok item -> Lwt.return_some @@ (link, populate match_github_user_to_slack_id repo item)
       in
       match Github.gh_link_of_string link with
       | None -> Lwt.return_none
