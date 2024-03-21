@@ -1,5 +1,4 @@
 open Devkit
-open Base
 open Lib
 open Cmdliner
 module Filename = Stdlib.Filename
@@ -10,7 +9,7 @@ let log = Log.from "monorobot"
 
 let http_server_action addr port config secrets state logfile loglevel =
   Daemon.logfile := logfile;
-  Option.iter ~f:Log.set_loglevels loglevel;
+  Stdlib.Option.iter Log.set_loglevels loglevel;
   Log.reopen !Daemon.logfile;
   Signal.setup_lwt ();
   Daemon.install_signal_handlers ();
@@ -56,7 +55,7 @@ let check_gh_action file json config secrets state =
     )
 
 let check_slack_action file secrets =
-  let data = Stdio.In_channel.read_all file in
+  let data = In_channel.(with_open_bin file input_all) in
   let ctx = Context.make ~secrets_filepath:secrets () in
   match Slack_j.post_message_req_of_string data with
   | exception exn -> log#error ~exn "unable to parse notification"

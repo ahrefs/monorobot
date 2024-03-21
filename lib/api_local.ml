@@ -1,4 +1,3 @@
-open Base
 open Common
 open Devkit
 open Printf
@@ -14,12 +13,14 @@ let with_cache_file url f =
   match get_local_file url with
   | Error e ->
     let err_msg = sprintf "error while getting local file: %s\ncached for url: %s" e url in
-    Stdio.print_endline err_msg;
+    Printf.printf "%s\n" err_msg;
     Lwt.return_error err_msg
   | Ok "" -> Lwt.return_error "empty file"
   | Ok file -> Lwt.return_ok (f file)
 
-let clean_forward_slashes = String.substr_replace_all ~pattern:"/" ~with_:"_"
+let rec clean_forward_slashes str =
+  let cont, ns = ExtLib.String.replace ~str ~sub:"/" ~by:"_" in
+  if cont then clean_forward_slashes ns else ns
 
 (** get a member of the repo cached API call providing
 the member kind (pull, issue, commit, compare, etc),
@@ -65,7 +66,7 @@ module Slack : Api.Slack = struct
   include Slack_base
 
   let lookup_user ?cache:_ ~ctx:_ ~(cfg : Config_t.config) ~email () =
-    let email = List.Assoc.find cfg.user_mappings ~equal:String.equal email |> Option.value ~default:email in
+    let email = List.assoc_opt email cfg.user_mappings |> Option.default email in
     let mock_user =
       {
         Slack_t.id = sprintf "id[%s]" email;
@@ -78,15 +79,15 @@ module Slack : Api.Slack = struct
 
   let send_notification ~ctx:_ ~msg =
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
-    Stdio.printf "will notify #%s\n" msg.channel;
-    Stdio.printf "%s\n" json;
+    Printf.printf "will notify #%s\n" msg.channel;
+    Printf.printf "%s\n" json;
     Lwt.return @@ Ok ()
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts ~unfurls () =
     let req = Slack_j.{ channel; ts; unfurls } in
     let data = req |> Slack_j.string_of_chat_unfurl_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
-    Stdio.printf "will unfurl in #%s\n" channel;
-    Stdio.printf "%s\n" data;
+    Printf.printf "will unfurl in #%s\n" channel;
+    Printf.printf "%s\n" data;
     Lwt.return @@ Ok ()
 
   let send_auth_test ~ctx:_ () =
@@ -109,9 +110,11 @@ module Slack_simple : Api.Slack = struct
     Lwt.return @@ Ok ()
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
-    Stdio.printf "will unfurl in #%s\n" channel;
-    let unfurl_text = List.map (StringMap.to_list unfurls) ~f:(fun (_, unfurl) -> unfurl.text) in
-    Stdio.printf "%s\n" (String.concat ~sep:"\n" (List.filter_opt unfurl_text));
+    Printf.printf "will unfurl in #%s\n" channel;
+    let unfurl_text =
+      List.map (fun ((_, unfurl) : string * Slack_t.message_attachment) -> unfurl.text) (StringMap.to_list unfurls)
+    in
+    Printf.printf "%s\n" (String.concat "\n" (List.filter_map id unfurl_text));
     Lwt.return @@ Ok ()
 
   let send_auth_test ~ctx:_ () =
@@ -136,10 +139,10 @@ module Slack_json : Api.Slack = struct
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
     log#info "will notify %s" channel;
-    let json = List.map (StringMap.to_list unfurls) ~f:(fun (_, unfurl) -> Slack_j.string_of_unfurl unfurl) in
+    let json = List.map (fun (_, unfurl) -> Slack_j.string_of_unfurl unfurl) (StringMap.to_list unfurls) in
     let url = Uri.of_string "https://slack.com/api/chat.unfurl" in
     log#info "%s" (Uri.to_string url);
-    log#info "%s" (String.concat ~sep:";\n" json);
+    log#info "%s" (String.concat ";\n" json);
     Lwt.return @@ Ok ()
 
   let send_auth_test ~ctx:_ () =

@@ -1,5 +1,4 @@
 open Devkit
-open Base
 open Slack
 open Config_t
 open Common
@@ -12,38 +11,36 @@ let log = Log.from "action"
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let partition_push (cfg : Config_t.config) n =
-    let default = Option.to_list cfg.prefix_rules.default_channel in
+    let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in
     let branch = Github.commits_branch_of_ref n.ref in
     let main_branch = if cfg.prefix_rules.filter_main_branch then cfg.main_branch_name else None in
     let filter_by_branch = Rule.Prefix.filter_by_branch ~branch ~main_branch in
     n.commits
-    |> List.filter ~f:(fun c ->
+    |> List.filter (fun c ->
          let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
          if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
          not skip
        )
-    |> List.concat_map ~f:(fun commit ->
-         let rules = List.filter ~f:(filter_by_branch ~distinct:commit.distinct) rules in
+    |> List.concat_map (fun commit ->
+         let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
          let matched_channel_names =
            Github.modified_files_of_commit commit
-           |> List.filter_map ~f:(Rule.Prefix.match_rules ~rules)
-           |> List.dedup_and_sort ~compare:String.compare
+           |> List.filter_map (Rule.Prefix.match_rules ~rules)
+           |> List.sort_uniq String.compare
          in
-         let channel_names =
-           if List.is_empty matched_channel_names && commit.distinct then default else matched_channel_names
-         in
-         List.map channel_names ~f:(fun n -> n, commit)
+         let channel_names = if matched_channel_names = [] && commit.distinct then default else matched_channel_names in
+         List.map (fun n -> n, commit) channel_names
        )
-    |> Map.of_alist_multi (module String)
-    |> Map.map ~f:(fun commits -> { n with commits })
-    |> Map.to_alist
+    |> StringMap.of_list_multi
+    |> StringMap.map (fun commits -> { n with commits })
+    |> StringMap.to_list
 
   let partition_label (cfg : Config_t.config) (labels : label list) =
     let default = cfg.label_rules.default_channel in
     let rules = cfg.label_rules.rules in
-    labels |> List.concat_map ~f:(Rule.Label.match_rules ~rules) |> List.dedup_and_sort ~compare:String.compare
-    |> fun channel_names -> if List.is_empty channel_names then Option.to_list default else channel_names
+    labels |> List.concat_map (Rule.Label.match_rules ~rules) |> List.sort_uniq String.compare |> fun channel_names ->
+    if channel_names = [] then Stdlib.Option.to_list default else channel_names
 
   let partition_pr cfg (n : pr_notification) =
     match n.action with
@@ -83,14 +80,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | _ -> []
 
   let partition_commit (cfg : Config_t.config) files =
-    let default = Option.to_list cfg.prefix_rules.default_channel in
+    let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in
     let matched_channel_names =
-      List.map ~f:(fun f -> f.filename) files
-      |> List.filter_map ~f:(Rule.Prefix.match_rules ~rules)
-      |> List.dedup_and_sort ~compare:String.compare
+      List.map (fun f -> f.filename) files
+      |> List.filter_map (Rule.Prefix.match_rules ~rules)
+      |> List.sort_uniq String.compare
     in
-    if List.is_empty matched_channel_names then default else matched_channel_names
+    if matched_channel_names = [] then default else matched_channel_names
 
   let partition_status (ctx : Context.t) (n : status_notification) =
     let repo = n.repository in
@@ -112,18 +109,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         else Lwt.return []
       in
       let%lwt chans =
-        let default = Option.to_list cfg.prefix_rules.default_channel in
+        let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
         match notify_channels with
         | false -> Lwt.return []
         | true ->
-        match List.is_empty branches with
-        | true -> Lwt.return []
-        | false ->
+        match branches with
+        | [] -> Lwt.return []
+        | _ ->
         match cfg.main_branch_name with
         | None -> Lwt.return default
         | Some main_branch_name ->
         (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
-        match List.exists branches ~f:(fun { name } -> String.equal name main_branch_name) with
+        match List.exists (fun ({ name } : branch) -> String.equal name main_branch_name) branches with
         | false -> Lwt.return default
         | true ->
           let sha = n.commit.sha in
@@ -140,14 +137,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Some (Ignore, _, _) | None -> Lwt.return []
       | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
       | Some (Allow_once, notify_channels, notify_dm) ->
-      match Map.find repo_state.pipeline_statuses pipeline with
+      match StringMap.find_opt pipeline repo_state.pipeline_statuses with
       | Some branch_statuses ->
-        let has_same_status_state_as_prev (branch : branch) =
-          match Map.find branch_statuses branch.name with
-          | None -> false
-          | Some state -> Poly.equal state current_status
+        let has_same_status_as_prev (branch : branch) =
+          match StringMap.find_opt branch.name branch_statuses with
+          | Some state when state = current_status -> true
+          | _ -> false
         in
-        let branches = List.filter n.branches ~f:(Fn.non @@ has_same_status_state_as_prev) in
+        let branches = List.filter (Fun.negate has_same_status_as_prev) n.branches in
         action_on_match branches ~notify_channels ~notify_dm
       | None -> action_on_match n.branches ~notify_channels ~notify_dm
     end
@@ -161,7 +158,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       ( match%lwt Github_api.get_api_commit ~ctx ~repo:n.repository ~sha with
       | Error e -> action_error e
       | Ok commit ->
-        let default = Option.to_list cfg.prefix_rules.default_channel in
+        let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
         let rules = cfg.prefix_rules.rules in
         ( match n.comment.path with
         | None -> Lwt.return @@ (partition_commit cfg commit.files, commit)
@@ -188,7 +185,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | _ -> None
     in
     match sender_login with
-    | Some sender_login -> List.exists cfg.ignored_users ~f:(String.equal sender_login)
+    | Some sender_login -> List.exists (String.equal sender_login) cfg.ignored_users
     | None -> false
 
   let generate_notifications (ctx : Context.t) (req : Github.t) =
@@ -199,21 +196,20 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | false ->
     match req with
     | Github.Push n ->
-      partition_push cfg n |> List.map ~f:(fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
-    | Pull_request n -> partition_pr cfg n |> List.map ~f:(generate_pull_request_notification n) |> Lwt.return
-    | PR_review n -> partition_pr_review cfg n |> List.map ~f:(generate_pr_review_notification n) |> Lwt.return
+      partition_push cfg n |> List.map (fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
+    | Pull_request n -> partition_pr cfg n |> List.map (generate_pull_request_notification n) |> Lwt.return
+    | PR_review n -> partition_pr_review cfg n |> List.map (generate_pr_review_notification n) |> Lwt.return
     | PR_review_comment n ->
-      partition_pr_review_comment cfg n |> List.map ~f:(generate_pr_review_comment_notification n) |> Lwt.return
-    | Issue n -> partition_issue cfg n |> List.map ~f:(generate_issue_notification n) |> Lwt.return
-    | Issue_comment n ->
-      partition_issue_comment cfg n |> List.map ~f:(generate_issue_comment_notification n) |> Lwt.return
+      partition_pr_review_comment cfg n |> List.map (generate_pr_review_comment_notification n) |> Lwt.return
+    | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification n) |> Lwt.return
+    | Issue_comment n -> partition_issue_comment cfg n |> List.map (generate_issue_comment_notification n) |> Lwt.return
     | Commit_comment n ->
       let%lwt channels, api_commit = partition_commit_comment ctx n in
-      let notifs = List.map ~f:(generate_commit_comment_notification api_commit n) channels in
+      let notifs = List.map (generate_commit_comment_notification api_commit n) channels in
       Lwt.return notifs
     | Status n ->
       let%lwt channels = partition_status ctx n in
-      let notifs = List.map ~f:(generate_status_notification cfg n) channels in
+      let notifs = List.map (generate_status_notification cfg n) channels in
       Lwt.return notifs
 
   let send_notifications (ctx : Context.t) notifications =
@@ -243,8 +239,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     match notification with
     | Github.Push commit_pushed_notification ->
       let commits = commit_pushed_notification.commits in
-      let modified_files = List.concat_map commits ~f:Github.modified_files_of_commit in
-      let config_was_modified = List.exists modified_files ~f:(String.equal ctx.config_filename) in
+      let modified_files = List.concat_map Github.modified_files_of_commit commits in
+      let config_was_modified = List.exists (String.equal ctx.config_filename) modified_files in
       if config_was_modified then fetch_config () else Lwt.return @@ Ok ()
     | _ -> Lwt.return @@ Ok ()
 
@@ -276,7 +272,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       Github.validate_signature ?signing_key ~headers body
     in
     let repo_is_supported secrets (repo : Github_t.repository) =
-      List.exists secrets.repos ~f:(fun r -> String.equal r.url repo.url)
+      List.exists (fun (r : repo_config) -> String.equal r.url repo.url) secrets.repos
     in
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
@@ -324,13 +320,16 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Ok { user_id; _ } ->
         State.set_bot_user_id ctx.state user_id;
         let%lwt () =
-          Option.value_map ctx.state_filepath ~default:Lwt.return_unit ~f:(fun path ->
-            match%lwt State.save ctx.state path with
-            | Ok () -> Lwt.return_unit
-            | Error msg ->
-              log#warn "failed to save state file %s : %s" path msg;
-              Lwt.return_unit
-          )
+          ctx.state_filepath
+          |> Option.map_default
+               (fun path ->
+                 match%lwt State.save ctx.state path with
+                 | Ok () -> Lwt.return_unit
+                 | Error msg ->
+                   log#warn "failed to save state file %s : %s" path msg;
+                   Lwt.return_unit
+               )
+               Lwt.return_unit
         in
         Lwt.return_some user_id
       | Error msg ->
@@ -376,14 +375,16 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Some id -> Lwt.return_some id
           | None -> fetch_bot_user_id ()
         in
-        Lwt.return (Option.value_map ~default:false ~f:(String.equal event.user) bot_user_id)
+        Lwt.return (Option.map_default (String.equal event.user) false bot_user_id)
     in
     if List.length event.links > 2 then Lwt.return "ignored: more than two links present"
     else if is_self_bot_user then Lwt.return "ignored: is bot user"
     else begin
-      let links = List.map event.links ~f:(fun l -> l.url) in
-      let%lwt unfurls = List.map links ~f:process |> Lwt.all |> Lwt.map List.filter_opt |> Lwt.map StringMap.of_list in
-      if Map.is_empty unfurls then Lwt.return "ignored: no links to unfurl"
+      let links = List.map (fun (l : Slack_t.link_shared_link) -> l.url) event.links in
+      let%lwt unfurls =
+        List.map process links |> Lwt.all |> Lwt.map (List.filter_map id) |> Lwt.map StringMap.of_list
+      in
+      if StringMap.is_empty unfurls then Lwt.return "ignored: no links to unfurl"
       else begin
         match%lwt Slack_api.send_chat_unfurl ~ctx ~channel:event.channel ~ts:event.message_ts ~unfurls () with
         | Ok () -> Lwt.return "ok"
