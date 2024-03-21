@@ -46,7 +46,7 @@ let markdown_text_attachment ~footer markdown_body =
 let make_message ?username ?text ?attachments ?blocks ~channel () =
   { channel; text; attachments; blocks; username; unfurl_links = Some false; unfurl_media = None }
 
-let format_slack_mention = Option.value_map ~default:"" ~f:(sprintf " (<@id[%s]>)")
+let format_slack_mention = Option.map_default (sprintf " (<@id[%s]>)") ""
 
 let generate_pull_request_notification ~sender_slack_id_opt notification channel =
   let { action; number; sender; pull_request; repository } = notification in
