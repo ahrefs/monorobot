@@ -39,7 +39,7 @@ module SlackUsername (Slack_api : Api.Slack) = struct
           | Some email ->
           let username = canonicalize_email_username email in
           log#debug "logging email username %s" username;
-          Stringtbl.update username_to_slack_id_tbl username ~f:(fun _ -> user.id)
+          Stringtbl.set username_to_slack_id_tbl ~key:username ~data:user.id
           );
       Lwt.return_unit
 
