@@ -2,7 +2,7 @@
 will notify #all-push-events
 {
   "channel": "all-push-events",
-  "text": "<https://github.com/NotAPerson/test_repository|[NotAPerson/test_repository]> *NotAPerson* (<@id[slack_id_2]>) commented on `<https://github.com/NotAPerson/test_repository/commit/f672ca1e7d8f9d8d51b2c6b6ac8c4f39b549ac07#commitcomment-139894440|f672ca1e>` test changes",
+  "text": "<https://github.com/NotAPerson/test_repository|[NotAPerson/test_repository]> *NotAPerson* (<@slack_id_2>) commented on `<https://github.com/NotAPerson/test_repository/commit/f672ca1e7d8f9d8d51b2c6b6ac8c4f39b549ac07#commitcomment-139894440|f672ca1e>` test changes",
   "attachments": [
     {
       "fallback": null,
@@ -202,7 +202,7 @@ will notify #frontend-bot
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> *phongulus* (<@id[U06PUSUR2Q1]>) <https://github.com/phongulus/test_repository/issues/1#issuecomment-2003174406|commented> on #1 <https://github.com/phongulus/test_repository/issues/1|Nothing is working>",
+  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> *phongulus* (<@U06PUSUR2Q1>) <https://github.com/phongulus/test_repository/issues/1#issuecomment-2003174406|commented> on #1 <https://github.com/phongulus/test_repository/issues/1|Nothing is working>",
   "attachments": [
     {
       "fallback": null,
@@ -254,7 +254,7 @@ will notify #default
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> Issue #1 <https://github.com/phongulus/test_repository/issues/1|Nothing is working> opened by *phongulus* (<@id[U06PUSUR2Q1]>)",
+  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> Issue #1 <https://github.com/phongulus/test_repository/issues/1|Nothing is working> opened by *phongulus* (<@U06PUSUR2Q1>)",
   "attachments": [
     {
       "fallback": null,
@@ -334,7 +334,7 @@ will notify #frontend-bot
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> Pull request #2 <https://github.com/phongulus/test_repository/pull/2|test PR> opened by *phongulus* (<@id[U06PUSUR2Q1]>)",
+  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> Pull request #2 <https://github.com/phongulus/test_repository/pull/2|test PR> opened by *phongulus* (<@U06PUSUR2Q1>)",
   "attachments": [
     {
       "fallback": null,
@@ -479,7 +479,7 @@ will notify #default
 {
   "channel": "default",
   "username": "test_repository:main",
-  "text": "<https://github.com/phong-le/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc|1 commit> pushed by phong-le (<@id[some_slack_id]>)\n`<https://github.com/phong-le/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc|c9164d09>` add monorobot config - phong-le",
+  "text": "<https://github.com/phong-le/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc|1 commit> pushed by phong-le (<@some_slack_id>)\n`<https://github.com/phong-le/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc|c9164d09>` add monorobot config - phong-le",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/push.two_commits_longest_match.json =====
