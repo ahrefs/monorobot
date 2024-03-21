@@ -106,6 +106,7 @@ let () =
     | Ok config ->
     match Context.refresh_secrets ctx with
     | Ok ctx ->
+      let%lwt () = Action_local.refresh_username_to_slack_id_tbl ~ctx in
       let%lwt () = Lwt_list.iter_s (process_gh_payload ~secrets:(Option.value_exn ctx.secrets) ~config) payloads in
       Lwt_list.iter_s (process_slack_event ~secrets:(Option.value_exn ctx.secrets)) slack_events
     | Error e ->
