@@ -1,14 +1,14 @@
 open Omd
-open Base
 
 (* https://api.slack.com/reference/surfaces/formatting#escaping *)
-let escape_mrkdwn =
-  String.concat_map ~f:(function
+let escape_mrkdwn s =
+  let c_map = function
     | '<' -> "&lt;"
     | '>' -> "&gt;"
     | '&' -> "&amp;"
     | c -> String.make 1 c
-    )
+  in
+  s |> ExtLib.String.explode |> Devkit.Stre.catmap c_map
 
 (** Translates omd AST to a Slack mrkdwn string. Code heavily adapted
     from omd 1.3.1 source.
@@ -62,7 +62,7 @@ let rec mrkdwn_of_md md =
         loop true 0
       in
       Buffer.add_string b (quote @@ mrkdwn_of_md q);
-      if not @@ List.is_empty tl then nl_if_needed_above b;
+      if tl <> [] then nl_if_needed_above b;
       loop list_indent tl
     | Ref (rc, _name, _text, fallback) | Img_ref (rc, _name, _text, fallback) ->
       (* [rc] stores all refs from document, so it's enough to record just the
@@ -108,39 +108,46 @@ let rec mrkdwn_of_md md =
       loop list_indent tl
     | Ul l ->
       nl_if_needed_above b;
-      List.iter l ~f:(fun li ->
-        add_spaces list_indent;
-        Buffer.add_string b "- ";
-        loop ~is_in_list:true (list_indent + 4) li;
-        nl_if_needed_above b
-      );
+      List.iter
+        (fun li ->
+          add_spaces list_indent;
+          Buffer.add_string b "- ";
+          loop ~is_in_list:true (list_indent + 4) li;
+          nl_if_needed_above b
+        )
+        l;
       if list_indent = 0 then nl b;
       loop list_indent tl
     | Ol l ->
       nl_if_needed_above b;
-      List.iteri l ~f:(fun i li ->
-        add_spaces list_indent;
-        Printf.bprintf b "%d. " (i + 1);
-        loop ~is_in_list:true (list_indent + 4) li;
-        nl_if_needed_above b
-      );
+      l
+      |> List.iteri (fun i li ->
+           add_spaces list_indent;
+           Printf.bprintf b "%d. " (i + 1);
+           loop ~is_in_list:true (list_indent + 4) li;
+           nl_if_needed_above b
+         );
       if list_indent = 0 then nl b;
       loop list_indent tl
     | Ulp l ->
-      List.iter l ~f:(fun li ->
-        nl_if_needed_above b;
-        add_spaces list_indent;
-        Buffer.add_string b "- ";
-        loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *)
-      );
+      List.iter
+        (fun li ->
+          nl_if_needed_above b;
+          add_spaces list_indent;
+          Buffer.add_string b "- ";
+          loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *)
+        )
+        l;
       loop list_indent tl
     | Olp l ->
-      List.iteri l ~f:(fun i li ->
-        nl_if_needed_above b;
-        add_spaces list_indent;
-        Printf.bprintf b "%d. " i;
-        loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *)
-      );
+      List.iteri
+        (fun i li ->
+          nl_if_needed_above b;
+          add_spaces list_indent;
+          Printf.bprintf b "%d. " i;
+          loop ~is_in_list:true (list_indent + 4) li (* Paragraphs => No need of '\n' *)
+        )
+        l;
       loop list_indent tl
     | Code_block (_lang, c) ->
       (* unlike commonmark, can't have code block inside lists, so print code block with
@@ -204,8 +211,8 @@ let rec mrkdwn_of_md md =
         else Printf.bprintf b "[%s]: %s \"%s\"\n" name url title
       in
       nl b;
-      List.iter ~f:print_ref r#get_all
+      List.iter print_ref r#get_all
   end;
   Buffer.contents b
 
-let mrkdwn_of_markdown str = String.strip @@ mrkdwn_of_md @@ of_string str
+let mrkdwn_of_markdown str = String.trim @@ mrkdwn_of_md @@ of_string str

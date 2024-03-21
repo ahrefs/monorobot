@@ -1,4 +1,3 @@
-open Base
 open Devkit
 open Printf
 open Github_j
@@ -26,12 +25,12 @@ let repo_of_notification = function
   | Status n -> n.repository
 
 let commits_branch_of_ref ref =
-  match String.split ~on:'/' ref with
-  | "refs" :: "heads" :: l -> String.concat ~sep:"/" l
+  match Stdlib.String.split_on_char '/' ref with
+  | "refs" :: "heads" :: l -> String.concat "/" l
   | _ -> ref
 
 let event_of_filename filename =
-  match String.split_on_chars ~on:[ '.' ] filename with
+  match String.split_on_char '.' filename with
   | [ kind; _; "json" ] -> Some kind
   | _ -> None
 
@@ -54,8 +53,9 @@ let is_merge_commit_to_ignore ~(cfg : Config_t.config) ~branch commit =
     begin
       match Re2.find_submatches_exn merge_commit_re title with
       | [| Some _; Some incoming_branch; receiving_branch |] ->
-        let receiving_branch = Option.map ~f:(String.chop_prefix_exn ~prefix:" into ") receiving_branch in
-        String.equal branch incoming_branch || Option.exists ~f:(not $ String.equal branch) receiving_branch
+        let receiving_branch = Option.map (fun s -> Stre.drop_prefix s " into ") receiving_branch in
+        (* Should this raise when prefix isn't present? *)
+        String.equal branch incoming_branch || Option.map_default (not $ String.equal branch) false receiving_branch
       | _ -> false
       | exception Re2.Exceptions.Regex_match_failed _ -> false
     end
@@ -75,7 +75,7 @@ let validate_signature ?signing_key ~headers body =
   match signing_key with
   | None -> Ok ()
   | Some secret ->
-  match List.Assoc.find headers "x-hub-signature" ~equal:String.equal with
+  match List.assoc_opt "x-hub-signature" headers with
   | None -> Error "unable to find header x-hub-signature"
   | Some signature -> if is_valid_signature ~secret signature body then Ok () else Error "signatures don't match"
 
@@ -103,10 +103,10 @@ let parse_exn headers body =
     | Pending -> "pending"
     | Error -> "error"
   in
-  let print_opt f v = Option.value_map ~f ~default:"none" v in
+  let print_opt f v = Option.map_default f "none" v in
   let print_comment_preview = Stre.shorten ~escape:true 40 in
-  let print_commit_hash s = String.prefix s 8 in
-  match List.Assoc.find headers "x-github-event" ~equal:String.equal with
+  let print_commit_hash s = String.sub s 0 (min 8 @@ String.length s) in
+  match List.assoc_opt "x-github-event" headers with
   | None -> Exn.fail "header x-github-event not found"
   | Some event ->
   match event with
@@ -182,15 +182,17 @@ let gh_link_of_string url_str =
   match Uri.host url with
   | None -> None
   | Some host ->
-  match String.chop_prefix path ~prefix:"/" with
-  | None -> None
-  | Some path ->
-    let path = String.chop_suffix_if_exists ~suffix:"/" path |> flip Stre.nsplitc '/' |> List.map ~f:Web.urldecode in
+  match String.starts_with path ~prefix:"/" with
+  | false -> None
+  | true ->
+    let path =
+      Stre.drop_prefix path "/" |> flip Stre.drop_suffix "/" |> flip Stre.nsplitc '/' |> List.map Web.urldecode
+    in
     let make_repo ~prefix ~owner ~name =
-      let base = String.concat ~sep:"/" (List.rev prefix) in
+      let base = String.concat "/" (List.rev prefix) in
       let scheme = Uri.scheme url in
       let html_base, api_base =
-        if String.is_suffix base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
+        if String.ends_with base ~suffix:"github.com" then gh_com_html_base owner name, gh_com_api_base owner name
         else custom_html_base ?scheme base owner name, custom_api_base ?scheme base owner name
       in
       {
@@ -209,15 +211,15 @@ let gh_link_of_string url_str =
         match path with
         | [ owner; name; "pull"; n ] ->
           let repo = make_repo ~prefix ~owner ~name in
-          Some (Pull_request (repo, Int.of_string n))
+          Some (Pull_request (repo, int_of_string n))
         | [ owner; name; "issues"; n ] ->
           let repo = make_repo ~prefix ~owner ~name in
-          Some (Issue (repo, Int.of_string n))
+          Some (Issue (repo, int_of_string n))
         | [ owner; name; "commit"; commit_hash ] | [ owner; name; "pull"; _; "commits"; commit_hash ] ->
           let repo = make_repo ~prefix ~owner ~name in
           if Re2.matches commit_sha_re commit_hash then Some (Commit (repo, commit_hash)) else None
         | owner :: name :: "compare" :: base_head | owner :: name :: "pull" :: _ :: "files" :: base_head ->
-          let base_head = String.concat ~sep:"/" base_head in
+          let base_head = String.concat "/" base_head in
           let repo = make_repo ~prefix ~owner ~name in
           begin
             match Re2.find_submatches_exn compare_basehead_re base_head with
@@ -232,15 +234,15 @@ let gh_link_of_string url_str =
 
 let get_project_owners (pr : pull_request) ({ rules } : Config_t.project_owners) =
   Rule.Project_owners.match_rules pr.labels rules
-  |> List.partition_map ~f:(fun reviewer ->
+  |> List.partition_map (fun reviewer ->
        try
          let team = Re2.find_first_exn ~sub:(`Index 1) gh_org_team_re reviewer in
-         Second team
-       with Re2.Exceptions.Regex_match_failed _ -> First reviewer
+         Right team
+       with Re2.Exceptions.Regex_match_failed _ -> Left reviewer
      )
   |> fun (reviewers, team_reviewers) ->
-  let already_requested_or_author = pr.user.login :: List.map ~f:(fun r -> r.login) pr.requested_reviewers in
-  let already_requested_team = List.map ~f:(fun r -> r.slug) pr.requested_teams in
-  let reviewers = List.filter ~f:(not $ List.mem already_requested_or_author ~equal:String.equal) reviewers in
-  let team_reviewers = List.filter ~f:(not $ List.mem already_requested_team ~equal:String.equal) team_reviewers in
-  if List.is_empty reviewers && List.is_empty team_reviewers then None else Some { reviewers; team_reviewers }
+  let already_requested_or_author = pr.user.login :: List.map (fun r -> r.login) pr.requested_reviewers in
+  let already_requested_team = List.map (fun r -> r.slug) pr.requested_teams in
+  let reviewers = List.filter (fun r -> not @@ List.mem r already_requested_or_author) reviewers in
+  let team_reviewers = List.filter (fun tr -> not @@ List.mem tr already_requested_team) team_reviewers in
+  if reviewers = [] && team_reviewers = [] then None else Some { reviewers; team_reviewers }

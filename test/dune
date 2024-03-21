@@ -1,6 +1,6 @@
 (executables
  (names test github_link_test)
- (libraries lib base base.caml devkit devkit.core extlib lwt.unix stdio
+ (libraries lib devkit devkit.core extlib lwt.unix
    yojson)
  (preprocess
   (pps lwt_ppx)))

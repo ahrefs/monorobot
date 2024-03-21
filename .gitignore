@@ -3,3 +3,5 @@ _build
 *.install
 src/version.ml
 _opam
+.vscode
+.DS_Store
