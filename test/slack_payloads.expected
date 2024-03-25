@@ -616,6 +616,37 @@ will unfurl in #C047QTRD1CH
     }
   }
 }
+===== file ../mock_slack_events/commits.one_file_modified_with_mention.json =====
+will unfurl in #C06PD9Y7HRT
+{
+  "channel": "C06PD9Y7HRT",
+  "ts": "1711335992.047169",
+  "unfurls": {
+    "https://github.com/phongulus/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc": {
+      "fallback": "[c9164d09] add monorobot config - phongulus (<@U06PUSUR2Q1>)",
+      "mrkdwn_in": [ "text" ],
+      "color": "#f6f8fa",
+      "author_icon": "https://avatars.githubusercontent.com/u/70936859?v=4",
+      "text": "`<https://github.com/phongulus/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc|c9164d09>` add monorobot config - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n_modified `.monorobot.json` (+22-0)_ on Mar 14",
+      "footer": "<https://github.com/phongulus/test_repository|phongulus/test_repository> 2024-03-14T06:38:07Z"
+    }
+  }
+}
+===== file ../mock_slack_events/compare.multiple_comments_with_mention.json =====
+will unfurl in #C06PD9Y7HRT
+{
+  "channel": "C06PD9Y7HRT",
+  "ts": "1711336638.568139",
+  "unfurls": {
+    "https://github.com/ahrefs/monorobot/compare/master...phongulus:monorobot:phong/github-username-with-slack": {
+      "fallback": "[92f743fa] api: add lookup_github_user - phongulus (<@U06PUSUR2Q1>)[de67d6fe] slack: optional slack user highlight - phongulus (<@U06PUSUR2Q1>)[d1a25fa9] add slack user mention - phongulus (<@U06PUSUR2Q1>)[0ec8eaf6] add basic tests for slack user mention - phongulus (<@U06PUSUR2Q1>)[c7b55d30] api: remove unused - phongulus (<@U06PUSUR2Q1>)[4a6b094b] slack: minor refactor - phongulus (<@U06PUSUR2Q1>)[b48bc7ba] use local slack api cache for list users - phongulus (<@U06PUSUR2Q1>)[30a4dd02] action: rename cache table - phongulus (<@U06PUSUR2Q1>)[ae8a4727] add more tests - phongulus (<@U06PUSUR2Q1>)[d328bbb7] background lwt for refreshing slack id mapping - phongulus (<@U06PUSUR2Q1>)[b2b012bc] api_remote: less verbose list_users - phongulus (<@U06PUSUR2Q1>)[31ea35cb] action: minor - phongulus (<@U06PUSUR2Q1>)[559e73df] action, slack: labeled slack id argument - phongulus (<@U06PUSUR2Q1>)[ffcfbaec] merge from master - phongulus (<@U06PUSUR2Q1>)[13ca6e7a] use stdlib where possible - phongulus (<@U06PUSUR2Q1>)[81e7a689] add support for mentions in unfurled links - phongulus (<@U06PUSUR2Q1>)[f5946891] action: allow manual mapping to slack email in config - phongulus (<@U06PUSUR2Q1>)[3527a009] slack: fix mention formatting - phongulus (<@U06PUSUR2Q1>)[fb2307aa] add mentions in unfurled links from supported repos - phongulus (<@U06PUSUR2Q1>)",
+      "mrkdwn_in": [ "text" ],
+      "color": "#f6f8fa",
+      "text": "`<https://github.com/ahrefs/monorobot/commit/92f743fad699c116f3b04feb122cedecb5cd51f4|92f743fa>` api: add lookup_github_user - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n`<https://github.com/ahrefs/monorobot/commit/de67d6fe252547c3546abbbb805d9bdf8e20303b|de67d6fe>` slack: optional slack user highlight - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n`<https://github.com/ahrefs/monorobot/commit/d1a25fa98da0c441c8a70094c105d7cfa4f3853f|d1a25fa9>` add slack user mention - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n+12 more...\n`<https://github.com/ahrefs/monorobot/commit/81e7a689d882188e9ac724e49a47a961935525ca|81e7a689>` add support for mentions in unfurled links - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n`<https://github.com/ahrefs/monorobot/commit/f594689147fd1b240b580710ec70fa2d8d8f1bcd|f5946891>` action: allow manual mapping to slack email in config - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n`<https://github.com/ahrefs/monorobot/commit/3527a009b7dce087c237ca99f4956cb35cfd2db2|3527a009>` slack: fix mention formatting - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n`<https://github.com/ahrefs/monorobot/commit/fb2307aa1daec3c734161459ad5afc48aa27acde|fb2307aa>` add mentions in unfurled links from supported repos - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n\nmodified 19 files",
+      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
+    }
+  }
+}
 ===== file ../mock_slack_events/compare.repo_and_forked_branch_with_repo_name.json =====
 will unfurl in #C047QTRD1CH
 {
@@ -696,6 +727,34 @@ will unfurl in #C047QTRD1CH
     }
   }
 }
+===== file ../mock_slack_events/issue.open_with_mention.json =====
+will unfurl in #COMPOSER
+{
+  "channel": "COMPOSER",
+  "ts": "U06PUSUR2Q1-d2bbc7cc-2752-4ed6-bcd9-2b91379f8890-c3cf2ea2e1c0ff9b357b91016e3548efcc77bd60260535eb2f80169ceaf8c63c",
+  "unfurls": {
+    "https://github.com/phongulus/test_repository/issues/1": {
+      "fallback": "[phongulus/test_repository] Nothing is working",
+      "mrkdwn_in": [ "text" ],
+      "color": "#28a745",
+      "pretext": "Issue by <@U06PUSUR2Q1>",
+      "author_name": "phongulus",
+      "author_link": "https://github.com/phongulus",
+      "author_icon": "https://avatars.githubusercontent.com/u/70936859?v=4",
+      "title": "#1 Nothing is working",
+      "title_link": "https://github.com/phongulus/test_repository/issues/1",
+      "fields": [
+        {
+          "title": "Assignees",
+          "value": "@phongulus (<@U06PUSUR2Q1>)",
+          "short": true
+        },
+        { "title": "Comments", "value": "2", "short": true }
+      ],
+      "footer": "<https://github.com/phongulus/test_repository|phongulus/test_repository>"
+    }
+  }
+}
 ===== file ../mock_slack_events/pr.multiple_involved.json =====
 will unfurl in #C047QTRD1CH
 {
@@ -715,6 +774,27 @@ will unfurl in #C047QTRD1CH
         { "title": "Reviewers", "value": "@ygrek, @Khady", "short": true }
       ],
       "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
+    }
+  }
+}
+===== file ../mock_slack_events/pr.open_with_mention.json =====
+will unfurl in #C06PD9Y7HRT
+{
+  "channel": "C06PD9Y7HRT",
+  "ts": "1711335703.530179",
+  "unfurls": {
+    "https://github.com/phongulus/test_repository/pull/2": {
+      "fallback": "[phongulus/test_repository] test PR",
+      "mrkdwn_in": [ "text" ],
+      "color": "#28a745",
+      "pretext": "PR by <@U06PUSUR2Q1>",
+      "author_name": "phongulus",
+      "author_link": "https://github.com/phongulus",
+      "author_icon": "https://avatars.githubusercontent.com/u/70936859?v=4",
+      "title": "#2 test PR",
+      "title_link": "https://github.com/phongulus/test_repository/pull/2",
+      "fields": [],
+      "footer": "<https://github.com/phongulus/test_repository|phongulus/test_repository>"
     }
   }
 }
