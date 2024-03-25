@@ -284,28 +284,28 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     in
     Lwt_list.iter_s notify notifications
 
+  let fetch_config ~ctx ~repo =
+    match%lwt Github_api.get_config ~ctx ~repo with
+    | Ok config ->
+      Context.set_repo_config ctx repo.url config;
+      Context.print_config ctx repo.url;
+      Lwt.return @@ Ok ()
+    | Error e -> action_error e
+
   (** [refresh_repo_config ctx n] fetches the latest repo config if it's
       uninitialized, or if the incoming request [n] is a push
       notification containing commits that touched the config file. *)
   let refresh_repo_config (ctx : Context.t) notification =
     let repo = Github.repo_of_notification notification in
-    let fetch_config () =
-      match%lwt Github_api.get_config ~ctx ~repo with
-      | Ok config ->
-        Context.set_repo_config ctx repo.url config;
-        Context.print_config ctx repo.url;
-        Lwt.return @@ Ok ()
-      | Error e -> action_error e
-    in
     match Context.find_repo_config ctx repo.url with
-    | None -> fetch_config ()
+    | None -> fetch_config ~ctx ~repo
     | Some _ ->
     match notification with
     | Github.Push commit_pushed_notification ->
       let commits = commit_pushed_notification.commits in
       let modified_files = List.concat_map Github.modified_files_of_commit commits in
       let config_was_modified = List.exists (String.equal ctx.config_filename) modified_files in
-      if config_was_modified then fetch_config () else Lwt.return @@ Ok ()
+      if config_was_modified then fetch_config ~ctx ~repo else Lwt.return @@ Ok ()
     | _ -> Lwt.return @@ Ok ()
 
   let do_github_tasks ctx (repo : repository) (req : Github.t) =
@@ -329,14 +329,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       end
     | _ -> Lwt.return_unit
 
+  let repo_is_supported secrets (repo : Github_t.repository) =
+    List.exists (fun (r : repo_config) -> String.equal r.url repo.url) secrets.repos
+
   let process_github_notification (ctx : Context.t) headers body =
     let validate_signature secrets payload =
       let repo = Github.repo_of_notification payload in
       let signing_key = Context.gh_hook_secret_token_of_secrets secrets repo.url in
       Github.validate_signature ?signing_key ~headers body
-    in
-    let repo_is_supported secrets (repo : Github_t.repository) =
-      List.exists (fun (r : repo_config) -> String.equal r.url repo.url) secrets.repos
     in
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
@@ -409,6 +409,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         match api_result with
         | Error _ -> Lwt.return_none
         | Ok item ->
+          let%lwt _ =
+            match repo_is_supported (Context.get_secrets_exn ctx) repo with
+            | false -> Lwt.return_ok ()
+            | true ->
+            match Context.find_repo_config ctx repo.url with
+            | None -> fetch_config ~ctx ~repo
+            | Some _ -> Lwt.return_ok ()
+          in
           let cfg_opt = Stringtbl.find_opt ctx.config repo.url in
           Lwt.return_some @@ (link, populate (match_github_user_to_slack_id cfg_opt) repo item)
       in

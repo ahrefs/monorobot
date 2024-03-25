@@ -172,11 +172,11 @@ let pp_commit_common url id message author =
 
 let pp_commit ({ url; id; message; author; _ } : commit) = pp_commit_common url id message (escape_mrkdwn @@ author.name)
 
-let pp_api_commit ({ sha; commit; url; author; _ } : api_commit) =
+let pp_api_commit ({ sha; commit; url; author; _ } : api_commit) slack_mention =
   match author with
   | Some author ->
     pp_commit_common url sha commit.message
-      (sprintf "<%s|%s>" (escape_mrkdwn author.html_url) (escape_mrkdwn commit.author.name))
+      (sprintf "<%s|%s>%s" (escape_mrkdwn author.html_url) (escape_mrkdwn commit.author.name) slack_mention)
   | None -> pp_commit_common url sha commit.message commit.author.name
 
 (** pretty print list with previews of each item per line--will always show at most 7 and drop the rest*)

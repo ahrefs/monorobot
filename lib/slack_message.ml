@@ -40,6 +40,7 @@ let base_attachment repository = { empty_attachment with footer = Some (simple_f
 let pp_label (label : label) = label.name
 let pp_github_user (user : github_user) = gh_name_of_string user.login
 let pp_github_team (team : github_team) = gh_name_of_string team.slug
+let pretext_slack_mention = Option.map (sprintf "<@%s>")
 
 let populate_pull_request match_github_user_to_slack_id repository (pull_request : pull_request) =
   let ({
@@ -80,7 +81,8 @@ let populate_pull_request match_github_user_to_slack_id repository (pull_request
   let get_title () = sprintf "#%d %s" number (Mrkdwn.escape_mrkdwn title) in
   {
     (base_attachment repository) with
-    author_name = Some (user.login ^ Slack.format_slack_mention (match_github_user_to_slack_id user));
+    pretext = Option.map (sprintf "PR by %s") @@ pretext_slack_mention (match_github_user_to_slack_id user);
+    author_name = Some user.login;
     author_link = Some user.html_url;
     author_icon = Some user.avatar_url;
     color = Some (color_of_state ~draft ~merged state);
@@ -107,7 +109,8 @@ let populate_issue match_github_user_to_slack_id repository (issue : issue) =
   let get_title () = sprintf "#%d %s" number (Mrkdwn.escape_mrkdwn title) in
   {
     (base_attachment repository) with
-    author_name = Some (user.login ^ Slack.format_slack_mention (match_github_user_to_slack_id user));
+    pretext = Option.map (sprintf "Issue by %s") @@ pretext_slack_mention (match_github_user_to_slack_id user);
+    author_name = Some user.login;
     author_link = Some user.html_url;
     author_icon = Some user.avatar_url;
     color = Some (color_of_state state);
@@ -157,7 +160,7 @@ let populate_commit ?(include_changes = true) match_github_user_to_slack_id repo
     match author with
     | None -> ""
     | Some gh_user -> Slack.format_slack_mention (match_github_user_to_slack_id gh_user) in
-  let title = Slack.pp_api_commit api_commit in
+  let title = Slack.pp_api_commit api_commit slack_mention in
   let changes () =
     let where = condense_file_changes files in
     let when_ =
@@ -190,8 +193,6 @@ let populate_commit ?(include_changes = true) match_github_user_to_slack_id repo
   {
     (base_attachment repository) with
     footer = Some (simple_footer repository ^ " " ^ commit.committer.date);
-    author_name = Stdlib.Option.bind author (fun a -> Some (a.login ^ slack_mention));
-    (* author_link = Some author.html_url; *)
     author_icon =
       ( match author with
       | Some author -> Some author.avatar_url
