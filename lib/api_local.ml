@@ -57,7 +57,7 @@ end
 (** The base implementation for local check payload debugging and mocking tests *)
 module Slack_base : Api.Slack = struct
   let lookup_user ?cache:_ ~ctx:_ ~cfg:_ ~email:_ () = Lwt.return @@ Error "undefined for local setup"
-  let list_users ?cursor:_  ?limit:_ ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
+  let list_users ?cursor:_ ?limit:_ ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
   let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error "undefined for local setup"
   let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
@@ -74,7 +74,7 @@ module Slack : Api.Slack = struct
         Slack_t.id = sprintf "id[%s]" email;
         name = sprintf "name[%s]" email;
         real_name = sprintf "real_name[%s]" email;
-        profile = { email = Some email }
+        profile = { email = Some email };
       }
     in
     let mock_response = { Slack_t.user = mock_user } in
@@ -84,12 +84,7 @@ module Slack : Api.Slack = struct
     let url = Filename.concat slack_cache_dir "users-list" in
     match%lwt with_cache_file url Slack_j.list_users_res_of_string with
     | Error e -> Lwt.return_error e
-    | Ok res ->
-    Lwt.return_ok {
-      Slack_t.ok = true;
-      members = res.members;
-      response_metadata = [ "ignore", "this" ]
-    }
+    | Ok res -> Lwt.return_ok { Slack_t.ok = true; members = res.members; response_metadata = [ "ignore", "this" ] }
 
   let send_notification ~ctx:_ ~msg =
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in

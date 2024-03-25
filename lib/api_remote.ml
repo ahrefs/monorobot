@@ -149,14 +149,12 @@ module Slack : Api.Slack = struct
     | Some user -> Lwt.return_ok user
     | None -> lookup_user' ~ctx ~cfg ~email ()
 
-  let list_users ?cursor ?limit ~(ctx : Context.t) ()  =
+  let list_users ?cursor ?limit ~(ctx : Context.t) () =
     let cursor_option = Option.map (fun c -> "cursor", c) cursor in
-    let limit_option = Option.map (fun l -> "limit", Int.to_string l) limit in 
+    let limit_option = Option.map (fun l -> "limit", Int.to_string l) limit in
     let url_args = Web.make_url_args @@ List.filter_map id [ cursor_option; limit_option ] in
     match%lwt
-      request_token_auth ~name:"list users" ~ctx `GET
-        (sprintf "users.list?%s" url_args)
-        Slack_j.read_list_users_res
+      request_token_auth ~name:"list users" ~ctx `GET (sprintf "users.list?%s" url_args) Slack_j.read_list_users_res
     with
     | Error _ as e -> Lwt.return e
     | Ok users_list -> Lwt.return_ok users_list

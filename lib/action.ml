@@ -13,7 +13,6 @@ module SlackUsername (Slack_api : Api.Slack) = struct
   let email_canonical_regex = Re2.create_exn "\\+[^]]*|@[^]]*" (* Match email domain and everything after '+' *)
 
   let username_ignored_chars = [ '.'; '-' ]
-
   let username_to_slack_id_tbl = Stringtbl.empty ()
 
   let canonicalize_username username =
@@ -24,9 +23,7 @@ module SlackUsername (Slack_api : Api.Slack) = struct
     |> String.lowercase_ascii
 
   let canonicalize_email_username email =
-    email
-    |> Re2.replace_exn ~f:(fun _ -> "") email_canonical_regex
-    |> canonicalize_username
+    email |> Re2.replace_exn ~f:(fun _ -> "") email_canonical_regex |> canonicalize_username
 
   let refresh_username_to_slack_id_tbl ~ctx =
     log#info "now updating slack username mapping";
@@ -40,27 +37,29 @@ module SlackUsername (Slack_api : Api.Slack) = struct
           match user.profile.email with
           | None -> ()
           | Some email ->
-          let username = canonicalize_email_username email in
-          Stringtbl.replace username_to_slack_id_tbl username user.id
-          )
+            let username = canonicalize_email_username email in
+            Stringtbl.replace username_to_slack_id_tbl username user.id
+        )
         res.members;
       Lwt.return_unit
 
   let rec refresh_username_to_slack_id_tbl_background_lwt ~ctx : unit Lwt.t =
     let%lwt () = refresh_username_to_slack_id_tbl ~ctx in
-    let%lwt () = Lwt_unix.sleep 120. in (* Updates mapping every 2 minutes *)
+    let%lwt () = Lwt_unix.sleep 120. in
+    (* Updates mapping every 2 minutes *)
     refresh_username_to_slack_id_tbl_background_lwt ~ctx
 
   let match_github_user_to_slack_id cfg_opt user =
     let login =
       match cfg_opt with
       | None -> user.login
-      | Some cfg -> List.assoc_opt user.login cfg.user_mappings |> Option.default user.login in
+      | Some cfg -> List.assoc_opt user.login cfg.user_mappings |> Option.default user.login
+    in
     login |> canonicalize_email_username |> Stringtbl.find_opt username_to_slack_id_tbl
 end
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
-  module SlackUsername = SlackUsername(Slack_api)
+  module SlackUsername = SlackUsername (Slack_api)
   include SlackUsername
 
   let partition_push (cfg : Config_t.config) n =
@@ -250,22 +249,28 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     match req with
     | Github.Push n ->
       let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
-      partition_push cfg n |> List.map (fun (channel, n) -> generate_push_notification ~sender_slack_id_opt n channel) |> Lwt.return
+      partition_push cfg n
+      |> List.map (fun (channel, n) -> generate_push_notification ~sender_slack_id_opt n channel)
+      |> Lwt.return
     | Pull_request n ->
       let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
       partition_pr cfg n |> List.map (generate_pull_request_notification ~sender_slack_id_opt n) |> Lwt.return
-    | PR_review n -> 
+    | PR_review n ->
       let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
       partition_pr_review cfg n |> List.map (generate_pr_review_notification ~sender_slack_id_opt n) |> Lwt.return
     | PR_review_comment n ->
       let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
-      partition_pr_review_comment cfg n |> List.map (generate_pr_review_comment_notification ~sender_slack_id_opt n) |> Lwt.return
-    | Issue n -> 
+      partition_pr_review_comment cfg n
+      |> List.map (generate_pr_review_comment_notification ~sender_slack_id_opt n)
+      |> Lwt.return
+    | Issue n ->
       let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
       partition_issue cfg n |> List.map (generate_issue_notification ~sender_slack_id_opt n) |> Lwt.return
     | Issue_comment n ->
       let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
-      partition_issue_comment cfg n |> List.map (generate_issue_comment_notification ~sender_slack_id_opt n) |> Lwt.return
+      partition_issue_comment cfg n
+      |> List.map (generate_issue_comment_notification ~sender_slack_id_opt n)
+      |> Lwt.return
     | Commit_comment n ->
       let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
       let%lwt channels, api_commit = partition_commit_comment ctx n in
@@ -401,8 +406,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         Lwt.return_none
     in
     let process link =
-      let with_gh_result_populate_slack (type a)
-        ~(api_result : (a, string) Result.t)
+      let with_gh_result_populate_slack (type a) ~(api_result : (a, string) Result.t)
         ~(populate : (github_user -> string option) -> repository -> a -> Slack_t.message_attachment)
         ~(repo : repository)
         =
