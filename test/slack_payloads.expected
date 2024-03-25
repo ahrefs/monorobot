@@ -181,6 +181,21 @@ will notify #backend
   ],
   "unfurl_links": false
 }
+===== file ../mock_payloads/issue_comment.created_with_mention.json =====
+will notify #default
+{
+  "channel": "default",
+  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> *phongulus* (<@U06PUSUR2Q1>) <https://github.com/phongulus/test_repository/pull/2#issuecomment-2017264583|commented> on #2 <https://github.com/phongulus/test_repository/pull/2|test PR>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "@phongulus (<@U06PUSUR2Q1>) test comment"
+    }
+  ],
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/issue_comment.deleted.json =====
 ===== file ../mock_payloads/issue_comment.draft_pr.json =====
 will notify #frontend-bot
@@ -479,7 +494,7 @@ will notify #default
 {
   "channel": "default",
   "username": "test_repository:main",
-  "text": "<https://github.com/phong-le/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc|1 commit> pushed by phong-le (<@some_slack_id>)\n`<https://github.com/phong-le/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc|c9164d09>` add monorobot config - phong-le",
+  "text": "`<https://github.com/phong-le/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc|c9164d09>` add monorobot config - phong-le",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/push.two_commits_longest_match.json =====

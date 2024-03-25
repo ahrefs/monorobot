@@ -49,13 +49,15 @@ module SlackUsername (Slack_api : Api.Slack) = struct
     (* Updates mapping every 2 minutes *)
     refresh_username_to_slack_id_tbl_background_lwt ~ctx
 
-  let match_github_user_to_slack_id cfg_opt user =
+  let match_github_login_to_slack_id cfg_opt login =
     let login =
       match cfg_opt with
-      | None -> user.login
-      | Some cfg -> List.assoc_opt user.login cfg.user_mappings |> Option.default user.login
+      | None -> login
+      | Some cfg -> List.assoc_opt login cfg.user_mappings |> Option.default login
     in
     login |> canonicalize_email_username |> Stringtbl.find_opt username_to_slack_id_tbl
+
+  let match_github_user_to_slack_id cfg_opt user = match_github_login_to_slack_id cfg_opt user.login
 end
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
@@ -246,40 +248,34 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     match ignore_notifications_from_user cfg req with
     | true -> Lwt.return []
     | false ->
-    match req with
-    | Github.Push n ->
-      let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
-      partition_push cfg n
-      |> List.map (fun (channel, n) -> generate_push_notification ~sender_slack_id_opt n channel)
-      |> Lwt.return
-    | Pull_request n ->
-      let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
-      partition_pr cfg n |> List.map (generate_pull_request_notification ~sender_slack_id_opt n) |> Lwt.return
-    | PR_review n ->
-      let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
-      partition_pr_review cfg n |> List.map (generate_pr_review_notification ~sender_slack_id_opt n) |> Lwt.return
-    | PR_review_comment n ->
-      let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
-      partition_pr_review_comment cfg n
-      |> List.map (generate_pr_review_comment_notification ~sender_slack_id_opt n)
-      |> Lwt.return
-    | Issue n ->
-      let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
-      partition_issue cfg n |> List.map (generate_issue_notification ~sender_slack_id_opt n) |> Lwt.return
-    | Issue_comment n ->
-      let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
-      partition_issue_comment cfg n
-      |> List.map (generate_issue_comment_notification ~sender_slack_id_opt n)
-      |> Lwt.return
-    | Commit_comment n ->
-      let sender_slack_id_opt = match_github_user_to_slack_id (Some cfg) n.sender in
-      let%lwt channels, api_commit = partition_commit_comment ctx n in
-      let notifs = List.map (generate_commit_comment_notification ~sender_slack_id_opt api_commit n) channels in
-      Lwt.return notifs
-    | Status n ->
-      let%lwt channels = partition_status ctx n in
-      let notifs = List.map (generate_status_notification cfg n) channels in
-      Lwt.return notifs
+      let slack_match_func = match_github_login_to_slack_id (Some cfg) in
+      ( match req with
+      | Github.Push n ->
+        partition_push cfg n
+        |> List.map (fun (channel, n) -> generate_push_notification ~sender_slack_id_opt:None n channel)
+        |> Lwt.return
+      | Pull_request n ->
+        partition_pr cfg n |> List.map (generate_pull_request_notification ~slack_match_func n) |> Lwt.return
+      | PR_review n ->
+        partition_pr_review cfg n |> List.map (generate_pr_review_notification ~slack_match_func n) |> Lwt.return
+      | PR_review_comment n ->
+        partition_pr_review_comment cfg n
+        |> List.map (generate_pr_review_comment_notification ~slack_match_func n)
+        |> Lwt.return
+      | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification ~slack_match_func n) |> Lwt.return
+      | Issue_comment n ->
+        partition_issue_comment cfg n
+        |> List.map (generate_issue_comment_notification ~slack_match_func n)
+        |> Lwt.return
+      | Commit_comment n ->
+        let%lwt channels, api_commit = partition_commit_comment ctx n in
+        let notifs = List.map (generate_commit_comment_notification ~slack_match_func api_commit n) channels in
+        Lwt.return notifs
+      | Status n ->
+        let%lwt channels = partition_status ctx n in
+        let notifs = List.map (generate_status_notification cfg n) channels in
+        Lwt.return notifs
+      )
 
   let send_notifications (ctx : Context.t) notifications =
     let notify (msg : Slack_t.post_message_req) =
