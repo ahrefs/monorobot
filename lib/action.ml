@@ -45,8 +45,8 @@ module SlackUsername (Slack_api : Api.Slack) = struct
 
   let rec refresh_username_to_slack_id_tbl_background_lwt ~ctx : unit Lwt.t =
     let%lwt () = refresh_username_to_slack_id_tbl ~ctx in
-    let%lwt () = Lwt_unix.sleep 120. in
-    (* Updates mapping every 2 minutes *)
+    let%lwt () = Lwt_unix.sleep 86400. in
+    (* Updates mapping every 24 hours *)
     refresh_username_to_slack_id_tbl_background_lwt ~ctx
 
   let match_github_login_to_slack_id cfg_opt login =
