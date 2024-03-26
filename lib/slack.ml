@@ -226,17 +226,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
-  let state_info =
-    match state with
-    | Success -> "success"
-    | Failure -> "failure"
-    | Error -> "error"
-    | _ ->
-      invalid_arg
-        (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s of %s"
-           (string_of_status_state state) sha
-        )
-  in
+  let is_buildkite = String.starts_with context ~prefix:"buildkite" in
   let color_info =
     match state with
     | Success -> "good"
@@ -249,6 +239,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       let text =
         match target_url with
         | None -> s
+        | Some _ when not is_buildkite -> s
         | Some target_url ->
         (* Specific to buildkite *)
         match Re2.find_submatches_exn buildkite_description_re s with
@@ -276,13 +267,38 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       [ sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ", " branches) ]
   in
   let summary =
+    let state_info =
+      match state with
+      | Success -> "succeeded"
+      | Failure -> "failed"
+      | Error -> "error"
+      | _ ->
+        invalid_arg
+          (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s of %s"
+             (string_of_status_state state) sha
+          )
+    in
+    let commit_message = first_line message in
     match target_url with
-    | None ->
-      sprintf "<%s|[%s]> CI Build Status notification: %s" repository.url repository.full_name state_info
-      (* in case the CI run is not using buildkite *)
+    | None -> sprintf "<%s|[%s]> CI Build Status notification: %s" repository.url repository.full_name state_info
     | Some target_url ->
-      sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name target_url
-        context state_info
+      let default_summary =
+        sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name target_url
+          context state_info
+      in
+      if not is_buildkite then default_summary
+      else (
+        (* Keep only the portion of the url before /builds/... *)
+        let pipeline_url =
+          match String.split_on_char '/' target_url with
+          | "https:" :: "" :: "buildkite.com" :: "org" :: pipeline :: "builds" :: _ ->
+            Some (Printf.sprintf "https://buildkite.com/org/%s" pipeline)
+          | _ -> None
+        in
+        match pipeline_url with
+        | None -> default_summary
+        | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url context state_info commit_message
+      )
   in
   let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info ] in
   let attachment =
