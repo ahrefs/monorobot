@@ -290,13 +290,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       else (
         (* Keep only the portion of the url before /builds/... *)
         let pipeline_url =
-          let rec loop = function
-            | [] -> None
-            | "builds" :: l -> Some (List.rev l |> String.concat "/")
-            | _ :: l -> loop l
-          in
-          let url_parts = target_url |> String.split_on_char '/' |> List.rev in
-          loop url_parts
+          try Some (ExtLib.String.split target_url "/builds" |> fst) with ExtLib.Invalid_string -> None
         in
         match pipeline_url with
         | None -> default_summary
