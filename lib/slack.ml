@@ -239,7 +239,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       let text =
         match target_url with
         | None -> s
-        | Some target_url when not is_buildkite -> sprintf "*Description*: %s." target_url
+        | Some _ when not is_buildkite -> s
         | Some target_url ->
         (* Specific to buildkite *)
         match Re2.find_submatches_exn buildkite_description_re s with
