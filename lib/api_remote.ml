@@ -1,27 +1,31 @@
-open Base
 open Printf
 open Devkit
 open Common
 
 module Github : Api.Github = struct
   let commits_url ~(repo : Github_t.repository) ~sha =
-    String.substr_replace_first ~pattern:"{/sha}" ~with_:("/" ^ sha) repo.commits_url
+    let _, url = ExtLib.String.replace ~sub:"{/sha}" ~by:("/" ^ sha) ~str:repo.commits_url in
+    url
 
   let contents_url ~(repo : Github_t.repository) ~path =
-    String.substr_replace_first ~pattern:"{+path}" ~with_:path repo.contents_url
+    let _, url = ExtLib.String.replace ~sub:"{+path}" ~by:path ~str:repo.contents_url in
+    url
 
   let pulls_url ~(repo : Github_t.repository) ~number =
-    String.substr_replace_first ~pattern:"{/number}" ~with_:(sprintf "/%d" number) repo.pulls_url
+    let _, url = ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.pulls_url in
+    url
 
   let issues_url ~(repo : Github_t.repository) ~number =
-    String.substr_replace_first ~pattern:"{/number}" ~with_:(sprintf "/%d" number) repo.issues_url
+    let _, url = ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.issues_url in
+    url
 
   let compare_url ~(repo : Github_t.repository) ~basehead:(base, merge) =
-    String.substr_replace_first ~pattern:"{/basehead}" ~with_:(sprintf "/%s...%s" base merge) repo.compare_url
+    let _, url = ExtLib.String.replace ~sub:"{/basehead}" ~by:(sprintf "/%s...%s" base merge) ~str:repo.compare_url in
+    url
 
   let build_headers ?token () =
     let headers = [ "Accept: application/vnd.github.v3+json" ] in
-    Option.value_map token ~default:headers ~f:(fun v -> sprintf "Authorization: token %s" v :: headers)
+    Option.map_default (fun v -> sprintf "Authorization: token %s" v :: headers) headers token
 
   let get_config ~(ctx : Context.t) ~repo =
     let secrets = Context.get_secrets_exn ctx in
@@ -36,7 +40,10 @@ module Github : Api.Github = struct
       | "base64" ->
         begin
           try
-            response.content |> String.split_lines |> String.concat |> decode_string_pad |> Config_j.config_of_string
+            response.content
+            |> Re2.rewrite_exn (Re2.create_exn "\n") ~template:""
+            |> decode_string_pad
+            |> Config_j.config_of_string
             |> fun res -> Lwt.return @@ Ok res
           with exn ->
             let e = Exn.to_string exn in
@@ -64,21 +71,21 @@ module Github : Api.Github = struct
 
   let get_api_commit ~(ctx : Context.t) ~(repo : Github_t.repository) ~sha =
     let%lwt res = commits_url ~repo ~sha |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
-    Lwt.return @@ Result.map res ~f:Github_j.api_commit_of_string
+    Lwt.return @@ Result.map Github_j.api_commit_of_string res
 
   let get_pull_request ~(ctx : Context.t) ~(repo : Github_t.repository) ~number =
     let%lwt res = pulls_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
-    Lwt.return @@ Result.map res ~f:Github_j.pull_request_of_string
+    Lwt.return @@ Result.map Github_j.pull_request_of_string res
 
   let get_issue ~(ctx : Context.t) ~(repo : Github_t.repository) ~number =
     let%lwt res = issues_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
-    Lwt.return @@ Result.map res ~f:Github_j.issue_of_string
+    Lwt.return @@ Result.map Github_j.issue_of_string res
 
   let get_compare ~(ctx : Context.t) ~(repo : Github_t.repository) ~basehead =
     let%lwt res =
       compare_url ~repo ~basehead |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
     in
-    Lwt.return @@ Result.map res ~f:Github_j.compare_of_string
+    Lwt.return @@ Result.map Github_j.compare_of_string res
 
   let request_reviewers ~(ctx : Context.t) ~(repo : Github_t.repository) ~number ~reviewers =
     let body = Github_j.string_of_request_reviewers_req reviewers in
@@ -86,7 +93,7 @@ module Github : Api.Github = struct
       pulls_url ~repo ~number ^ "/requested_reviewers"
       |> post_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url body
     in
-    Lwt.return @@ Result.map res ~f:(fun _ -> ())
+    Lwt.return @@ Result.map ignore res
 end
 
 module Slack : Api.Slack = struct
@@ -106,7 +113,7 @@ module Slack : Api.Slack = struct
     match secrets.slack_access_token with
     | None -> Lwt.return @@ fmt_error "%s: failed to retrieve Slack access token" name
     | Some access_token ->
-      let headers = bearer_token_header access_token :: Option.value ~default:[] headers in
+      let headers = bearer_token_header access_token :: Option.default [] headers in
       let url = sprintf "https://slack.com/api/%s" path in
       ( match%lwt slack_api_request ?body ~headers meth url read with
       | Ok res -> Lwt.return @@ Ok res
@@ -121,7 +128,7 @@ module Slack : Api.Slack = struct
 
   let lookup_user' ~(ctx : Context.t) ~(cfg : Config_t.config) ~email () =
     (* Check if config holds the Github to Slack email mapping  *)
-    let email = List.Assoc.find cfg.user_mappings ~equal:String.equal email |> Option.value ~default:email in
+    let email = List.assoc_opt email cfg.user_mappings |> Option.default email in
     let url_args = Web.make_url_args [ "email", email ] in
     match%lwt
       request_token_auth ~name:"lookup user by email" ~ctx `GET

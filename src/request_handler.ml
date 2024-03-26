@@ -19,7 +19,7 @@ let run ~ctx ~addr ~port =
       let ret_err status s = body @@ serve_text ~status request s in
       try%lwt
         let path =
-          match Stre.nsplitc request.path '/' with
+          match String.split_on_char '/' request.path with
           | "" :: p -> p
           | _ -> Exn.fail "you are on a wrong path"
         in

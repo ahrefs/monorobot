@@ -1,4 +1,3 @@
-open Base
 open Printf
 open Github_t
 open Slack_t
@@ -64,17 +63,17 @@ let populate_pull_request repository (pull_request : pull_request) =
     pull_request
   in
   let get_reviewers () =
-    List.concat [ List.map requested_reviewers ~f:pp_github_user; List.map requested_teams ~f:pp_github_team ]
+    List.concat [ List.map pp_github_user requested_reviewers; List.map pp_github_team requested_teams ]
   in
   let fields =
     [
-      "Assignees", List.map assignees ~f:pp_github_user;
-      "Labels", List.map labels ~f:pp_label;
+      "Assignees", List.map pp_github_user assignees;
+      "Labels", List.map pp_label labels;
       ("Comments", if comments > 0 then [ Int.to_string comments ] else []);
       "Reviewers", get_reviewers ();
     ]
-    |> List.filter_map ~f:(fun (t, v) -> if List.is_empty v then None else Some (t, String.concat v ~sep:", "))
-    |> List.map ~f:(fun (t, v) -> { title = Some t; value = v; short = true })
+    |> List.filter_map (fun (t, v) -> if v = [] then None else Some (t, String.concat ", " v))
+    |> List.map (fun (t, v) -> { title = Some t; value = v; short = true })
   in
   let get_title () = sprintf "#%d %s" number (Mrkdwn.escape_mrkdwn title) in
   {
@@ -94,12 +93,12 @@ let populate_issue repository (issue : issue) =
   let ({ title; number; html_url; user; assignees; comments; labels; state; _ } : issue) = issue in
   let fields =
     [
-      "Assignees", List.map assignees ~f:pp_github_user;
-      "Labels", List.map labels ~f:pp_label;
+      "Assignees", List.map pp_github_user assignees;
+      "Labels", List.map pp_label labels;
       ("Comments", if comments > 0 then [ Int.to_string comments ] else []);
     ]
-    |> List.filter_map ~f:(fun (t, v) -> if List.is_empty v then None else Some (t, String.concat v ~sep:", "))
-    |> List.map ~f:(fun (t, v) -> { title = Some t; value = v; short = true })
+    |> List.filter_map (fun (t, v) -> if v = [] then None else Some (t, String.concat ", " v))
+    |> List.map (fun (t, v) -> { title = Some t; value = v; short = true })
   in
   let get_title () = sprintf "#%d %s" number (Mrkdwn.escape_mrkdwn title) in
   {
@@ -135,15 +134,18 @@ let condense_file_changes files =
   match files with
   | [ f ] -> sprintf "_modified `%s` (+%d-%d)_" (escape_mrkdwn f.filename) f.additions f.deletions
   | _ ->
-    let prefix_path =
-      List.map files ~f:(fun f -> f.filename)
-      |> Common.longest_common_prefix
-      |> String.split ~on:'/'
-      |> List.drop_last_exn
-      |> String.concat ~sep:"/"
+    let rec drop_last = function
+      | [ _ ] | [] -> [] (* Should raise when empty instead? *)
+      | v :: vs -> v :: drop_last vs
     in
-    sprintf "modified %d files%s" (List.length files)
-      (if String.is_empty prefix_path then "" else sprintf " in `%s/`" prefix_path)
+    let prefix_path =
+      List.map (fun f -> f.filename) files
+      |> Common.longest_common_prefix
+      |> String.split_on_char '/'
+      |> drop_last
+      |> String.concat "/"
+    in
+    sprintf "modified %d files%s" (List.length files) (if prefix_path = "" then "" else sprintf " in `%s/`" prefix_path)
 
 let populate_commit ?(include_changes = true) repository (api_commit : api_commit) =
   let ({ sha; commit; author; files; _ } : api_commit) = api_commit in
@@ -157,13 +159,13 @@ let populate_commit ?(include_changes = true) repository (api_commit : api_commi
         but looks like slack doesn't provide such functionality
       *)
       try
-        match String.split commit.author.date ~on:'T' with
+        match String.split_on_char 'T' commit.author.date with
         | [ date; _ ] ->
           let yy, mm, dd =
             let tm = Unix.gmtime @@ Devkit.Time.now () in
             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday
           in
-          ( match List.map ~f:Int.of_string @@ String.split date ~on:'-' with
+          ( match List.map int_of_string @@ String.split_on_char '-' date with
           | [ y; m; d ] when y = yy && m = mm && d = dd -> "today"
           | [ y; m; d ] when y = yy -> sprintf "on %s %d" (month m) d
           | _ -> "on " ^ date
@@ -212,16 +214,16 @@ let populate_compare repository (compare : compare) =
     let no_commit_msg = "There are no commit difference in this compare!" in
     { base with text = Some no_commit_msg; fallback = Some no_commit_msg }
   | false ->
-    let commits_unfurl = List.map compare.commits ~f:(populate_commit ~include_changes:false repository) in
+    let commits_unfurl = List.map (populate_commit ~include_changes:false repository) compare.commits in
     let commits_unfurl_text =
       Slack.pp_list_with_previews
-        ~pp_item:(fun (commit_unfurl : unfurl) -> Option.value commit_unfurl.text ~default:"")
+        ~pp_item:(fun (commit_unfurl : unfurl) -> Option.default "" commit_unfurl.text)
         commits_unfurl
     in
     let commits_unfurl_fallback =
-      List.map commits_unfurl ~f:(fun commit_unfurl -> Option.value commit_unfurl.fallback ~default:"")
+      List.map (fun commit_unfurl -> Option.default "" commit_unfurl.fallback) commits_unfurl
     in
     let file_stats = sprintf "\n%s" (condense_file_changes compare.files) in
-    let text = sprintf "%s%s" (String.concat commits_unfurl_text) file_stats in
-    let fallback = String.concat commits_unfurl_fallback in
+    let text = sprintf "%s%s" (String.concat "" commits_unfurl_text) file_stats in
+    let fallback = String.concat "" commits_unfurl_fallback in
     { base with text = Some text; fallback = Some fallback }
