@@ -290,7 +290,10 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       else (
         (* Keep only the portion of the url before /builds/... *)
         let pipeline_url =
-          try Some (ExtLib.String.split target_url "/builds" |> fst) with ExtLib.Invalid_string -> None
+          match String.split_on_char '/' target_url with
+          | "https:" :: "" :: "buildkite.com" :: "org" :: pipeline :: "builds" :: _ ->
+            Some (Printf.sprintf "https://buildkite.com/org/%s" pipeline)
+          | _ -> None
         in
         match pipeline_url with
         | None -> default_summary
