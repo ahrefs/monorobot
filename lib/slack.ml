@@ -105,8 +105,8 @@ let generate_pr_review_notification ~slack_match_func notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login
-      review.html_url action_str number (pp_link ~url:html_url title)
+    sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
+      number (pp_link ~url:html_url title)
   in
   make_message ~text:summary ?attachments:(format_attachments slack_match_func None review.body) ~channel ()
 
@@ -123,8 +123,8 @@ let generate_pr_review_comment_notification ~slack_match_func notification chann
         )
   in
   let summary =
-    sprintf "<%s|[%s]> *%s* %s on #%d %s" repository.url repository.full_name sender.login
-      action_str number (pp_link ~url:html_url title)
+    sprintf "<%s|[%s]> *%s* %s on #%d %s" repository.url repository.full_name sender.login action_str number
+      (pp_link ~url:html_url title)
   in
   let file =
     match comment.path with
@@ -149,8 +149,8 @@ let generate_issue_notification ~slack_match_func notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number
-      (pp_link ~url:html_url title) action sender.login
+    sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number (pp_link ~url:html_url title)
+      action sender.login
   in
 
   make_message ~text:summary ?attachments:(format_attachments slack_match_func None body) ~channel ()
@@ -169,8 +169,8 @@ let generate_issue_comment_notification ~slack_match_func notification channel =
         )
   in
   let summary =
-    sprintf "<%s|[%s]> *%s* <%s|%s> on #%d %s" repository.url repository.full_name sender.login
-      comment.html_url action_str number (pp_link ~url:issue.html_url title)
+    sprintf "<%s|[%s]> *%s* <%s|%s> on #%d %s" repository.url repository.full_name sender.login comment.html_url
+      action_str number (pp_link ~url:issue.html_url title)
   in
   make_message ~text:summary ?attachments:(format_attachments slack_match_func None @@ Some comment.body) ~channel ()
 

@@ -251,9 +251,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       let slack_match_func = match_github_login_to_slack_id (Some cfg) in
       ( match req with
       | Github.Push n ->
-        partition_push cfg n
-        |> List.map (fun (channel, n) -> generate_push_notification n channel)
-        |> Lwt.return
+        partition_push cfg n |> List.map (fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
       | Pull_request n ->
         partition_pr cfg n |> List.map (generate_pull_request_notification ~slack_match_func n) |> Lwt.return
       | PR_review n ->
