@@ -82,7 +82,6 @@ let populate_pull_request match_github_user_to_slack_id repository (pull_request
   let get_title () = sprintf "#%d %s" number (Mrkdwn.escape_mrkdwn title) in
   {
     (base_attachment repository) with
-    pretext = Option.map (sprintf "PR by %s") @@ pretext_slack_mention (match_github_user_to_slack_id user);
     author_name = Some user.login;
     author_link = Some user.html_url;
     author_icon = Some user.avatar_url;
@@ -111,7 +110,6 @@ let populate_issue match_github_user_to_slack_id repository (issue : issue) =
   let get_title () = sprintf "#%d %s" number (Mrkdwn.escape_mrkdwn title) in
   {
     (base_attachment repository) with
-    pretext = Option.map (sprintf "Issue by %s") @@ pretext_slack_mention (match_github_user_to_slack_id user);
     author_name = Some user.login;
     author_link = Some user.html_url;
     author_icon = Some user.avatar_url;
@@ -192,9 +190,7 @@ let populate_commit ?(include_changes = true) match_github_user_to_slack_id repo
     | where, when_ -> sprintf "%s %s" where when_
   in
   let text = sprintf "%s\n%s" title (if include_changes then changes () else "") in
-  let fallback =
-    sprintf "[%s] %s - %s%s" (Slack.git_short_sha_hash sha) commit.message commit.author.name slack_mention
-  in
+  let fallback = sprintf "[%s] %s - %s" (Slack.git_short_sha_hash sha) commit.message commit.author.name in
   {
     (base_attachment repository) with
     footer = Some (simple_footer repository ^ " " ^ commit.committer.date);
