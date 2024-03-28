@@ -32,7 +32,7 @@
        "created_at":"2024-03-18T08:01:33Z",
        "updated_at":"2024-03-18T08:01:33Z",
        "author_association":"OWNER",
-       "body":"test commit comment",
+       "body":"test commit comment, should mention slack id for @NotAPerson",
        "reactions":{
           "url":"https://api.github.com/repos/NotAPerson/test_repository/comments/139894440/reactions",
           "total_count":0,

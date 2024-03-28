@@ -2,13 +2,13 @@
 will notify #all-push-events
 {
   "channel": "all-push-events",
-  "text": "<https://github.com/NotAPerson/test_repository|[NotAPerson/test_repository]> *NotAPerson* (<@slack_id_2>) commented on `<https://github.com/NotAPerson/test_repository/commit/f672ca1e7d8f9d8d51b2c6b6ac8c4f39b549ac07#commitcomment-139894440|f672ca1e>` test changes",
+  "text": "<https://github.com/NotAPerson/test_repository|[NotAPerson/test_repository]> *NotAPerson* commented on `<https://github.com/NotAPerson/test_repository/commit/f672ca1e7d8f9d8d51b2c6b6ac8c4f39b549ac07#commitcomment-139894440|f672ca1e>` test changes",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "test commit comment"
+      "text": "test commit comment, should mention slack id for @NotAPerson (<@slack_id_2>)"
     }
   ],
   "unfurl_links": false
@@ -185,7 +185,7 @@ will notify #backend
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> *phongulus* (<@U06PUSUR2Q1>) <https://github.com/phongulus/test_repository/pull/2#issuecomment-2017264583|commented> on #2 <https://github.com/phongulus/test_repository/pull/2|test PR>",
+  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> *phongulus* <https://github.com/phongulus/test_repository/pull/2#issuecomment-2017264583|commented> on #2 <https://github.com/phongulus/test_repository/pull/2|test PR>",
   "attachments": [
     {
       "fallback": null,
@@ -213,21 +213,6 @@ will notify #frontend-bot
   "unfurl_links": false
 }
 ===== file ../mock_payloads/issue_comment.edited.json =====
-===== file ../mock_payloads/issue_comment.slack_mention.json =====
-will notify #default
-{
-  "channel": "default",
-  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> *phongulus* (<@U06PUSUR2Q1>) <https://github.com/phongulus/test_repository/issues/1#issuecomment-2003174406|commented> on #1 <https://github.com/phongulus/test_repository/issues/1|Nothing is working>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "text" ],
-      "color": "#ccc",
-      "text": "cannot"
-    }
-  ],
-  "unfurl_links": false
-}
 ===== file ../mock_payloads/issues.closed.json =====
 will notify #backend
 {
@@ -269,13 +254,13 @@ will notify #default
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> Issue #1 <https://github.com/phongulus/test_repository/issues/1|Nothing is working> opened by *phongulus* (<@U06PUSUR2Q1>)",
+  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> Issue #1 <https://github.com/phongulus/test_repository/issues/1|Nothing is working> opened by *phongulus*",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "Pls do something about it"
+      "text": "Pls do something about it @phongulus (<@U06PUSUR2Q1>) @phong-le (<@some_slack_id>) @NotAPerson (<@slack_id_2>)"
     }
   ],
   "unfurl_links": false
@@ -349,13 +334,13 @@ will notify #frontend-bot
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> Pull request #2 <https://github.com/phongulus/test_repository/pull/2|test PR> opened by *phongulus* (<@U06PUSUR2Q1>)",
+  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> Pull request #2 <https://github.com/phongulus/test_repository/pull/2|test PR> opened by *phongulus*",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "test pull request"
+      "text": "test pull request, mention @phongulus (<@U06PUSUR2Q1>)"
     }
   ],
   "unfurl_links": false
@@ -489,7 +474,7 @@ will notify #all-push-events
   "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|12 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/75170cc6e1b1aa0c603a13b9480ee1e7d1c9b0d7|75170cc6>` Update readme 2 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/82e3497b0fb250ef1a19daa0996ae0ad51641bea|82e3497b>` Update readme 3 - jose nogueira\n+5 more...\n\n`<https://github.com/thatportugueseguy/monorepo/commit/d6a17bfc44f7e752e02176ba87ec5a97f5b3316b|d6a17bfc>` Update readme 9 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/003927e6c73068f440c28da69386798ece9cb6dc|003927e6>` Update readme 10 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/5de643873ff93dc9163c4c63d3fb7c2ee1bb33b4|5de64387>` Update readme 11 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false
 }
-===== file ../mock_payloads/push.slack_hyphen_mention.json =====
+===== file ../mock_payloads/push.slack_mapping_present_no_mention.json =====
 will notify #default
 {
   "channel": "default",

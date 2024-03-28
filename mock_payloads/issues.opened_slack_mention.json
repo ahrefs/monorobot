@@ -47,7 +47,7 @@
        "closed_at":null,
        "author_association":"OWNER",
        "active_lock_reason":null,
-       "body":"Pls do something about it",
+       "body":"Pls do something about it @phongulus @phong-le @NotAPerson",
        "reactions":{
           "url":"https://api.github.com/repos/phongulus/test_repository/issues/1/reactions",
           "total_count":0,
