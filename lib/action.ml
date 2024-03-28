@@ -10,20 +10,13 @@ let action_error msg = raise (Action_error msg)
 let log = Log.from "action"
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
-  let email_canonical_regex = Re2.create_exn {|\+[^]]*|@[^]]*|} (* Match email domain and everything after '+' *)
+  let canonical_regex = Re2.create_exn {|\.|\-|\+.*|@.*|}
+  (* Match email domain, everything after '+', as well as dots and hyphens *)
 
-  let username_ignored_chars = [ '.'; '-' ]
   let username_to_slack_id_tbl = Stringtbl.empty ()
 
-  let canonicalize_username username =
-    username
-    |> String.to_seq
-    |> Seq.filter (Fun.negate @@ flip List.mem username_ignored_chars)
-    |> String.of_seq
-    |> String.lowercase_ascii
-
   let canonicalize_email_username email =
-    email |> Re2.replace_exn ~f:(fun _ -> "") email_canonical_regex |> canonicalize_username
+    email |> Re2.rewrite_exn ~template:"" canonical_regex |> String.lowercase_ascii
 
   let refresh_username_to_slack_id_tbl ~ctx =
     log#info "now updating slack username mapping";
@@ -56,8 +49,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Some cfg -> List.assoc_opt login cfg.user_mappings |> Option.default login
     in
     login |> canonicalize_email_username |> Stringtbl.find_opt username_to_slack_id_tbl
-
-  let match_github_user_to_slack_id cfg_opt user = match_github_login_to_slack_id cfg_opt user.login
 
   let partition_push (cfg : Config_t.config) n =
     let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
@@ -414,7 +405,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
               | Ok () -> Lwt.return @@ Context.find_repo_config ctx repo.url
               )
           in
-          let slack_match_func = match_github_user_to_slack_id cfg in *)
+          let slack_match_func = match_github_login_to_slack_id cfg in *)
           Lwt.return_some @@ (link, populate (fun _ -> None) repo item)
       in
       match Github.gh_link_of_string link with
