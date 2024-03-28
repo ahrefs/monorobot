@@ -548,6 +548,21 @@ will unfurl in #C047QTRD1CH
     }
   }
 }
+===== file ../mock_slack_events/compare.files_modified_common_directory.json =====
+will unfurl in #COMPOSER
+{
+  "channel": "COMPOSER",
+  "ts": "U06PUSUR2Q1-c982cf8b-4a53-4d2e-b0f7-96c77f32c448-3d50670aa1dfaaea2cecb89b6daa6c6f0da41e2be0349a46a417761811431b57",
+  "unfurls": {
+    "https://github.com/phongulus/test_repository/compare/main...test-commit-multiple-directories": {
+      "fallback": "[f83b2321] test commit - phongulus",
+      "mrkdwn_in": [ "text" ],
+      "color": "#f6f8fa",
+      "text": "`<https://github.com/phongulus/test_repository/commit/f83b2321cd79b18e9a58e2d99b33cab108cc207a|f83b2321>` test commit - <https://github.com/phongulus|phongulus>\n\nmodified 2 files in `test1/`",
+      "footer": "<https://github.com/phongulus/test_repository|phongulus/test_repository>"
+    }
+  }
+}
 ===== file ../mock_slack_events/compare.repo_and_forked_branch_with_repo_name.json =====
 will unfurl in #C047QTRD1CH
 {
