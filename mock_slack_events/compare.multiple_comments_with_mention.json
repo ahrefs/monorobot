@@ -1,0 +1,35 @@
+{
+   "token":"8LlCAXJe07RByuyMCkgPFMsL",
+   "team_id":"T06PD9Y6J1K",
+   "api_app_id":"A06P9KQM9U6",
+   "event":{
+      "type":"link_shared",
+      "user":"U06PUSUR2Q1",
+      "channel":"C06PD9Y7HRT",
+      "message_ts":"1711336638.568139",
+      "links":[
+         {
+            "url":"https://github.com/ahrefs/monorobot/compare/master...phongulus:monorobot:phong/github-username-with-slack",
+            "domain":"github.com"
+         }
+      ],
+      "source":"conversations_history",
+      "unfurl_id":"C06PD9Y7HRT.1711336638.568139.27d8644f5da54f6f4f776a5c93478d69156a8f6a0212f84d3f28d822b5ee92ae",
+      "is_bot_user_member":false,
+      "event_ts":"1711336638.972142"
+   },
+   "type":"event_callback",
+   "event_id":"Ev06R3CKJUE7",
+   "event_time":1711336638,
+   "authorizations":[
+      {
+         "enterprise_id":null,
+         "team_id":"T06PD9Y6J1K",
+         "user_id":"U06PG922GRY",
+         "is_bot":true,
+         "is_enterprise_install":false
+      }
+   ],
+   "is_ext_shared_channel":false,
+   "event_context":"4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA2UEQ5WTZKMUsiLCJhaWQiOiJBMDZQOUtRTTlVNiIsImNpZCI6IkMwNlBEOVk3SFJUIn0"
+}

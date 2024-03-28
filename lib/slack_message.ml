@@ -40,8 +40,9 @@ let base_attachment repository = { empty_attachment with footer = Some (simple_f
 let pp_label (label : label) = label.name
 let pp_github_user (user : github_user) = gh_name_of_string user.login
 let pp_github_team (team : github_team) = gh_name_of_string team.slug
+let pretext_slack_mention = Option.map (sprintf "<@%s>")
 
-let populate_pull_request repository (pull_request : pull_request) =
+let populate_pull_request match_github_user_to_slack_id repository (pull_request : pull_request) =
   let ({
          title;
          number;
@@ -62,12 +63,15 @@ let populate_pull_request repository (pull_request : pull_request) =
     =
     pull_request
   in
+  let gh_user_format reviewer =
+    pp_github_user reviewer ^ Slack.format_slack_mention (match_github_user_to_slack_id reviewer)
+  in
   let get_reviewers () =
-    List.concat [ List.map pp_github_user requested_reviewers; List.map pp_github_team requested_teams ]
+    List.concat [ List.map gh_user_format requested_reviewers; List.map pp_github_team requested_teams ]
   in
   let fields =
     [
-      "Assignees", List.map pp_github_user assignees;
+      "Assignees", List.map gh_user_format assignees;
       "Labels", List.map pp_label labels;
       ("Comments", if comments > 0 then [ Int.to_string comments ] else []);
       "Reviewers", get_reviewers ();
@@ -89,11 +93,14 @@ let populate_pull_request repository (pull_request : pull_request) =
     fallback = Some (sprintf "[%s] %s" repository.full_name title);
   }
 
-let populate_issue repository (issue : issue) =
+let populate_issue match_github_user_to_slack_id repository (issue : issue) =
   let ({ title; number; html_url; user; assignees; comments; labels; state; _ } : issue) = issue in
+  let gh_user_format reviewer =
+    pp_github_user reviewer ^ Slack.format_slack_mention (match_github_user_to_slack_id reviewer)
+  in
   let fields =
     [
-      "Assignees", List.map pp_github_user assignees;
+      "Assignees", List.map gh_user_format assignees;
       "Labels", List.map pp_label labels;
       ("Comments", if comments > 0 then [ Int.to_string comments ] else []);
     ]
@@ -147,9 +154,14 @@ let condense_file_changes files =
     in
     sprintf "modified %d files%s" (List.length files) (if prefix_path = "" then "" else sprintf " in `%s/`" prefix_path)
 
-let populate_commit ?(include_changes = true) repository (api_commit : api_commit) =
+let populate_commit ?(include_changes = true) match_github_user_to_slack_id repository (api_commit : api_commit) =
   let ({ sha; commit; author; files; _ } : api_commit) = api_commit in
-  let title = Slack.pp_api_commit api_commit in
+  let slack_mention =
+    match author with
+    | None -> ""
+    | Some gh_user -> Slack.format_slack_mention (match_github_user_to_slack_id gh_user)
+  in
+  let title = Slack.pp_api_commit api_commit slack_mention in
   let changes () =
     let where = condense_file_changes files in
     let when_ =
@@ -182,10 +194,6 @@ let populate_commit ?(include_changes = true) repository (api_commit : api_commi
   {
     (base_attachment repository) with
     footer = Some (simple_footer repository ^ " " ^ commit.committer.date);
-    (*
-    author_name = Some author.login;
-    author_link = Some author.html_url;
-    *)
     author_icon =
       ( match author with
       | Some author -> Some author.avatar_url
@@ -197,7 +205,7 @@ let populate_commit ?(include_changes = true) repository (api_commit : api_commi
     fallback = Some fallback;
   }
 
-let populate_compare repository (compare : compare) =
+let populate_compare match_github_user_to_slack_id repository (compare : compare) =
   let base =
     {
       (base_attachment repository) with
@@ -214,7 +222,9 @@ let populate_compare repository (compare : compare) =
     let no_commit_msg = "There are no commit difference in this compare!" in
     { base with text = Some no_commit_msg; fallback = Some no_commit_msg }
   | false ->
-    let commits_unfurl = List.map (populate_commit ~include_changes:false repository) compare.commits in
+    let commits_unfurl =
+      List.map (populate_commit match_github_user_to_slack_id ~include_changes:false repository) compare.commits
+    in
     let commits_unfurl_text =
       Slack.pp_list_with_previews
         ~pp_item:(fun (commit_unfurl : unfurl) -> Option.default "" commit_unfurl.text)

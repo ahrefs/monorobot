@@ -1,0 +1,35 @@
+{
+   "token":"8LlCAXJe07RByuyMCkgPFMsL",
+   "team_id":"T06PD9Y6J1K",
+   "api_app_id":"A06P9KQM9U6",
+   "event":{
+      "type":"link_shared",
+      "user":"U06PUSUR2Q1",
+      "channel":"C06PD9Y7HRT",
+      "message_ts":"1711335992.047169",
+      "links":[
+         {
+            "url":"https://github.com/phongulus/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc",
+            "domain":"github.com"
+         }
+      ],
+      "source":"conversations_history",
+      "unfurl_id":"C06PD9Y7HRT.1711335992.047169.a7fcc78f38b953342ab521ee9a5157af930d27578feefedefc0a7c6e6aa87273",
+      "is_bot_user_member":false,
+      "event_ts":"1711335992.291236"
+   },
+   "type":"event_callback",
+   "event_id":"Ev06QNTY2WMD",
+   "event_time":1711335992,
+   "authorizations":[
+      {
+         "enterprise_id":null,
+         "team_id":"T06PD9Y6J1K",
+         "user_id":"U06PG922GRY",
+         "is_bot":true,
+         "is_enterprise_install":false
+      }
+   ],
+   "is_ext_shared_channel":false,
+   "event_context":"4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA2UEQ5WTZKMUsiLCJhaWQiOiJBMDZQOUtRTTlVNiIsImNpZCI6IkMwNlBEOVk3SFJUIn0"
+}

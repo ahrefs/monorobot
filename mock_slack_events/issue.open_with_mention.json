@@ -1,0 +1,35 @@
+{
+   "token":"8LlCAXJe07RByuyMCkgPFMsL",
+   "team_id":"T06PD9Y6J1K",
+   "api_app_id":"A06P9KQM9U6",
+   "event":{
+      "type":"link_shared",
+      "user":"U06PUSUR2Q1",
+      "channel":"COMPOSER",
+      "message_ts":"U06PUSUR2Q1-d2bbc7cc-2752-4ed6-bcd9-2b91379f8890-c3cf2ea2e1c0ff9b357b91016e3548efcc77bd60260535eb2f80169ceaf8c63c",
+      "links":[
+         {
+            "url":"https://github.com/phongulus/test_repository/issues/1",
+            "domain":"github.com"
+         }
+      ],
+      "source":"composer",
+      "unfurl_id":"U06PUSUR2Q1-d2bbc7cc-2752-4ed6-bcd9-2b91379f8890-c3cf2ea2e1c0ff9b357b91016e3548efcc77bd60260535eb2f80169ceaf8c63c",
+      "is_bot_user_member":false,
+      "event_ts":"1711332455.556261"
+   },
+   "type":"event_callback",
+   "event_id":"Ev06R5QADZNG",
+   "event_time":1711332455,
+   "authorizations":[
+      {
+         "enterprise_id":null,
+         "team_id":"T06PD9Y6J1K",
+         "user_id":"U06PG922GRY",
+         "is_bot":true,
+         "is_enterprise_install":false
+      }
+   ],
+   "is_ext_shared_channel":false,
+   "event_context":"4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA2UEQ5WTZKMUsiLCJhaWQiOiJBMDZQOUtRTTlVNiIsImNpZCI6IkMwNlBEOVk3SFJUIn0"
+}

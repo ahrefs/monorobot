@@ -5,7 +5,8 @@ module Filename = Stdlib.Filename
 module Sys = Stdlib.Sys
 
 let cwd = Sys.getcwd ()
-let cache_dir = Filename.concat cwd "github-api-cache"
+let github_cache_dir = Filename.concat cwd "github-api-cache"
+let slack_cache_dir = Filename.concat cwd "slack-api-cache"
 
 (** return the file with a function f applied unless the file is empty;
  empty file:this is needed to simulate 404 returns from github *)
@@ -29,7 +30,7 @@ and its Github_j.<kind>_of_string function.
 NB: please save the cache file in the same format *)
 let get_repo_member_cache ~(repo : Github_t.repository) ~kind ~ref_ ~of_string =
   let file = clean_forward_slashes (sprintf "%s_%s_%s" repo.full_name kind ref_) in
-  let url = Filename.concat cache_dir file in
+  let url = Filename.concat github_cache_dir file in
   with_cache_file url of_string
 
 module Github : Api.Github = struct
@@ -56,6 +57,7 @@ end
 (** The base implementation for local check payload debugging and mocking tests *)
 module Slack_base : Api.Slack = struct
   let lookup_user ?cache:_ ~ctx:_ ~cfg:_ ~email:_ () = Lwt.return @@ Error "undefined for local setup"
+  let list_users ?cursor:_ ?limit:_ ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
   let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error "undefined for local setup"
   let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
@@ -72,10 +74,15 @@ module Slack : Api.Slack = struct
         Slack_t.id = sprintf "id[%s]" email;
         name = sprintf "name[%s]" email;
         real_name = sprintf "real_name[%s]" email;
+        profile = { email = Some email };
       }
     in
     let mock_response = { Slack_t.user = mock_user } in
     Lwt.return @@ Ok mock_response
+
+  let list_users ?cursor:_ ?limit:_ ~ctx:_ () =
+    let url = Filename.concat slack_cache_dir "users-list" in
+    with_cache_file url Slack_j.list_users_res_of_string
 
   let send_notification ~ctx:_ ~msg =
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in

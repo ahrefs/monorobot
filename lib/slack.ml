@@ -46,7 +46,26 @@ let markdown_text_attachment ~footer markdown_body =
 let make_message ?username ?text ?attachments ?blocks ~channel () =
   { channel; text; attachments; blocks; username; unfurl_links = Some false; unfurl_media = None }
 
-let generate_pull_request_notification notification channel =
+let format_slack_mention = Option.map_default (sprintf " (<@%s>)") ""
+let github_handle_regex = Re2.create_exn {|(?:^|\s)@([\w][\w-]{1,})|} (* Match GH handles in messages *)
+
+let add_slack_mentions_to_body slack_match_func body =
+  let replace_match m =
+    let gh_handle = Re2.Match.get_exn ~sub:(`Index 0) m in
+    let gh_handle_without_at = Re2.Match.get_exn ~sub:(`Index 1) m in
+    match slack_match_func gh_handle_without_at with
+    | None -> gh_handle
+    | Some slack_id -> sprintf "%s (<@%s>)" gh_handle slack_id
+  in
+  Re2.replace_exn github_handle_regex body ~f:replace_match
+
+let format_attachments ~slack_match_func ~footer ~body =
+  let format_mention_in_markdown (md : unfurl) =
+    { md with text = Option.map (add_slack_mentions_to_body slack_match_func) md.text }
+  in
+  Option.map (fun t -> markdown_text_attachment ~footer t |> List.map format_mention_in_markdown) body
+
+let generate_pull_request_notification ~slack_match_func notification channel =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
   let action, body =
@@ -65,9 +84,9 @@ let generate_pull_request_notification notification channel =
     sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
       (pp_link ~url:html_url title) action sender.login
   in
-  make_message ~text:summary ?attachments:(Option.map (markdown_text_attachment ~footer:None) body) ~channel ()
+  make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
 
-let generate_pr_review_notification notification channel =
+let generate_pr_review_notification ~slack_match_func notification channel =
   let { action; sender; pull_request; review; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -89,9 +108,11 @@ let generate_pr_review_notification notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
       number (pp_link ~url:html_url title)
   in
-  make_message ~text:summary ?attachments:(Option.map (markdown_text_attachment ~footer:None) review.body) ~channel ()
+  make_message ~text:summary
+    ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:review.body)
+    ~channel ()
 
-let generate_pr_review_comment_notification notification channel =
+let generate_pr_review_comment_notification ~slack_match_func notification channel =
   let { action; pull_request; sender; comment; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -112,9 +133,11 @@ let generate_pr_review_comment_notification notification channel =
     | None -> None
     | Some a -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url a)
   in
-  make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:file comment.body) ~channel ()
+  make_message ~text:summary
+    ?attachments:(format_attachments ~slack_match_func ~footer:file ~body:(Some comment.body))
+    ~channel ()
 
-let generate_issue_notification notification channel =
+let generate_issue_notification ~slack_match_func notification channel =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
   let { number; body; title; html_url; labels; _ } = issue in
   let action, body =
@@ -133,9 +156,10 @@ let generate_issue_notification notification channel =
     sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number (pp_link ~url:html_url title)
       action sender.login
   in
-  make_message ~text:summary ?attachments:(Option.map (markdown_text_attachment ~footer:None) body) ~channel ()
 
-let generate_issue_comment_notification notification channel =
+  make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
+
+let generate_issue_comment_notification ~slack_match_func notification channel =
   let { action; issue; sender; comment; repository } = notification in
   let { number; title; _ } = issue in
   let action_str =
@@ -152,7 +176,9 @@ let generate_issue_comment_notification notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> on #%d %s" repository.url repository.full_name sender.login comment.html_url
       action_str number (pp_link ~url:issue.html_url title)
   in
-  make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:None comment.body) ~channel ()
+  make_message ~text:summary
+    ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:(Some comment.body))
+    ~channel ()
 
 let git_short_sha_hash hash = String.sub hash 0 8
 
@@ -163,11 +189,11 @@ let pp_commit_common url id message author =
 
 let pp_commit ({ url; id; message; author; _ } : commit) = pp_commit_common url id message (escape_mrkdwn @@ author.name)
 
-let pp_api_commit ({ sha; commit; url; author; _ } : api_commit) =
+let pp_api_commit ({ sha; commit; url; author; _ } : api_commit) slack_mention =
   match author with
   | Some author ->
     pp_commit_common url sha commit.message
-      (sprintf "<%s|%s>" (escape_mrkdwn author.html_url) (escape_mrkdwn commit.author.name))
+      (sprintf "<%s|%s>%s" (escape_mrkdwn author.html_url) (escape_mrkdwn commit.author.name) slack_mention)
   | None -> pp_commit_common url sha commit.message commit.author.name
 
 (** pretty print list with previews of each item per line--will always show at most 7 and drop the rest*)
@@ -312,7 +338,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   in
   make_message ~text:summary ~attachments:[ attachment ] ~channel ()
 
-let generate_commit_comment_notification api_commit notification channel =
+let generate_commit_comment_notification ~slack_match_func api_commit notification channel =
   let { commit; _ } = api_commit in
   let { sender; comment; repository; _ } = notification in
   let commit_id =
@@ -330,7 +356,9 @@ let generate_commit_comment_notification api_commit notification channel =
     | None -> None
     | Some p -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url p)
   in
-  make_message ~text:summary ~attachments:(markdown_text_attachment ~footer:path comment.body) ~channel ()
+  make_message ~text:summary
+    ?attachments:(format_attachments ~slack_match_func ~footer:path ~body:(Some comment.body))
+    ~channel ()
 
 let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match signing_key with

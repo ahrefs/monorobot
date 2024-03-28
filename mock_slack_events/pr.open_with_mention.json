@@ -1,0 +1,35 @@
+{
+   "token":"8LlCAXJe07RByuyMCkgPFMsL",
+   "team_id":"T06PD9Y6J1K",
+   "api_app_id":"A06P9KQM9U6",
+   "event":{
+      "type":"link_shared",
+      "user":"U06PUSUR2Q1",
+      "channel":"C06PD9Y7HRT",
+      "message_ts":"1711335703.530179",
+      "links":[
+         {
+            "url":"https://github.com/phongulus/test_repository/pull/2",
+            "domain":"github.com"
+         }
+      ],
+      "source":"conversations_history",
+      "unfurl_id":"C06PD9Y7HRT.1711335703.530179.0132e71ee1ea0037ded1bd29b923aa6fe62229a393c929fb57aac6d81c1e1120",
+      "is_bot_user_member":false,
+      "event_ts":"1711335704.001261"
+   },
+   "type":"event_callback",
+   "event_id":"Ev06RS8E4WN4",
+   "event_time":1711335704,
+   "authorizations":[
+      {
+         "enterprise_id":null,
+         "team_id":"T06PD9Y6J1K",
+         "user_id":"U06PG922GRY",
+         "is_bot":true,
+         "is_enterprise_install":false
+      }
+   ],
+   "is_ext_shared_channel":false,
+   "event_context":"4-eyJldCI6Imxpbmtfc2hhcmVkIiwidGlkIjoiVDA2UEQ5WTZKMUsiLCJhaWQiOiJBMDZQOUtRTTlVNiIsImNpZCI6IkMwNlBEOVk3SFJUIn0"
+}
