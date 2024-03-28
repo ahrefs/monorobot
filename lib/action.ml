@@ -9,8 +9,8 @@ exception Action_error of string
 let action_error msg = raise (Action_error msg)
 let log = Log.from "action"
 
-module SlackUsername (Slack_api : Api.Slack) = struct
-  let email_canonical_regex = Re2.create_exn "\\+[^]]*|@[^]]*" (* Match email domain and everything after '+' *)
+module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
+  let email_canonical_regex = Re2.create_exn {|\+[^]]*|@[^]]*|} (* Match email domain and everything after '+' *)
 
   let username_ignored_chars = [ '.'; '-' ]
   let username_to_slack_id_tbl = Stringtbl.empty ()
@@ -58,11 +58,6 @@ module SlackUsername (Slack_api : Api.Slack) = struct
     login |> canonicalize_email_username |> Stringtbl.find_opt username_to_slack_id_tbl
 
   let match_github_user_to_slack_id cfg_opt user = match_github_login_to_slack_id cfg_opt user.login
-end
-
-module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
-  module SlackUsername = SlackUsername (Slack_api)
-  include SlackUsername
 
   let partition_push (cfg : Config_t.config) n =
     let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
