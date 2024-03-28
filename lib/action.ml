@@ -415,8 +415,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
             | None -> fetch_config ~ctx ~repo
             | Some _ -> Lwt.return_ok ()
           in
-          let cfg_opt = Stringtbl.find_opt ctx.config repo.url in
-          Lwt.return_some @@ (link, populate (match_github_user_to_slack_id cfg_opt) repo item)
+          (* slack_match_func can just be `fun _ -> None` if want to disable putting Slack handles in unfurls *)
+          let slack_match_func = match_github_user_to_slack_id (Stringtbl.find_opt ctx.config repo.url) in
+          Lwt.return_some @@ (link, populate slack_match_func repo item)
       in
       match Github.gh_link_of_string link with
       | None -> Lwt.return_none
