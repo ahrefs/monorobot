@@ -395,23 +395,26 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         Lwt.return_none
     in
     let process link =
-      let with_gh_result_populate_slack (type a) ~(api_result : (a, string) Result.t)
-        ~(populate : (github_user -> string option) -> repository -> a -> Slack_t.message_attachment)
-        ~(repo : repository)
-        =
+      let with_gh_result_populate_slack (type a) ~(api_result : (a, string) Result.t) ~populate ~repo =
         match api_result with
         | Error _ -> Lwt.return_none
         | Ok item ->
-          let%lwt _ =
+          let%lwt cfg =
             match repo_is_supported (Context.get_secrets_exn ctx) repo with
-            | false -> Lwt.return_ok ()
+            | false -> Lwt.return_none
             | true ->
             match Context.find_repo_config ctx repo.url with
-            | None -> fetch_config ~ctx ~repo
-            | Some _ -> Lwt.return_ok ()
+            | Some cfg -> Lwt.return_some cfg
+            | None ->
+              ( match%lwt fetch_config ~ctx ~repo with
+              | Error msg ->
+                log#warn "Failed to fetch config for supported repo: %s" msg;
+                Lwt.return_none
+              | Ok () -> Lwt.return @@ Context.find_repo_config ctx repo.url
+              )
           in
           (* slack_match_func can just be `fun _ -> None` if want to disable putting Slack handles in unfurls *)
-          let slack_match_func = match_github_user_to_slack_id (Stringtbl.find_opt ctx.config repo.url) in
+          let slack_match_func = match_github_user_to_slack_id cfg in
           Lwt.return_some @@ (link, populate slack_match_func repo item)
       in
       match Github.gh_link_of_string link with
