@@ -47,12 +47,16 @@ let make_message ?username ?text ?attachments ?blocks ~channel () =
   { channel; text; attachments; blocks; username; unfurl_links = Some false; unfurl_media = None }
 
 let format_slack_mention = Option.map_default (sprintf " (<@%s>)") ""
-let github_handle_regex = Re2.create_exn "@[\\w-]{1,}" (* Match GH handles in messages *)
+let github_handle_regex = Re2.create_exn {|(^|\s)@[\w][\w-]{1,}|} (* Match GH handles in messages *)
 
 let add_slack_mentions_to_body slack_match_func body =
   let replace_match m =
     let gh_handle = Re2.Match.get_exn ~sub:(`Index 0) m in
-    let gh_handle_without_at = String.sub gh_handle 1 (String.length gh_handle - 1) in
+    let gh_handle_without_at =
+      match String.split_on_char '@' gh_handle with
+      | [ _; handle ] -> handle
+      | _ -> failwith "re2 bugged out"
+    in
     match slack_match_func gh_handle_without_at with
     | None -> gh_handle
     | Some slack_id -> sprintf "%s (<@%s>)" gh_handle slack_id
