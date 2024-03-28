@@ -82,9 +82,7 @@ module Slack : Api.Slack = struct
 
   let list_users ?cursor:_ ?limit:_ ~ctx:_ () =
     let url = Filename.concat slack_cache_dir "users-list" in
-    match%lwt with_cache_file url Slack_j.list_users_res_of_string with
-    | Error e -> Lwt.return_error e
-    | Ok res -> Lwt.return_ok { Slack_t.ok = true; members = res.members; response_metadata = [ "ignore", "this" ] }
+    with_cache_file url Slack_j.list_users_res_of_string
 
   let send_notification ~ctx:_ ~msg =
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
