@@ -61,17 +61,5 @@ let write_to_local_file ~data path =
   try Ok (Devkit.Files.save_as path (fun oc -> Printf.fprintf oc "%s" data))
   with exn -> fmt_error "%s" (Exn.to_string exn)
 
-let longest_common_prefix xs =
-  match xs with
-  | [] -> ""
-  | [ x ] -> x
-  | x :: xs -> List.fold_left (fun a s -> Stre.common_prefix a s |> String.sub a 0) x xs
-
-(* let longest_common_prefix xs =
-  match xs with
-  | [] -> ""
-  | [ x ] -> x
-  | x :: xs -> List.rev xs |> List.hd |> Stre.common_prefix x |> String.sub x 0 *)
-
 let sign_string_sha256 ~key ~basestring =
   Cstruct.of_string basestring |> Nocrypto.Hash.SHA256.hmac ~key:(Cstruct.of_string key) |> Hex.of_cstruct |> Hex.show
