@@ -627,7 +627,7 @@ will unfurl in #C06PD9Y7HRT
       "mrkdwn_in": [ "text" ],
       "color": "#f6f8fa",
       "author_icon": "https://avatars.githubusercontent.com/u/70936859?v=4",
-      "text": "`<https://github.com/phongulus/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc|c9164d09>` add monorobot config - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n_modified `.monorobot.json` (+22-0)_ on Mar 14",
+      "text": "`<https://github.com/phongulus/test_repository/commit/c9164d0954736f311555f03fedc19049dcf5adfc|c9164d09>` add monorobot config - <https://github.com/phongulus|phongulus>\n_modified `.monorobot.json` (+22-0)_ on Mar 14",
       "footer": "<https://github.com/phongulus/test_repository|phongulus/test_repository> 2024-03-14T06:38:07Z"
     }
   }
@@ -642,7 +642,7 @@ will unfurl in #C06PD9Y7HRT
       "fallback": "[92f743fa] api: add lookup_github_user - phongulus[de67d6fe] slack: optional slack user highlight - phongulus[d1a25fa9] add slack user mention - phongulus[0ec8eaf6] add basic tests for slack user mention - phongulus[c7b55d30] api: remove unused - phongulus[4a6b094b] slack: minor refactor - phongulus[b48bc7ba] use local slack api cache for list users - phongulus[30a4dd02] action: rename cache table - phongulus[ae8a4727] add more tests - phongulus[d328bbb7] background lwt for refreshing slack id mapping - phongulus[b2b012bc] api_remote: less verbose list_users - phongulus[31ea35cb] action: minor - phongulus[559e73df] action, slack: labeled slack id argument - phongulus[ffcfbaec] merge from master - phongulus[13ca6e7a] use stdlib where possible - phongulus[81e7a689] add support for mentions in unfurled links - phongulus[f5946891] action: allow manual mapping to slack email in config - phongulus[3527a009] slack: fix mention formatting - phongulus[fb2307aa] add mentions in unfurled links from supported repos - phongulus",
       "mrkdwn_in": [ "text" ],
       "color": "#f6f8fa",
-      "text": "`<https://github.com/ahrefs/monorobot/commit/92f743fad699c116f3b04feb122cedecb5cd51f4|92f743fa>` api: add lookup_github_user - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n`<https://github.com/ahrefs/monorobot/commit/de67d6fe252547c3546abbbb805d9bdf8e20303b|de67d6fe>` slack: optional slack user highlight - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n`<https://github.com/ahrefs/monorobot/commit/d1a25fa98da0c441c8a70094c105d7cfa4f3853f|d1a25fa9>` add slack user mention - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n+12 more...\n`<https://github.com/ahrefs/monorobot/commit/81e7a689d882188e9ac724e49a47a961935525ca|81e7a689>` add support for mentions in unfurled links - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n`<https://github.com/ahrefs/monorobot/commit/f594689147fd1b240b580710ec70fa2d8d8f1bcd|f5946891>` action: allow manual mapping to slack email in config - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n`<https://github.com/ahrefs/monorobot/commit/3527a009b7dce087c237ca99f4956cb35cfd2db2|3527a009>` slack: fix mention formatting - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n`<https://github.com/ahrefs/monorobot/commit/fb2307aa1daec3c734161459ad5afc48aa27acde|fb2307aa>` add mentions in unfurled links from supported repos - <https://github.com/phongulus|phongulus> (<@U06PUSUR2Q1>)\n\nmodified 19 files",
+      "text": "`<https://github.com/ahrefs/monorobot/commit/92f743fad699c116f3b04feb122cedecb5cd51f4|92f743fa>` api: add lookup_github_user - <https://github.com/phongulus|phongulus>\n`<https://github.com/ahrefs/monorobot/commit/de67d6fe252547c3546abbbb805d9bdf8e20303b|de67d6fe>` slack: optional slack user highlight - <https://github.com/phongulus|phongulus>\n`<https://github.com/ahrefs/monorobot/commit/d1a25fa98da0c441c8a70094c105d7cfa4f3853f|d1a25fa9>` add slack user mention - <https://github.com/phongulus|phongulus>\n+12 more...\n`<https://github.com/ahrefs/monorobot/commit/81e7a689d882188e9ac724e49a47a961935525ca|81e7a689>` add support for mentions in unfurled links - <https://github.com/phongulus|phongulus>\n`<https://github.com/ahrefs/monorobot/commit/f594689147fd1b240b580710ec70fa2d8d8f1bcd|f5946891>` action: allow manual mapping to slack email in config - <https://github.com/phongulus|phongulus>\n`<https://github.com/ahrefs/monorobot/commit/3527a009b7dce087c237ca99f4956cb35cfd2db2|3527a009>` slack: fix mention formatting - <https://github.com/phongulus|phongulus>\n`<https://github.com/ahrefs/monorobot/commit/fb2307aa1daec3c734161459ad5afc48aa27acde|fb2307aa>` add mentions in unfurled links from supported repos - <https://github.com/phongulus|phongulus>\n\nmodified 19 files",
       "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
@@ -743,11 +743,7 @@ will unfurl in #COMPOSER
       "title": "#1 Nothing is working",
       "title_link": "https://github.com/phongulus/test_repository/issues/1",
       "fields": [
-        {
-          "title": "Assignees",
-          "value": "@phongulus (<@U06PUSUR2Q1>)",
-          "short": true
-        },
+        { "title": "Assignees", "value": "@phongulus", "short": true },
         { "title": "Comments", "value": "2", "short": true }
       ],
       "footer": "<https://github.com/phongulus/test_repository|phongulus/test_repository>"

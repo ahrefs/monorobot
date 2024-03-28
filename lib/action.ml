@@ -399,7 +399,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         match api_result with
         | Error _ -> Lwt.return_none
         | Ok item ->
-          let%lwt cfg =
+          (* Code for adding mentions in link unfurls, commented out due to clutter *)
+          (* let%lwt cfg =
             match repo_is_supported (Context.get_secrets_exn ctx) repo with
             | false -> Lwt.return_none
             | true ->
@@ -413,9 +414,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
               | Ok () -> Lwt.return @@ Context.find_repo_config ctx repo.url
               )
           in
-          (* slack_match_func can just be `fun _ -> None` if want to disable putting Slack handles in unfurls *)
-          let slack_match_func = match_github_user_to_slack_id cfg in
-          Lwt.return_some @@ (link, populate slack_match_func repo item)
+          let slack_match_func = match_github_user_to_slack_id cfg in *)
+          Lwt.return_some @@ (link, populate (fun _ -> None) repo item)
       in
       match Github.gh_link_of_string link with
       | None -> Lwt.return_none
