@@ -339,7 +339,7 @@ let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match List.assoc_opt "x-slack-signature" headers with
   | None -> Error "unable to find header X-Slack-Signature"
   | Some signature ->
-  match List.assoc_opt "x-slack-signature" headers with
+  match List.assoc_opt "x-slack-request-timestamp" headers with
   | None -> Error "unable to find header X-Slack-Request-Timestamp"
   | Some timestamp ->
     let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
