@@ -18,16 +18,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - run: sudo apt-get update
 
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v2
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
 
-          # apt update is implicit
-          # pinning package implicit
-          # depext install implicit
+        # apt update is implicit
+        # pinning package implicit
+        # depext install implicit
       - run: opam install . ocamlformat.0.20.1
 
       - name: compile
