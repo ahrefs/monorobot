@@ -291,8 +291,8 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         (* Keep only the portion of the url before /builds/... *)
         let pipeline_url =
           match String.split_on_char '/' target_url with
-          | "https:" :: "" :: "buildkite.com" :: "org" :: pipeline :: "builds" :: _ ->
-            Some (Printf.sprintf "https://buildkite.com/org/%s" pipeline)
+          | "https:" :: "" :: "buildkite.com" :: org :: pipeline :: "builds" :: _ ->
+            Some (Printf.sprintf "https://buildkite.com/%s/%s" org pipeline)
           | _ -> None
         in
         match pipeline_url with
