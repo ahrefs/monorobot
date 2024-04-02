@@ -1,5 +1,5 @@
 open Github_t
-open Slack_t
+open Slack_lib.Slack_t
 
 module type Github = sig
   val get_config : ctx:Context.t -> repo:repository -> (Config_t.config, string) Result.t Lwt.t

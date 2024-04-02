@@ -103,7 +103,7 @@ module Slack : Api.Slack = struct
   let slack_api_request ?headers ?body meth url read =
     match%lwt http_request ?headers ?body meth url with
     | Error e -> Lwt.return @@ Error (query_error_msg url e)
-    | Ok s -> Lwt.return @@ Slack_j.slack_response_of_string read s
+    | Ok s -> Lwt.return @@ Slack_lib.Slack_j.slack_response_of_string read s
 
   let bearer_token_header access_token = sprintf "Authorization: Bearer %s" (Uri.pct_encode access_token)
 
@@ -122,7 +122,7 @@ module Slack : Api.Slack = struct
 
   let read_unit s l =
     (* must read whole response to update lexer state *)
-    ignore (Slack_j.read_ok_res s l)
+    ignore (Slack_lib.Slack_j.read_ok_res s l)
 
   let lookup_user_cache = Stdlib.Hashtbl.create 50
 
@@ -133,7 +133,7 @@ module Slack : Api.Slack = struct
     match%lwt
       request_token_auth ~name:"lookup user by email" ~ctx `GET
         (sprintf "users.lookupByEmail?%s" url_args)
-        Slack_j.read_lookup_user_res
+        Slack_lib.Slack_j.read_lookup_user_res
     with
     | Error _ as e -> Lwt.return e
     | Ok user ->
@@ -166,7 +166,7 @@ module Slack : Api.Slack = struct
     match url with
     | None -> Lwt.return @@ build_error @@ sprintf "no token or webhook configured to notify channel %s" msg.channel
     | Some url ->
-      let data = Slack_j.string_of_post_message_req msg in
+      let data = Slack_lib.Slack_j.string_of_post_message_req msg in
       let body = `Raw ("application/json", data) in
       log#info "data: %s" data;
       if webhook_mode then begin
@@ -175,18 +175,18 @@ module Slack : Api.Slack = struct
         | Error e -> Lwt.return @@ build_error (query_error_msg url e)
       end
       else begin
-        match%lwt slack_api_request ~body ~headers `POST url Slack_j.read_post_message_res with
+        match%lwt slack_api_request ~body ~headers `POST url Slack_lib.Slack_j.read_post_message_res with
         | Ok _res -> Lwt.return @@ Ok ()
         | Error e -> Lwt.return @@ build_error e
       end
 
   let send_chat_unfurl ~(ctx : Context.t) ~channel ~ts ~unfurls () =
-    let req = Slack_j.{ channel; ts; unfurls } in
-    let data = Slack_j.string_of_chat_unfurl_req req in
+    let req = Slack_lib.Slack_j.{ channel; ts; unfurls } in
+    let data = Slack_lib.Slack_j.string_of_chat_unfurl_req req in
     request_token_auth ~name:"unfurl slack links"
       ~body:(`Raw ("application/json", data))
       ~ctx `POST "chat.unfurl" read_unit
 
   let send_auth_test ~(ctx : Context.t) () =
-    request_token_auth ~name:"retrieve bot information" ~ctx `POST "auth.test" Slack_j.read_auth_test_res
+    request_token_auth ~name:"retrieve bot information" ~ctx `POST "auth.test" Slack_lib.Slack_j.read_auth_test_res
 end

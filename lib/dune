@@ -1,8 +1,26 @@
 (library
  (name lib)
- (libraries atdgen atdgen-runtime biniou cstruct curl curl.lwt base64
-   devkit devkit.core extlib hex lwt lwt.unix nocrypto omd re2 sexplib0 uri
-   yojson)
+ (libraries
+  atdgen
+  atdgen-runtime
+  biniou
+  cstruct
+  curl
+  curl.lwt
+  base64
+  devkit
+  devkit.core
+  extlib
+  hex
+  lwt
+  lwt.unix
+  nocrypto
+  omd
+  re2
+  sexplib0
+  uri
+  yojson
+  slack.lib)
  (preprocess
   (pps lwt_ppx)))
 
@@ -27,18 +45,6 @@
 (rule
  (targets github_j.ml github_j.mli)
  (deps github.atd)
- (action
-  (run atdgen -j -j-std %{deps})))
-
-(rule
- (targets slack_t.ml slack_t.mli)
- (deps slack.atd)
- (action
-  (run atdgen -t %{deps})))
-
-(rule
- (targets slack_j.ml slack_j.mli)
- (deps slack.atd)
  (action
   (run atdgen -j -j-std %{deps})))
 

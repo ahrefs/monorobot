@@ -1,6 +1,6 @@
 open Printf
 open Github_t
-open Slack_t
+open Slack_lib.Slack_t
 open Mrkdwn
 
 let color_of_state ?(draft = false) ?(merged = false) state =
