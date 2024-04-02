@@ -26,6 +26,9 @@ jobs:
         uses: ocaml/setup-ocaml@v2
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          dune-cache: true
+          opam-depext-flags: '--with-test'
+          allow-prerelease-opam: true
 
         # apt update is implicit
         # pinning package implicit
