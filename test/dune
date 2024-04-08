@@ -1,5 +1,5 @@
 (executables
- (names test github_link_test)
+ (names test github_link_test longest_prefix_test)
  (libraries lib devkit devkit.core extlib lwt.unix
    yojson)
  (preprocess
@@ -27,3 +27,8 @@
  (alias runtest)
  (action
    (run ./github_link_test.exe)))
+
+(rule
+ (alias runtest)
+ (action
+   (run ./longest_prefix_test.exe)))

@@ -133,16 +133,16 @@ let month = function
 let condense_file_changes files =
   match files with
   | [ f ] -> sprintf "_modified `%s` (+%d-%d)_" (escape_mrkdwn f.filename) f.additions f.deletions
-  | _ ->
-    let rec drop_last = function
-      | [ _ ] | [] -> [] (* Should raise when empty instead? *)
-      | v :: vs -> v :: drop_last vs
+  | [] -> "_no files modified_"
+  | first_file :: fl ->
+    let rec longest_prefix_of_two_lists l1 l2 =
+      match l1, l2 with
+      | e1 :: l1', e2 :: l2' when e1 = e2 -> e1 :: longest_prefix_of_two_lists l1' l2'
+      | _ -> []
     in
     let prefix_path =
-      List.map (fun f -> f.filename) files
-      |> Common.longest_common_prefix
-      |> String.split_on_char '/'
-      |> drop_last
+      List.map (fun f -> String.split_on_char '/' f.filename) fl
+      |> List.fold_left longest_prefix_of_two_lists (String.split_on_char '/' first_file.filename)
       |> String.concat "/"
     in
     sprintf "modified %d files%s" (List.length files) (if prefix_path = "" then "" else sprintf " in `%s/`" prefix_path)
