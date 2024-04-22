@@ -69,14 +69,7 @@ module Slack : Api.Slack = struct
 
   let lookup_user ?cache:_ ~ctx:_ ~(cfg : Config_t.config) ~email () =
     let email = List.assoc_opt email cfg.user_mappings |> Option.default email in
-    let mock_user =
-      {
-        Slack_t.id = sprintf "id[%s]" email;
-        name = sprintf "name[%s]" email;
-        real_name = sprintf "real_name[%s]" email;
-        profile = { email = Some email };
-      }
-    in
+    let mock_user = { Slack_t.id = sprintf "id[%s]" email; profile = { email = Some email } } in
     let mock_response = { Slack_t.user = mock_user } in
     Lwt.return @@ Ok mock_response
 

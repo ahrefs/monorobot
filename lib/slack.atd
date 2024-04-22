@@ -80,8 +80,6 @@ type profile = {
 
 type user = {
   id: string;
-  name: string;
-  real_name: string;
   profile: profile
 }
 
