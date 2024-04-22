@@ -136,7 +136,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
-      let%lwt () = State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status in
+      State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status;
       let%lwt direct_message =
         if notify_dm then begin
           match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email () with
@@ -172,7 +172,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       Lwt.return (direct_message @ chans)
     in
     if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
-      let%lwt repo_state = State.find_or_add_repo ctx.state repo.url in
+      let repo_state = State.find_or_add_repo ctx.state repo.url in
       match Rule.Status.match_rules ~rules n with
       | Some (Ignore, _, _) | None -> Lwt.return []
       | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
@@ -342,10 +342,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
             ( match ctx.state_filepath with
             | None -> Lwt.return_unit
             | Some path ->
-              ( match%lwt State.save ctx.state path with
-              | Ok () -> Lwt.return_unit
-              | Error e -> action_error e
-              )
+            match State.save ctx.state path with
+            | Ok () -> Lwt.return_unit
+            | Error e -> action_error e
             )
           )
         )
@@ -369,7 +368,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           ctx.state_filepath
           |> Option.map_default
                (fun path ->
-                 match%lwt State.save ctx.state path with
+                 match State.save ctx.state path with
                  | Ok () -> Lwt.return_unit
                  | Error msg ->
                    log#warn "failed to save state file %s : %s" path msg;

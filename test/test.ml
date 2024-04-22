@@ -40,7 +40,7 @@ let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_
     let secrets = { secrets with repos = [ { url = repo.url; gh_token = None; gh_hook_secret = None } ] } in
     let ctx = Context.make () in
     ctx.secrets <- Some secrets;
-    let%lwt _ = State.find_or_add_repo ctx.state repo.url in
+    let (_ : State_t.repo_state) = State.find_or_add_repo ctx.state repo.url in
     match state_path with
     | None ->
       Context.set_repo_config ctx repo.url config;
@@ -52,7 +52,7 @@ let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_
       Lwt.return ctx
     | Ok file ->
       let repo_state = State_j.repo_state_of_string file in
-      let%lwt () = State.set_repo_state ctx.state repo.url repo_state in
+      State.set_repo_state ctx.state repo.url repo_state;
       Context.set_repo_config ctx repo.url config;
       Lwt.return ctx
   in

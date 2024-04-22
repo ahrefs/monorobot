@@ -100,7 +100,7 @@ let refresh_state ctx =
       | Error e -> fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path
       | Ok file ->
         (* todo: extract state related parts to state.ml *)
-        let state = { ctx.state with state = State_j.state_of_string file } in
+        let state = { State.state = State_j.state_of_string file } in
         Ok { ctx with state }
     end
     else Ok ctx
