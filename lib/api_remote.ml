@@ -149,6 +149,12 @@ module Slack : Api.Slack = struct
     | Some user -> Lwt.return_ok user
     | None -> lookup_user' ~ctx ~cfg ~email ()
 
+  let list_users ?cursor ?limit ~(ctx : Context.t) () =
+    let cursor_option = Option.map (fun c -> "cursor", c) cursor in
+    let limit_option = Option.map (fun l -> "limit", Int.to_string l) limit in
+    let url_args = Web.make_url_args @@ List.filter_map id [ cursor_option; limit_option ] in
+    request_token_auth ~name:"list users" ~ctx `GET (sprintf "users.list?%s" url_args) Slack_j.read_list_users_res
+
   (** [send_notification ctx msg] notifies [msg.channel] with the payload [msg];
       uses web API with access token if available, or with webhook otherwise *)
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =
