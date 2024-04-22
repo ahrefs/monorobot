@@ -1,3 +1,18 @@
+===== file ../mock_payloads/commit_comment.caps_github_handle.json =====
+will notify #all-push-events
+{
+  "channel": "all-push-events",
+  "text": "<https://github.com/NotAPerson/test_repository|[NotAPerson/test_repository]> *NotAPerson* commented on `<https://github.com/NotAPerson/test_repository/commit/f672ca1e7d8f9d8d51b2c6b6ac8c4f39b549ac07#commitcomment-139894440|f672ca1e>` test changes",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "test commit comment, should mention slack id for @NotAPerson (<@slack_id_2>)"
+    }
+  ],
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/commit_comment.different_author.json =====
 will notify #all-push-events
 {
@@ -166,6 +181,21 @@ will notify #backend
   ],
   "unfurl_links": false
 }
+===== file ../mock_payloads/issue_comment.created_with_mention.json =====
+will notify #default
+{
+  "channel": "default",
+  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> *phongulus* <https://github.com/phongulus/test_repository/pull/2#issuecomment-2017264583|commented> on #2 <https://github.com/phongulus/test_repository/pull/2|test PR>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "@phongulus (<@U06PUSUR2Q1>) test comment"
+    }
+  ],
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/issue_comment.deleted.json =====
 ===== file ../mock_payloads/issue_comment.draft_pr.json =====
 will notify #frontend-bot
@@ -216,6 +246,21 @@ will notify #default
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "text": "consider multiple cases including labeled/opened/closed/reopened"
+    }
+  ],
+  "unfurl_links": false
+}
+===== file ../mock_payloads/issues.opened_slack_mention.json =====
+will notify #default
+{
+  "channel": "default",
+  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> Issue #1 <https://github.com/phongulus/test_repository/issues/1|Nothing is working> opened by *phongulus*",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "Pls do something about it @phongulus (<@U06PUSUR2Q1>) @phong-le (<@some_slack_id>) @NotAPerson (<@slack_id_2>)"
     }
   ],
   "unfurl_links": false
@@ -281,6 +326,21 @@ will notify #frontend-bot
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
       "text": ""
+    }
+  ],
+  "unfurl_links": false
+}
+===== file ../mock_payloads/pull_request.opened_slack_mention.json =====
+will notify #default
+{
+  "channel": "default",
+  "text": "<https://github.com/phongulus/test_repository|[phongulus/test_repository]> Pull request #2 <https://github.com/phongulus/test_repository/pull/2|test PR> opened by *phongulus*",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "test pull request, mention @phongulus (<@U06PUSUR2Q1>)"
     }
   ],
   "unfurl_links": false
