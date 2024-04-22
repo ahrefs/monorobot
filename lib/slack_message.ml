@@ -40,6 +40,7 @@ let base_attachment repository = { empty_attachment with footer = Some (simple_f
 let pp_label (label : label) = label.name
 let pp_github_user (user : github_user) = gh_name_of_string user.login
 let pp_github_team (team : github_team) = gh_name_of_string team.slug
+let pretext_slack_mention = Option.map (sprintf "<@%s>")
 
 let populate_pull_request repository (pull_request : pull_request) =
   let ({
@@ -182,10 +183,6 @@ let populate_commit ?(include_changes = true) repository (api_commit : api_commi
   {
     (base_attachment repository) with
     footer = Some (simple_footer repository ^ " " ^ commit.committer.date);
-    (*
-    author_name = Some author.login;
-    author_link = Some author.html_url;
-    *)
     author_icon =
       ( match author with
       | Some author -> Some author.avatar_url

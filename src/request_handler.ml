@@ -11,7 +11,7 @@ let run ~ctx ~addr ~port =
   let ip = Unix.inet_addr_of_string addr in
   let signature = sprintf "listen %s:%d" (Unix.string_of_inet_addr ip) port in
   let connection = Unix.ADDR_INET (ip, port) in
-  let%lwt () =
+  let request_handler_lwt =
     Httpev.setup_lwt { default with name = "monorobot"; connection; access_log_enabled = false } (fun _http request ->
       let module Arg = Args (struct let req = request end) in
       let body r = Lwt.return (`Body r) in
@@ -56,4 +56,9 @@ let run ~ctx ~addr ~port =
           )
     )
   in
+  let refresh_username_to_slack_id_tbl_background_lwt =
+    try%lwt Daemon.unless_exit @@ Action.refresh_username_to_slack_id_tbl_background_lwt ~ctx
+    with Daemon.ShouldExit -> Lwt.return_unit
+  in
+  let%lwt () = Lwt.join [ refresh_username_to_slack_id_tbl_background_lwt; request_handler_lwt ] in
   Lwt.return_unit

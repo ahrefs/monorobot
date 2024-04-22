@@ -47,9 +47,11 @@ let check_gh_action file json config secrets state =
       Lwt_main.run
         ( if json then
           let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_json) in
+          let%lwt () = Action.refresh_username_to_slack_id_tbl ~ctx in
           Action.process_github_notification ctx headers body
         else
           let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_simple) in
+          let%lwt () = Action.refresh_username_to_slack_id_tbl ~ctx in
           Action.process_github_notification ctx headers body
         )
     )

@@ -74,10 +74,19 @@ type lookup_user_res = {
   user: user;
 }
 
+type profile = {
+  ?email: string nullable
+}
+
 type user = {
   id: string;
   name: string;
   real_name: string;
+  profile: profile
+}
+
+type list_users_res = {
+  members: user list;
 }
 
 type link_shared_link = {
