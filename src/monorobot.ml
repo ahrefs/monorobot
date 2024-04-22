@@ -1,7 +1,6 @@
 open Devkit
 open Lib
 open Cmdliner
-module Filename = Stdlib.Filename
 
 let log = Log.from "monorobot"
 
@@ -9,7 +8,7 @@ let log = Log.from "monorobot"
 
 let http_server_action addr port config secrets state logfile loglevel =
   Daemon.logfile := logfile;
-  Stdlib.Option.iter Log.set_loglevels loglevel;
+  Option.may Log.set_loglevels loglevel;
   Log.reopen !Daemon.logfile;
   Signal.setup_lwt ();
   Daemon.install_signal_handlers ();
@@ -145,4 +144,4 @@ let default, info =
 let () =
   let cmds = [ run; check_gh; check_slack ] in
   let group = Cmd.group ~default info cmds in
-  Stdlib.exit @@ Cmd.eval group
+  exit @@ Cmd.eval group

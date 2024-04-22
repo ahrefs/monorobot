@@ -25,7 +25,7 @@ let repo_of_notification = function
   | Status n -> n.repository
 
 let commits_branch_of_ref ref =
-  match Stdlib.String.split_on_char '/' ref with
+  match String.split_on_char '/' ref with
   | "refs" :: "heads" :: l -> String.concat "/" l
   | _ -> ref
 

@@ -1,7 +1,5 @@
 open Devkit
 open Lib
-module Filename = Stdlib.Filename
-module Sys = Stdlib.Sys
 
 let log = Log.from "test"
 let mock_payload_dir = Filename.concat Filename.parent_dir_name "mock_payloads"

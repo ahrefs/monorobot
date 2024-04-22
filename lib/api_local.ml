@@ -1,8 +1,6 @@
 open Common
 open Devkit
 open Printf
-module Filename = Stdlib.Filename
-module Sys = Stdlib.Sys
 
 let cwd = Sys.getcwd ()
 let github_cache_dir = Filename.concat cwd "github-api-cache"

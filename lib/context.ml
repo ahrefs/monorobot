@@ -1,6 +1,5 @@
 open Common
 open Devkit
-module Sys = Stdlib.Sys
 
 let log = Log.from "context"
 
