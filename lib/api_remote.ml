@@ -102,8 +102,11 @@ module Slack : Api.Slack = struct
 
   let slack_api_request ?headers ?body meth url read =
     match%lwt http_request ?headers ?body meth url with
-    | Error e -> Lwt.return @@ Error (query_error_msg url e)
-    | Ok s -> Lwt.return @@ Slack_j.slack_response_of_string read s
+    | Error e -> Lwt.return_error (query_error_msg url e)
+    | Ok s ->
+    match Slack_j.slack_response_of_string read s with
+    | res -> Lwt.return res
+    | exception exn -> Lwt.return_error (query_error_msg url (Exn.to_string exn))
 
   let bearer_token_header access_token = sprintf "Authorization: Bearer %s" (Uri.pct_encode access_token)
 
