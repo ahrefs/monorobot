@@ -37,7 +37,14 @@ end
 
 open Devkit
 
-let fmt_error fmt = Printf.ksprintf (fun s -> Error s) fmt
+let fmt_error ?exn fmt =
+  Printf.ksprintf
+    (fun s ->
+      match exn with
+      | Some exn -> Error (s ^ " :  exn " ^ Exn.str exn)
+      | None -> Error s
+    )
+    fmt
 
 let first_line s =
   match String.split_on_char '\n' s with
@@ -54,12 +61,6 @@ let http_request ?headers ?body meth path =
   match%lwt Web.http_request_lwt ~setup ~ua:"monorobot" ~verbose:true ?headers ?body meth path with
   | `Ok s -> Lwt.return @@ Ok s
   | `Error e -> Lwt.return @@ Error e
-
-let get_local_file path = try Ok (Std.input_file path) with exn -> fmt_error "%s" (Exn.to_string exn)
-
-let write_to_local_file ~data path =
-  try Ok (Devkit.Files.save_as path (fun oc -> Printf.fprintf oc "%s" data))
-  with exn -> fmt_error "%s" (Exn.to_string exn)
 
 let sign_string_sha256 ~key ~basestring =
   Cstruct.of_string basestring |> Nocrypto.Hash.SHA256.hmac ~key:(Cstruct.of_string key) |> Hex.of_cstruct |> Hex.show

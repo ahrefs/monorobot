@@ -10,14 +10,11 @@ let slack_cache_dir = Filename.concat cwd "slack-api-cache"
 
 (** return the file with a function f applied unless the file is empty;
  empty file:this is needed to simulate 404 returns from github *)
-let with_cache_file url f =
-  match get_local_file url with
-  | Error e ->
-    let err_msg = sprintf "error while getting local file: %s\ncached for url: %s" e url in
-    Printf.printf "%s\n" err_msg;
-    Lwt.return_error err_msg
-  | Ok "" -> Lwt.return_error "empty file"
-  | Ok file -> Lwt.return_ok (f file)
+let with_cache_file cache_filepath f =
+  match Std.input_file cache_filepath with
+  | "" -> Lwt.return_error "empty file"
+  | file -> Lwt.return_ok (f file)
+  | exception exn -> Exn.fail ~exn "failed to get local cache file : %s" cache_filepath
 
 let rec clean_forward_slashes str =
   let cont, ns = ExtLib.String.replace ~str ~sub:"/" ~by:"_" in

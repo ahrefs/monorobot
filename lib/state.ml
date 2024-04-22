@@ -36,6 +36,7 @@ let get_bot_user_id { state; _ } = state.State_t.bot_user_id
 
 let save { state; _ } path =
   let data = State_j.string_of_state state |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
-  match write_to_local_file ~data path with
-  | Ok () -> Ok ()
-  | Error e -> fmt_error "error while writing to local file %s: %s\nfailed to save state" path e
+  try
+    Files.save_as path (fun oc -> output_string oc data);
+    Ok ()
+  with exn -> fmt_error ~exn "failed to save state to file %s" path

@@ -36,9 +36,9 @@ let check_gh_action file json config secrets state =
   | None ->
     log#error "aborting because payload %s is not named properly, named should be KIND.NAME_OF_PAYLOAD.json" file
   | Some kind ->
-  match Common.get_local_file file with
-  | Error e -> log#error "%s" e
-  | Ok body ->
+  match Std.input_file file with
+  | exception exn -> log#error ~exn "failed to read file %s" file
+  | body ->
     let headers = [ "x-github-event", kind ] in
     let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
     ( match Context.refresh_secrets ctx with

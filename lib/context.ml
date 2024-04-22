@@ -75,20 +75,17 @@ let is_pipeline_allowed ctx repo_url ~pipeline =
 
 let refresh_secrets ctx =
   let path = ctx.secrets_filepath in
-  match get_local_file path with
-  | Error e -> fmt_error "error while getting local file: %s\nfailed to get secrets from file %s" e path
-  | Ok file ->
-    let secrets = Config_j.secrets_of_string file in
-    begin
-      match secrets.slack_access_token, secrets.slack_hooks with
-      | None, [] -> fmt_error "either slack_access_token or slack_hooks must be defined in file '%s'" path
-      | _ ->
-      match secrets.repos with
-      | [] -> fmt_error "at least one repository url must be specified in the 'repos' list in file %S" path
-      | _ :: _ ->
-        ctx.secrets <- Some secrets;
-        Ok ctx
-    end
+  match Config_j.secrets_of_string (Std.input_file path) with
+  | exception exn -> fmt_error ~exn "failed to read secrets from file %s" path
+  | secrets ->
+  match secrets.slack_access_token, secrets.slack_hooks with
+  | None, [] -> fmt_error "either slack_access_token or slack_hooks must be defined in file %s" path
+  | _ ->
+  match secrets.repos with
+  | [] -> fmt_error "at least one repository url must be specified in the 'repos' list in file %s" path
+  | _ :: _ ->
+    ctx.secrets <- Some secrets;
+    Ok ctx
 
 let refresh_state ctx =
   match ctx.state_filepath with
@@ -96,12 +93,10 @@ let refresh_state ctx =
   | Some path ->
     if Sys.file_exists path then begin
       log#info "loading saved state from file %s" path;
-      match get_local_file path with
-      | Error e -> fmt_error "error while getting local file: %s\nfailed to get state from file %s" e path
-      | Ok file ->
-        (* todo: extract state related parts to state.ml *)
-        let state = { State.state = State_j.state_of_string file } in
-        Ok { ctx with state }
+      (* todo: extract state related parts to state.ml *)
+      match State_j.state_of_string (Std.input_file path) with
+      | exception exn -> fmt_error ~exn "failed to read state from file %s" path
+      | state -> Ok { ctx with state = { State.state } }
     end
     else Ok ctx
 
