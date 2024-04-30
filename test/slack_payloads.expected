@@ -8,7 +8,7 @@ will notify #all-push-events
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "test commit comment, should mention slack id for @NotAPerson (<@slack_id_2>)"
+      "text": "test commit comment, should mention slack id for <@slack_id_2>"
     }
   ],
   "unfurl_links": false
@@ -191,7 +191,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "@phongulus (<@U06PUSUR2Q1>) test comment"
+      "text": "<@U06PUSUR2Q1> test comment"
     }
   ],
   "unfurl_links": false
@@ -260,7 +260,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "Pls do something about it @phongulus (<@U06PUSUR2Q1>) @phong-le (<@some_slack_id>) @NotAPerson (<@slack_id_2>)"
+      "text": "Pls do something about it <@U06PUSUR2Q1> <@some_slack_id> <@slack_id_2>"
     }
   ],
   "unfurl_links": false
@@ -340,7 +340,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "test pull request, mention @phongulus (<@U06PUSUR2Q1>)"
+      "text": "test pull request, mention <@U06PUSUR2Q1>"
     }
   ],
   "unfurl_links": false
