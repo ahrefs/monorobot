@@ -46,14 +46,14 @@ let markdown_text_attachment ~footer markdown_body =
 let make_message ?username ?text ?attachments ?blocks ~channel () =
   { channel; text; attachments; blocks; username; unfurl_links = Some false; unfurl_media = None }
 
-let github_handle_regex = Re2.create_exn {|(^|\s)@([\w][\w-]{1,})|} (* Match GH handles in messages *)
+let github_handle_regex = Re2.create_exn {|\B@([[:alnum:]][[:alnum:]-]{1,38})\b|}
+(* Match GH handles in messages - a GitHub handle has at most 39 chars and no underscore *)
 
 let add_slack_mentions_to_body slack_match_func body =
   let replace_match m =
     let gh_handle = Re2.Match.get_exn ~sub:(`Index 0) m in
-    let space = Re2.Match.get_exn ~sub:(`Index 1) m in
-    let gh_handle_without_at = Re2.Match.get_exn ~sub:(`Index 2) m in
-    Option.map_default (sprintf "%s<@%s>" space) gh_handle (slack_match_func gh_handle_without_at)
+    let gh_handle_without_at = Re2.Match.get_exn ~sub:(`Index 1) m in
+    Option.map_default (sprintf "<@%s>") gh_handle (slack_match_func gh_handle_without_at)
   in
   Re2.replace_exn github_handle_regex body ~f:replace_match
 
