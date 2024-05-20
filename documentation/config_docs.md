@@ -18,6 +18,10 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
     "ignored_users": [
         "ignored_user"
     ],
+    "user_mappings": {
+        "git.user@gitemail.com": "user1@slackemail.com",
+        "gh-handle": "user2@slackemail.com"
+    },
     "prefix_rules": {
         ...
     },
@@ -41,6 +45,9 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 | `status_rules` | status rules config object | all status notifications are ignored |
 | `project_owners` | project owners config object | no project owners are defined |
 | `ignored_users` | list of users to be ignored on all notifications | no user is ignored |
+| `user_mappings` | list of mappings from git email and/or GitHub handle to Slack email | no mapping defined
+
+Note that in `user_mappings`, git email to Slack email mappings are used for status DMs, while GitHub handle to Slack email mappings are used to get Slack mentions in notifications.
 
 ## Label Options
 

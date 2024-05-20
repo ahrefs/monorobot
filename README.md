@@ -54,6 +54,12 @@ Note: The `slack_access_token` must be configured in your secrets file for link 
 1. Configure your app to [support the Events API](https://api.slack.com/events-api#prepare). During the [url verification handshake](https://api.slack.com/events-api#the-events-api__subscribing-to-event-types__events-api-request-urls__request-url-configuration--verification__url-verification-handshake), you should tell Slack to direct event notifications to `<server_domain>/slack/events`. Ensure the server is running before triggering the handshake.
 1. [Register the GitHub domains](https://api.slack.com/reference/messaging/link-unfurling#configuring_domains) you want to support.
 
+### Slack mentions
+
+Monorobot will also try to match mentioned GitHub handles (e.g., in PR/issue/commit comments) to Slack emails. Where there is a match between canonicalised GitHub handle and canonicalised Slack email, the GitHub mention in Monorobot's notification will be replaced with a Slack mention. This feature requires `slack_access_token` to be configured, and your app must also have the `users:read` permission. See the previous section for how to set this up.
+
+If your canonicalised GitHub handle is different from your canonicalised Slack email, or if you want to override this default matching scheme, you can create a manual mapping in your repository configuration under the `user_mappings` option. See the [documentation](./documentation/config_docs.md) for details.
+
 ### Documentation
 
 Commit a configuration file to the root of each repository you want to support, and add a secrets file on the bot server itself. Read on for instructions to set up each file:
