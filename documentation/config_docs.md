@@ -47,7 +47,7 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 | `ignored_users` | list of users to be ignored on all notifications | no user is ignored |
 | `user_mappings` | list of mappings from git email and/or GitHub handle to Slack email | no mapping defined
 
-Note that in `user_mappings`, git email to Slack email mappings are used for status DMs, while GitHub handle to Slack email mappings are used to get Slack mentions in notifications.
+Note that in `user_mappings`, git email (the one configured locally with `git config user.email`, visible for commits and pushes) to Slack email mappings are used for status DMs, while GitHub handle to Slack email mappings are used to get Slack mentions in comment notifications.
 
 ## Label Options
 
