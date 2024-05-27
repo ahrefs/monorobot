@@ -25,6 +25,7 @@ let run ~ctx ~addr ~port =
         in
         match request.meth, List.map Web.urldecode path with
         | _, [ "stats" ] -> ret (sprintf "%s %s uptime\n" signature Devkit.Action.uptime#get_str)
+        | _, [ "ping" ] -> ret ""
         | `GET, [ "config" ] ->
           let repo_url = Arg.str "repo" |> Web.urldecode in
           ( match%lwt Action.print_config ctx repo_url with
