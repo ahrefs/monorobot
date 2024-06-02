@@ -490,6 +490,84 @@ will notify #longest-a1
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.cancelled_test.json =====
+===== file ../mock_payloads/status.commit1-01-failing.json =====
+will notify #id[author@ahrefs.com]
+{
+  "channel": "id[author@ahrefs.com]",
+  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/pipeline2]>: Build failed for \"c1 message\"",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "text": "*Description*: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> is failing.",
+      "fields": [
+        {
+          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
+        }
+      ]
+    }
+  ],
+  "unfurl_links": false
+}
+will notify #default
+{
+  "channel": "default",
+  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/pipeline2]>: Build failed for \"c1 message\"",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "text": "*Description*: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> is failing.",
+      "fields": [
+        {
+          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
+        }
+      ]
+    }
+  ],
+  "unfurl_links": false
+}
+===== file ../mock_payloads/status.commit1-02-failed.json =====
+will notify #id[author@ahrefs.com]
+{
+  "channel": "id[author@ahrefs.com]",
+  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/pipeline2]>: Build failed for \"c1 message\"",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "text": "*Description*: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> failed (7 minutes, 29 seconds).",
+      "fields": [
+        {
+          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
+        }
+      ]
+    }
+  ],
+  "unfurl_links": false
+}
+will notify #default
+{
+  "channel": "default",
+  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/pipeline2]>: Build failed for \"c1 message\"",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "text": "*Description*: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> failed (7 minutes, 29 seconds).",
+      "fields": [
+        {
+          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
+        }
+      ]
+    }
+  ],
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/status.failure_test.json =====
 will notify #id[slack_mail@example.com]
 {
