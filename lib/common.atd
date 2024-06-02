@@ -5,3 +5,7 @@ type 'v map_as_object =
 type 'v table_as_object =
   (string * 'v) list <json repr="object">
     wrap <ocaml module="Common.Stringtbl" t="'v Common.Stringtbl.t">
+
+type string_set =
+  string list
+    wrap <ocaml module="Common.StringSet">

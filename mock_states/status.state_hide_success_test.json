@@ -1,4 +1,3 @@
-
 {
   "pipeline_statuses": {
     "default": {
@@ -7,5 +6,6 @@
     "buildkite/pipeline2": {
       "master": "success"
     }
-  }
+  },
+  "pipeline_commits": {}
 }

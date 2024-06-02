@@ -1,6 +1,7 @@
 type status_state <ocaml from="Github"> = abstract
 type 'v map_as_object <ocaml from="Common"> = abstract
 type 'v table_as_object <ocaml from="Common"> = abstract
+type string_set <ocaml from="Common"> = abstract
 
 (* A map from branch names to build statuses *)
 type branch_statuses = status_state map_as_object
@@ -10,9 +11,19 @@ type branch_statuses = status_state map_as_object
    branch *)
 type pipeline_statuses = branch_statuses map_as_object
 
+type commit_sets = {
+  s1: string_set;
+  s2: string_set;
+}
+
+(* A map from pipeline names to a set of commits. This tracks the commits
+   that have triggered a direct message notification. *)
+type pipeline_commits = commit_sets map_as_object
+
 (* The runtime state of a given GitHub repository *)
 type repo_state = {
-  pipeline_statuses <ocaml mutable>: pipeline_statuses
+  pipeline_statuses <ocaml mutable>: pipeline_statuses;
+  pipeline_commits <ocaml mutable>: pipeline_commits;
 }
 
 (* The serializable runtime state of the bot *)

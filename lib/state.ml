@@ -5,7 +5,8 @@ let log = Log.from "state"
 
 type t = { state : State_t.state }
 
-let empty_repo_state () : State_t.repo_state = { pipeline_statuses = StringMap.empty }
+let empty_repo_state () : State_t.repo_state =
+  { pipeline_statuses = StringMap.empty; pipeline_commits = StringMap.empty }
 
 let empty () : t =
   let state = State_t.{ repos = Stringtbl.empty (); bot_user_id = None } in
@@ -31,6 +32,23 @@ let set_repo_pipeline_status { state } repo_url ~pipeline ~(branches : Github_t.
   let repo_state = find_or_add_repo' state repo_url in
   repo_state.pipeline_statuses <- StringMap.update pipeline set_branch_status repo_state.pipeline_statuses
 
+let set_repo_pipeline_commit { state } repo_url ~pipeline ~commit =
+  let rotation_threshold = 1000 in
+  let repo_state = find_or_add_repo' state repo_url in
+  let set_commit commits =
+    let { State_t.s1; s2 } = Option.default { State_t.s1 = StringSet.empty; s2 = StringSet.empty } commits in
+    let s1 = StringSet.add commit s1 in
+    let s1, s2 = if StringSet.cardinal s1 > rotation_threshold then StringSet.empty, s1 else s1, s2 in
+    Some { State_t.s1; s2 }
+  in
+  repo_state.pipeline_commits <- StringMap.update pipeline set_commit repo_state.pipeline_commits
+
+let mem_repo_pipeline_commits { state } repo_url ~pipeline ~commit =
+  let repo_state = find_or_add_repo' state repo_url in
+  match StringMap.find_opt pipeline repo_state.pipeline_commits with
+  | None -> false
+  | Some { State_t.s1; s2 } -> StringSet.mem commit s1 || StringSet.mem commit s2
+
 let set_bot_user_id { state; _ } user_id = state.State_t.bot_user_id <- Some user_id
 let get_bot_user_id { state; _ } = state.State_t.bot_user_id
 
@@ -40,20 +58,3 @@ let save { state; _ } path =
     Files.save_as path (fun oc -> output_string oc data);
     Ok ()
   with exn -> fmt_error ~exn "failed to save state to file %s" path
-
-module In_memory = struct
-  module Dm_commits = struct
-    let state = ref (StringSet.empty, StringSet.empty)
-    let rotation_threshold = 1000
-
-    let add (sha : string) =
-      let s1, s2 = !state in
-      let s1 = StringSet.add sha s1 in
-      let s1, s2 = if StringSet.cardinal s1 > rotation_threshold then StringSet.empty, s1 else s1, s2 in
-      state := s1, s2
-
-    let mem (sha : string) =
-      let s1, s2 = !state in
-      StringSet.mem sha s1 || StringSet.mem sha s2
-  end
-end

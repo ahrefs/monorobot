@@ -1,4 +1,10 @@
-module StringSet = Set.Make (String)
+module StringSet = struct
+  include Set.Make (String)
+
+  let to_list set : string list = elements set
+  let wrap = of_list
+  let unwrap = to_list
+end
 
 module StringMap = struct
   include Map.Make (String)

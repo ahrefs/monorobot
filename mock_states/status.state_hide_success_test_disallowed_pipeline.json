@@ -3,5 +3,6 @@
     "buildkite/pipeline2": {
       "master": "failure"
     }
-  }
+  },
+  "pipeline_commits": {}
 }
