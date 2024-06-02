@@ -286,7 +286,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Github.Push commit_pushed_notification ->
       let commits = commit_pushed_notification.commits in
       let modified_files = List.concat_map Github.modified_files_of_commit commits in
-      let config_was_modified = List.exists (String.equal ctx.config_filename) modified_files in
+      let config_was_modified = List.exists (String.equal (Context.get_config_filename ctx repo.url)) modified_files in
       if config_was_modified then fetch_config ~ctx ~repo else Lwt.return @@ Ok ()
     | _ -> Lwt.return @@ Ok ()
 

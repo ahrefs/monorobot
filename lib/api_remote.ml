@@ -29,7 +29,7 @@ module Github : Api.Github = struct
 
   let get_config ~(ctx : Context.t) ~repo =
     let secrets = Context.get_secrets_exn ctx in
-    let url = contents_url ~repo ~path:ctx.config_filename in
+    let url = contents_url ~repo ~path:(Context.get_config_filename ctx repo.url) in
     let token = Context.gh_token_of_secrets secrets repo.url in
     let headers = build_headers ?token () in
     match%lwt http_request ~headers `GET url with
