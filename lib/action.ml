@@ -136,14 +136,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
-      State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches ~status:current_status;
       let%lwt direct_message =
         if notify_dm then begin
           match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email () with
-          (* To send a DM, channel parameter is set to the user id of the recipient *)
-          | Ok res -> Lwt.return [ res.user.id ]
+          | Ok res ->
+            (* To send a DM, channel parameter is set to the user id of the recipient *)
+            Lwt.return [ res.user.id ]
           | Error e ->
-            log#warn "couldn't match commit email to slack profile: %s" e;
+            log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
             Lwt.return []
         end
         else Lwt.return []
@@ -171,24 +171,33 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       in
       Lwt.return (direct_message @ chans)
     in
-    if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
-      let repo_state = State.find_or_add_repo ctx.state repo.url in
-      match Rule.Status.match_rules ~rules n with
-      | Some (Ignore, _, _) | None -> Lwt.return []
-      | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
-      | Some (Allow_once, notify_channels, notify_dm) ->
-      match StringMap.find_opt pipeline repo_state.pipeline_statuses with
-      | Some branch_statuses ->
-        let has_same_status_as_prev (branch : branch) =
-          match StringMap.find_opt branch.name branch_statuses with
-          | Some state when state = current_status -> true
-          | _ -> false
-        in
-        let branches = List.filter (Fun.negate has_same_status_as_prev) n.branches in
-        action_on_match branches ~notify_channels ~notify_dm
-      | None -> action_on_match n.branches ~notify_channels ~notify_dm
-    end
-    else Lwt.return []
+    let%lwt recipients =
+      if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
+        let repo_state = State.find_or_add_repo ctx.state repo.url in
+        match Rule.Status.match_rules ~rules n with
+        | Some (Ignore, _, _) | None -> Lwt.return []
+        | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
+        | Some (Allow_once, notify_channels, notify_dm) ->
+          let branches =
+            match StringMap.find_opt pipeline repo_state.pipeline_statuses with
+            | Some branch_statuses ->
+              let has_same_status_as_prev (branch : branch) =
+                match StringMap.find_opt branch.name branch_statuses with
+                | Some state when state = current_status -> true
+                | _ -> false
+              in
+              let branches = List.filter (Fun.negate has_same_status_as_prev) n.branches in
+              branches
+            | None -> n.branches
+          in
+          let notify_dm = notify_dm && not (State.In_memory.Dm_commits.mem n.sha) in
+          action_on_match branches ~notify_channels ~notify_dm
+      end
+      else Lwt.return []
+    in
+    State.In_memory.Dm_commits.add n.sha;
+    State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches:n.branches ~status:current_status;
+    Lwt.return recipients
 
   let partition_commit_comment (ctx : Context.t) n =
     let cfg = Context.find_repo_config_exn ctx n.repository.url in

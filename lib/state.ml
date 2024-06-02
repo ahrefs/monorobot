@@ -40,3 +40,20 @@ let save { state; _ } path =
     Files.save_as path (fun oc -> output_string oc data);
     Ok ()
   with exn -> fmt_error ~exn "failed to save state to file %s" path
+
+module In_memory = struct
+  module Dm_commits = struct
+    let state = ref (StringSet.empty, StringSet.empty)
+    let rotation_threshold = 1000
+
+    let add (sha : string) =
+      let s1, s2 = !state in
+      let s1 = StringSet.add sha s1 in
+      let s1, s2 = if StringSet.cardinal s1 > rotation_threshold then StringSet.empty, s1 else s1, s2 in
+      state := s1, s2
+
+    let mem (sha : string) =
+      let s1, s2 = !state in
+      StringSet.mem sha s1 || StringSet.mem sha s2
+  end
+end

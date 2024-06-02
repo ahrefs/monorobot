@@ -23,7 +23,7 @@
                     "failure",
                     "error"
                 ],
-                "policy": "allow",
+                "policy": "allow_once",
                 "notify_dm": true
             }
         ]
