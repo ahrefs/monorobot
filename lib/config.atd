@@ -53,6 +53,8 @@ type repo_config = {
   ?gh_token : string nullable;
   (* GitHub webhook secret token to secure the webhook *)
   ?gh_hook_secret : string nullable;
+  (* override the default config filename for one repository *)
+  ?config_filename : string nullable;
 }
 
 (* This is the structure of the secrets file which stores sensitive information, and

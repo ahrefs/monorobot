@@ -34,6 +34,14 @@ let get_secrets_exn ctx =
   | None -> context_error "secrets is uninitialized"
   | Some secrets -> secrets
 
+let get_config_filename ctx repo_url =
+  match get_secrets_exn ctx with
+  | exception Context_error _ -> ctx.config_filename
+  | secrets ->
+  match List.find_opt (fun r -> String.equal r.Config_t.url repo_url) secrets.repos with
+  | None | Some { config_filename = None; _ } -> ctx.config_filename
+  | Some { config_filename = Some f; _ } -> f
+
 let find_repo_config ctx repo_url = Stringtbl.find_opt ctx.config repo_url
 
 let find_repo_config_exn ctx repo_url =

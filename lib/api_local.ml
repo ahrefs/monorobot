@@ -29,8 +29,8 @@ let get_repo_member_cache ~(repo : Github_t.repository) ~kind ~ref_ ~of_string =
   with_cache_file url of_string
 
 module Github : Api.Github = struct
-  let get_config ~(ctx : Context.t) ~repo:_ =
-    let url = Filename.concat cwd ctx.config_filename in
+  let get_config ~(ctx : Context.t) ~(repo : Github_t.repository) =
+    let url = Filename.concat cwd (Context.get_config_filename ctx repo.url) in
     with_cache_file url Config_j.config_of_string
 
   let get_api_commit ~ctx:_ ~repo ~sha =
