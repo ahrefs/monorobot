@@ -364,13 +364,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         )
     with
     | Yojson.Json_error msg ->
-      log#error "failed to parse file as valid JSON (%s)" msg;
+      log#error "failed to parse file as valid JSON (%s): %s" msg body;
       Lwt.return_unit
     | Action_error msg ->
-      log#error "%s" msg;
+      log#error "action error %s" msg;
       Lwt.return_unit
     | Context.Context_error msg ->
-      log#error "%s" msg;
+      log#error "context error %s" msg;
       Lwt.return_unit
 
   let process_link_shared_event (ctx : Context.t) (event : Slack_t.link_shared_event) =
