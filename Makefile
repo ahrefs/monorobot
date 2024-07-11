@@ -8,6 +8,9 @@ start:
 build:
 	dune build src/monorobot.exe
 
+watch:
+	dune build -w src/monorobot.exe
+
 test:
 	dune runtest
 
