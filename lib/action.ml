@@ -253,10 +253,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       partition_pr cfg n |> List.map (generate_pull_request_notification ~slack_match_func n) |> Lwt.return
     | PR_review n ->
       partition_pr_review cfg n |> List.map (generate_pr_review_notification ~slack_match_func n) |> Lwt.return
-    | PR_review_comment n ->
-      partition_pr_review_comment cfg n
+    | PR_review_comment _n ->
+      (* we want to silence review comments and keep only the "main" review message
+         TODO: make this configurable? *)
+      Lwt.return []
+      (* partition_pr_review_comment cfg n
       |> List.map (generate_pr_review_comment_notification ~slack_match_func n)
-      |> Lwt.return
+      |> Lwt.return *)
     | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification ~slack_match_func n) |> Lwt.return
     | Issue_comment n ->
       partition_issue_comment cfg n |> List.map (generate_issue_comment_notification ~slack_match_func n) |> Lwt.return
