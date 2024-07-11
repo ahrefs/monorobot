@@ -275,7 +275,15 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       Some (sprintf "*Description*: %s." text)
   in
   let commit_info =
-    [ sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message) author.login ]
+    [
+      sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message)
+        ((* If the author's email is not associated with a github account the author will be missing.
+             Using the information from the commit instead, which should be equivalent. *)
+         Option.map_default
+           (fun { login; _ } -> login)
+           commit.author.name author
+        );
+    ]
   in
   let branches_info =
     match List.map (fun ({ name } : branch) -> name) notification.branches with

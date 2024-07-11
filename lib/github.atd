@@ -255,7 +255,7 @@ type status_commit = {
   sha: commit_hash;
   commit: inner_commit;
   url: string;
-  author: github_user;
+  ?author: github_user option; (* will be none if author's email is not associated with any github account *)
   html_url: string;
 }
 
