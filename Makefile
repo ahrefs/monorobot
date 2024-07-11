@@ -11,6 +11,9 @@ build:
 watch:
 	dune build -w src/monorobot.exe
 
+release:
+	dune build --profile=release src/monorobot.exe
+
 test:
 	dune runtest
 
