@@ -8,17 +8,13 @@ module type Github = sig
   val get_issue : ctx:Context.t -> repo:repository -> number:int -> (issue, string) Result.t Lwt.t
   val get_compare : ctx:Context.t -> repo:repository -> basehead:Github.basehead -> (compare, string) Result.t Lwt.t
 
-  val request_reviewers
-    :  ctx:Context.t ->
-    repo:repository ->
-    number:int ->
-    reviewers:request_reviewers_req ->
-    (unit, string) Result.t Lwt.t
+  val request_reviewers :
+    ctx:Context.t -> repo:repository -> number:int -> reviewers:request_reviewers_req -> (unit, string) Result.t Lwt.t
 end
 
 module type Slack = sig
-  val lookup_user
-    :  ?cache:[ `Use | `Refresh ] ->
+  val lookup_user :
+    ?cache:[ `Use | `Refresh ] ->
     ctx:Context.t ->
     cfg:Config_t.config ->
     email:string ->
@@ -28,8 +24,8 @@ module type Slack = sig
   val list_users : ?cursor:string -> ?limit:int -> ctx:Context.t -> unit -> list_users_res slack_response Lwt.t
   val send_notification : ctx:Context.t -> msg:post_message_req -> unit slack_response Lwt.t
 
-  val send_chat_unfurl
-    :  ctx:Context.t ->
+  val send_chat_unfurl :
+    ctx:Context.t ->
     channel:string ->
     ts:string ->
     unfurls:message_attachment Common.StringMap.t ->

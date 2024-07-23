@@ -136,7 +136,5 @@ let () =
         | true -> true
         | false ->
           Printf.printf "for: %s | expected: %s but got %s" input (gh_link_output expected) (gh_link_output got);
-          false
-      )
-    )
+          false))
     cases

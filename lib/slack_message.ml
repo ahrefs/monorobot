@@ -58,9 +58,7 @@ let populate_pull_request repository (pull_request : pull_request) =
          merged;
          _;
        }
-        : pull_request
-        )
-    =
+        : pull_request) =
     pull_request
   in
   let get_reviewers () =
@@ -166,11 +164,10 @@ let populate_commit ?(include_changes = true) repository (api_commit : api_commi
             let tm = Unix.gmtime @@ Devkit.Time.now () in
             tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday
           in
-          ( match List.map int_of_string @@ String.split_on_char '-' date with
+          (match List.map int_of_string @@ String.split_on_char '-' date with
           | [ y; m; d ] when y = yy && m = mm && d = dd -> "today"
           | [ y; m; d ] when y = yy -> sprintf "on %s %d" (month m) d
-          | _ -> "on " ^ date
-          )
+          | _ -> "on " ^ date)
         | _ -> failwith "wut"
       with _ -> "on " ^ commit.author.date
     in
@@ -184,10 +181,9 @@ let populate_commit ?(include_changes = true) repository (api_commit : api_commi
     (base_attachment repository) with
     footer = Some (simple_footer repository ^ " " ^ commit.committer.date);
     author_icon =
-      ( match author with
+      (match author with
       | Some author -> Some author.avatar_url
-      | None -> None
-      );
+      | None -> None);
     color = Some Colors.gray;
     mrkdwn_in = Some [ "text" ];
     text = Some text;

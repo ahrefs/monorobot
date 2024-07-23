@@ -48,8 +48,7 @@ let fmt_error ?exn fmt =
     (fun s ->
       match exn with
       | Some exn -> Error (s ^ " :  exn " ^ Exn.str exn)
-      | None -> Error s
-    )
+      | None -> Error s)
     fmt
 
 let first_line s =

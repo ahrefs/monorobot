@@ -36,24 +36,22 @@ module Github : Api.Github = struct
     | Error e -> Lwt.return @@ fmt_error "error while querying remote: %s\nfailed to get config from file %s" e url
     | Ok res ->
       let response = Github_j.content_api_response_of_string res in
-      ( match response.encoding with
-      | "base64" ->
-        begin
-          try
-            response.content
-            |> Re2.rewrite_exn (Re2.create_exn "\n") ~template:""
-            |> decode_string_pad
-            |> Config_j.config_of_string
-            |> fun res -> Lwt.return @@ Ok res
-          with exn ->
-            let e = Exn.to_string exn in
-            Lwt.return
-            @@ fmt_error "error while reading config from GitHub response: %s\nfailed to get config from file %s" e url
-        end
+      (match response.encoding with
+      | "base64" -> begin
+        try
+          response.content
+          |> Re2.rewrite_exn (Re2.create_exn "\n") ~template:""
+          |> decode_string_pad
+          |> Config_j.config_of_string
+          |> fun res -> Lwt.return @@ Ok res
+        with exn ->
+          let e = Exn.to_string exn in
+          Lwt.return
+          @@ fmt_error "error while reading config from GitHub response: %s\nfailed to get config from file %s" e url
+      end
       | encoding ->
         Lwt.return
-        @@ fmt_error "unexpected encoding '%s' in Github response\nfailed to get config from file %s" encoding url
-      )
+        @@ fmt_error "unexpected encoding '%s' in Github response\nfailed to get config from file %s" encoding url)
 
   let get_resource ~secrets ~repo_url url =
     let token = Context.gh_token_of_secrets secrets repo_url in
@@ -118,10 +116,9 @@ module Slack : Api.Slack = struct
     | Some access_token ->
       let headers = bearer_token_header access_token :: Option.default [] headers in
       let url = sprintf "https://slack.com/api/%s" path in
-      ( match%lwt slack_api_request ?body ~headers meth url read with
+      (match%lwt slack_api_request ?body ~headers meth url read with
       | Ok res -> Lwt.return @@ Ok res
-      | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e
-      )
+      | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e)
 
   let read_unit s l =
     (* must read whole response to update lexer state *)

@@ -80,17 +80,16 @@ module Prefix = struct
     let show_match l = String.concat " or " @@ List.map (fun s -> s ^ "*") l in
     rules
     |> List.iter (fun (rule : prefix_rule) ->
-         begin
-           match rule.allow, rule.ignore with
-           | None, None -> Printf.printf "  any"
-           | None, Some [] -> Printf.printf "  any"
-           | None, Some l -> Printf.printf "  not %s" (show_match l)
-           | Some l, None -> Printf.printf "  %s" (show_match l)
-           | Some l, Some [] -> Printf.printf "  %s" (show_match l)
-           | Some l, Some i -> Printf.printf "  %s and not %s" (show_match l) (show_match i)
-         end;
-         Printf.printf " -> #%s\n%!" rule.channel_name
-       )
+           begin
+             match rule.allow, rule.ignore with
+             | None, None -> Printf.printf "  any"
+             | None, Some [] -> Printf.printf "  any"
+             | None, Some l -> Printf.printf "  not %s" (show_match l)
+             | Some l, None -> Printf.printf "  %s" (show_match l)
+             | Some l, Some [] -> Printf.printf "  %s" (show_match l)
+             | Some l, Some i -> Printf.printf "  %s and not %s" (show_match l) (show_match i)
+           end;
+           Printf.printf " -> #%s\n%!" rule.channel_name)
 end
 
 module Label = struct
@@ -116,17 +115,16 @@ module Label = struct
     let show_match l = String.concat " or " l in
     rules
     |> List.iter (fun (rule : label_rule) ->
-         begin
-           match rule.allow, rule.ignore with
-           | None, None -> Printf.printf "  any"
-           | None, Some [] -> Printf.printf "  any"
-           | None, Some l -> Printf.printf "  not %s" (show_match l)
-           | Some l, None -> Printf.printf "  %s" (show_match l)
-           | Some l, Some [] -> Printf.printf "  %s" (show_match l)
-           | Some l, Some i -> Printf.printf "  %s and not %s" (show_match l) (show_match i)
-         end;
-         Printf.printf " -> #%s\n%!" rule.channel_name
-       )
+           begin
+             match rule.allow, rule.ignore with
+             | None, None -> Printf.printf "  any"
+             | None, Some [] -> Printf.printf "  any"
+             | None, Some l -> Printf.printf "  not %s" (show_match l)
+             | Some l, None -> Printf.printf "  %s" (show_match l)
+             | Some l, Some [] -> Printf.printf "  %s" (show_match l)
+             | Some l, Some i -> Printf.printf "  %s and not %s" (show_match l) (show_match i)
+           end;
+           Printf.printf " -> #%s\n%!" rule.channel_name)
 end
 
 module Project_owners = struct
@@ -145,8 +143,7 @@ module Project_owners = struct
           | labels ->
           match StringSet.subset (StringSet.of_list labels) pr_labels_set with
           | false -> results_set
-          | true -> List.fold_left (fun a s -> StringSet.add s a) results_set owners
-        )
+          | true -> List.fold_left (fun a s -> StringSet.add s a) results_set owners)
         StringSet.empty rules
       |> StringSet.to_seq
       |> List.of_seq

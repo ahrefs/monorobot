@@ -98,10 +98,9 @@ module Slack_simple : Api.Slack = struct
 
   let send_notification ~ctx:_ ~(msg : Slack_t.post_message_req) =
     log#info "will notify %s%s" msg.channel
-      ( match msg.Slack_t.text with
+      (match msg.Slack_t.text with
       | None -> ""
-      | Some s -> sprintf " with %S" s
-      );
+      | Some s -> sprintf " with %S" s);
     Lwt.return @@ Ok ()
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =

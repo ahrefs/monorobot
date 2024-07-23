@@ -31,8 +31,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | None -> ()
           | Some email ->
             let username = canonicalize_email_username email in
-            Stringtbl.replace username_to_slack_id_tbl username user.id
-        )
+            Stringtbl.replace username_to_slack_id_tbl username user.id)
         res.members;
       Lwt.return_unit
 
@@ -58,20 +57,20 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let filter_by_branch = Rule.Prefix.filter_by_branch ~branch ~main_branch in
     n.commits
     |> List.filter (fun c ->
-         let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
-         if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
-         not skip
-       )
+           let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
+           if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
+           not skip)
     |> List.concat_map (fun commit ->
-         let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
-         let matched_channel_names =
-           Github.modified_files_of_commit commit
-           |> List.filter_map (Rule.Prefix.match_rules ~rules)
-           |> List.sort_uniq String.compare
-         in
-         let channel_names = if matched_channel_names = [] && commit.distinct then default else matched_channel_names in
-         List.map (fun n -> n, commit) channel_names
-       )
+           let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
+           let matched_channel_names =
+             Github.modified_files_of_commit commit
+             |> List.filter_map (Rule.Prefix.match_rules ~rules)
+             |> List.sort_uniq String.compare
+           in
+           let channel_names =
+             if matched_channel_names = [] && commit.distinct then default else matched_channel_names
+           in
+           List.map (fun n -> n, commit) channel_names)
     |> StringMap.of_list_multi
     |> StringMap.map (fun commits -> { n with commits })
     |> StringMap.to_list
@@ -165,10 +164,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         | false -> Lwt.return default
         | true ->
           let sha = n.commit.sha in
-          ( match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
+          (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
           | Error e -> action_error e
-          | Ok commit -> Lwt.return @@ partition_commit cfg commit.files
-          )
+          | Ok commit -> Lwt.return @@ partition_commit cfg commit.files)
       in
       Lwt.return (direct_message @ chans)
     in
@@ -206,19 +204,17 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     match n.comment.commit_id with
     | None -> action_error "unable to find commit id for this commit comment event"
     | Some sha ->
-      ( match%lwt Github_api.get_api_commit ~ctx ~repo:n.repository ~sha with
+      (match%lwt Github_api.get_api_commit ~ctx ~repo:n.repository ~sha with
       | Error e -> action_error e
       | Ok commit ->
         let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
         let rules = cfg.prefix_rules.rules in
-        ( match n.comment.path with
+        (match n.comment.path with
         | None -> Lwt.return @@ (partition_commit cfg commit.files, commit)
         | Some filename ->
         match Rule.Prefix.match_rules filename ~rules with
         | None -> Lwt.return (default, commit)
-        | Some chan -> Lwt.return ([ chan ], commit)
-        )
-      )
+        | Some chan -> Lwt.return ([ chan ], commit)))
 
   let ignore_notifications_from_user cfg req =
     let sender_login =
@@ -258,8 +254,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
          TODO: make this configurable? *)
       Lwt.return []
       (* partition_pr_review_comment cfg n
-      |> List.map (generate_pr_review_comment_notification ~slack_match_func n)
-      |> Lwt.return *)
+         |> List.map (generate_pr_review_comment_notification ~slack_match_func n)
+         |> Lwt.return *)
     | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification ~slack_match_func n) |> Lwt.return
     | Issue_comment n ->
       partition_issue_comment cfg n |> List.map (generate_issue_comment_notification ~slack_match_func n) |> Lwt.return
@@ -309,20 +305,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let project_owners (pull_request : pull_request) repository number =
       match Github.get_project_owners pull_request cfg.project_owners with
       | Some reviewers ->
-        ( match%lwt Github_api.request_reviewers ~ctx ~repo:repository ~number ~reviewers with
+        (match%lwt Github_api.request_reviewers ~ctx ~repo:repository ~number ~reviewers with
         | Ok () -> Lwt.return_unit
-        | Error e -> action_error e
-        )
+        | Error e -> action_error e)
       | None -> Lwt.return_unit
     in
     match req with
     | Github.Pull_request
-        { action; pull_request = { draft = false; state = Open; _ } as pull_request; repository; number; _ } ->
-      begin
-        match action with
-        | Ready_for_review | Labeled -> project_owners pull_request repository number
-        | _ -> Lwt.return_unit
-      end
+        { action; pull_request = { draft = false; state = Open; _ } as pull_request; repository; number; _ } -> begin
+      match action with
+      | Ready_for_review | Labeled -> project_owners pull_request repository number
+      | _ -> Lwt.return_unit
+    end
     | _ -> Lwt.return_unit
 
   let repo_is_supported secrets (repo : Github_t.repository) =
@@ -345,23 +339,20 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       | Error e -> action_error e
       | Ok () ->
         let repo = Github.repo_of_notification payload in
-        ( match repo_is_supported secrets repo with
+        (match repo_is_supported secrets repo with
         | false -> action_error @@ Printf.sprintf "unsupported repository %s" repo.url
         | true ->
-          ( match%lwt refresh_repo_config ctx payload with
+          (match%lwt refresh_repo_config ctx payload with
           | Error e -> action_error e
           | Ok () ->
             let%lwt notifications = generate_notifications ctx payload in
             let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx repo payload ] in
-            ( match ctx.state_filepath with
+            (match ctx.state_filepath with
             | None -> Lwt.return_unit
             | Some path ->
             match State.save ctx.state path with
             | Ok () -> Lwt.return_unit
-            | Error e -> action_error e
-            )
-          )
-        )
+            | Error e -> action_error e)))
     with
     | Yojson.Json_error msg ->
       log#error "failed to parse file as valid JSON (%s): %s" msg body;
@@ -386,8 +377,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
                  | Ok () -> Lwt.return_unit
                  | Error msg ->
                    log#warn "failed to save state file %s : %s" path msg;
-                   Lwt.return_unit
-               )
+                   Lwt.return_unit)
                Lwt.return_unit
         in
         Lwt.return_some user_id

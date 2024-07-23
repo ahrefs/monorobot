@@ -40,20 +40,18 @@ let check_gh_action file json config secrets state =
   | body ->
     let headers = [ "x-github-event", kind ] in
     let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
-    ( match Context.refresh_secrets ctx with
+    (match Context.refresh_secrets ctx with
     | Error e -> log#error "%s" e
     | Ok ctx ->
       Lwt_main.run
-        ( if json then
-          let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_json) in
-          let%lwt () = Action.refresh_username_to_slack_id_tbl ~ctx in
-          Action.process_github_notification ctx headers body
-        else
-          let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_simple) in
-          let%lwt () = Action.refresh_username_to_slack_id_tbl ~ctx in
-          Action.process_github_notification ctx headers body
-        )
-    )
+        (if json then
+           let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_json) in
+           let%lwt () = Action.refresh_username_to_slack_id_tbl ~ctx in
+           Action.process_github_notification ctx headers body
+         else
+           let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_simple) in
+           let%lwt () = Action.refresh_username_to_slack_id_tbl ~ctx in
+           Action.process_github_notification ctx headers body))
 
 let check_slack_action file secrets =
   let data = In_channel.(with_open_bin file input_all) in
@@ -65,12 +63,11 @@ let check_slack_action file secrets =
   | Error e -> log#error "%s" e
   | Ok ctx ->
     Lwt_main.run
-      ( match%lwt Api_remote.Slack.send_notification ~ctx ~msg with
+      (match%lwt Api_remote.Slack.send_notification ~ctx ~msg with
       | Error e ->
         log#error "%s" e;
         Lwt.return_unit
-      | Ok () -> Lwt.return_unit
-      )
+      | Ok () -> Lwt.return_unit)
 
 (* flags *)
 

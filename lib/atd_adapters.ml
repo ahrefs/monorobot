@@ -19,28 +19,28 @@ module List_or_default_field = struct
 
     let normalize x =
       match x with
-      | `Assoc fields ->
-        begin
-          match List.assoc field_name fields with
-          | `String s when String.equal s default_alias -> `Assoc (assoc_replace fields field_name default_value)
-          | _ | (exception Not_found) -> x
-        end
+      | `Assoc fields -> begin
+        match List.assoc field_name fields with
+        | `String s when String.equal s default_alias -> `Assoc (assoc_replace fields field_name default_value)
+        | _ | (exception Not_found) -> x
+      end
       | malformed -> malformed
 
     let restore x =
       match x with
-      | `Assoc fields ->
-        begin
-          match List.assoc field_name fields with
-          | value when Yojson.Safe.equal value default_value -> `Assoc (assoc_replace fields field_name (`String "any"))
-          | _ | (exception Not_found) -> x
-        end
+      | `Assoc fields -> begin
+        match List.assoc field_name fields with
+        | value when Yojson.Safe.equal value default_value -> `Assoc (assoc_replace fields field_name (`String "any"))
+        | _ | (exception Not_found) -> x
+      end
       | malformed -> malformed
   end
 end
 
 module Branch_filters_adapter = List_or_default_field.Make (struct
-  let field_name = "branch_filters" let default_alias = "any" let default_value = `List []
+  let field_name = "branch_filters"
+  let default_alias = "any"
+  let default_value = `List []
 end)
 
 (** Error detection in Slack API response. The web API communicates errors using
@@ -49,18 +49,16 @@ end)
 module Slack_response_adapter : Atdgen_runtime.Json_adapter.S = struct
   let normalize (x : Yojson.Safe.t) =
     match x with
-    | `Assoc fields ->
-      begin
-        match List.assoc "ok" fields with
-        | `Bool true -> `List [ `String "Ok"; x ]
-        | `Bool false ->
-          begin
-            match List.assoc "error" fields with
-            | `String msg -> `List [ `String "Error"; `String msg ]
-            | _ -> x
-          end
-        | _ | (exception Not_found) -> x
+    | `Assoc fields -> begin
+      match List.assoc "ok" fields with
+      | `Bool true -> `List [ `String "Ok"; x ]
+      | `Bool false -> begin
+        match List.assoc "error" fields with
+        | `String msg -> `List [ `String "Error"; `String msg ]
+        | _ -> x
       end
+      | _ | (exception Not_found) -> x
+    end
     | _ -> x
 
   let restore (x : Yojson.Safe.t) =

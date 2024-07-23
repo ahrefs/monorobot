@@ -235,11 +235,10 @@ let gh_link_of_string url_str =
 let get_project_owners (pr : pull_request) ({ rules } : Config_t.project_owners) =
   Rule.Project_owners.match_rules pr.labels rules
   |> List.partition_map (fun reviewer ->
-       try
-         let team = Re2.find_first_exn ~sub:(`Index 1) gh_org_team_re reviewer in
-         Right team
-       with Re2.Exceptions.Regex_match_failed _ -> Left reviewer
-     )
+         try
+           let team = Re2.find_first_exn ~sub:(`Index 1) gh_org_team_re reviewer in
+           Right team
+         with Re2.Exceptions.Regex_match_failed _ -> Left reviewer)
   |> fun (reviewers, team_reviewers) ->
   let already_requested_or_author = pr.user.login :: List.map (fun r -> r.login) pr.requested_reviewers in
   let already_requested_team = List.map (fun r -> r.slug) pr.requested_teams in

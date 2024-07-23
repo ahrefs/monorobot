@@ -75,8 +75,7 @@ let generate_pull_request_notification ~slack_match_func notification channel =
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
-           (string_of_pr_action action)
-        )
+           (string_of_pr_action action))
   in
   let summary =
     sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
@@ -90,17 +89,15 @@ let generate_pr_review_notification ~slack_match_func notification channel =
   let action_str =
     match action with
     | Submitted ->
-      ( match review.state with
+      (match review.state with
       | "commented" -> "commented on"
       | "approved" -> "approved"
       | "changes_requested" -> "requested changes on"
-      | _ -> invalid_arg (sprintf "Error: unexpected review state %s" review.state)
-      )
+      | _ -> invalid_arg (sprintf "Error: unexpected review state %s" review.state))
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
-           (string_of_pr_review_action action)
-        )
+           (string_of_pr_review_action action))
   in
   let summary =
     sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
@@ -119,8 +116,7 @@ let generate_pr_review_comment_notification ~slack_match_func notification chann
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
-           (string_of_comment_action action)
-        )
+           (string_of_comment_action action))
   in
   let summary =
     sprintf "<%s|[%s]> *%s* %s on #%d %s" repository.url repository.full_name sender.login action_str number
@@ -147,8 +143,7 @@ let generate_issue_notification ~slack_match_func notification channel =
     | _ ->
       invalid_arg
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
-           (string_of_issue_action action)
-        )
+           (string_of_issue_action action))
   in
   let summary =
     sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number (pp_link ~url:html_url title)
@@ -167,8 +162,7 @@ let generate_issue_comment_notification ~slack_match_func notification channel =
       invalid_arg
         (sprintf
            "Monorobot doesn't know how to generate pull request review comment notification for the unexpected event %s"
-           (string_of_comment_action action)
-        )
+           (string_of_comment_action action))
   in
   let summary =
     sprintf "<%s|[%s]> *%s* <%s|%s> on #%d %s" repository.url repository.full_name sender.login comment.html_url
@@ -281,8 +275,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
              Using the information from the commit instead, which should be equivalent. *)
          Option.map_default
            (fun { login; _ } -> login)
-           commit.author.name author
-        );
+           commit.author.name author);
     ]
   in
   let branches_info =
@@ -307,8 +300,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       | _ ->
         invalid_arg
           (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s of %s"
-             (string_of_status_state state) sha
-          )
+             (string_of_status_state state) sha)
     in
     let commit_message = first_line message in
     match target_url with
@@ -329,8 +321,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         in
         match pipeline_url with
         | None -> default_summary
-        | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url context state_info commit_message
-      )
+        | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url context state_info commit_message)
   in
   let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info ] in
   let attachment =
