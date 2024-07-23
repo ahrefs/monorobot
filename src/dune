@@ -1,6 +1,5 @@
 (executable
- (libraries lib cmdliner devkit devkit.core extlib lwt.unix
-   result uri)
+ (libraries lib cmdliner devkit devkit.core extlib lwt.unix result uri unix)
  (preprocess
   (pps lwt_ppx))
  (public_name monorobot))
