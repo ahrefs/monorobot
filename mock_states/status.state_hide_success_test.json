@@ -1,10 +1,18 @@
 {
   "pipeline_statuses": {
     "default": {
-      "master": "failure"
+      "master": {
+        "status": "failure",
+        "original_failed_commit": {
+          "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
+          "author": "user@ahrefs.com",
+          "commit_message": "update stuff",
+          "last_updated": "2024-07-27T18:53:55+00:00"
+        }
+      }
     },
     "buildkite/pipeline2": {
-      "master": "success"
+      "master": { "status": "success" }
     }
   },
   "pipeline_commits": {}
