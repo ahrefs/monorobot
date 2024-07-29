@@ -574,6 +574,7 @@ will notify #default
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.merge_develop.json =====
+===== file ../mock_payloads/status.missing_author.json =====
 ===== file ../mock_payloads/status.pending_test.json =====
 ===== file ../mock_payloads/status.state_hide_success_test.json =====
 ===== file ../mock_payloads/status.state_hide_success_test_disallowed_pipeline.json =====
