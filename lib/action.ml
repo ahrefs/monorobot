@@ -424,7 +424,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         in
         Lwt.return (Option.map_default (String.equal event.user) false bot_user_id)
     in
-    if List.length event.links > 2 then Lwt.return "ignored: more than two links present"
+    if List.length event.links > 4 then Lwt.return "ignored: more than two links present"
     else if is_self_bot_user then Lwt.return "ignored: is bot user"
     else begin
       let links = List.map (fun (l : Slack_t.link_shared_link) -> l.url) event.links in
