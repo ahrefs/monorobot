@@ -128,6 +128,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     in
     if matched_channel_names = [] then default else matched_channel_names
 
+  let get_slack_user_for_notification ~ctx ~cfg email =
+    match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+    | Ok res -> Lwt.return_some res.user
+    | Error e ->
+      log#warn "couldn't match commit email %s to slack profile: %s" email e;
+      Lwt.return_none
+
   let partition_status (ctx : Context.t) (n : status_notification) =
     let repo = n.repository in
     let cfg = Context.find_repo_config_exn ctx repo.url in
@@ -136,17 +143,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let rules = cfg.status_rules.rules in
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
       let%lwt direct_message =
-        if notify_dm then begin
-          match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email () with
-          | Ok res ->
+        match notify_dm with
+        | false -> Lwt.return []
+        | true ->
+          (match%lwt get_slack_user_for_notification ~ctx ~cfg n.commit.commit.author.email with
+          | Some user ->
             State.set_repo_pipeline_commit ctx.state repo.url ~pipeline ~commit:n.sha;
-            (* To send a DM, channel parameter is set to the user id of the recipient *)
-            Lwt.return [ res.user.id ]
-          | Error e ->
-            log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
-            Lwt.return []
-        end
-        else Lwt.return []
+            Lwt.return [ user.id ]
+          | None -> Lwt.return [])
       in
       let%lwt chans =
         let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
@@ -198,25 +202,21 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           let branches =
             match StringMap.find_opt pipeline repo_state.pipeline_statuses with
             | Some branch_statuses ->
-                log#info "-------------------------iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii-check if failure has been fixed for pipeline %s" pipeline;
               let was_failing_before (branch : branch) =
                 match StringMap.find_opt branch.name branch_statuses with
                 (* because when the job is running the state is `pending`, we need to check if we are transitioning
                    from a pending state that has an original_failed_commit (which means it was in failed state before) *)
-                | Some { status; original_failed_commit; _ } when status = Pending && Option.is_some original_failed_commit -> true
+                | Some { status; original_failed_commit; _ }
+                  when status = Pending && Option.is_some original_failed_commit ->
+                  true
                 | _ -> false
               in
               let branches =
-                List.filter
-                  (fun branch -> (was_failing_before branch) && current_status = Success )
-                  n.branches
+                List.filter (fun branch -> was_failing_before branch && current_status = Success) n.branches
               in
               branches
             | None -> []
           in
-          let _ = List.iter (fun (branch : branch) ->
-                log#info "%s" branch.name;
-             ) branches in
           action_on_match branches ~notify_channels ~notify_dm
       end
       else Lwt.return []
@@ -290,7 +290,30 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       Lwt.return notifs
     | Status n ->
       let%lwt channels = partition_status ctx n in
-      let notifs = List.map (generate_status_notification cfg n) channels in
+      let repo_state = State.find_or_add_repo ctx.state n.repository.url in
+      let pipeline = n.context in
+      (* will return one or two users when build is failing and none when the build is green *)
+      let%lwt slack_users_who_broke_the_build =
+        match StringMap.find_opt pipeline repo_state.pipeline_statuses with
+        | Some branch_statuses ->
+          let to_users_who_broke_the_builds (branch : branch) =
+            match StringMap.find_opt branch.name branch_statuses with
+            | Some { original_failed_commit; current_failed_commit; _ } ->
+              Lwt_list.filter_map_p
+                (fun (maybe_commit : State_t.ci_commit option) ->
+                  match maybe_commit with
+                  | None -> Lwt.return_none
+                  | Some commit ->
+                    let%lwt maybe_user = get_slack_user_for_notification ~ctx ~cfg commit.author in
+                    Lwt.return @@ Option.map (fun user -> commit.sha, user) maybe_user)
+                [ original_failed_commit; current_failed_commit ]
+            | None -> Lwt.return []
+          in
+          let%lwt slack_user_per_commit = Lwt_list.map_p to_users_who_broke_the_builds n.branches in
+          Lwt.return @@ List.flatten slack_user_per_commit
+        | None -> Lwt.return []
+      in
+      let notifs = List.map (generate_status_notification slack_users_who_broke_the_build ctx cfg n) channels in
       Lwt.return notifs
 
   let send_notifications (ctx : Context.t) notifications =

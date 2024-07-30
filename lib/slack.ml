@@ -240,7 +240,8 @@ let generate_push_notification notification channel =
 
 let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
 
-let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
+let generate_status_notification (slack_users : (string * Slack_t.user) list) (_ctx : Context.t) (cfg : Config_t.config)
+  (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
@@ -258,9 +259,11 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         match target_url with
         | None -> s
         | Some _ when not is_buildkite -> s
-        (* TODO when the pipeline matches the pipelines in pipelines_that_allow_all_steps, we know this fixes the final build. We can use this info to generate different notifications when the bujilds are fixed *)
+        (* TODO when the pipeline matches the pipelines in pipelines_that_allow_all_steps,
+           TODO we know this fixes the final build. We can use this info to generate different notifications
+           TODO when the bujilds are fixed *)
         | Some target_url ->
-        (* Specific to buildkite *)
+        (* Specific to buildkite, top pipeline job *)
         match Re2.find_submatches_exn buildkite_description_re s with
         (* We use a zero-width space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
         | [| Some _; Some build_nr; Some rest |] -> sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
@@ -323,7 +326,43 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         | None -> default_summary
         | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url context state_info commit_message)
   in
-  let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info ] in
+  let cc =
+    match String.split_on_char '/' notification.context with
+    | [ "buildkite"; _pipeline ] ->
+      (match slack_users with
+      | [ (_commit_hash, user) ] ->
+        let no_link_cc = sprintf "*CC*: <@%s>. Failing build: %s" user.id notification.context in
+        Option.map_default
+          (fun link -> [ sprintf "*CC*: <@%s>. Failing build: <%s|%s>" user.id notification.context link ])
+          [ no_link_cc ] notification.target_url
+      | [ (commit_hash_one, user_one); (_, user_two) ] ->
+        (* we ignore the warning to pattern match without covering all the cases *)
+        let (_current_sha :: t) = html_url |> String.split_on_char '/' |> List.rev [@@ocaml.warning "-8"] in
+        let commit_hash_one_html_url = commit_hash_one :: t |> List.rev |> String.concat "/" in
+        [
+          sprintf "*CC*: <@%s>." user_two.id;
+          sprintf "*Original failing commit*: `<%s|%s>`. CC: <@%s>" commit_hash_one_html_url commit_hash_one user_one.id;
+        ]
+      | _ -> [])
+    | [ "buildkite"; _pipeline; _step ] ->
+      (match slack_users with
+      | [ (_commit_hash, user) ] ->
+        let no_link_cc = sprintf "*CC*: <@%s>. Failing step: %s" user.id notification.context in
+        Option.map_default
+          (fun link -> [ sprintf "*CC*: <@%s>. Failing step: <%s|%s>" user.id notification.context link ])
+          [ no_link_cc ] notification.target_url
+      | [ (commit_hash_one, user_one); (_, user_two) ] ->
+        (* we ignore the warning to pattern match without covering all the cases *)
+        let (_current_sha :: t) = html_url |> String.split_on_char '/' |> List.rev [@@ocaml.warning "-8"] in
+        let commit_hash_one_html_url = commit_hash_one :: t |> List.rev |> String.concat "/" in
+        [
+          sprintf "*CC*: <@%s>." user_two.id;
+          sprintf "*Original failing commit*: `<%s|%s>`. CC: <@%s>" commit_hash_one_html_url commit_hash_one user_one.id;
+        ]
+      | _ -> [])
+    | _ -> []
+  in
+  let msg = String.concat "\n" @@ List.concat [ cc; commit_info; branches_info ] in
   let attachment =
     {
       empty_attachments with
