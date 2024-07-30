@@ -193,6 +193,31 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
             notify_dm && not (State.mem_repo_pipeline_commits ctx.state repo.url ~pipeline ~commit:n.sha)
           in
           action_on_match branches ~notify_channels ~notify_dm
+        | Some (Allow_if_fixes_failure, notify_channels, notify_dm) ->
+          (* find if failure has been fixed *)
+          let branches =
+            match StringMap.find_opt pipeline repo_state.pipeline_statuses with
+            | Some branch_statuses ->
+                log#info "-------------------------iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii-check if failure has been fixed for pipeline %s" pipeline;
+              let was_failing_before (branch : branch) =
+                match StringMap.find_opt branch.name branch_statuses with
+                (* because when the job is running the state is `pending`, we need to check if we are transitioning
+                   from a pending state that has an original_failed_commit (which means it was in failed state before) *)
+                | Some { status; original_failed_commit; _ } when status = Pending && Option.is_some original_failed_commit -> true
+                | _ -> false
+              in
+              let branches =
+                List.filter
+                  (fun branch -> (was_failing_before branch) && current_status = Success )
+                  n.branches
+              in
+              branches
+            | None -> []
+          in
+          let _ = List.iter (fun (branch : branch) ->
+                log#info "%s" branch.name;
+             ) branches in
+          action_on_match branches ~notify_channels ~notify_dm
       end
       else Lwt.return []
     in

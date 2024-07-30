@@ -258,13 +258,13 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         match target_url with
         | None -> s
         | Some _ when not is_buildkite -> s
+        (* TODO when the pipeline matches the pipelines in pipelines_that_allow_all_steps, we know this fixes the final build. We can use this info to generate different notifications when the bujilds are fixed *)
         | Some target_url ->
         (* Specific to buildkite *)
         match Re2.find_submatches_exn buildkite_description_re s with
-        | [| Some _; Some build_nr; Some rest |] ->
-          (* We use a zero-with space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
-          sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
-        | _ -> s
+        (* We use a zero-width space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
+        | [| Some _; Some build_nr; Some rest |] -> sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
+        | (exception Re2__Regex.Exceptions.Regex_match_failed _) | _ -> s
       in
       Some (sprintf "*Description*: %s." text)
   in

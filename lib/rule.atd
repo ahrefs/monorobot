@@ -26,6 +26,7 @@ type status_condition = [
 type status_policy = [
 | Allow <json name="allow">
 | Allow_once <json name="allow_once">
+| Allow_if_fixes_failure <json name="allow_if_fixes_failure">
 | Ignore <json name="ignore">
 ] <ocaml repr="classic"> <json adapter.ocaml="Atdgen_runtime.Json_adapter.One_field">
 

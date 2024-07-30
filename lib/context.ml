@@ -68,9 +68,28 @@ let is_pipeline_allowed ctx repo_url ~pipeline =
   match find_repo_config ctx repo_url with
   | None -> true
   | Some config ->
-  match config.status_rules.allowed_pipelines with
-  | Some allowed_pipelines when not @@ List.exists (String.equal pipeline) allowed_pipelines -> false
-  | _ -> true
+    let is_exact_match =
+      match config.status_rules.allowed_pipelines with
+      | Some [] -> true
+      | Some allowed_pipelines when List.mem pipeline allowed_pipelines -> true
+      | _ -> false
+    in
+    let is_step_of_pipeline =
+      match config.status_rules.pipelines_that_allow_all_steps with
+      (* if we don't allow the pipeline as an exact match, we don't want to allow it now without explicit configuration *)
+      (* This config is turned off by default to avoid handling all pipelines and build steps *)
+      | Some [] -> false
+      | Some allowed_pipelines
+        when List.exists
+               (fun allowed ->
+                 let len_allowed = String.length allowed in
+                 let len_pipeline = String.length pipeline in
+                 if len_allowed > len_pipeline then false else String.sub pipeline 0 len_allowed = allowed)
+               allowed_pipelines ->
+        true
+      | _ -> false
+    in
+    is_exact_match || is_step_of_pipeline
 
 let refresh_secrets ctx =
   let path = ctx.secrets_filepath in
