@@ -35,6 +35,7 @@ let set_repo_pipeline_status { state } repo_url ~pipeline ~(branches : Github_t.
             author = notification.commit.commit.author.email;
             commit_message = notification.commit.commit.message;
             last_updated = notification.updated_at;
+            build_link = notification.target_url;
           }
       | _ -> None
     in
