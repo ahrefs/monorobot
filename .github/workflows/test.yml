@@ -33,7 +33,7 @@ jobs:
         # apt update is implicit
         # pinning package implicit
         # depext install implicit
-      - run: opam install . ocamlformat.0.20.1
+      - run: opam install . ocamlformat.0.26.2
 
       - name: compile
         run: opam exec -- make
