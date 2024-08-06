@@ -388,7 +388,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let process link =
       let with_gh_result_populate_slack (type a) ~(api_result : (a, string) Result.t) ~populate ~repo =
         match api_result with
-        | Error _ -> Lwt.return_none
+        | Error msg ->
+          log#warn "failed to fetch info from github for %s: %s" link msg;
+          Lwt.return_none
         | Ok item -> Lwt.return_some @@ (link, populate repo item)
       in
       match Github.gh_link_of_string link with
