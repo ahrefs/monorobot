@@ -61,7 +61,8 @@ let decode_string_pad s = Stre.rstrip ~chars:"= \n\r\t" s |> Base64.decode_exn ~
 let http_request ?headers ?body meth path =
   let setup h =
     Curl.set_followlocation h true;
-    Curl.set_maxredirs h 1
+    Curl.set_maxredirs h 1;
+    Curl.set_unrestrictedauth h true
   in
   match%lwt Web.http_request_lwt ~setup ~ua:"monorobot" ~verbose:true ?headers ?body meth path with
   | `Ok s -> Lwt.return @@ Ok s
