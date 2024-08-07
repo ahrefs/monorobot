@@ -29,5 +29,6 @@ depends: [
  "uri"
  "omd" {< "2"}
  "yojson"
+ "ocamlformat" { with-dev-setup & = "0.26.2" }
 ]
 build: ["dune" "build" "-p" name "-j" jobs]
