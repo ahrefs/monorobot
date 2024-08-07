@@ -1,10 +1,24 @@
 {
   "pipeline_statuses": {
     "default": {
-      "master": "failure"
+      "master": {
+        "status": "failure",
+        "original_failed_commit": {
+          "sha": "0d95302addd66c1816bce1b1d495ed1c93ccd478",
+          "author": "mail@example.org",
+          "commit_message": "Update README.md",
+          "build_link": [
+            "Some",
+            "https://buildkite.com/org/pipeline2/builds/2"
+          ],
+          "last_updated": "2020-06-02T03:21:39+00:00"
+        }
+      }
     },
     "buildkite/pipeline2": {
-      "master": "success"
+      "master": {
+        "status": "success"
+      }
     }
   },
   "pipeline_commits": {}

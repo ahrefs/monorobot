@@ -182,7 +182,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
             | Some branch_statuses ->
               let has_same_status_as_prev (branch : branch) =
                 match StringMap.find_opt branch.name branch_statuses with
-                | Some state when state = current_status -> true
+                | Some { status; _ } when status = current_status -> true
                 | _ -> false
               in
               let branches = List.filter (Fun.negate has_same_status_as_prev) n.branches in
@@ -196,7 +196,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       end
       else Lwt.return []
     in
-    State.set_repo_pipeline_status ctx.state repo.url ~pipeline ~branches:n.branches ~status:current_status;
+    State.set_repo_pipeline_status ctx.state repo.url ~pipeline n;
     Lwt.return recipients
 
   let partition_commit_comment (ctx : Context.t) n =
