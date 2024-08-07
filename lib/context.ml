@@ -43,13 +43,23 @@ let find_repo_config_exn ctx repo_url =
 
 let set_repo_config ctx repo_url config = Stringtbl.replace ctx.config repo_url config
 
+let gh_repo_of_secrets (secrets : Config_t.secrets) repo_url =
+  let drop_scheme url =
+    let uri = Uri.of_string url in
+    Uri.with_scheme uri None
+  in
+  let repo = drop_scheme repo_url in
+  match List.find_opt (fun r -> Uri.equal (drop_scheme r.Config_t.url) repo) secrets.repos with
+  | None -> None
+  | Some repos -> Some repos
+
 let gh_token_of_secrets (secrets : Config_t.secrets) repo_url =
-  match List.find_opt (fun r -> String.equal r.Config_t.url repo_url) secrets.repos with
+  match gh_repo_of_secrets secrets repo_url with
   | None -> None
   | Some repos -> repos.gh_token
 
 let gh_hook_secret_token_of_secrets (secrets : Config_t.secrets) repo_url =
-  match List.find_opt (fun r -> String.equal r.Config_t.url repo_url) secrets.repos with
+  match gh_repo_of_secrets secrets repo_url with
   | None -> None
   | Some repos -> repos.gh_hook_secret
 
