@@ -27,12 +27,36 @@ module Github : Api.Github = struct
     let headers = [ "Accept: application/vnd.github.v3+json" ] in
     Option.map_default (fun v -> sprintf "Authorization: token %s" v :: headers) headers token
 
+  let prepare_request ~secrets ~(repo : Github_t.repository) url =
+    let token = Context.gh_token_of_secrets secrets repo.url in
+    let headers = build_headers ?token () in
+    let url =
+      match Context.gh_repo_of_secrets secrets repo.url with
+      | None -> url
+      | Some repo_config ->
+        (* The url might have been built based on information received through an untrusted source such as a slack message.
+           Normalizing it using trusted secrets. *)
+        let repo_config_url_scheme = repo_config.url |> Uri.of_string |> Uri.scheme in
+        url |> Uri.of_string |> flip Uri.with_scheme repo_config_url_scheme |> Uri.to_string
+    in
+    headers, url
+
+  let get_resource ~secrets ~repo url =
+    let headers, url = prepare_request ~secrets ~repo url in
+    match%lwt http_request ~headers `GET url with
+    | Ok res -> Lwt.return @@ Ok res
+    | Error e -> Lwt.return @@ fmt_error "error while querying remote: %s\nfailed to get resource from %s" e url
+
+  let post_resource ~secrets ~repo body url =
+    let headers, url = prepare_request ~secrets ~repo url in
+    match%lwt http_request ~headers ~body:(`Raw ("application/json; charset=utf-8", body)) `POST url with
+    | Ok res -> Lwt.return @@ Ok res
+    | Error e -> Lwt.return @@ fmt_error "POST to %s failed : %s" url e
+
   let get_config ~(ctx : Context.t) ~repo =
     let secrets = Context.get_secrets_exn ctx in
     let url = contents_url ~repo ~path:ctx.config_filename in
-    let token = Context.gh_token_of_secrets secrets repo.url in
-    let headers = build_headers ?token () in
-    match%lwt http_request ~headers `GET url with
+    match%lwt get_resource ~secrets ~repo url with
     | Error e -> Lwt.return @@ fmt_error "error while querying remote: %s\nfailed to get config from file %s" e url
     | Ok res ->
       let response = Github_j.content_api_response_of_string res in
@@ -53,43 +77,27 @@ module Github : Api.Github = struct
         Lwt.return
         @@ fmt_error "unexpected encoding '%s' in Github response\nfailed to get config from file %s" encoding url)
 
-  let get_resource ~secrets ~repo_url url =
-    let token = Context.gh_token_of_secrets secrets repo_url in
-    let headers = build_headers ?token () in
-    match%lwt http_request ~headers `GET url with
-    | Ok res -> Lwt.return @@ Ok res
-    | Error e -> Lwt.return @@ fmt_error "error while querying remote: %s\nfailed to get resource from %s" e url
-
-  let post_resource ~secrets ~repo_url body url =
-    let token = Context.gh_token_of_secrets secrets repo_url in
-    let headers = build_headers ?token () in
-    match%lwt http_request ~headers ~body:(`Raw ("application/json; charset=utf-8", body)) `POST url with
-    | Ok res -> Lwt.return @@ Ok res
-    | Error e -> Lwt.return @@ fmt_error "POST to %s failed : %s" url e
-
   let get_api_commit ~(ctx : Context.t) ~(repo : Github_t.repository) ~sha =
-    let%lwt res = commits_url ~repo ~sha |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
+    let%lwt res = commits_url ~repo ~sha |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo in
     Lwt.return @@ Result.map Github_j.api_commit_of_string res
 
   let get_pull_request ~(ctx : Context.t) ~(repo : Github_t.repository) ~number =
-    let%lwt res = pulls_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
+    let%lwt res = pulls_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo in
     Lwt.return @@ Result.map Github_j.pull_request_of_string res
 
   let get_issue ~(ctx : Context.t) ~(repo : Github_t.repository) ~number =
-    let%lwt res = issues_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
+    let%lwt res = issues_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo in
     Lwt.return @@ Result.map Github_j.issue_of_string res
 
   let get_compare ~(ctx : Context.t) ~(repo : Github_t.repository) ~basehead =
-    let%lwt res =
-      compare_url ~repo ~basehead |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
-    in
+    let%lwt res = compare_url ~repo ~basehead |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo in
     Lwt.return @@ Result.map Github_j.compare_of_string res
 
   let request_reviewers ~(ctx : Context.t) ~(repo : Github_t.repository) ~number ~reviewers =
     let body = Github_j.string_of_request_reviewers_req reviewers in
     let%lwt res =
       pulls_url ~repo ~number ^ "/requested_reviewers"
-      |> post_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url body
+      |> post_resource ~secrets:(Context.get_secrets_exn ctx) ~repo body
     in
     Lwt.return @@ Result.map ignore res
 end
