@@ -395,18 +395,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       in
       match Github.gh_link_of_string link with
       | None -> Lwt.return_none
-      | Some gh_link ->
-      match gh_link with
-      | Pull_request (repo, number) ->
+      | Some (repo, gh_resource) ->
+      match gh_resource with
+      | Pull_request number ->
         let%lwt result = Github_api.get_pull_request ~ctx ~repo ~number in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_pull_request ~repo
-      | Issue (repo, number) ->
+      | Issue number ->
         let%lwt result = Github_api.get_issue ~ctx ~repo ~number in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_issue ~repo
-      | Commit (repo, sha) ->
+      | Commit sha ->
         let%lwt result = Github_api.get_api_commit ~ctx ~repo ~sha in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_commit ~repo
-      | Compare (repo, basehead) ->
+      | Compare basehead ->
         let%lwt result = Github_api.get_compare ~ctx ~repo ~basehead in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_compare ~repo
     in

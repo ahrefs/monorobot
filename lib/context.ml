@@ -48,20 +48,20 @@ let gh_repo_of_secrets (secrets : Config_t.secrets) repo_url =
     let uri = Uri.of_string url in
     Uri.with_scheme uri None
   in
-  let repo = drop_scheme repo_url in
-  match List.find_opt (fun r -> Uri.equal (drop_scheme r.Config_t.url) repo) secrets.repos with
+  let repo_url = drop_scheme repo_url in
+  match List.find_opt (fun r -> Uri.equal (drop_scheme r.Config_t.url) repo_url) secrets.repos with
   | None -> None
-  | Some repos -> Some repos
+  | Some repo -> Some repo
 
 let gh_token_of_secrets (secrets : Config_t.secrets) repo_url =
   match gh_repo_of_secrets secrets repo_url with
   | None -> None
-  | Some repos -> repos.gh_token
+  | Some repo -> repo.gh_token
 
 let gh_hook_secret_token_of_secrets (secrets : Config_t.secrets) repo_url =
   match gh_repo_of_secrets secrets repo_url with
   | None -> None
-  | Some repos -> repos.gh_hook_secret
+  | Some repo -> repo.gh_hook_secret
 
 let hook_of_channel ctx channel_name =
   let secrets = get_secrets_exn ctx in

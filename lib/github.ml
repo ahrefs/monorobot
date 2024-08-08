@@ -157,11 +157,13 @@ let parse_exn headers body =
 
 type basehead = string * string
 
-type gh_link =
-  | Pull_request of repository * int
-  | Issue of repository * int
-  | Commit of repository * commit_hash
-  | Compare of repository * basehead
+type gh_resource =
+  | Pull_request of int
+  | Issue of int
+  | Commit of commit_hash
+  | Compare of basehead
+
+type gh_link = repository * gh_resource
 
 let commit_sha_re = Re2.create_exn {|[a-f0-9]{4,40}|}
 let comparer_re = {|([a-zA-Z0-9/:\-_.~\^]+)|}
@@ -211,19 +213,19 @@ let gh_link_of_string url_str =
         match path with
         | [ owner; name; "pull"; n ] ->
           let repo = make_repo ~prefix ~owner ~name in
-          Some (Pull_request (repo, int_of_string n))
+          Some (repo, Pull_request (int_of_string n))
         | [ owner; name; "issues"; n ] ->
           let repo = make_repo ~prefix ~owner ~name in
-          Some (Issue (repo, int_of_string n))
+          Some (repo, Issue (int_of_string n))
         | [ owner; name; "commit"; commit_hash ] | [ owner; name; "pull"; _; "commits"; commit_hash ] ->
           let repo = make_repo ~prefix ~owner ~name in
-          if Re2.matches commit_sha_re commit_hash then Some (Commit (repo, commit_hash)) else None
+          if Re2.matches commit_sha_re commit_hash then Some (repo, Commit commit_hash) else None
         | owner :: name :: "compare" :: base_head | owner :: name :: "pull" :: _ :: "files" :: base_head ->
           let base_head = String.concat "/" base_head in
           let repo = make_repo ~prefix ~owner ~name in
           begin
             match Re2.find_submatches_exn compare_basehead_re base_head with
-            | [| _; Some base; _; Some merge |] -> Some (Compare (repo, (base, merge)))
+            | [| _; Some base; _; Some merge |] -> Some (repo, Compare (base, merge))
             | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
           end
         | [] -> None
