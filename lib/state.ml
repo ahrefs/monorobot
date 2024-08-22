@@ -54,8 +54,9 @@ let set_repo_pipeline_status { state } repo_url ~pipeline (notification : Github
                   let original_failed_commit, current_failed_commit =
                     match new_state with
                     | Success -> None, None
-                    (* when new jobs are pending, we keep the existing state *)
-                    | Pending -> current_build_status.original_failed_commit, current_build_status.current_failed_commit
+                    | Pending ->
+                      (* when new jobs are pending, we keep the existing state *)
+                      current_build_status.original_failed_commit, current_build_status.current_failed_commit
                     | Failure | Error ->
                     (* if we don't have a failed step yet, set it *)
                     (* if we have a failed build and are retrying failed jobs: *)
