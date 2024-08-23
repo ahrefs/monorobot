@@ -22,10 +22,10 @@ let github_repo = mk_repo "github.com" "api.github.com"
 
 let pr_cases prefix repo =
   [
-    sprintf "https://%s/ahrefs/monorepo/pull/100" prefix, Some (Pull_request (repo, 100));
-    sprintf "https://%s/ahrefs/monorepo/pull/2" prefix, Some (Pull_request (repo, 2));
-    sprintf "https://%s/ahrefs/monorepo/pull/100/" prefix, Some (Pull_request (repo, 100));
-    sprintf "https://%s/ahrefs/monorepo/pull/100?arg1=123" prefix, Some (Pull_request (repo, 100));
+    sprintf "https://%s/ahrefs/monorepo/pull/100" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/2" prefix, Some (repo, Pull_request 2);
+    sprintf "https://%s/ahrefs/monorepo/pull/100/" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/100?arg1=123" prefix, Some (repo, Pull_request 100);
     sprintf "https://%s/ahrefs/monorepo/pull/abc" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/pull/" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/pull" prefix, None;
@@ -33,10 +33,10 @@ let pr_cases prefix repo =
 
 let issue_cases prefix repo =
   [
-    sprintf "https://%s/ahrefs/monorepo/issues/100" prefix, Some (Issue (repo, 100));
-    sprintf "https://%s/ahrefs/monorepo/issues/2" prefix, Some (Issue (repo, 2));
-    sprintf "https://%s/ahrefs/monorepo/issues/100/" prefix, Some (Issue (repo, 100));
-    sprintf "https://%s/ahrefs/monorepo/issues/100?arg1=123" prefix, Some (Issue (repo, 100));
+    sprintf "https://%s/ahrefs/monorepo/issues/100" prefix, Some (repo, Issue 100);
+    sprintf "https://%s/ahrefs/monorepo/issues/2" prefix, Some (repo, Issue 2);
+    sprintf "https://%s/ahrefs/monorepo/issues/100/" prefix, Some (repo, Issue 100);
+    sprintf "https://%s/ahrefs/monorepo/issues/100?arg1=123" prefix, Some (repo, Issue 100);
     sprintf "https://%s/ahrefs/monorepo/issues/abc" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/issues/" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/issues" prefix, None;
@@ -45,51 +45,50 @@ let issue_cases prefix repo =
 let commit_cases prefix repo =
   [
     ( sprintf "https://%s/ahrefs/monorepo/commit/0d09a6cb71481fe77cad7c7729d400ab40fd292e" prefix,
-      Some (Commit (repo, "0d09a6cb71481fe77cad7c7729d400ab40fd292e")) );
+      Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
     ( sprintf "https://%s/ahrefs/monorepo/commit/0d09a6cb71481fe77cad7c7729d400ab40fd292e/" prefix,
-      Some (Commit (repo, "0d09a6cb71481fe77cad7c7729d400ab40fd292e")) );
+      Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
     ( sprintf "https://%s/ahrefs/monorepo/commit/0d09a6cb71481fe77cad7c7729d400ab40fd292e?arg1=123" prefix,
-      Some (Commit (repo, "0d09a6cb71481fe77cad7c7729d400ab40fd292e")) );
+      Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
     ( sprintf "https://%s/ahrefs/monorepo/pull/2938/commits/0d09a6cb71481fe77cad7c7729d400ab40fd292e?arg1=123" prefix,
-      Some (Commit (repo, "0d09a6cb71481fe77cad7c7729d400ab40fd292e")) );
+      Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
     sprintf "https://%s/ahrefs/monorepo/commit/" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/commit" prefix, None;
   ]
 
 let compare_cases prefix repo =
   [
-    sprintf "https://%s/ahrefs/monorepo/compare/master...develop" prefix, Some (Compare (repo, ("master", "develop")));
-    sprintf "https://%s/ahrefs/monorepo/compare/develop...master/" prefix, Some (Compare (repo, ("develop", "master")));
+    sprintf "https://%s/ahrefs/monorepo/compare/master...develop" prefix, Some (repo, Compare ("master", "develop"));
+    sprintf "https://%s/ahrefs/monorepo/compare/develop...master/" prefix, Some (repo, Compare ("develop", "master"));
     ( sprintf "https://%s/ahrefs/monorepo/compare/master...sewen/one-feature" prefix,
-      Some (Compare (repo, ("master", "sewen/one-feature"))) );
+      Some (repo, Compare ("master", "sewen/one-feature")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/master...sewen/one-feature/" prefix,
-      Some (Compare (repo, ("master", "sewen/one-feature"))) );
+      Some (repo, Compare ("master", "sewen/one-feature")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/one-feature...master/" prefix,
-      Some (Compare (repo, ("sewen/one-feature", "master"))) );
+      Some (repo, Compare ("sewen/one-feature", "master")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/one-feature...other:master/" prefix,
-      Some (Compare (repo, ("sewen/one-feature", "other:master"))) );
+      Some (repo, Compare ("sewen/one-feature", "other:master")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/master...other:monorobot:119-unfurling-commit-range-links/" prefix,
-      Some (Compare (repo, ("master", "other:monorobot:119-unfurling-commit-range-links"))) );
+      Some (repo, Compare ("master", "other:monorobot:119-unfurling-commit-range-links")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/other:1-feature...master/" prefix,
-      Some (Compare (repo, ("other:1-feature", "master"))) );
+      Some (repo, Compare ("other:1-feature", "master")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/other:0d09a6cb71481fe77cad7c7729d400ab40fd292e...master/" prefix,
-      Some (Compare (repo, ("other:0d09a6cb71481fe77cad7c7729d400ab40fd292e", "master"))) );
+      Some (repo, Compare ("other:0d09a6cb71481fe77cad7c7729d400ab40fd292e", "master")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/other:v1.0.0...master/" prefix,
-      Some (Compare (repo, ("other:v1.0.0", "master"))) );
+      Some (repo, Compare ("other:v1.0.0", "master")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/0d09a6cb71481fe77cad7c7729d400ab40fd292e...master/" prefix,
-      Some (Compare (repo, ("0d09a6cb71481fe77cad7c7729d400ab40fd292e", "master"))) );
+      Some (repo, Compare ("0d09a6cb71481fe77cad7c7729d400ab40fd292e", "master")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/123_x-feature...master" prefix,
-      Some (Compare (repo, ("sewen/123_x-feature", "master"))) );
+      Some (repo, Compare ("sewen/123_x-feature", "master")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/123ab^^^...master" prefix,
-      Some (Compare (repo, ("sewen/123ab^^^", "master"))) );
+      Some (repo, Compare ("sewen/123ab^^^", "master")) );
     ( sprintf "https://%s/ahrefs/monorepo/compare/sewen/123ab~3...master" prefix,
-      Some (Compare (repo, ("sewen/123ab~3", "master"))) );
+      Some (repo, Compare ("sewen/123ab~3", "master")) );
     ( sprintf
         "https://%s/ahrefs/monorepo/pull/523/files/6260c936f9f6959c272aecb430a8a263915412c9...81f5a6c7af12d4b5af113d5372d1abd3743f65cb/"
         prefix,
-      Some (Compare (repo, ("6260c936f9f6959c272aecb430a8a263915412c9", "81f5a6c7af12d4b5af113d5372d1abd3743f65cb"))) );
-    ( sprintf "https://%s/ahrefs/monorepo/compare/" prefix ^ "abc%5E%5E%5E...ax~2",
-      Some (Compare (repo, ("abc^^^", "ax~2"))) );
+      Some (repo, Compare ("6260c936f9f6959c272aecb430a8a263915412c9", "81f5a6c7af12d4b5af113d5372d1abd3743f65cb")) );
+    sprintf "https://%s/ahrefs/monorepo/compare/" prefix ^ "abc%5E%5E%5E...ax~2", Some (repo, Compare ("abc^^^", "ax~2"));
     sprintf "https://%s/ahrefs/monorepo/compare" prefix, None;
   ]
 
@@ -118,13 +117,13 @@ let cases =
     ]
 
 let gh_link_output = function
-  | Some (Issue (repo, matched_re)) | Some (Pull_request (repo, matched_re)) ->
+  | Some (repo, Issue matched_re) | Some (repo, Pull_request matched_re) ->
     sprintf "matched: %d \nfor repo %s\n" matched_re
       (repo |> Github_j.string_of_repository |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string)
-  | Some (Commit (repo, matched_re)) ->
+  | Some (repo, Commit matched_re) ->
     sprintf "matched: %s \nfor repo:\n %s\n" matched_re
       (repo |> Github_j.string_of_repository |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string)
-  | Some (Compare (_, (base, merge))) -> sprintf "matched: for base %s|for merge %s\n" base merge
+  | Some (_, Compare (base, merge)) -> sprintf "matched: for base %s|for merge %s\n" base merge
   | None -> "{None}"
 
 let () =
