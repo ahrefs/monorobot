@@ -3,22 +3,8 @@ type 'v map_as_object <ocaml from="Common"> = abstract
 type 'v table_as_object <ocaml from="Common"> = abstract
 type string_set <ocaml from="Common"> = abstract
 
-type ci_commit = {
-  sha: string;
-  author: string;
-  commit_message: string;
-  build_link: string option;
-  last_updated: string;
-}
-
-type build_status = {
-  status: status_state;
-  ?original_failed_commit:ci_commit nullable;
-  ?current_failed_commit:ci_commit nullable;
-}
-
 (* A map from branch names to build statuses *)
-type branch_statuses = build_status map_as_object
+type branch_statuses = status_state map_as_object
 
 (* A map from pipeline names to [branch_statuses] maps. This tracks the
    last build state matched by the status_rules for each pipeline and

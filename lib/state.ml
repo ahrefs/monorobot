@@ -23,60 +23,10 @@ let find_or_add_repo' state repo_url =
 let set_repo_state { state } repo_url repo_state = Stringtbl.replace state.repos repo_url repo_state
 let find_or_add_repo { state } repo_url = find_or_add_repo' state repo_url
 
-let set_repo_pipeline_status { state } repo_url ~pipeline (notification : Github_t.status_notification) =
-  let branches = notification.branches in
-  let set_branch_status per_branch_statuses =
-    let current_fail_state =
-      match notification.state with
-      | Failure | Error ->
-        Some
-          {
-            State_t.sha = notification.sha;
-            author = notification.commit.commit.author.email;
-            commit_message = notification.commit.commit.message;
-            last_updated = notification.updated_at;
-            build_link = notification.target_url;
-          }
-      | _ -> None
-    in
-    let initial_build_status_state =
-      { State_t.status = notification.state; original_failed_commit = None; current_failed_commit = None }
-    in
-    let new_statuses =
-      List.map
-        (fun (branch : Github_t.branch) ->
-          let step_status =
-            Option.map_default
-              (fun all_branches_statuses ->
-                match StringMap.find_opt branch.name all_branches_statuses with
-                | Some (current_build_status : State_t.build_status) ->
-                  let new_state = notification.state in
-                  let original_failed_commit, current_failed_commit =
-                    match new_state with
-                    | Success -> None, None
-                    | Pending ->
-                      (* when new jobs are pending, we keep the existing state *)
-                      current_build_status.original_failed_commit, current_build_status.current_failed_commit
-                    | Failure | Error ->
-                    (* if we don't have a failed step yet, set it *)
-                    (* if we have a failed build and are retrying failed jobs: *)
-                    (* - if we retried the original commit job, update the timestamp *)
-                    (* - if we have a different commit that is failing that step, update the new failing commit *)
-                    match current_build_status.original_failed_commit with
-                    | None -> current_fail_state, None
-                    | Some original_failed_commit ->
-                    match original_failed_commit.sha = notification.sha with
-                    | true -> current_fail_state, current_build_status.current_failed_commit
-                    | false -> current_build_status.original_failed_commit, current_fail_state
-                  in
-                  { State_t.status = new_state; original_failed_commit; current_failed_commit }
-                | None -> initial_build_status_state)
-              initial_build_status_state per_branch_statuses
-          in
-          branch.name, step_status)
-        branches
-    in
-    let init = Option.default StringMap.empty per_branch_statuses in
+let set_repo_pipeline_status { state } repo_url ~pipeline ~(branches : Github_t.branch list) ~status =
+  let set_branch_status branch_statuses =
+    let new_statuses = List.map (fun (b : Github_t.branch) -> b.name, status) branches in
+    let init = Option.default StringMap.empty branch_statuses in
     Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) init new_statuses)
   in
   let repo_state = find_or_add_repo' state repo_url in
