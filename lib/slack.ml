@@ -68,7 +68,7 @@ let generate_pull_request_notification ~slack_match_func notification channel =
   let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
   let action, body =
     match action with
-    | Opened | Ready_for_review -> "opened", Some body
+    | Opened | Ready_for_review -> "opened", body
     | Closed -> (if merged then "merged" else "closed"), None
     | Reopened -> "reopened", None
     | Labeled -> "labeled", show_labels labels
@@ -136,7 +136,7 @@ let generate_issue_notification ~slack_match_func notification channel =
   let { number; body; title; html_url; labels; _ } = issue in
   let action, body =
     match action with
-    | Opened -> "opened", Some body
+    | Opened -> "opened", body
     | Closed -> "closed", None
     | Reopened -> "reopened", None
     | Labeled -> "labeled", show_labels labels

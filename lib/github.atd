@@ -91,7 +91,7 @@ type abstract_issue_state = [
 type pull_request = {
   user: github_user;
   number: int;
-  body: string;
+  ?body: string nullable;
   title: string;
   html_url: string;
   labels: label list;
@@ -107,7 +107,7 @@ type pull_request = {
 type issue = {
   user: github_user;
   number: int;
-  body: string;
+  ?body: string nullable;
   title: string;
   html_url: string;
   labels: label list;
