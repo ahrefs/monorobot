@@ -159,9 +159,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         match cfg.main_branch_name with
         | None -> Lwt.return default
         | Some main_branch_name ->
-        (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
         match List.exists (fun ({ name } : branch) -> String.equal name main_branch_name) branches with
-        | false -> Lwt.return default
+        | false ->
+          (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
+          Lwt.return default
         | true ->
           let sha = n.commit.sha in
           (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
@@ -265,7 +266,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       Lwt.return notifs
     | Status n ->
       let%lwt channels = partition_status ctx n in
-      let notifs = List.map (generate_status_notification cfg n) channels in
+      let notifs = List.map (generate_status_notification ctx cfg n) channels in
       Lwt.return notifs
 
   let send_notifications (ctx : Context.t) notifications =

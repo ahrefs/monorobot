@@ -240,11 +240,12 @@ let generate_push_notification notification channel =
 
 let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
 
-let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
-  let { commit; state; description; target_url; context; repository; _ } = notification in
+let generate_status_notification (ctx : Context.t) (cfg : Config_t.config) (notification : status_notification) channel
+    =
+  let { commit; state; description; target_url; context = pipeline; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
-  let is_buildkite = String.starts_with context ~prefix:"buildkite" in
+  let is_buildkite = String.starts_with pipeline ~prefix:"buildkite" in
   let color_info =
     match state with
     | Success -> "good"
@@ -264,7 +265,9 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         | [| Some _; Some build_nr; Some rest |] ->
           (* We use a zero-with space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
           sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
-        | _ -> s
+        | _ | (exception _) ->
+          (* we either match on the first case or get an exception *)
+          s
       in
       Some (sprintf "*Description*: %s." text)
   in
@@ -291,6 +294,42 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       in
       [ sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ", " branches) ]
   in
+  let failed_steps_info =
+    let repo_state = State.find_or_add_repo ctx.state repository.url in
+    let new_failing_steps =
+      match notification.state, notification.branches with
+      | (Success | Pending | Error), _ | _, [] -> []
+      | Failure, [ current_branch ] ->
+        StringMap.fold
+          (fun step branches_statuses acc ->
+            (* check if step of an allowed pipeline *)
+            match step with
+            | s when s = pipeline -> acc
+            | s when not @@ Devkit.Stre.starts_with s pipeline -> acc
+            | _ ->
+            (* check if this step failed *)
+            match StringMap.find_opt current_branch.name branches_statuses with
+            | Some (build_status : State_t.build_status) when build_status.status = Failure ->
+              let failing_commit_link =
+                match build_status.current_failed_commit, build_status.original_failed_commit with
+                | Some { build_link = Some build_link; _ }, _ -> build_link
+                | None, Some { build_link = Some build_link; _ } -> build_link
+                | _ ->
+                  (* if we can't get the correct build link, use the pipeline one.
+                     if we can't get either, don't use any *)
+                  Option.default "" notification.target_url
+              in
+              (step, failing_commit_link) :: acc
+            | _ -> acc)
+          repo_state.pipeline_statuses []
+      | Failure, _ -> []
+    in
+    match new_failing_steps with
+    | [] -> []
+    | steps_and_links ->
+      let steps_with_links = String.concat ", " @@ List.map (fun (s, l) -> sprintf "<%s|%s>" l s) steps_and_links in
+      [ sprintf "*Steps broken*: %s" steps_with_links ]
+  in
   let summary =
     let state_info =
       match state with
@@ -308,7 +347,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
     | Some target_url ->
       let default_summary =
         sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name target_url
-          context state_info
+          pipeline state_info
       in
       if not is_buildkite then default_summary
       else (
@@ -321,9 +360,9 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         in
         match pipeline_url with
         | None -> default_summary
-        | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url context state_info commit_message)
+        | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url pipeline state_info commit_message)
   in
-  let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info ] in
+  let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info; failed_steps_info ] in
   let attachment =
     {
       empty_attachments with
