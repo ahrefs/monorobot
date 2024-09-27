@@ -128,49 +128,59 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     in
     if matched_channel_names = [] then default else matched_channel_names
 
+  let buildkite_is_failed_re = Re2.create_exn {|^Build #\d+ failed|}
+
   let partition_status (ctx : Context.t) (n : status_notification) =
     let repo = n.repository in
     let cfg = Context.find_repo_config_exn ctx repo.url in
     let pipeline = n.context in
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
+    let repo_state = State.find_or_add_repo ctx.state n.repository.url in
+    let broken_steps = Util.Build.new_failed_steps n repo_state pipeline in
+    let no_notify = n.state = Failure && broken_steps = [] in
+
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
-      let%lwt direct_message =
-        if notify_dm then begin
-          match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email () with
-          | Ok res ->
-            State.set_repo_pipeline_commit ctx.state repo.url ~pipeline ~commit:n.sha;
-            (* To send a DM, channel parameter is set to the user id of the recipient *)
-            Lwt.return [ res.user.id ]
-          | Error e ->
-            log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
-            Lwt.return []
-        end
-        else Lwt.return []
-      in
-      let%lwt chans =
-        let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
-        match notify_channels with
-        | false -> Lwt.return []
-        | true ->
-        match branches with
-        | [] -> Lwt.return []
-        | _ ->
-        match cfg.main_branch_name with
-        | None -> Lwt.return default
-        | Some main_branch_name ->
-        match List.exists (fun ({ name } : branch) -> String.equal name main_branch_name) branches with
-        | false ->
-          (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
-          Lwt.return default
-        | true ->
-          let sha = n.commit.sha in
-          (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
-          | Error e -> action_error e
-          | Ok commit -> Lwt.return @@ partition_commit cfg commit.files)
-      in
-      Lwt.return (direct_message @ chans)
+      match no_notify with
+      | true -> Lwt.return []
+      | false ->
+        let%lwt direct_message =
+          if notify_dm then begin
+            match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email () with
+            | Ok res ->
+              State.set_repo_pipeline_commit ctx.state repo.url ~pipeline ~commit:n.sha;
+              (* To send a DM, channel parameter is set to the user id of the recipient *)
+              Lwt.return [ res.user.id ]
+            | Error e ->
+              log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
+              Lwt.return []
+          end
+          else Lwt.return []
+        in
+        let%lwt chans =
+          let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
+          match notify_channels with
+          | false -> Lwt.return []
+          | true ->
+          match branches with
+          | [] -> Lwt.return []
+          | _ ->
+          match cfg.main_branch_name with
+          | None -> Lwt.return default
+          | Some main_branch_name ->
+          match List.exists (fun ({ name } : branch) -> String.equal name main_branch_name) branches with
+          | false ->
+            (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
+            Lwt.return default
+          | true ->
+            let sha = n.commit.sha in
+            (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
+            | Error e -> action_error e
+            | Ok commit -> Lwt.return @@ partition_commit cfg commit.files)
+        in
+        Lwt.return (direct_message @ chans)
     in
+
     let%lwt recipients =
       if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
         let repo_state = State.find_or_add_repo ctx.state repo.url in
@@ -178,6 +188,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         | Some (Ignore, _, _) | None -> Lwt.return []
         | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
         | Some (Allow_once, notify_channels, notify_dm) ->
+        (* for failing states, if we only allow one notification, it must be the final one, not an intermediate one *)
+        match
+          n.state <> Failure
+          || (n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description))
+        with
+        | false -> Lwt.return []
+        | true ->
           let branches =
             match StringMap.find_opt pipeline repo_state.pipeline_statuses with
             | Some branch_statuses ->

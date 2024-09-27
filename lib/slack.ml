@@ -1,5 +1,6 @@
 open Printf
 open Common
+open Util
 open Mrkdwn
 open Github_j
 open Slack_j
@@ -296,39 +297,17 @@ let generate_status_notification (ctx : Context.t) (cfg : Config_t.config) (noti
   in
   let failed_steps_info =
     let repo_state = State.find_or_add_repo ctx.state repository.url in
-    let new_failing_steps =
-      match notification.state, notification.branches with
-      | (Success | Pending | Error), _ | _, [] -> []
-      | Failure, [ current_branch ] ->
-        StringMap.fold
-          (fun step branches_statuses acc ->
-            (* check if step of an allowed pipeline *)
-            match step with
-            | s when s = pipeline -> acc
-            | s when not @@ Devkit.Stre.starts_with s pipeline -> acc
-            | _ ->
-            (* check if this step failed *)
-            match StringMap.find_opt current_branch.name branches_statuses with
-            | Some (build_status : State_t.build_status) when build_status.status = Failure ->
-              let failing_commit_link =
-                match build_status.current_failed_commit, build_status.original_failed_commit with
-                | Some { build_link = Some build_link; _ }, _ -> build_link
-                | None, Some { build_link = Some build_link; _ } -> build_link
-                | _ ->
-                  (* if we can't get the correct build link, use the pipeline one.
-                     if we can't get either, don't use any *)
-                  Option.default "" notification.target_url
-              in
-              (step, failing_commit_link) :: acc
-            | _ -> acc)
-          repo_state.pipeline_statuses []
-      | Failure, _ -> []
-    in
-    match new_failing_steps with
+    match Build.new_failed_steps notification repo_state pipeline with
     | [] -> []
     | steps_and_links ->
-      let steps_with_links = String.concat ", " @@ List.map (fun (s, l) -> sprintf "<%s|%s>" l s) steps_and_links in
-      [ sprintf "*Steps broken*: %s" steps_with_links ]
+      let steps_with_links =
+        List.map
+          (fun (s, l) ->
+            let step = Devkit.Stre.drop_prefix s (notification.context ^ "/") in
+            sprintf "<%s|%s>" l step)
+          steps_and_links
+      in
+      [ sprintf "*Steps broken*: %s" (String.concat ", " steps_with_links) ]
   in
   let summary =
     let state_info =
