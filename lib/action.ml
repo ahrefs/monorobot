@@ -137,11 +137,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
     let repo_state = State.find_or_add_repo ctx.state n.repository.url in
-    let broken_steps = Util.Build.new_failed_steps n repo_state pipeline in
-    let no_notify = n.state = Failure && broken_steps = [] in
 
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
-      match no_notify with
+      let broken_steps = Util.Build.new_failed_steps n repo_state pipeline in
+      match n.state = Failure && broken_steps = [] with
       | true -> Lwt.return []
       | false ->
         let%lwt direct_message =
@@ -183,34 +182,33 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
 
     let%lwt recipients =
       if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
-        let repo_state = State.find_or_add_repo ctx.state repo.url in
         match Rule.Status.match_rules ~rules n with
         | Some (Ignore, _, _) | None -> Lwt.return []
         | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
         | Some (Allow_once, notify_channels, notify_dm) ->
-        (* for failing states, if we only allow one notification, it must be the final one, not an intermediate one *)
-        match
-          n.state <> Failure
-          || (n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description))
-        with
-        | false -> Lwt.return []
-        | true ->
-          let branches =
-            match StringMap.find_opt pipeline repo_state.pipeline_statuses with
-            | Some branch_statuses ->
-              let has_same_status_as_prev (branch : branch) =
-                match StringMap.find_opt branch.name branch_statuses with
-                | Some { status; _ } when status = current_status -> true
-                | _ -> false
-              in
-              let branches = List.filter (Fun.negate has_same_status_as_prev) n.branches in
-              branches
-            | None -> n.branches
+          let full_build_failed =
+            n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description)
           in
-          let notify_dm =
-            notify_dm && not (State.mem_repo_pipeline_commits ctx.state repo.url ~pipeline ~commit:n.sha)
-          in
-          action_on_match branches ~notify_channels ~notify_dm
+          (* for failing states, if we only allow one notification, it must be the final one, not an intermediate one *)
+          (match n.state <> Failure || full_build_failed with
+          | false -> Lwt.return []
+          | true ->
+            let branches =
+              match StringMap.find_opt pipeline repo_state.pipeline_statuses with
+              | Some branch_statuses ->
+                let has_same_status_as_prev (branch : branch) =
+                  match StringMap.find_opt branch.name branch_statuses with
+                  | Some { status; _ } when status = current_status -> true
+                  | _ -> false
+                in
+                let branches = List.filter (Fun.negate has_same_status_as_prev) n.branches in
+                branches
+              | None -> n.branches
+            in
+            let notify_dm =
+              notify_dm && not (State.mem_repo_pipeline_commits ctx.state repo.url ~pipeline ~commit:n.sha)
+            in
+            action_on_match branches ~notify_channels ~notify_dm)
       end
       else Lwt.return []
     in
