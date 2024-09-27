@@ -407,5 +407,5 @@ let validate_signature ?(version = "v0") ?signing_key ~headers body =
   | None -> Error "unable to find header X-Slack-Request-Timestamp"
   | Some timestamp ->
     let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
-    let expected_signature = Printf.sprintf "%s=%s" version (Common.sign_string_sha256 ~key ~basestring) in
+    let expected_signature = Printf.sprintf "%s=%s" version (Util.sign_string_sha256 ~key ~basestring) in
     if String.equal expected_signature signature then Ok () else Error "signatures don't match"

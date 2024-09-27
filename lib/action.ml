@@ -58,7 +58,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     n.commits
     |> List.filter (fun c ->
            let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
-           if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
+           if skip then log#info "main branch merge, ignoring %s: %s" c.id (Util.first_line c.message);
            not skip)
     |> List.concat_map (fun commit ->
            let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
