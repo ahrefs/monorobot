@@ -1,0 +1,90 @@
+{
+  "pipeline_statuses": {
+    "buildkite/pipeline2": {
+      "author/patches/js-storage": {
+        "status": "failure",
+        "original_failed_commit": {
+          "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
+          "author": "author@ahrefs.com",
+          "commit_message": "c1 message",
+          "build_link": [
+            "Some",
+            "https://buildkite.com/ahrefs/monorepo/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4"
+          ],
+          "last_updated": "2024-06-02T04:57:47+00:00"
+        }
+      }
+    },
+    "buildkite/pipeline2/failed-step": {
+      "author/patches/js-storage": {
+        "status": "failure",
+        "original_failed_commit": {
+          "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
+          "author": "author@ahrefs.com",
+          "commit_message": "c1 message",
+          "build_link": [
+            "Some",
+            "https://buildkite.com/ahrefs/monorepo/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4"
+          ],
+          "last_updated": "2024-06-02T04:57:47+00:00"
+        },
+        "current_failed_commit": {
+          "sha": "51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
+          "author": "author@ahrefs.com",
+          "commit_message": "c1 message",
+          "build_link": [
+            "Some",
+            "https://buildkite.com/ahrefs/monorepo/builds/181733#0192341c-4f46-4bfc-82ab-48415b146f40"
+          ],
+          "last_updated": "2024-06-02T04:57:47+00:00"
+        }
+      }
+    },
+    "buildkite/pipeline2/another-failed-step": {
+      "author/patches/js-storage": {
+        "status": "failure",
+        "original_failed_commit": {
+          "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
+          "author": "author@ahrefs.com",
+          "commit_message": "c1 message",
+          "build_link": [
+            "Some",
+            "https://buildkite.com/ahrefs/monorepo/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4"
+          ],
+          "last_updated": "2024-06-02T04:57:47+00:00"
+        },
+        "current_failed_commit": {
+          "sha": "51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
+          "author": "author@ahrefs.com",
+          "commit_message": "c1 message",
+          "build_link": [
+            "Some",
+            "https://buildkite.com/ahrefs/monorepo/builds/181733#0192341c-4f46-4bfc-82ab-48415b146f40"
+          ],
+          "last_updated": "2024-06-02T04:57:47+00:00"
+        }
+      }
+    },
+    "buildkite/pipeline2/with-extra-step": {
+      "author/patches/js-storage": {
+        "status": "failure",
+        "original_failed_commit": {
+          "sha": "51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
+          "author": "author@ahrefs.com",
+          "commit_message": "c1 message",
+          "build_link": [
+            "Some",
+            "https://buildkite.com/ahrefs/monorepo/builds/181733#0192341c-4f46-4bfc-82ab-48415b146f40"
+          ],
+          "last_updated": "2024-06-02T04:57:47+00:00"
+        }
+      }
+    }
+  },
+  "pipeline_commits": {
+    "buildkite/pipeline2": {
+      "s1": ["7e0a933e9c71b4ca107680ca958ca1888d5e479b"],
+      "s2": []
+    }
+  }
+}
