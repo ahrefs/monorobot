@@ -1,7 +1,7 @@
 {
   "pipeline_statuses": {
     "buildkite/pipeline2": {
-      "master": {
+      "author/patches/js-storage": {
         "status": "failure",
         "original_failed_commit": {
           "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
