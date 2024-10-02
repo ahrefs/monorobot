@@ -47,8 +47,8 @@ let set_repo_pipeline_status { state } repo_url ~pipeline (notification : Github
         (fun (branch : Github_t.branch) ->
           let step_status =
             Option.map_default
-              (fun all_branches_statuses ->
-                match StringMap.find_opt branch.name all_branches_statuses with
+              (fun pipeline_branches_statuses ->
+                match StringMap.find_opt branch.name pipeline_branches_statuses with
                 | Some (current_build_status : State_t.build_status) ->
                   let new_state = notification.state in
                   let original_failed_commit, current_failed_commit =
@@ -80,7 +80,11 @@ let set_repo_pipeline_status { state } repo_url ~pipeline (notification : Github
     Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) init new_statuses)
   in
   let repo_state = find_or_add_repo' state repo_url in
-  repo_state.pipeline_statuses <- StringMap.update pipeline set_branch_status repo_state.pipeline_statuses
+  match notification.state with
+  | Success ->
+    (* if the build/step is successful, we remove it from the state to avoid the file to grow too much *)
+    repo_state.pipeline_statuses <- StringMap.remove pipeline repo_state.pipeline_statuses
+  | _ -> repo_state.pipeline_statuses <- StringMap.update pipeline set_branch_status repo_state.pipeline_statuses
 
 let set_repo_pipeline_commit { state } repo_url ~pipeline ~commit =
   let rotation_threshold = 1000 in
