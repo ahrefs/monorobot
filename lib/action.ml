@@ -139,45 +139,41 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let repo_state = State.find_or_add_repo ctx.state n.repository.url in
 
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
-      let broken_steps = Util.Build.new_failed_steps n repo_state pipeline in
-      match n.state = Failure && broken_steps = [] with
-      | true -> Lwt.return []
-      | false ->
-        let%lwt direct_message =
-          if notify_dm then begin
-            match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email () with
-            | Ok res ->
-              State.set_repo_pipeline_commit ctx.state repo.url ~pipeline ~commit:n.sha;
-              (* To send a DM, channel parameter is set to the user id of the recipient *)
-              Lwt.return [ res.user.id ]
-            | Error e ->
-              log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
-              Lwt.return []
-          end
-          else Lwt.return []
-        in
-        let%lwt chans =
-          let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
-          match notify_channels with
-          | false -> Lwt.return []
-          | true ->
-          match branches with
-          | [] -> Lwt.return []
-          | _ ->
-          match cfg.main_branch_name with
-          | None -> Lwt.return default
-          | Some main_branch_name ->
-          match List.exists (fun ({ name } : branch) -> String.equal name main_branch_name) branches with
-          | false ->
-            (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
-            Lwt.return default
-          | true ->
-            let sha = n.commit.sha in
-            (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
-            | Error e -> action_error e
-            | Ok commit -> Lwt.return @@ partition_commit cfg commit.files)
-        in
-        Lwt.return (direct_message @ chans)
+      let%lwt direct_message =
+        if notify_dm then begin
+          match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email () with
+          | Ok res ->
+            State.set_repo_pipeline_commit ctx.state repo.url ~pipeline ~commit:n.sha;
+            (* To send a DM, channel parameter is set to the user id of the recipient *)
+            Lwt.return [ res.user.id ]
+          | Error e ->
+            log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
+            Lwt.return []
+        end
+        else Lwt.return []
+      in
+      let%lwt chans =
+        let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
+        match notify_channels with
+        | false -> Lwt.return []
+        | true ->
+        match branches with
+        | [] -> Lwt.return []
+        | _ ->
+        match cfg.main_branch_name with
+        | None -> Lwt.return default
+        | Some main_branch_name ->
+        match List.exists (fun ({ name } : branch) -> String.equal name main_branch_name) branches with
+        | false ->
+          (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
+          Lwt.return default
+        | true ->
+          let sha = n.commit.sha in
+          (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
+          | Error e -> action_error e
+          | Ok commit -> Lwt.return @@ partition_commit cfg commit.files)
+      in
+      Lwt.return (direct_message @ chans)
     in
 
     let%lwt recipients =

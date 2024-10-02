@@ -34,6 +34,7 @@ let set_repo_pipeline_status { state } repo_url ~pipeline (notification : Github
             State_t.sha = notification.sha;
             author = notification.commit.commit.author.email;
             commit_message = notification.commit.commit.message;
+            url = notification.commit.html_url;
             last_updated = notification.updated_at;
             build_link = notification.target_url;
           }

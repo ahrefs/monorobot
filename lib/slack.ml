@@ -246,11 +246,13 @@ let generate_status_notification (ctx : Context.t) (cfg : Config_t.config) (noti
   let { commit; state; description; target_url; context = pipeline; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
+  let repo_state = State.find_or_add_repo ctx.state repository.url in
   let is_buildkite = String.starts_with pipeline ~prefix:"buildkite" in
-  let color_info =
-    match state with
-    | Success -> "good"
-    | _ -> "danger"
+  let color_info = if state = Success then "good" else "danger" in
+  let new_failed_steps = Build.new_failed_steps notification repo_state pipeline in
+  let old_failed_steps =
+    Build.all_failed_steps notification repo_state pipeline
+    |> List.filter (fun (s, _) -> not @@ List.mem_assoc s new_failed_steps)
   in
   let description_info =
     match description with
@@ -264,13 +266,25 @@ let generate_status_notification (ctx : Context.t) (cfg : Config_t.config) (noti
         (* Specific to buildkite *)
         match Re2.find_submatches_exn buildkite_description_re s with
         | [| Some _; Some build_nr; Some rest |] ->
-          (* We use a zero-with space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
-          sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
+          let fail_info =
+            match old_failed_steps, new_failed_steps with
+            | [], _ ->
+              (* if we don't any have failed steps, or we only have new failed steps
+                 we just print the msg from the status notification. *)
+              ""
+            | _ :: _, [] ->
+              "\n\
+               These failing steps are from a previous commmit. Please merge the latest develop or contact the author."
+            | _ :: _, _ :: _ ->
+              "\nSome of the steps were broken in previous commit(s), but this commit also broke some step(s)."
+          in
+          (* We use a zero-width space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
+          sprintf "Build <%s|#\u{200B}%s>%s.%s" target_url build_nr rest fail_info
         | _ | (exception _) ->
           (* we either match on the first case or get an exception *)
           s
       in
-      Some (sprintf "*Description*: %s." text)
+      Some (sprintf "*Description*: %s" text)
   in
   let commit_info =
     [
@@ -296,18 +310,15 @@ let generate_status_notification (ctx : Context.t) (cfg : Config_t.config) (noti
       [ sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ", " branches) ]
   in
   let failed_steps_info =
-    let repo_state = State.find_or_add_repo ctx.state repository.url in
-    match Build.new_failed_steps notification repo_state pipeline with
-    | [] -> []
-    | steps_and_links ->
-      let steps_with_links =
-        List.map
-          (fun (s, l) ->
-            let step = Devkit.Stre.drop_prefix s (notification.context ^ "/") in
-            sprintf "<%s|%s>" l step)
-          steps_and_links
-      in
-      [ sprintf "*Steps broken*: %s" (String.concat ", " steps_with_links) ]
+    let open Util.Slack in
+    let to_steps m ss =
+      match ss with
+      | [] -> []
+      | _ -> [ sprintf "*%s*: %s" m (String.concat ", " (List.map (slack_step_link notification.context) ss)) ]
+    in
+    let old_failed_steps' = to_steps "Failing steps" old_failed_steps in
+    let new_failed_steps' = to_steps "New steps broken" new_failed_steps in
+    old_failed_steps' @ new_failed_steps'
   in
   let summary =
     let state_info =

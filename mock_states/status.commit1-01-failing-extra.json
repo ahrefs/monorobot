@@ -6,6 +6,7 @@
         "original_failed_commit": {
           "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
           "author": "author@ahrefs.com",
+          "url": "https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b",
           "commit_message": "c1 message",
           "build_link": [
             "Some",
@@ -21,6 +22,7 @@
         "original_failed_commit": {
           "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
           "author": "author@ahrefs.com",
+          "url": "https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b",
           "commit_message": "c1 message",
           "build_link": [
             "Some",
@@ -31,6 +33,7 @@
         "current_failed_commit": {
           "sha": "51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
           "author": "author@ahrefs.com",
+          "url": "https://github.com/ahrefs/monorepo/commit/51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
           "commit_message": "c1 message",
           "build_link": [
             "Some",
@@ -46,6 +49,7 @@
         "original_failed_commit": {
           "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
           "author": "author@ahrefs.com",
+          "url": "https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b",
           "commit_message": "c1 message",
           "build_link": [
             "Some",
@@ -56,6 +60,7 @@
         "current_failed_commit": {
           "sha": "51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
           "author": "author@ahrefs.com",
+          "url": "https://github.com/ahrefs/monorepo/commit/51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
           "commit_message": "c1 message",
           "build_link": [
             "Some",
@@ -71,6 +76,7 @@
         "original_failed_commit": {
           "sha": "51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
           "author": "author@ahrefs.com",
+          "url": "https://github.com/ahrefs/monorepo/commit/51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
           "commit_message": "c1 message",
           "build_link": [
             "Some",

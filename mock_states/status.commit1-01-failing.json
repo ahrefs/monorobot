@@ -11,6 +11,7 @@
         "original_failed_commit": {
           "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
           "author": "author@ahrefs.com",
+          "url": "https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b",
           "commit_message": "c1 message",
           "build_link": [
             "Some",
