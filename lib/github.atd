@@ -148,6 +148,7 @@ type pr_action = [
   | Unlocked <json name="unlocked">
   | Reopened <json name="reopened">
   | Synchronize <json name="synchronize">
+  | Converted_to_draft <json name="converted_to_draft">
 ] <ocaml repr="classic">
 
 type pr_review_action = [
