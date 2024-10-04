@@ -2,6 +2,7 @@ type status_state <ocaml from="Github"> = abstract
 type 'v map_as_object <ocaml from="Common"> = abstract
 type 'v table_as_object <ocaml from="Common"> = abstract
 type string_set <ocaml from="Common"> = abstract
+type post_message_res <ocaml from="Slack"> = abstract
 
 type ci_commit = {
   sha: string;
@@ -35,10 +36,13 @@ type commit_sets = {
    that have triggered a direct message notification. *)
 type pipeline_commits = commit_sets map_as_object
 
+type slack_threads = post_message_res list map_as_object
+
 (* The runtime state of a given GitHub repository *)
 type repo_state = {
   pipeline_statuses <ocaml mutable>: pipeline_statuses;
   pipeline_commits <ocaml mutable>: pipeline_commits;
+  slack_threads <ocaml mutable>: slack_threads;
 }
 
 (* The serializable runtime state of the bot *)

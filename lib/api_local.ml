@@ -76,7 +76,7 @@ module Slack : Api.Slack = struct
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
     Printf.printf "will notify #%s\n" msg.channel;
     Printf.printf "%s\n" json;
-    Lwt.return @@ Ok ()
+    Lwt.return @@ Ok None
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts ~unfurls () =
     let req = Slack_j.{ channel; ts; unfurls } in
@@ -101,7 +101,7 @@ module Slack_simple : Api.Slack = struct
       (match msg.Slack_t.text with
       | None -> ""
       | Some s -> sprintf " with %S" s);
-    Lwt.return @@ Ok ()
+    Lwt.return @@ Ok None
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
     Printf.printf "will unfurl in #%s\n" channel;
@@ -129,7 +129,7 @@ module Slack_json : Api.Slack = struct
     let url = Uri.add_query_param url ("msg", [ json ]) in
     log#info "%s" (Uri.to_string url);
     log#info "%s" json;
-    Lwt.return @@ Ok ()
+    Lwt.return @@ Ok None
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
     log#info "will notify %s" channel;

@@ -58,6 +58,7 @@ type message_block = [
 
 type post_message_req = {
   channel: string;
+  ?thread_ts: string nullable;
   ?username : string nullable;
   ?text: string nullable;
   ?attachments: message_attachment list nullable;
@@ -68,6 +69,7 @@ type post_message_req = {
 
 type post_message_res = {
   channel: string;
+  ts: string;
 }
 
 type lookup_user_res = {

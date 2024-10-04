@@ -5,8 +5,10 @@ open Common
 open Github_j
 
 exception Action_error of string
+exception Success_handler_error of string
 
 let action_error msg = raise (Action_error msg)
+let handler_error msg = raise (Success_handler_error msg)
 let log = Log.from "action"
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
@@ -41,12 +43,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     (* Updates mapping every 24 hours *)
     refresh_username_to_slack_id_tbl_background_lwt ~ctx
 
-  let match_github_login_to_slack_id cfg_opt login =
-    let login =
-      match cfg_opt with
-      | None -> login
-      | Some cfg -> List.assoc_opt login cfg.user_mappings |> Option.default login
-    in
+  let match_github_login_to_slack_id cfg login =
+    let login = List.assoc_opt login cfg.user_mappings |> Option.default login in
     login |> canonicalize_email_username |> Stringtbl.find_opt username_to_slack_id_tbl
 
   let partition_push (cfg : Config_t.config) n =
@@ -81,10 +79,24 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     labels |> List.concat_map (Rule.Label.match_rules ~rules) |> List.sort_uniq String.compare |> fun channel_names ->
     if channel_names = [] then Stdlib.Option.to_list default else channel_names
 
-  let partition_pr cfg (n : pr_notification) =
+  let partition_pr cfg (ctx : Context.t) (n : pr_notification) =
     match n.action with
-    | (Opened | Closed | Reopened | Labeled | Ready_for_review) when not n.pull_request.draft ->
+    | (Opened | Closed | Reopened | Ready_for_review) when not n.pull_request.draft ->
       partition_label cfg n.pull_request.labels
+    | Labeled when not n.pull_request.draft ->
+      (* labels get notified by gh in addition the pr notification itself, which means that when we open a pr
+          we have one `Open` notification and as many `Labeled` notifications as the pr has labels.
+          we want to avoid having many notifications for a single `Opened` event. *)
+      (match State.has_pr_thread ctx.state ~repo_url:n.repository.url ~pr_url:n.pull_request.html_url with
+      | false ->
+        (* we dont have a thread for the pr yet, these are the labels notifications before the PR *)
+        []
+      | true ->
+        (* if we already have a thread on a certain channel, we already have received an open PR notification.
+           If we have a new label that triggers a notification on a new channel, we'll notify the channel.
+           If the label triggers a notification on a channel with an existing thread, the notification will go
+           in the thread *)
+        partition_label cfg n.pull_request.labels)
     | _ -> []
 
   let partition_issue cfg (n : issue_notification) =
@@ -105,16 +117,17 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let partition_pr_review cfg (n : pr_review_notification) =
     let { review; action; _ } = n in
     match action, review.state, review.body with
-    | Submitted, "commented", (Some "" | None) -> []
-    (* the case (action = Submitted, review.state = "commented", review.body = "") happens when
-       a reviewer starts a review by commenting on particular sections of the code, which triggars a pull_request_review_comment event simultaneouly,
-       and then submits the review without submitting any general feedback or explicit approval/changes.
+    | Submitted, "commented", (Some "" | None) ->
+      (* the case (action = Submitted, review.state = "commented", review.body = "") happens when
+           a reviewer starts a review by commenting on particular sections of the code, which triggars a pull_request_review_comment event simultaneouly,
+           and then submits the review without submitting any general feedback or explicit approval/changes.
 
-       the case (action = Submitted, review.state = "commented", review.body = null) happens when
-       a reviewer adds a single comment on a particular section of the code, which triggars a pull_request_review_comment event simultaneouly.
+           the case (action = Submitted, review.state = "commented", review.body = null) happens when
+           a reviewer adds a single comment on a particular section of the code, which triggars a pull_request_review_comment event simultaneouly.
 
-       in both cases, since pull_request_review_comment is already handled by another type of event, information in the pull_request_review payload
-       does not provide any insightful information and will thus be ignored. *)
+         in both cases, since pull_request_review_comment is already handled by another type of event, information in the pull_request_review payload
+         does not provide any insightful information and will thus be ignored. *)
+      []
     | Submitted, _, _ -> partition_label cfg n.pull_request.labels
     | _ -> []
 
@@ -250,7 +263,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
   let generate_notifications (ctx : Context.t) (req : Github.t) =
     let repo = Github.repo_of_notification req in
     let cfg = Context.find_repo_config_exn ctx repo.url in
-    let slack_match_func = match_github_login_to_slack_id (Some cfg) in
+    let slack_match_func = match_github_login_to_slack_id cfg in
     match ignore_notifications_from_user cfg req with
     | true -> Lwt.return []
     | false ->
@@ -258,16 +271,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Github.Push n ->
       partition_push cfg n |> List.map (fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
     | Pull_request n ->
-      partition_pr cfg n |> List.map (generate_pull_request_notification ~slack_match_func n) |> Lwt.return
+      partition_pr cfg ctx n |> List.map (generate_pull_request_notification ~ctx ~slack_match_func n) |> Lwt.return
     | PR_review n ->
-      partition_pr_review cfg n |> List.map (generate_pr_review_notification ~slack_match_func n) |> Lwt.return
-    | PR_review_comment _n ->
-      (* we want to silence review comments and keep only the "main" review message
-         TODO: make this configurable? *)
-      Lwt.return []
-      (* partition_pr_review_comment cfg n
-         |> List.map (generate_pr_review_comment_notification ~slack_match_func n)
-         |> Lwt.return *)
+      partition_pr_review cfg n |> List.map (generate_pr_review_notification ~slack_match_func ~ctx n) |> Lwt.return
+    | PR_review_comment n ->
+      partition_pr_review_comment cfg n
+      |> List.map (generate_pr_review_comment_notification ~slack_match_func ~ctx n)
+      |> Lwt.return
     | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification ~slack_match_func n) |> Lwt.return
     | Issue_comment n ->
       partition_issue_comment cfg n |> List.map (generate_issue_comment_notification ~slack_match_func n) |> Lwt.return
@@ -281,9 +291,17 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       Lwt.return notifs
 
   let send_notifications (ctx : Context.t) notifications =
-    let notify (msg : Slack_t.post_message_req) =
+    let notify (msg, handler) =
       match%lwt Slack_api.send_notification ~ctx ~msg with
-      | Ok () -> Lwt.return_unit
+      | Ok (Some res) ->
+        (match handler with
+        | None -> Lwt.return_unit
+        | Some handler ->
+        try
+          handler res;
+          Lwt.return_unit
+        with exn -> handler_error (Printexc.to_string exn))
+      | Ok None -> Lwt.return_unit
       | Error e -> action_error e
     in
     Lwt_list.iter_s notify notifications
@@ -371,6 +389,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       Lwt.return_unit
     | Action_error msg ->
       log#error "action error %s" msg;
+      Lwt.return_unit
+    | Success_handler_error msg ->
+      log#error "success handler error %s" msg;
       Lwt.return_unit
     | Context.Context_error msg ->
       log#error "context error %s" msg;

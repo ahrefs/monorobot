@@ -22,7 +22,7 @@ module type Slack = sig
     lookup_user_res slack_response Lwt.t
 
   val list_users : ?cursor:string -> ?limit:int -> ctx:Context.t -> unit -> list_users_res slack_response Lwt.t
-  val send_notification : ctx:Context.t -> msg:post_message_req -> unit slack_response Lwt.t
+  val send_notification : ctx:Context.t -> msg:post_message_req -> post_message_res option slack_response Lwt.t
 
   val send_chat_unfurl :
     ctx:Context.t ->

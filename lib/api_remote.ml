@@ -186,12 +186,14 @@ module Slack : Api.Slack = struct
       log#info "data: %s" data;
       if webhook_mode then begin
         match%lwt http_request ~body ~headers `POST url with
-        | Ok _res -> Lwt.return @@ Ok ()
+        | Ok _res ->
+          (* Webhooks reply only 200 `ok`. We can't generate anything useful for notification success handlers *)
+          Lwt.return @@ Ok None
         | Error e -> Lwt.return @@ build_error (query_error_msg url e)
       end
       else begin
         match%lwt slack_api_request ~body ~headers `POST url Slack_j.read_post_message_res with
-        | Ok _res -> Lwt.return @@ Ok ()
+        | Ok res -> Lwt.return @@ Ok (Some res)
         | Error e -> Lwt.return @@ build_error e
       end
 
