@@ -1,5 +1,6 @@
 open Printf
 open Common
+open Util
 open Mrkdwn
 open Github_j
 open Slack_j
@@ -240,15 +241,18 @@ let generate_push_notification notification channel =
 
 let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
 
-let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
-  let { commit; state; description; target_url; context; repository; _ } = notification in
+let generate_status_notification (ctx : Context.t) (cfg : Config_t.config) (notification : status_notification) channel
+    =
+  let { commit; state; description; target_url; context = pipeline; repository; _ } = notification in
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
-  let is_buildkite = String.starts_with context ~prefix:"buildkite" in
-  let color_info =
-    match state with
-    | Success -> "good"
-    | _ -> "danger"
+  let repo_state = State.find_or_add_repo ctx.state repository.url in
+  let is_buildkite = String.starts_with pipeline ~prefix:"buildkite" in
+  let color_info = if state = Success then "good" else "danger" in
+  let new_failed_steps = Build.new_failed_steps notification repo_state pipeline in
+  let old_failed_steps =
+    Build.all_failed_steps notification repo_state pipeline
+    |> List.filter (fun (s, _) -> not @@ List.mem_assoc s new_failed_steps)
   in
   let description_info =
     match description with
@@ -262,11 +266,25 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         (* Specific to buildkite *)
         match Re2.find_submatches_exn buildkite_description_re s with
         | [| Some _; Some build_nr; Some rest |] ->
-          (* We use a zero-with space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
-          sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
-        | _ -> s
+          let fail_info =
+            match old_failed_steps, new_failed_steps with
+            | [], _ ->
+              (* if we don't any have failed steps, or we only have new failed steps
+                 we just print the msg from the status notification. *)
+              ""
+            | _ :: _, [] ->
+              "\n\
+               These failing steps are from a previous commmit. Please merge the latest develop or contact the author."
+            | _ :: _, _ :: _ ->
+              "\nSome of the steps were broken in previous commit(s), but this commit also broke some step(s)."
+          in
+          (* We use a zero-width space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
+          sprintf "Build <%s|#\u{200B}%s>%s.%s" target_url build_nr rest fail_info
+        | _ | (exception _) ->
+          (* we either match on the first case or get an exception *)
+          s
       in
-      Some (sprintf "*Description*: %s." text)
+      Some (sprintf "*Description*: %s" text)
   in
   let commit_info =
     [
@@ -291,6 +309,17 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
       in
       [ sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ", " branches) ]
   in
+  let failed_steps_info =
+    let open Util.Slack in
+    let to_steps m ss =
+      match ss with
+      | [] -> []
+      | _ -> [ sprintf "*%s*: %s" m (String.concat ", " (List.map (slack_step_link notification.context) ss)) ]
+    in
+    let old_failed_steps' = to_steps "Failing steps" old_failed_steps in
+    let new_failed_steps' = to_steps "New steps broken" new_failed_steps in
+    old_failed_steps' @ new_failed_steps'
+  in
   let summary =
     let state_info =
       match state with
@@ -308,7 +337,7 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
     | Some target_url ->
       let default_summary =
         sprintf "<%s|[%s]> CI Build Status notification for <%s|%s>: %s" repository.url repository.full_name target_url
-          context state_info
+          pipeline state_info
       in
       if not is_buildkite then default_summary
       else (
@@ -321,9 +350,9 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         in
         match pipeline_url with
         | None -> default_summary
-        | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url context state_info commit_message)
+        | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url pipeline state_info commit_message)
   in
-  let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info ] in
+  let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info; failed_steps_info ] in
   let attachment =
     {
       empty_attachments with
@@ -368,5 +397,5 @@ let validate_signature ?(version = "v0") ?signing_key ~headers body =
   | None -> Error "unable to find header X-Slack-Request-Timestamp"
   | Some timestamp ->
     let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
-    let expected_signature = Printf.sprintf "%s=%s" version (Common.sign_string_sha256 ~key ~basestring) in
+    let expected_signature = Printf.sprintf "%s=%s" version (Util.sign_string_sha256 ~key ~basestring) in
     if String.equal expected_signature signature then Ok () else Error "signatures don't match"

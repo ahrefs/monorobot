@@ -1,14 +1,14 @@
 {
-  "id": 17813296,
-  "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
+  "id": 17813250,
+  "sha": "51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
   "name": "ahrefs/monorepo",
-  "target_url": "https://buildkite.com/ahrefs/monorepo/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4",
+  "target_url": "https://buildkite.com/ahrefs/monorepo/builds/181733#0192341c-4f46-4bfc-82ab-48415b146f40",
   "avatar_url": "https://github.com/avatars/oa/6?",
   "context": "buildkite/pipeline2",
-  "description": "Build #181732 failed (7 minutes, 29 seconds)",
+  "description": "Build #181732 is failing",
   "state": "failure",
   "commit": {
-    "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
+    "sha": "51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
     "node_id": "MDY6Q29tbWl0ODU6N2UwYTkzM2U5YzcxYjRjYTEwNzY4MGNhOTU4Y2ExODg4ZDVlNDc5Yg==",
     "commit": {
       "author": {
@@ -101,8 +101,8 @@
       "protected": false
     }
   ],
-  "created_at": "2024-06-02T04:57:47+00:00",
-  "updated_at": "2024-06-02T04:57:47+00:00",
+  "created_at": "2024-06-02T04:52:47+00:00",
+  "updated_at": "2024-06-02T04:52:47+00:00",
   "repository": {
     "id": 85,
     "node_id": "MDEwOlJlcG9zaXRvcnk4NQ==",

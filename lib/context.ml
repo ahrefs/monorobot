@@ -79,10 +79,11 @@ let is_pipeline_allowed ctx repo_url ~pipeline =
   | None -> true
   | Some config ->
   match config.status_rules.allowed_pipelines with
-  | Some allowed_pipelines when not @@ List.exists (String.equal pipeline) allowed_pipelines -> false
+  | Some allowed_pipelines when not @@ List.mem pipeline allowed_pipelines -> false
   | _ -> true
 
 let refresh_secrets ctx =
+  let open Util in
   let path = ctx.secrets_filepath in
   match Config_j.secrets_of_string (Std.input_file path) with
   | exception exn -> fmt_error ~exn "failed to read secrets from file %s" path
@@ -104,7 +105,7 @@ let refresh_state ctx =
       log#info "loading saved state from file %s" path;
       (* todo: extract state related parts to state.ml *)
       match State_j.state_of_string (Std.input_file path) with
-      | exception exn -> fmt_error ~exn "failed to read state from file %s" path
+      | exception exn -> Util.fmt_error ~exn "failed to read state from file %s" path
       | state -> Ok { ctx with state = { State.state } }
     end
     else Ok ctx
