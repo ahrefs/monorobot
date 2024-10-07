@@ -33,4 +33,6 @@ module type Slack = sig
     unit slack_response Lwt.t
 
   val send_auth_test : ctx:Context.t -> unit -> auth_test_res slack_response Lwt.t
+
+  val get_thread_permalink : ctx:Context.t -> State_t.slack_thread -> permalink_res slack_response Lwt.t
 end

@@ -206,4 +206,8 @@ module Slack : Api.Slack = struct
 
   let send_auth_test ~(ctx : Context.t) () =
     request_token_auth ~name:"retrieve bot information" ~ctx `POST "auth.test" Slack_j.read_auth_test_res
+
+  let get_thread_permalink ~(ctx : Context.t) (thread : State_t.slack_thread) =
+    let resource = sprintf "chat.getPermalink?channel=%s&message_ts=%s" thread.cid thread.ts in
+    request_token_auth ~name:"retrieve message permalink" ~ctx `GET resource Slack_j.read_permalink_res
 end

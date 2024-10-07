@@ -106,26 +106,27 @@ let mem_repo_pipeline_commits { state } repo_url ~pipeline ~commit =
 
 let has_pr_thread { state } ~repo_url ~pr_url =
   let repo_state = find_or_add_repo' state repo_url in
-  match StringMap.find_opt pr_url repo_state.slack_threads with
-  | None -> false
-  | Some _ -> true
+  StringMap.mem pr_url repo_state.slack_threads
 
-let get_thread_ts { state } ~repo_url ~pr_url channel =
+let get_thread { state } ~repo_url ~pr_url channel =
   let repo_state = find_or_add_repo' state repo_url in
   match StringMap.find_opt pr_url repo_state.slack_threads with
   | None -> None
   | Some threads ->
-  match List.filter (fun (thread : Slack_t.post_message_res) -> String.equal channel thread.channel) threads with
-  | [] -> None
-  | thread :: _ -> Some thread.ts
+    List.find_map
+      (fun (thread : State_t.slack_thread) ->
+        match String.equal channel thread.channel with
+        | false -> None
+        | true -> Some thread)
+      threads
 
-let update_thread { state } ~repo_url ~pr_url (msg : Slack_t.post_message_res) =
+let update_thread { state } ~repo_url ~pr_url (msg : State_t.slack_thread) =
   let repo_state = find_or_add_repo' state repo_url in
   let set_threads threads =
     match threads with
     | None -> Some [ msg ]
     | Some threads ->
-    match List.exists (fun (thread : Slack_t.post_message_res) -> String.equal msg.ts thread.ts) threads with
+    match List.exists (fun (thread : State_t.slack_thread) -> String.equal msg.channel thread.channel) threads with
     | true -> Some threads
     | false -> Some (msg :: threads)
   in

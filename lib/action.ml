@@ -273,14 +273,26 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Pull_request n ->
       partition_pr cfg ctx n |> List.map (generate_pull_request_notification ~ctx ~slack_match_func n) |> Lwt.return
     | PR_review n ->
-      partition_pr_review cfg n |> List.map (generate_pr_review_notification ~slack_match_func ~ctx n) |> Lwt.return
+      let%lwt notifications =
+        partition_pr_review cfg n
+        |> Lwt_list.map_p
+             (generate_pr_review_notification ~ctx ~slack_match_func
+                ~get_thread_permalink:Slack_api.get_thread_permalink n)
+      in
+      Lwt.return @@ List.flatten notifications
     | PR_review_comment n ->
       partition_pr_review_comment cfg n
-      |> List.map (generate_pr_review_comment_notification ~slack_match_func ~ctx n)
+      |> List.map (generate_pr_review_comment_notification ~ctx ~slack_match_func n)
       |> Lwt.return
     | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification ~slack_match_func n) |> Lwt.return
     | Issue_comment n ->
-      partition_issue_comment cfg n |> List.map (generate_issue_comment_notification ~slack_match_func n) |> Lwt.return
+      let%lwt notifications =
+        partition_issue_comment cfg n
+        |> Lwt_list.map_p
+             (generate_issue_comment_notification ~ctx ~slack_match_func
+                ~get_thread_permalink:Slack_api.get_thread_permalink n)
+      in
+      Lwt.return @@ List.flatten notifications
     | Commit_comment n ->
       let%lwt channels, api_commit = partition_commit_comment ctx n in
       let notifs = List.map (generate_commit_comment_notification ~slack_match_func api_commit n) channels in

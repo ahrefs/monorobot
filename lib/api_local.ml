@@ -56,6 +56,9 @@ module Slack_base : Api.Slack = struct
   let send_notification ~ctx:_ ~msg:_ = Lwt.return @@ Error "undefined for local setup"
   let send_chat_unfurl ~ctx:_ ~channel:_ ~ts:_ ~unfurls:_ () = Lwt.return @@ Error "undefined for local setup"
   let send_auth_test ~ctx:_ () = Lwt.return @@ Error "undefined for local setup"
+
+  let get_thread_permalink ~ctx:_ (_thread : State_t.slack_thread) =
+    Lwt.return @@ Ok ({ ok = true; permalink = ""; channel = ""; error = None } : Slack_t.permalink_res)
 end
 
 (** Module for mocking test requests to slack--will output on Stdio *)
@@ -88,6 +91,9 @@ module Slack : Api.Slack = struct
   let send_auth_test ~ctx:_ () =
     Lwt.return
     @@ Ok ({ url = ""; team = ""; user = ""; team_id = ""; user_id = "test_slack_user" } : Slack_t.auth_test_res)
+
+  let get_thread_permalink ~ctx:_ (_thread : State_t.slack_thread) =
+    Lwt.return @@ Ok ({ ok = true; permalink = ""; channel = ""; error = None } : Slack_t.permalink_res)
 end
 
 (** Simple messages (only the actual text messages that users see) output to log for checking payload commands *)
@@ -114,6 +120,9 @@ module Slack_simple : Api.Slack = struct
   let send_auth_test ~ctx:_ () =
     Lwt.return
     @@ Ok ({ url = ""; team = ""; user = ""; team_id = ""; user_id = "test_slack_user" } : Slack_t.auth_test_res)
+
+  let get_thread_permalink ~ctx:_ (_thread : State_t.slack_thread) =
+    Lwt.return @@ Ok ({ ok = true; permalink = ""; channel = ""; error = None } : Slack_t.permalink_res)
 end
 
 (** Messages payload in json output to log for checking payload commands *)
@@ -142,4 +151,7 @@ module Slack_json : Api.Slack = struct
   let send_auth_test ~ctx:_ () =
     Lwt.return
     @@ Ok ({ url = ""; team = ""; user = ""; team_id = ""; user_id = "test_slack_user" } : Slack_t.auth_test_res)
+
+  let get_thread_permalink ~ctx:_ (_thread : State_t.slack_thread) =
+    Lwt.return @@ Ok ({ ok = true; permalink = ""; channel = ""; error = None } : Slack_t.permalink_res)
 end

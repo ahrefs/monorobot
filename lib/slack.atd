@@ -146,6 +146,13 @@ type auth_test_res = {
   user_id: string;
 }
 
+type permalink_res = {
+  ok: bool;
+  permalink: string;
+  channel: string;
+  ?error: string nullable;
+}
+
 type ('ok, 'err) http_response <ocaml predef module="Result" t="t"> = [
   | Ok of 'ok
   | Error of 'err
