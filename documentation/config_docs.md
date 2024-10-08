@@ -18,6 +18,10 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
     "ignored_users": [
         "ignored_user"
     ],
+    "user_mappings": {
+        "git.user@gitemail.com": "user1@slackemail.com",
+        "gh-handle": "user2@slackemail.com"
+    },
     "prefix_rules": {
         ...
     },
@@ -41,6 +45,11 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 | `status_rules` | status rules config object | all status notifications are ignored |
 | `project_owners` | project owners config object | no project owners are defined |
 | `ignored_users` | list of users to be ignored on all notifications | no user is ignored |
+| `user_mappings` | list of mappings from git email and/or GitHub handle to Slack email | no mapping defined
+
+Note that in `user_mappings`, git email to Slack email mappings are used for status DMs, while GitHub handle to Slack email mappings are used to get Slack mentions in comment notifications.
+
+The reason for these two separate Slack email matching schemes is that in the case of commits, the git email is available in the GitHub payload and can be used to directly match with Slack emails for status DMs (`user_mappings` can be used to manually override if there is a known mismatch between git email and Slack email). However, for actions done on GitHub itself (e.g. opening PRs, commenting, etc.), usually the only thing available is the GitHub username. To get the email in these cases, a user will have to go to settings and set their email to public, which is (1) hard to enforce if there are many working on the monorepo, and (2) might be undesirable for privacy reasons.
 
 ## Label Options
 
