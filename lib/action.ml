@@ -58,7 +58,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     n.commits
     |> List.filter (fun c ->
            let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
-           if skip then log#info "main branch merge, ignoring %s: %s" c.id (Util.first_line c.message);
+           if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
            not skip)
     |> List.concat_map (fun commit ->
            let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
@@ -128,16 +128,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     in
     if matched_channel_names = [] then default else matched_channel_names
 
-  let buildkite_is_failed_re = Re2.create_exn {|^Build #\d+ failed|}
-
   let partition_status (ctx : Context.t) (n : status_notification) =
     let repo = n.repository in
     let cfg = Context.find_repo_config_exn ctx repo.url in
     let pipeline = n.context in
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
-    let repo_state = State.find_or_add_repo ctx.state n.repository.url in
-
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
       let%lwt direct_message =
         if notify_dm then begin
@@ -163,10 +159,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         match cfg.main_branch_name with
         | None -> Lwt.return default
         | Some main_branch_name ->
+        (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
         match List.exists (fun ({ name } : branch) -> String.equal name main_branch_name) branches with
-        | false ->
-          (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
-          Lwt.return default
+        | false -> Lwt.return default
         | true ->
           let sha = n.commit.sha in
           (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha with
@@ -175,36 +170,29 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       in
       Lwt.return (direct_message @ chans)
     in
-
     let%lwt recipients =
       if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
+        let repo_state = State.find_or_add_repo ctx.state repo.url in
         match Rule.Status.match_rules ~rules n with
         | Some (Ignore, _, _) | None -> Lwt.return []
         | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
         | Some (Allow_once, notify_channels, notify_dm) ->
-          let full_build_failed =
-            n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description)
+          let branches =
+            match StringMap.find_opt pipeline repo_state.pipeline_statuses with
+            | Some branch_statuses ->
+              let has_same_status_as_prev (branch : branch) =
+                match StringMap.find_opt branch.name branch_statuses with
+                | Some { status; _ } when status = current_status -> true
+                | _ -> false
+              in
+              let branches = List.filter (Fun.negate has_same_status_as_prev) n.branches in
+              branches
+            | None -> n.branches
           in
-          (* for failing states, if we only allow one notification, it must be the final one, not an intermediate one *)
-          (match n.state <> Failure || full_build_failed with
-          | false -> Lwt.return []
-          | true ->
-            let branches =
-              match StringMap.find_opt pipeline repo_state.pipeline_statuses with
-              | Some branch_statuses ->
-                let has_same_status_as_prev (branch : branch) =
-                  match StringMap.find_opt branch.name branch_statuses with
-                  | Some { status; _ } when status = current_status -> true
-                  | _ -> false
-                in
-                let branches = List.filter (Fun.negate has_same_status_as_prev) n.branches in
-                branches
-              | None -> n.branches
-            in
-            let notify_dm =
-              notify_dm && not (State.mem_repo_pipeline_commits ctx.state repo.url ~pipeline ~commit:n.sha)
-            in
-            action_on_match branches ~notify_channels ~notify_dm)
+          let notify_dm =
+            notify_dm && not (State.mem_repo_pipeline_commits ctx.state repo.url ~pipeline ~commit:n.sha)
+          in
+          action_on_match branches ~notify_channels ~notify_dm
       end
       else Lwt.return []
     in
@@ -277,7 +265,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       Lwt.return notifs
     | Status n ->
       let%lwt channels = partition_status ctx n in
-      let notifs = List.map (generate_status_notification ctx cfg n) channels in
+      let notifs = List.map (generate_status_notification cfg n) channels in
       Lwt.return notifs
 
   let send_notifications (ctx : Context.t) notifications =

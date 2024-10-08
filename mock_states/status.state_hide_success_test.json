@@ -6,7 +6,6 @@
         "original_failed_commit": {
           "sha": "0d95302addd66c1816bce1b1d495ed1c93ccd478",
           "author": "mail@example.org",
-          "url": "https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478",
           "commit_message": "Update README.md",
           "build_link": [
             "Some",

@@ -7,7 +7,6 @@ type ci_commit = {
   sha: string;
   author: string;
   commit_message: string;
-  url: string;
   build_link: string option;
   last_updated: string;
 }

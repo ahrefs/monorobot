@@ -1,79 +1,112 @@
 {
-  "main_branch_name": "develop",
-  "status_rules": {
-    "allowed_pipelines": ["default", "buildkite/pipeline2"],
-    "rules": [
-      {
-        "on": ["failure"],
-        "when": {
-          "match": {
-            "field": "description",
-            "re": "^(Build #[0-9]+ canceled by .+|Failed \\(exit status 255\\))$"
-          }
-        },
-        "policy": "ignore"
-      },
-      {
-        "on": ["failure", "error"],
-        "policy": "allow",
-        "notify_dm": true
-      }
-    ]
-  },
-  "ignored_users": ["ignored_user"],
-  "prefix_rules": {
-    "default_channel": "default",
-    "filter_main_branch": true,
-    "rules": [
-      {
-        "match": ["backend/a1"],
-        "channel": "a1"
-      },
-      {
-        "match": ["backend/a1/longest"],
-        "channel": "longest-a1"
-      },
-      {
-        "match": ["backend/a5", "backend/a4"],
-        "channel": "backend"
-      },
-      {
-        "match": ["backend/branch-filter1"],
-        "channel": "backend1",
-        "branch_filters": "any"
-      },
-      {
-        "match": ["backend/branch-filter2"],
-        "channel": "backend2",
-        "branch_filters": ["master"]
-      },
-      {
-        "channel": "all-push-events"
-      }
-    ]
-  },
-  "label_rules": {
-    "default_channel": "default",
-    "rules": [
-      {
-        "match": ["backend"],
-        "channel": "backend"
-      },
-      {
-        "match": ["a1"],
-        "channel": "a1-bot"
-      },
-      {
-        "match": ["a3"],
-        "channel": "a3"
-      },
-      {
-        "ignore": ["backend", "a1", "a3"],
-        "channel": "frontend-bot"
-      }
-    ]
-  },
-  "user_mappings": {
-    "mail@example.org": "slack_mail@example.com"
-  }
+    "main_branch_name": "develop",
+    "status_rules": {
+        "allowed_pipelines": [
+            "default",
+            "buildkite/pipeline2"
+        ],
+        "rules": [
+            {
+                "on": [
+                    "failure"
+                ],
+                "when": {
+                    "match": {
+                        "field": "description",
+                        "re": "^(Build #[0-9]+ canceled by .+|Failed \\(exit status 255\\))$"
+                    }
+                },
+                "policy": "ignore"
+            },
+            {
+                "on": [
+                    "failure",
+                    "error"
+                ],
+                "policy": "allow_once",
+                "notify_dm": true
+            }
+        ]
+    },
+    "ignored_users": [
+        "ignored_user"
+    ],
+    "prefix_rules": {
+        "default_channel": "default",
+        "filter_main_branch": true,
+        "rules": [
+            {
+                "match": [
+                    "backend/a1"
+                ],
+                "channel": "a1"
+            },
+            {
+                "match": [
+                    "backend/a1/longest"
+                ],
+                "channel": "longest-a1"
+            },
+            {
+                "match": [
+                    "backend/a5",
+                    "backend/a4"
+                ],
+                "channel": "backend"
+            },
+            {
+                "match": [
+                    "backend/branch-filter1"
+                ],
+                "channel": "backend1",
+                "branch_filters": "any"
+            },
+            {
+                "match": [
+                    "backend/branch-filter2"
+                ],
+                "channel": "backend2",
+                "branch_filters": [
+                    "master"
+                ]
+            },
+            {
+                "channel": "all-push-events"
+            }
+        ]
+    },
+    "label_rules": {
+        "default_channel": "default",
+        "rules": [
+            {
+                "match": [
+                    "backend"
+                ],
+                "channel": "backend"
+            },
+            {
+                "match": [
+                    "a1"
+                ],
+                "channel": "a1-bot"
+            },
+            {
+                "match": [
+                    "a3"
+                ],
+                "channel": "a3"
+            },
+            {
+                "ignore": [
+                    "backend",
+                    "a1",
+                    "a3"
+                ],
+                "channel": "frontend-bot"
+            }
+        ]
+    },
+    "user_mappings": {
+        "mail@example.org": "slack_mail@example.com"
+    }
 }
