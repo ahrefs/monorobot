@@ -259,7 +259,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Github.Push n ->
       partition_push cfg n |> List.map (fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
     | Pull_request n ->
-      partition_pr cfg ctx n |> List.map (generate_pull_request_notification ~ctx ~slack_match_func n) |> Lwt.return
+      let%lwt notifications =
+        partition_pr cfg ctx n
+        |> Lwt_list.map_p
+             (generate_pull_request_notification ~ctx ~slack_match_func
+                ~get_thread_permalink:Slack_api.get_thread_permalink n)
+      in
+      Lwt.return @@ List.flatten notifications
     | PR_review n ->
       let%lwt notifications =
         partition_pr_review cfg n
