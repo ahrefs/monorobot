@@ -1,7 +1,6 @@
 open Printf
 open Devkit
 open Common
-open Util
 
 module Github : Api.Github = struct
   let commits_url ~(repo : Github_t.repository) ~sha =

@@ -34,7 +34,6 @@ let set_repo_pipeline_status { state } repo_url ~pipeline (notification : Github
             State_t.sha = notification.sha;
             author = notification.commit.commit.author.email;
             commit_message = notification.commit.commit.message;
-            url = notification.commit.html_url;
             last_updated = notification.updated_at;
             build_link = notification.target_url;
           }
@@ -144,4 +143,4 @@ let save { state; _ } path =
   try
     Files.save_as path (fun oc -> output_string oc data);
     Ok ()
-  with exn -> Util.fmt_error ~exn "failed to save state to file %s" path
+  with exn -> fmt_error ~exn "failed to save state to file %s" path
