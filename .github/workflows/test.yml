@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-22.04
         ocaml-compiler:
           - 4.14
 
@@ -20,8 +20,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - run: sudo apt-get update
-
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v3
         with:
@@ -29,9 +27,6 @@ jobs:
           dune-cache: true
           allow-prerelease-opam: true
 
-        # apt update is implicit
-        # pinning package implicit
-        # depext install implicit
       - run: opam install . ocamlformat.0.26.2
 
       - name: compile
