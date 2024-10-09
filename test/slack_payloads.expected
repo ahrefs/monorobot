@@ -230,7 +230,7 @@ will notify #backend
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "Labels: backend"
+      "text": "*Labels*: _backend_"
     }
   ],
   "unfurl_links": false
@@ -286,17 +286,19 @@ will notify #default
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> merged by *xinyuluo*",
   "unfurl_links": false
 }
-===== file ../mock_payloads/pull_request.labeled_two_labels.json =====
+===== file ../mock_payloads/pull_request.labeled_two_labels_no_thread.json =====
+===== file ../mock_payloads/pull_request.labeled_two_labels_with_thread.json =====
 will notify #a1-bot
 {
   "channel": "a1-bot",
+  "thread_ts": "1728399554.482879",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "Labels: a1, backend"
+      "text": "*Labels*: _a1_, _backend_"
     }
   ],
   "unfurl_links": false
@@ -304,13 +306,14 @@ will notify #a1-bot
 will notify #backend
 {
   "channel": "backend",
+  "thread_ts": "1728399554.444444",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "Labels: a1, backend"
+      "text": "*Labels*: _a1_, _backend_"
     }
   ],
   "unfurl_links": false
@@ -325,7 +328,7 @@ will notify #frontend-bot
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": ""
+      "text": "*Labels*: _enhancement_"
     }
   ],
   "unfurl_links": false
@@ -356,6 +359,21 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
+      "text": "*Comment*: approve review"
+    }
+  ],
+  "unfurl_links": false
+}
+will notify #default
+{
+  "channel": "default",
+  "thread_ts": "1728399554.482879",
+  "text": "<https://github.com/Khady/monorepo|[Khady/monorepo]> *Khady* <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
       "text": "approve review"
     }
   ],
@@ -365,7 +383,22 @@ will notify #default
 will notify #frontend-bot
 {
   "channel": "frontend-bot",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|reviewed> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "*Comment*: submit a PR review"
+    }
+  ],
+  "unfurl_links": false
+}
+will notify #frontend-bot
+{
+  "channel": "frontend-bot",
+  "thread_ts": "1728399554.482879",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|reviewed> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>",
   "attachments": [
     {
       "fallback": null,
@@ -388,6 +421,21 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
+      "text": "*Comment*: request changes review"
+    }
+  ],
+  "unfurl_links": false
+}
+will notify #default
+{
+  "channel": "default",
+  "thread_ts": "1728399554.482879",
+  "text": "<https://github.com/Khady/monorepo|[Khady/monorepo]> *Khady* <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
       "text": "request changes review"
     }
   ],
@@ -397,7 +445,22 @@ will notify #default
 will notify #frontend-bot
 {
   "channel": "frontend-bot",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|commented on> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|reviewed> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "*Comment*: This is a great PR, thank you!"
+    }
+  ],
+  "unfurl_links": false
+}
+will notify #frontend-bot
+{
+  "channel": "frontend-bot",
+  "thread_ts": "1728399554.482879",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|reviewed> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>",
   "attachments": [
     {
       "fallback": null,
@@ -411,6 +474,38 @@ will notify #frontend-bot
 ===== file ../mock_payloads/pull_request_review.submitted_no_comment.json =====
 ===== file ../mock_payloads/pull_request_review.submitted_null_body.json =====
 ===== file ../mock_payloads/pull_request_review_comment.created.json =====
+will notify #a1-bot
+{
+  "channel": "a1-bot",
+  "thread_ts": "1728399554.482879",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "PR review comment example",
+      "footer": "Commented in file <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
+    }
+  ],
+  "unfurl_links": false
+}
+will notify #backend
+{
+  "channel": "backend",
+  "thread_ts": "1728399554.444444",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "PR review comment example",
+      "footer": "Commented in file <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
+    }
+  ],
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/pull_request_review_comment.deleted.json =====
 ===== file ../mock_payloads/pull_request_review_comment.edited.json =====
 ===== file ../mock_payloads/push.branch_filter_default.json =====
