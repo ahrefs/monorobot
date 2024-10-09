@@ -479,18 +479,13 @@ will notify #longest-a1
 will notify #id[author@ahrefs.com]
 {
   "channel": "id[author@ahrefs.com]",
-  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/pipeline2]>: Build failed for \"c1 message\"",
+  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> is failing for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Description*: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> is failing.",
-      "fields": [
-        {
-          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
-        }
-      ]
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
     }
   ],
   "unfurl_links": false
@@ -498,18 +493,13 @@ will notify #id[author@ahrefs.com]
 will notify #default
 {
   "channel": "default",
-  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/pipeline2]>: Build failed for \"c1 message\"",
+  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> is failing for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Description*: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> is failing.",
-      "fields": [
-        {
-          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
-        }
-      ]
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
     }
   ],
   "unfurl_links": false
@@ -518,18 +508,13 @@ will notify #default
 will notify #default
 {
   "channel": "default",
-  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/pipeline2]>: Build failed for \"c1 message\"",
+  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Description*: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> failed (7 minutes, 29 seconds).",
-      "fields": [
-        {
-          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
-        }
-      ]
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
     }
   ],
   "unfurl_links": false
@@ -538,18 +523,13 @@ will notify #default
 will notify #id[slack_mail@example.com]
 {
   "channel": "id[slack_mail@example.com]",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build failed for \"Update README.md\"",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> failed (20 seconds) for \"Update README.md\"",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Description*: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> failed (20 seconds).",
-      "fields": [
-        {
-          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: master"
-        }
-      ]
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: master"
     }
   ],
   "unfurl_links": false
@@ -557,18 +537,13 @@ will notify #id[slack_mail@example.com]
 will notify #default
 {
   "channel": "default",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build failed for \"Update README.md\"",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> failed (20 seconds) for \"Update README.md\"",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Description*: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> failed (20 seconds).",
-      "fields": [
-        {
-          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: master"
-        }
-      ]
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: master"
     }
   ],
   "unfurl_links": false
@@ -588,11 +563,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "good",
-      "fields": [
-        {
-          "value": "*Commit*: `<https://github.com/Codertocat/Hello-World/commit/6113728f27ae82c7b1a177c8d03f9e96e0adf246|6113728f>` Initial commit - Codertocat\n*Branches*: master, changes, gh-pages"
-        }
-      ]
+      "text": "*Commit*: `<https://github.com/Codertocat/Hello-World/commit/6113728f27ae82c7b1a177c8d03f9e96e0adf246|6113728f>` Initial commit - Codertocat\n*Branches*: master, changes, gh-pages"
     }
   ],
   "unfurl_links": false
@@ -601,18 +572,13 @@ will notify #default
 will notify #all-push-events
 {
   "channel": "all-push-events",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build succeeded for \"Update README.md\"",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> passed (5 minutes, 19 seconds) for \"Update README.md\"",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "good",
-      "text": "*Description*: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> passed (5 minutes, 19 seconds).",
-      "fields": [
-        {
-          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: develop"
-        }
-      ]
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: develop"
     }
   ],
   "unfurl_links": false
@@ -621,18 +587,13 @@ will notify #all-push-events
 will notify #default
 {
   "channel": "default",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build succeeded for \"Update README.md\"",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> passed (5 minutes, 19 seconds) for \"Update README.md\"",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "good",
-      "text": "*Description*: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> passed (5 minutes, 19 seconds).",
-      "fields": [
-        {
-          "value": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: master"
-        }
-      ]
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: master"
     }
   ],
   "unfurl_links": false

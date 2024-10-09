@@ -245,37 +245,37 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
   let is_buildkite = String.starts_with context ~prefix:"buildkite" in
-  let color_info =
-    match state with
-    | Success -> "good"
-    | _ -> "danger"
-  in
-  let description_info =
+  let color_info = if state = Success then "good" else "danger" in
+  let build_desc =
     match description with
-    | None -> None
+    | None -> ""
     | Some s ->
-      let text =
-        match target_url with
-        | None -> s
-        | Some _ when not is_buildkite -> s
-        | Some target_url ->
-        (* Specific to buildkite *)
-        match Re2.find_submatches_exn buildkite_description_re s with
-        | [| Some _; Some build_nr; Some rest |] ->
-          (* We use a zero-with space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
-          sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
-        | _ -> s
-      in
-      Some (sprintf "*Description*: %s." text)
+    match target_url with
+    | None -> s
+    | Some _ when not is_buildkite -> s
+    | Some target_url ->
+    (* Specific to buildkite *)
+    match Re2.find_submatches_exn buildkite_description_re s with
+    | [| Some _; Some build_nr; Some rest |] ->
+      (* We use a zero-with space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
+      sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
+    | _ | (exception _) ->
+      (* we either match on the first case or get an exception *)
+      s
   in
   let commit_info =
     [
-      sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message)
-        ((* If the author's email is not associated with a github account the author will be missing.
-             Using the information from the commit instead, which should be equivalent. *)
-         Option.map_default
-           (fun { login; _ } -> login)
-           commit.author.name author);
+      (* if we have a DM notification, we don't need to repeat the commit message and author because
+         the user receiving the message is already the author of that commit. Users handles start with U *)
+      (match Devkit.Stre.starts_with channel "U" with
+      | true -> sprintf "*Commit*: `<%s|%s>`" html_url (git_short_sha_hash sha)
+      | false ->
+        sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message)
+          ((* If the author's email is not associated with a github account the author will be missing.
+               Using the information from the commit instead, which should be equivalent. *)
+           Option.map_default
+             (fun { login; _ } -> login)
+             commit.author.name author));
     ]
   in
   let branches_info =
@@ -321,17 +321,11 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         in
         match pipeline_url with
         | None -> default_summary
-        | Some pipeline_url -> sprintf "<%s|[%s]>: Build %s for \"%s\"" pipeline_url context state_info commit_message)
+        | Some pipeline_url -> sprintf "<%s|[%s]>: %s for \"%s\"" pipeline_url context build_desc commit_message)
   in
   let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info ] in
   let attachment =
-    {
-      empty_attachments with
-      mrkdwn_in = Some [ "fields"; "text" ];
-      color = Some color_info;
-      text = description_info;
-      fields = Some [ { title = None; value = msg; short = false } ];
-    }
+    { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text = Some msg }
   in
   make_message ~text:summary ~attachments:[ attachment ] ~channel ()
 
