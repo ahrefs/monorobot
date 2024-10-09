@@ -119,7 +119,7 @@ let get_thread { state } ~repo_url ~pr_url channel =
         | true -> Some thread)
       threads
 
-let update_thread { state } ~repo_url ~pr_url (msg : State_t.slack_thread) =
+let add_thread_if_new { state } ~repo_url ~pr_url (msg : State_t.slack_thread) =
   let repo_state = find_or_add_repo' state repo_url in
   let set_threads threads =
     match threads with

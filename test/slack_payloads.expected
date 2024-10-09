@@ -359,7 +359,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "*Comment*: approve review"
+      "text": "*Comment*: approve review\n*Slack thread*: <https://monorobot.slack.com/archives/Cdefault/p1728399554482879?thread_ts=1728399554.482879&cid=Cdefault|comments and reviews>"
     }
   ],
   "unfurl_links": false
@@ -389,7 +389,7 @@ will notify #frontend-bot
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "*Comment*: submit a PR review"
+      "text": "*Comment*: submit a PR review\n*Slack thread*: <https://monorobot.slack.com/archives/Cfebot/p1728399554482879?thread_ts=1728399554.482879&cid=Cfebot|comments and reviews>"
     }
   ],
   "unfurl_links": false
@@ -421,7 +421,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "*Comment*: request changes review"
+      "text": "*Comment*: request changes review\n*Slack thread*: <https://monorobot.slack.com/archives/Cdefault/p1728399554482879?thread_ts=1728399554.482879&cid=Cdefault|comments and reviews>"
     }
   ],
   "unfurl_links": false
@@ -451,7 +451,7 @@ will notify #frontend-bot
       "fallback": null,
       "mrkdwn_in": [ "text" ],
       "color": "#ccc",
-      "text": "*Comment*: This is a great PR, thank you!"
+      "text": "*Comment*: This is a great PR, thank you!\n*Slack thread*: <https://monorobot.slack.com/archives/Cfebot/p1728399554482879?thread_ts=1728399554.482879&cid=Cfebot|comments and reviews>"
     }
   ],
   "unfurl_links": false

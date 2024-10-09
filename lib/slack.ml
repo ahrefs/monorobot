@@ -4,8 +4,6 @@ open Mrkdwn
 open Github_j
 open Slack_j
 
-let log = Devkit.Log.from "slack"
-
 let empty_attachments =
   {
     mrkdwn_in = None;
@@ -119,7 +117,7 @@ let generate_pull_request_notification ~slack_match_func ~(ctx : Context.t) ~get
   let handler (res : Slack_t.post_message_res) =
     match notification.action with
     | Opened | Ready_for_review | Labeled ->
-      State.update_thread ctx.state ~repo_url:repository.url ~pr_url:html_url
+      State.add_thread_if_new ctx.state ~repo_url:repository.url ~pr_url:html_url
         { cid = res.channel; channel; ts = res.ts }
     | Closed -> State.delete_thread ctx.state ~repo_url:repository.url ~pr_url:html_url
     | _ -> ()
@@ -153,21 +151,19 @@ let generate_pr_review_notification ~slack_match_func ~(ctx : Context.t) ~get_th
     sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
       number (pp_link ~url:html_url title)
   in
-  (* if the message is already in a thread, post to that thread *)
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
+
   let%lwt pr_summary =
     let summary =
       sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url
         action_str number (pp_link ~url:html_url title)
     in
-
     let%lwt thread_mention = make_thread_mention ~ctx thread get_thread_permalink in
-
     let body = Some (sprintf "**Comment**: %s\n%s" (Option.default "" review.body) thread_mention) in
-
     Lwt.return
     @@ make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
   in
+
   let msg =
     make_message ~text:summary ?thread
       ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:review.body)
@@ -200,7 +196,6 @@ let generate_pr_review_comment_notification ~slack_match_func ~(ctx : Context.t)
     | None -> None
     | Some a -> Some (sprintf "Commented in file <%s|%s>" comment.html_url a)
   in
-  (* if the message is already in a thread, post to that thread *)
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
   make_message ~text:summary ?thread
     ?attachments:(format_attachments ~slack_match_func ~footer:file ~body:(Some comment.body))
@@ -244,7 +239,6 @@ let generate_issue_comment_notification ~(ctx : Context.t) ~slack_match_func ~ge
     sprintf "<%s|[%s]> *%s* <%s|%s> on #%d %s" repository.url repository.full_name sender.login comment.html_url
       action_str number (pp_link ~url:issue.html_url title)
   in
-  (* if the message is already in a thread, post to that thread *)
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
   let%lwt comment_summary =
     let summary =
