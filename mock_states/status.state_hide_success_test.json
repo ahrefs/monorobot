@@ -21,5 +21,6 @@
       }
     }
   },
-  "pipeline_commits": {}
+  "pipeline_commits": {},
+  "slack_threads": {}
 }
