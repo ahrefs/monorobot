@@ -485,7 +485,7 @@ will notify #id[author@ahrefs.com]
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` c1 message - author\n*Branch*: author/patches/js-storage"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>`\n*Branch*: author/patches/js-storage"
     }
   ],
   "unfurl_links": false
@@ -529,7 +529,7 @@ will notify #id[slack_mail@example.com]
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Update README.md - Khady\n*Branch*: master"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>`\n*Branch*: master"
     }
   ],
   "unfurl_links": false

@@ -2,6 +2,7 @@ type status_rule <ocaml from="Rule"> = abstract
 type prefix_rule <ocaml from="Rule"> = abstract
 type label_rule <ocaml from="Rule"> = abstract
 type project_owners_rule <ocaml from="Rule"> = abstract
+type channel = string wrap <ocaml t="Slack_channel.t" wrap="Slack_channel.to_channel" unwrap="Slack_channel.string_val">
 
 (* This type of rule is used for CI build notifications. *)
 type status_rules = {
@@ -12,14 +13,14 @@ type status_rules = {
 (* This type of rule is used for events that must be routed based on the
   files they are related to. *)
 type prefix_rules = {
-  ?default_channel: string nullable; (* if none of the rules is matching *)
+  ?default_channel: channel nullable; (* if none of the rules is matching *)
   ~filter_main_branch <ocaml default="false">: bool;
   rules: prefix_rule list;
 }
 
 (* This type of rule is used for PR and issue notifications. *)
 type label_rules = {
-  ?default_channel: string nullable; (* if none of the rules is matching *)
+  ?default_channel: channel nullable; (* if none of the rules is matching *)
   rules: label_rule list;
 }
 

@@ -64,6 +64,7 @@ let format_attachments ~slack_match_func ~footer ~body =
   Option.map (fun t -> markdown_text_attachment ~footer t |> List.map format_mention_in_markdown) body
 
 let generate_pull_request_notification ~slack_match_func notification channel =
+  let channel = Slack_channel.string_val channel in
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
   let action, body =
@@ -84,6 +85,7 @@ let generate_pull_request_notification ~slack_match_func notification channel =
   make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
 
 let generate_pr_review_notification ~slack_match_func notification channel =
+  let channel = Slack_channel.string_val channel in
   let { action; sender; pull_request; review; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -132,6 +134,7 @@ let generate_pr_review_comment_notification ~slack_match_func notification chann
     ~channel ()
 
 let generate_issue_notification ~slack_match_func notification channel =
+  let channel = Slack_channel.string_val channel in
   let ({ action; sender; issue; repository } : issue_notification) = notification in
   let { number; body; title; html_url; labels; _ } = issue in
   let action, body =
@@ -153,6 +156,7 @@ let generate_issue_notification ~slack_match_func notification channel =
   make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
 
 let generate_issue_comment_notification ~slack_match_func notification channel =
+  let channel = Slack_channel.string_val channel in
   let { action; issue; sender; comment; repository } = notification in
   let { number; title; _ } = issue in
   let action_str =
@@ -202,6 +206,7 @@ let pp_list_with_previews ~pp_item list =
   else List.map pp_item list
 
 let generate_push_notification notification channel =
+  let channel = Slack_channel.string_val channel in
   let { sender; pusher; created; deleted; forced; compare; commits; repository; _ } = notification in
   let show_descriptive_title_min_commits = 4 in
   let branch_name = Github.commits_branch_of_ref notification.ref in
@@ -267,9 +272,9 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
     [
       (* if we have a DM notification, we don't need to repeat the commit message and author because
          the user receiving the message is already the author of that commit. Users handles start with U *)
-      (match Devkit.Stre.starts_with channel "U" with
-      | true -> sprintf "*Commit*: `<%s|%s>`" html_url (git_short_sha_hash sha)
-      | false ->
+      (match channel with
+      | Slack_channel.User _ -> sprintf "*Commit*: `<%s|%s>`" html_url (git_short_sha_hash sha)
+      | Channel _ ->
         sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message)
           ((* If the author's email is not associated with a github account the author will be missing.
                Using the information from the commit instead, which should be equivalent. *)
@@ -327,9 +332,10 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   let attachment =
     { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text = Some msg }
   in
-  make_message ~text:summary ~attachments:[ attachment ] ~channel ()
+  make_message ~text:summary ~attachments:[ attachment ] ~channel:(Slack_channel.string_val channel) ()
 
 let generate_commit_comment_notification ~slack_match_func api_commit notification channel =
+  let channel = Slack_channel.string_val channel in
   let { commit; _ } = api_commit in
   let { sender; comment; repository; _ } = notification in
   let commit_id =

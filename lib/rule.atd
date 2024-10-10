@@ -1,4 +1,5 @@
 type regex = string wrap <ocaml module="Common.Re2">
+type channel = string wrap <ocaml t="Slack_channel.t" wrap="Slack_channel.to_channel" unwrap="Slack_channel.string_val">
 
 (* Text fields from the GitHub payload that can be used in a condition *)
 type comparable_field = [
@@ -71,7 +72,7 @@ type prefix_rule = {
   ?allow <json name="match"> : string list nullable;
   ?ignore : string list nullable;
   ?branch_filters : string list nullable;
-  channel_name <json name="channel"> : string;
+  channel_name <json name="channel"> : channel;
 } <json adapter.ocaml="Atd_adapters.Branch_filters_adapter">
 
 (* A payload matches a label rule with a channel name if absent from the ignore list
@@ -80,7 +81,7 @@ type prefix_rule = {
 type label_rule = {
   ?allow <json name="match"> : string list nullable;
   ?ignore : string list nullable;
-  channel_name <json name="channel"> : string;
+  channel_name <json name="channel"> : channel;
 }
 
 (* Requests reviews from [owners] if a PR is labeled with [label]. Owner format:

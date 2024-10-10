@@ -1,4 +1,5 @@
 type 'v map_as_object <ocaml from="Common"> = abstract
+type slack_user_id = string wrap <ocaml t="Slack_channel.t" wrap="Slack_channel.to_user" unwrap="Slack_channel.string_val">
 
 type message_field = {
   ?title: string nullable;
@@ -79,7 +80,7 @@ type profile = {
 }
 
 type user = {
-  id: string;
+  id: slack_user_id;
   profile: profile
 }
 

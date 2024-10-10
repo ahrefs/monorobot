@@ -31,7 +31,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | None -> ()
           | Some email ->
             let username = canonicalize_email_username email in
-            Stringtbl.replace username_to_slack_id_tbl username user.id)
+            Stringtbl.replace username_to_slack_id_tbl username (Slack_channel.string_val user.id))
         res.members;
       Lwt.return_unit
 
@@ -65,21 +65,22 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
            let matched_channel_names =
              Github.modified_files_of_commit commit
              |> List.filter_map (Rule.Prefix.match_rules ~rules)
-             |> List.sort_uniq String.compare
+             |> List.sort_uniq Slack_channel.compare
            in
            let channel_names =
              if matched_channel_names = [] && commit.distinct then default else matched_channel_names
            in
-           List.map (fun n -> n, commit) channel_names)
+           List.map (fun c -> Slack_channel.string_val c, commit) channel_names)
     |> StringMap.of_list_multi
     |> StringMap.map (fun commits -> { n with commits })
     |> StringMap.to_list
+    |> List.map (fun (c, n) -> Slack_channel.to_channel c, n)
 
   let partition_label (cfg : Config_t.config) (labels : label list) =
     let default = cfg.label_rules.default_channel in
     let rules = cfg.label_rules.rules in
-    labels |> List.concat_map (Rule.Label.match_rules ~rules) |> List.sort_uniq String.compare |> fun channel_names ->
-    if channel_names = [] then Stdlib.Option.to_list default else channel_names
+    labels |> List.concat_map (Rule.Label.match_rules ~rules) |> List.sort_uniq Slack_channel.compare
+    |> fun channel_names -> if channel_names = [] then Stdlib.Option.to_list default else channel_names
 
   let partition_pr cfg (n : pr_notification) =
     match n.action with
@@ -124,7 +125,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let matched_channel_names =
       List.map (fun f -> f.filename) files
       |> List.filter_map (Rule.Prefix.match_rules ~rules)
-      |> List.sort_uniq String.compare
+      |> List.sort_uniq Slack_channel.compare
     in
     if matched_channel_names = [] then default else matched_channel_names
 
