@@ -58,7 +58,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     n.commits
     |> List.filter (fun c ->
            let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
-           if skip then log#info "main branch merge, ignoring %s: %s" c.id (first_line c.message);
+           if skip then log#info "main branch merge, ignoring %s: %s" c.id (Util.first_line c.message);
            not skip)
     |> List.concat_map (fun commit ->
            let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
@@ -168,7 +168,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Error e -> action_error e
           | Ok commit -> Lwt.return @@ partition_commit cfg commit.files)
       in
-      Lwt.return (direct_message @ chans)
+      match Util.Build.is_failed_build n, cfg.status_rules.failed_builds_channel with
+      | true, Some failed_builds_channel ->
+        (* if we have a failed build and a failed builds channel, we send one notification there too,
+           but we don't repeat notifications on the same channel*)
+        let chans = failed_builds_channel :: chans |> List.sort_uniq String.compare in
+        Lwt.return (direct_message @ chans)
+      | _ -> Lwt.return (direct_message @ chans)
     in
     let%lwt recipients =
       if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
@@ -265,7 +271,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       Lwt.return notifs
     | Status n ->
       let%lwt channels = partition_status ctx n in
-      let notifs = List.map (generate_status_notification cfg n) channels in
+      let%lwt slack_user_id =
+        match Util.Build.is_failed_build n with
+        | false -> Lwt.return_none
+        | true ->
+          let email = n.commit.commit.author.email in
+          (match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+          | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
+          | Error e ->
+            log#warn "couldn't match commit email %s to slack profile: %s" email e;
+            Lwt.return_some email)
+      in
+      let notifs = List.map (generate_status_notification ~slack_user_id ~ctx cfg n) channels in
       Lwt.return notifs
 
   let send_notifications (ctx : Context.t) notifications =

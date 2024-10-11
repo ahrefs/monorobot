@@ -111,4 +111,4 @@ let save { state; _ } path =
   try
     Files.save_as path (fun oc -> output_string oc data);
     Ok ()
-  with exn -> fmt_error ~exn "failed to save state to file %s" path
+  with exn -> Util.fmt_error ~exn "failed to save state to file %s" path
