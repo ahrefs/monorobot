@@ -171,7 +171,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       match Util.Build.is_failed_build n, cfg.status_rules.failed_builds_channel with
       | true, Some failed_builds_channel ->
         (* if we have a failed build and a failed builds channel, we send one notification there too,
-           but we don't repeat notifications on the same channel*)
+           but we don't notify the same channel twice *)
         let chans = failed_builds_channel :: chans |> List.sort_uniq String.compare in
         Lwt.return (direct_message @ chans)
       | _ -> Lwt.return (direct_message @ chans)
@@ -282,7 +282,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
             log#warn "couldn't match commit email %s to slack profile: %s" email e;
             Lwt.return_some email)
       in
-      let notifs = List.map (generate_status_notification ~slack_user_id ~ctx cfg n) channels in
+      let notifs = List.map (generate_status_notification ?slack_user_id ~ctx cfg n) channels in
       Lwt.return notifs
 
   let send_notifications (ctx : Context.t) notifications =

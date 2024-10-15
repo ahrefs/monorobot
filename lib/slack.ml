@@ -241,10 +241,10 @@ let generate_push_notification notification channel =
 
 let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
 
-let generate_status_notification ~(ctx : Context.t) ~slack_user_id (cfg : Config_t.config)
+let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config_t.config)
   (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
-  let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
+  let ({ commit : inner_commit; sha; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
   let is_buildkite = String.starts_with context ~prefix:"buildkite" in
   let color_info = if state = Success then "good" else "danger" in
@@ -267,17 +267,12 @@ let generate_status_notification ~(ctx : Context.t) ~slack_user_id (cfg : Config
   in
   let commit_info =
     [
-      (* if we have a DM notification, we don't need to repeat the commit message and author because
-         the user receiving the message is already the author of that commit. Users handles start with U *)
-      (match Devkit.Stre.starts_with channel "U" with
-      | true -> sprintf "*Commit*: `<%s|%s>`" html_url (git_short_sha_hash sha)
-      | false ->
-        sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message)
-          ((* If the author's email is not associated with a github account the author will be missing.
-               Using the information from the commit instead, which should be equivalent. *)
-           Option.map_default
-             (fun { login; _ } -> login)
-             commit.author.name author));
+      (let mention =
+         match slack_user_id with
+         | None -> ""
+         | Some id -> sprintf "<@%s>" id
+       in
+       sprintf "*Commit*: `<%s|%s>` %s" html_url (git_short_sha_hash sha) mention);
     ]
   in
   let branches_info =
@@ -330,22 +325,17 @@ let generate_status_notification ~(ctx : Context.t) ~slack_user_id (cfg : Config
       Option.map_default (String.equal channel) false cfg.status_rules.failed_builds_channel
     in
     match Util.Build.is_failed_build notification && is_failed_builds_channel with
+    | false -> []
     | true ->
-      let failed_steps =
-        let repo_state = State.find_or_add_repo ctx.state repository.url in
-        let pipeline = notification.context in
-        let slack_step_link (s, l) =
-          let step = Devkit.Stre.drop_prefix s (pipeline ^ "/") in
-          Printf.sprintf "<%s|%s> " l step
-        in
-        match Build.new_failed_steps notification repo_state pipeline with
-        | [] -> []
-        | steps -> [ sprintf "*Steps broken*: %s" (String.concat ", " (List.map slack_step_link steps)) ]
+      let repo_state = State.find_or_add_repo ctx.state repository.url in
+      let pipeline = notification.context in
+      let slack_step_link (s, l) =
+        let step = Devkit.Stre.drop_prefix s (pipeline ^ "/") in
+        Printf.sprintf "<%s|%s> " l step
       in
-      (match slack_user_id with
-      | Some slack_user_id -> sprintf "*Commit author*: <@%s>" slack_user_id :: failed_steps
-      | None -> failed_steps)
-    | _ -> []
+      (match Build.new_failed_steps notification repo_state pipeline with
+      | [] -> []
+      | steps -> [ sprintf "*Steps broken*: %s" (String.concat ", " (List.map slack_step_link steps)) ])
   in
   let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info; failed_builds_info ] in
   let attachment =
