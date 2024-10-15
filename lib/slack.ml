@@ -102,17 +102,9 @@ let generate_pull_request_notification ~slack_match_func ~(ctx : Context.t) ~get
   in
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
   let%lwt summary =
-    let%lwt thread_mention =
-      match notification.action = Closed with
-      | false -> Lwt.return ""
-      | true ->
-        (* on `Close` notifications (closed/merged) we post a summary notification to the channel,
-           pointing to the thread where all the events for the PR live *)
-        make_thread_mention ~ctx thread get_thread_permalink
-    in
     Lwt.return
-    @@ sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*%s" repository.url repository.full_name number
-         (pp_link ~url:html_url title) action sender.login thread_mention
+    @@ sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
+         (pp_link ~url:html_url title) action sender.login
   in
   let handler (res : Slack_t.post_message_res) =
     match notification.action with
@@ -123,13 +115,18 @@ let generate_pull_request_notification ~slack_match_func ~(ctx : Context.t) ~get
     | _ -> ()
   in
   let make_message' =
-    make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~handler ~channel
+    make_message ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~handler ~channel
   in
-  match notification.action = Closed, Option.is_some thread with
-  | true, true ->
+  match notification.action = Closed, thread with
+  | true, Some slack_thread ->
+    let%lwt summary_with_thread =
+      match%lwt get_thread_permalink ~ctx slack_thread with
+      | None -> Lwt.return ""
+      | Some permalink -> Lwt.return @@ sprintf "%s\n> *Slack thread*: <%s|comments and reviews>" summary permalink
+    in
     (* for closed/merged notifications, we want to notify the channel and the thread. *)
-    Lwt.return [ make_message' ?thread (); make_message' () ]
-  | _ -> Lwt.return [ make_message' ?thread () ]
+    Lwt.return [ make_message' ~text:summary ?thread (); make_message' ~text:summary_with_thread () ]
+  | _ -> Lwt.return [ make_message' ~text:summary ?thread () ]
 
 let generate_pr_review_notification ~slack_match_func ~(ctx : Context.t) ~get_thread_permalink notification channel =
   let { action; sender; pull_request; review; repository } = notification in
