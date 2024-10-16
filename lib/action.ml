@@ -168,11 +168,20 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Error e -> action_error e
           | Ok commit -> Lwt.return @@ partition_commit cfg commit.files)
       in
-      match Util.Build.is_failed_build n, cfg.status_rules.failed_builds_channel with
-      | true, Some failed_builds_channel ->
+      match Util.Build.is_failed_build n, cfg.status_rules.allowed_pipelines with
+      | true, Some allowed_pipelines ->
         (* if we have a failed build and a failed builds channel, we send one notification there too,
            but we don't notify the same channel twice *)
-        let chans = failed_builds_channel :: chans |> List.sort_uniq String.compare in
+        let chans =
+          List.find_map
+            (fun ({ name; failed_builds_channel } : Config_t.pipeline) ->
+              match String.equal name n.context, failed_builds_channel with
+              | true, Some failed_builds_channel -> Some (failed_builds_channel :: chans)
+              | _ -> None)
+            allowed_pipelines
+          |> Option.default chans
+          |> List.sort_uniq String.compare
+        in
         Lwt.return (direct_message @ chans)
       | _ -> Lwt.return (direct_message @ chans)
     in
