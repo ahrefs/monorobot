@@ -6,6 +6,7 @@ type project_owners_rule <ocaml from="Rule"> = abstract
 (* This type of rule is used for CI build notifications. *)
 type status_rules = {
   ?allowed_pipelines : string list nullable; (* keep only status events with a title matching this list *)
+  ?failed_builds_channel: string nullable; (* channel to post failed builds notifications to *)
   rules: status_rule list;
 }
 
@@ -33,7 +34,7 @@ type project_owners = {
 type config = {
   prefix_rules : prefix_rules;
   label_rules : label_rules;
-  ~status_rules <ocaml default="{allowed_pipelines = Some []; rules = []}"> : status_rules;
+  ~status_rules <ocaml default="{allowed_pipelines = Some []; rules = []; failed_builds_channel = None}"> : status_rules;
   ~project_owners <ocaml default="{rules = []}"> : project_owners;
   ~ignored_users <ocaml default="[]">: string list; (* list of ignored users *)
   ?main_branch_name : string nullable; (* the name of the main branch; used to filter out notifications about merges of main branch into other branches *)

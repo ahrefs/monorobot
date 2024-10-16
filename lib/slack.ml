@@ -1,5 +1,6 @@
 open Printf
 open Common
+open Util
 open Mrkdwn
 open Github_j
 open Slack_j
@@ -240,9 +241,10 @@ let generate_push_notification notification channel =
 
 let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
 
-let generate_status_notification (cfg : Config_t.config) (notification : status_notification) channel =
+let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config_t.config)
+  (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
-  let ({ commit : inner_commit; sha; author; html_url; _ } : status_commit) = commit in
+  let ({ commit : inner_commit; sha; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
   let is_buildkite = String.starts_with context ~prefix:"buildkite" in
   let color_info = if state = Success then "good" else "danger" in
@@ -265,17 +267,12 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
   in
   let commit_info =
     [
-      (* if we have a DM notification, we don't need to repeat the commit message and author because
-         the user receiving the message is already the author of that commit. Users handles start with U *)
-      (match Devkit.Stre.starts_with channel "U" with
-      | true -> sprintf "*Commit*: `<%s|%s>`" html_url (git_short_sha_hash sha)
-      | false ->
-        sprintf "*Commit*: `<%s|%s>` %s - %s" html_url (git_short_sha_hash sha) (first_line message)
-          ((* If the author's email is not associated with a github account the author will be missing.
-               Using the information from the commit instead, which should be equivalent. *)
-           Option.map_default
-             (fun { login; _ } -> login)
-             commit.author.name author));
+      (let mention =
+         match slack_user_id with
+         | None -> ""
+         | Some id -> sprintf "<@%s>" id
+       in
+       sprintf "*Commit*: `<%s|%s>` %s" html_url (git_short_sha_hash sha) mention);
     ]
   in
   let branches_info =
@@ -323,7 +320,24 @@ let generate_status_notification (cfg : Config_t.config) (notification : status_
         | None -> default_summary
         | Some pipeline_url -> sprintf "<%s|[%s]>: %s for \"%s\"" pipeline_url context build_desc commit_message)
   in
-  let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info ] in
+  let failed_builds_info =
+    let is_failed_builds_channel =
+      Option.map_default (String.equal channel) false cfg.status_rules.failed_builds_channel
+    in
+    match Util.Build.is_failed_build notification && is_failed_builds_channel with
+    | false -> []
+    | true ->
+      let repo_state = State.find_or_add_repo ctx.state repository.url in
+      let pipeline = notification.context in
+      let slack_step_link (s, l) =
+        let step = Devkit.Stre.drop_prefix s (pipeline ^ "/") in
+        Printf.sprintf "<%s|%s> " l step
+      in
+      (match Build.new_failed_steps notification repo_state pipeline with
+      | [] -> []
+      | steps -> [ sprintf "*Steps broken*: %s" (String.concat ", " (List.map slack_step_link steps)) ])
+  in
+  let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info; failed_builds_info ] in
   let attachment =
     { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text = Some msg }
   in
@@ -362,5 +376,5 @@ let validate_signature ?(version = "v0") ?signing_key ~headers body =
   | None -> Error "unable to find header X-Slack-Request-Timestamp"
   | Some timestamp ->
     let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
-    let expected_signature = Printf.sprintf "%s=%s" version (Common.sign_string_sha256 ~key ~basestring) in
+    let expected_signature = Printf.sprintf "%s=%s" version (Util.sign_string_sha256 ~key ~basestring) in
     if String.equal expected_signature signature then Ok () else Error "signatures don't match"
