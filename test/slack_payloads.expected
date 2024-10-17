@@ -519,6 +519,21 @@ will notify #default
   ],
   "unfurl_links": false
 }
+===== file ../mock_payloads/status.commit1-02-failed_diff_pipeline.json =====
+will notify #default
+{
+  "channel": "default",
+  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/qa]>: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` <@id[author@ahrefs.com]>\n*Branch*: author/patches/js-storage"
+    }
+  ],
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/status.commit1-02-failed_main_branch.json =====
 will notify #all-push-events
 {
@@ -548,7 +563,23 @@ will notify #failed-builds
   ],
   "unfurl_links": false
 }
+===== file ../mock_payloads/status.commit1-02-failed_no_failed_builds_chan.json =====
+will notify #default
+{
+  "channel": "default",
+  "text": "<https://buildkite.com/ahrefs/monorepo|[buildkite/bau]>: Build <https://buildkite.com/ahrefs/monorepo/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` <@id[author@ahrefs.com]>\n*Branch*: author/patches/js-storage"
+    }
+  ],
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/status.failure_test.json =====
+===== file ../mock_payloads/status.failure_test_diff_pipeline.json =====
 ===== file ../mock_payloads/status.failure_test_main_branch.json =====
 will notify #failed-builds
 {
@@ -564,6 +595,7 @@ will notify #failed-builds
   ],
   "unfurl_links": false
 }
+===== file ../mock_payloads/status.failure_test_no_failed_builds_chan.json =====
 ===== file ../mock_payloads/status.merge_develop.json =====
 ===== file ../mock_payloads/status.missing_author.json =====
 ===== file ../mock_payloads/status.pending_test.json =====

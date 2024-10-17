@@ -68,3 +68,17 @@ module Slack_response_adapter : Atdgen_runtime.Json_adapter.S = struct
     | `List [ `String "Error"; `String msg ] -> `Assoc (mk_fields false [ "error", `String msg ])
     | _ -> x
 end
+
+(* This adapter is meant to avoid breaking changes in the config because the type for
+   [allowed_pipelines] was changed from a string list to a pipeline record list. *)
+module Strings_to_pipelines_adapter : Atdgen_runtime.Json_adapter.S = struct
+  let normalize (x : Yojson.Safe.t) =
+    match x with
+    | `String s -> `Assoc [ "name", `String s; "failed_builds_channel", `Null ]
+    | _ -> x
+
+  let restore (x : Yojson.Safe.t) =
+    match x with
+    | `Assoc [ ("name", `String s); ("failed_builds_channel", _) ] -> `String s
+    | _ -> x
+end

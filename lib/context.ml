@@ -79,7 +79,9 @@ let is_pipeline_allowed ctx repo_url ~pipeline =
   | None -> true
   | Some config ->
   match config.status_rules.allowed_pipelines with
-  | Some allowed_pipelines when not @@ List.exists (String.equal pipeline) allowed_pipelines -> false
+  | Some allowed_pipelines
+    when not @@ List.exists (fun (p : Config_t.pipeline) -> String.equal p.name pipeline) allowed_pipelines ->
+    false
   | _ -> true
 
 let refresh_secrets ctx =
