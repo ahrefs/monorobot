@@ -29,7 +29,7 @@ let pp_link ~url text = sprintf "<%s|%s>" url (Mrkdwn.escape_mrkdwn text)
 let show_labels = function
   | [] -> None
   | (labels : label list) ->
-    Some (sprintf "Labels: %s" @@ String.concat ", " (List.map (fun (x : label) -> x.name) labels))
+    Some (sprintf "**Labels**: %s" @@ String.concat ", " (List.map (fun (x : label) -> sprintf "*%s*" x.name) labels))
 
 let pluralize ~suf ~len name = if len = 1 then sprintf "%s" name else String.concat "" [ name; suf ]
 
@@ -44,8 +44,18 @@ let markdown_text_attachment ~footer markdown_body =
     };
   ]
 
-let make_message ?username ?text ?attachments ?blocks ~channel () =
-  { channel; text; attachments; blocks; username; unfurl_links = Some false; unfurl_media = None }
+let make_message ?username ?text ?attachments ?blocks ?thread ?handler ~channel () =
+  ( {
+      channel;
+      thread_ts = Option.map (fun (t : State_t.slack_thread) -> t.ts) thread;
+      text;
+      attachments;
+      blocks;
+      username;
+      unfurl_links = Some false;
+      unfurl_media = None;
+    },
+    handler )
 
 let github_handle_regex = Re2.create_exn {|\B@([[:alnum:]][[:alnum:]-]{1,38})\b|}
 (* Match GH handles in messages - a GitHub handle has at most 39 chars and no underscore *)
@@ -64,12 +74,25 @@ let format_attachments ~slack_match_func ~footer ~body =
   in
   Option.map (fun t -> markdown_text_attachment ~footer t |> List.map format_mention_in_markdown) body
 
-let generate_pull_request_notification ~slack_match_func notification channel =
+let make_thread_mention ~ctx (thread : State_t.slack_thread option) get_thread_link =
+  match thread with
+  | Some thread ->
+    (match%lwt get_thread_link ~ctx thread with
+    | None -> Lwt.return ""
+    | Some permalink -> Lwt.return @@ sprintf "**Slack thread**: [comments and reviews](%s)" permalink)
+  | None -> Lwt.return ""
+
+let generate_pull_request_notification ~slack_match_func ~(ctx : Context.t) ~get_thread_permalink notification channel =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
   let action, body =
     match action with
-    | Opened | Ready_for_review -> "opened", body
+    | Opened | Ready_for_review ->
+      let labels_banner = show_labels labels in
+      ( "opened",
+        body
+        |> Option.map (fun body' ->
+               Option.map_default (fun labels' -> sprintf "%s\n%s" body' labels') body' labels_banner) )
     | Closed -> (if merged then "merged" else "closed"), None
     | Reopened -> "reopened", None
     | Labeled -> "labeled", show_labels labels
@@ -78,20 +101,42 @@ let generate_pull_request_notification ~slack_match_func notification channel =
         (sprintf "Monorobot doesn't know how to generate notification for the unexpected event %s"
            (string_of_pr_action action))
   in
-  let summary =
-    sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
-      (pp_link ~url:html_url title) action sender.login
+  let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
+  let%lwt summary =
+    Lwt.return
+    @@ sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
+         (pp_link ~url:html_url title) action sender.login
   in
-  make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
+  let handler (res : Slack_t.post_message_res) =
+    match notification.action with
+    | Opened | Ready_for_review | Labeled ->
+      State.add_thread_if_new ctx.state ~repo_url:repository.url ~pr_url:html_url
+        { cid = res.channel; channel; ts = res.ts }
+    | Closed -> State.delete_thread ctx.state ~repo_url:repository.url ~pr_url:html_url
+    | _ -> ()
+  in
+  let make_message' =
+    make_message ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~handler ~channel
+  in
+  match notification.action = Closed, thread with
+  | true, Some slack_thread ->
+    let%lwt summary_with_thread =
+      match%lwt get_thread_permalink ~ctx slack_thread with
+      | None -> Lwt.return ""
+      | Some permalink -> Lwt.return @@ sprintf "%s\n> *Slack thread*: <%s|comments and reviews>" summary permalink
+    in
+    (* for closed/merged notifications, we want to notify the channel and the thread. *)
+    Lwt.return [ make_message' ~text:summary ?thread (); make_message' ~text:summary_with_thread () ]
+  | _ -> Lwt.return [ make_message' ~text:summary ?thread () ]
 
-let generate_pr_review_notification ~slack_match_func notification channel =
+let generate_pr_review_notification ~slack_match_func ~(ctx : Context.t) ~get_thread_permalink notification channel =
   let { action; sender; pull_request; review; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
     match action with
     | Submitted ->
       (match review.state with
-      | "commented" -> "commented on"
+      | "commented" -> "reviewed"
       | "approved" -> "approved"
       | "changes_requested" -> "requested changes on"
       | _ -> invalid_arg (sprintf "Error: unexpected review state %s" review.state))
@@ -104,11 +149,32 @@ let generate_pr_review_notification ~slack_match_func notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url action_str
       number (pp_link ~url:html_url title)
   in
-  make_message ~text:summary
-    ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:review.body)
-    ~channel ()
+  let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
 
-let generate_pr_review_comment_notification ~slack_match_func notification channel =
+  let%lwt pr_summary =
+    let summary =
+      sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url
+        action_str number (pp_link ~url:html_url title)
+    in
+    let%lwt thread_mention = make_thread_mention ~ctx thread get_thread_permalink in
+    let body = Some (sprintf "**Comment**: %s\n%s" (Option.default "" review.body) thread_mention) in
+    Lwt.return
+    @@ make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
+  in
+
+  let msg =
+    make_message ~text:summary ?thread
+      ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:review.body)
+      ~channel ()
+  in
+  (* If we have a thread for the current PR, we post the review msg in the thread and the summary msg on the channel.
+     Otherwise, we only send one message, but to the channel *)
+  Lwt.return
+    (match Option.is_some thread with
+    | false -> [ msg ]
+    | true -> [ pr_summary; msg ])
+
+let generate_pr_review_comment_notification ~slack_match_func ~(ctx : Context.t) notification channel =
   let { action; pull_request; sender; comment; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -126,9 +192,10 @@ let generate_pr_review_comment_notification ~slack_match_func notification chann
   let file =
     match comment.path with
     | None -> None
-    | Some a -> Some (sprintf "New comment by %s in <%s|%s>" sender.login comment.html_url a)
+    | Some a -> Some (sprintf "Commented in file <%s|%s>" comment.html_url a)
   in
-  make_message ~text:summary
+  let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
+  make_message ~text:summary ?thread
     ?attachments:(format_attachments ~slack_match_func ~footer:file ~body:(Some comment.body))
     ~channel ()
 
@@ -153,9 +220,10 @@ let generate_issue_notification ~slack_match_func notification channel =
 
   make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
 
-let generate_issue_comment_notification ~slack_match_func notification channel =
+let generate_issue_comment_notification ~(ctx : Context.t) ~slack_match_func ~get_thread_permalink notification channel
+    =
   let { action; issue; sender; comment; repository } = notification in
-  let { number; title; _ } = issue in
+  let { number; title; html_url; _ } = issue in
   let action_str =
     match action with
     | Created -> "commented"
@@ -169,9 +237,31 @@ let generate_issue_comment_notification ~slack_match_func notification channel =
     sprintf "<%s|[%s]> *%s* <%s|%s> on #%d %s" repository.url repository.full_name sender.login comment.html_url
       action_str number (pp_link ~url:issue.html_url title)
   in
-  make_message ~text:summary
-    ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:(Some comment.body))
-    ~channel ()
+  let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
+  let%lwt comment_summary =
+    let summary =
+      sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login html_url action_str
+        number (pp_link ~url:html_url title)
+    in
+
+    let%lwt thread_mention = make_thread_mention ~ctx thread get_thread_permalink in
+
+    let body = Some (sprintf "**Comment**: %s\n%s" comment.body thread_mention) in
+
+    Lwt.return
+    @@ make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
+  in
+  let msg =
+    make_message ~text:summary ?thread
+      ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:(Some comment.body))
+      ~channel ()
+  in
+  (* If we have a thread for the current PR, we post the review msg in the thread and the summary msg on the channel.
+     Otherwise, we only send the normal message, but to the channel *)
+  Lwt.return
+    (match Option.is_some thread with
+    | false -> [ msg ]
+    | true -> [ comment_summary; msg ])
 
 let git_short_sha_hash hash = String.sub hash 0 8
 

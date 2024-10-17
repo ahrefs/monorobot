@@ -58,6 +58,7 @@ type message_block = [
 
 type post_message_req = {
   channel: string;
+  ?thread_ts: string nullable;
   ?username : string nullable;
   ?text: string nullable;
   ?attachments: message_attachment list nullable;
@@ -68,6 +69,7 @@ type post_message_req = {
 
 type post_message_res = {
   channel: string;
+  ts: string;
 }
 
 type lookup_user_res = {
@@ -142,6 +144,13 @@ type auth_test_res = {
   user: string;
   team_id: string;
   user_id: string;
+}
+
+type permalink_res = {
+  ok: bool;
+  permalink: string;
+  channel: string;
+  ?error: string nullable;
 }
 
 type ('ok, 'err) http_response <ocaml predef module="Result" t="t"> = [

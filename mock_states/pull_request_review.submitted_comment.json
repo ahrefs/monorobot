@@ -1,0 +1,13 @@
+{
+  "pipeline_statuses": {},
+  "pipeline_commits": {},
+  "slack_threads": {
+    "https://github.com/xinyuluo/monorepo/pull/3": [
+      {
+        "channel": "frontend-bot",
+        "ts": "1728399554.482879",
+        "cid": "Cfebot"
+      }
+    ]
+  }
+}
