@@ -6,7 +6,7 @@ type project_owners_rule <ocaml from="Rule"> = abstract
 type pipeline = {
   name: string;
   ?failed_builds_channel: string nullable;
-}
+} <json adapter.ocaml="Atd_adapters.Strings_to_pipelines_adapter">
 
 (* This type of rule is used for CI build notifications. *)
 type status_rules = {
