@@ -134,6 +134,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let pipeline = n.context in
     let current_status = n.state in
     let rules = cfg.status_rules.rules in
+    let is_main_branch =
+      match cfg.main_branch_name with
+      | None -> false
+      | Some main_branch -> List.exists (fun ({ name } : branch) -> String.equal name main_branch) n.branches
+    in
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
       let%lwt direct_message =
         if notify_dm then begin
@@ -156,11 +161,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         match branches with
         | [] -> Lwt.return []
         | _ ->
-        match cfg.main_branch_name with
-        | None -> Lwt.return default
-        | Some main_branch_name ->
+        match Option.is_some cfg.main_branch_name with
+        | false -> Lwt.return default
+        | true ->
         (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
-        match List.exists (fun ({ name } : branch) -> String.equal name main_branch_name) branches with
+        match is_main_branch with
         | false -> Lwt.return default
         | true ->
           let sha = n.commit.sha in
@@ -168,13 +173,17 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Error e -> action_error e
           | Ok commit -> Lwt.return @@ partition_commit cfg commit.files)
       in
-      match Util.Build.is_failed_build n, cfg.status_rules.failed_builds_channel with
-      | true, Some failed_builds_channel ->
+      let notify_failed_builds_channel =
+        (* we only notify the failed builds channels for failed builds on the main branch *)
+        Util.Build.is_failed_build n && Option.is_some cfg.status_rules.failed_builds_channel && is_main_branch
+      in
+      match notify_failed_builds_channel with
+      | false -> Lwt.return (direct_message @ chans)
+      | true ->
         (* if we have a failed build and a failed builds channel, we send one notification there too,
            but we don't notify the same channel twice *)
-        let chans = failed_builds_channel :: chans |> List.sort_uniq String.compare in
+        let chans = Option.get cfg.status_rules.failed_builds_channel :: chans |> List.sort_uniq String.compare in
         Lwt.return (direct_message @ chans)
-      | _ -> Lwt.return (direct_message @ chans)
     in
     let%lwt recipients =
       if Context.is_pipeline_allowed ctx repo.url ~pipeline then begin
