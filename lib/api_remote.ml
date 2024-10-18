@@ -186,12 +186,14 @@ module Slack : Api.Slack = struct
       log#info "data: %s" data;
       if webhook_mode then begin
         match%lwt http_request ~body ~headers `POST url with
-        | Ok _res -> Lwt.return @@ Ok ()
+        | Ok _res ->
+          (* Webhooks reply only 200 `ok`. We can't generate anything useful for notification success handlers *)
+          Lwt.return @@ Ok None
         | Error e -> Lwt.return @@ build_error (query_error_msg url e)
       end
       else begin
         match%lwt slack_api_request ~body ~headers `POST url Slack_j.read_post_message_res with
-        | Ok _res -> Lwt.return @@ Ok ()
+        | Ok res -> Lwt.return @@ Ok (Some res)
         | Error e -> Lwt.return @@ build_error e
       end
 
@@ -204,4 +206,19 @@ module Slack : Api.Slack = struct
 
   let send_auth_test ~(ctx : Context.t) () =
     request_token_auth ~name:"retrieve bot information" ~ctx `POST "auth.test" Slack_j.read_auth_test_res
+
+  let get_thread_permalink ~(ctx : Context.t) (thread : State_t.slack_thread) =
+    let url_args = Web.make_url_args [ "channel", thread.cid; "message_ts", thread.ts ] in
+    match%lwt
+      request_token_auth ~name:"retrieve message permalink" ~ctx `GET
+        (sprintf "chat.getPermalink?%s" url_args)
+        Slack_j.read_permalink_res
+    with
+    | Error (s : string) ->
+      log#warn "couldn't fetch permalink for slack thread %s: %s" thread.ts s;
+      Lwt.return_none
+    | Ok (res : Slack_t.permalink_res) when res.ok = false ->
+      log#warn "bad request fetching permalink for slack thread %s: %s" thread.ts (Option.default "" res.error);
+      Lwt.return_none
+    | Ok ({ permalink; _ } : Slack_t.permalink_res) -> Lwt.return_some permalink
 end

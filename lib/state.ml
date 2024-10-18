@@ -6,7 +6,7 @@ let log = Log.from "state"
 type t = { state : State_t.state }
 
 let empty_repo_state () : State_t.repo_state =
-  { pipeline_statuses = StringMap.empty; pipeline_commits = StringMap.empty }
+  { pipeline_statuses = StringMap.empty; pipeline_commits = StringMap.empty; slack_threads = StringMap.empty }
 
 let empty () : t =
   let state = State_t.{ repos = Stringtbl.empty (); bot_user_id = None } in
@@ -102,6 +102,38 @@ let mem_repo_pipeline_commits { state } repo_url ~pipeline ~commit =
   match StringMap.find_opt pipeline repo_state.pipeline_commits with
   | None -> false
   | Some { State_t.s1; s2 } -> StringSet.mem commit s1 || StringSet.mem commit s2
+
+let has_pr_thread { state } ~repo_url ~pr_url =
+  let repo_state = find_or_add_repo' state repo_url in
+  StringMap.mem pr_url repo_state.slack_threads
+
+let get_thread { state } ~repo_url ~pr_url channel =
+  let repo_state = find_or_add_repo' state repo_url in
+  match StringMap.find_opt pr_url repo_state.slack_threads with
+  | None -> None
+  | Some threads ->
+    List.find_map
+      (fun (thread : State_t.slack_thread) ->
+        match String.equal channel thread.channel with
+        | false -> None
+        | true -> Some thread)
+      threads
+
+let add_thread_if_new { state } ~repo_url ~pr_url (msg : State_t.slack_thread) =
+  let repo_state = find_or_add_repo' state repo_url in
+  let set_threads threads =
+    match threads with
+    | None -> Some [ msg ]
+    | Some threads ->
+    match List.exists (fun (thread : State_t.slack_thread) -> String.equal msg.channel thread.channel) threads with
+    | true -> Some threads
+    | false -> Some (msg :: threads)
+  in
+  repo_state.slack_threads <- StringMap.update pr_url set_threads repo_state.slack_threads
+
+let delete_thread { state } ~repo_url ~pr_url =
+  let repo_state = find_or_add_repo' state repo_url in
+  repo_state.slack_threads <- StringMap.remove pr_url repo_state.slack_threads
 
 let set_bot_user_id { state; _ } user_id = state.State_t.bot_user_id <- Some user_id
 let get_bot_user_id { state; _ } = state.State_t.bot_user_id
