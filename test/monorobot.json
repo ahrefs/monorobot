@@ -1,8 +1,23 @@
 {
   "main_branch_name": "develop",
   "status_rules": {
-    "failed_builds_channel": "failed-builds",
-    "allowed_pipelines": ["default", "buildkite/pipeline2"],
+    "allowed_pipelines": [
+      {
+        "name": "default",
+        "failed_builds_channel": "failed-builds"
+      },
+      {
+        "name": "buildkite/pipeline2",
+        "failed_builds_channel": "failed-builds"
+      },
+      {
+        "name": "buildkite/qa",
+        "failed_builds_channel": "qa-failed-builds"
+      },
+      {
+        "name": "buildkite/bau"
+      }
+    ],
     "rules": [
       {
         "on": ["failure"],

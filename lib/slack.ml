@@ -322,7 +322,13 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
   in
   let failed_builds_info =
     let is_failed_builds_channel =
-      Option.map_default (String.equal channel) false cfg.status_rules.failed_builds_channel
+      match cfg.status_rules.allowed_pipelines with
+      | None -> false
+      | Some pipelines ->
+        List.exists
+          (fun ({ name; failed_builds_channel } : Config_t.pipeline) ->
+            String.equal name context && Option.map_default (String.equal channel) false failed_builds_channel)
+          pipelines
     in
     match Util.Build.is_failed_build notification && is_failed_builds_channel with
     | false -> []
