@@ -66,7 +66,9 @@ let gh_hook_secret_token_of_secrets (secrets : Config_t.secrets) repo_url =
 let hook_of_channel ctx channel_name =
   let secrets = get_secrets_exn ctx in
   match
-    List.find_opt (fun (webhook : Config_t.webhook) -> String.equal webhook.channel channel_name) secrets.slack_hooks
+    List.find_opt
+      (fun (webhook : Config_t.webhook) -> Slack_channel.equal webhook.channel channel_name)
+      secrets.slack_hooks
   with
   | Some hook -> Some hook.url
   | None -> None

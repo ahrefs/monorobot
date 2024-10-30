@@ -167,7 +167,7 @@ module Slack : Api.Slack = struct
   (** [send_notification ctx msg] notifies [msg.channel] with the payload [msg];
       uses web API with access token if available, or with webhook otherwise *)
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =
-    log#info "sending to %s" msg.channel;
+    log#info "sending to %s" (Slack_channel.Any.project msg.channel);
     let build_error e = fmt_error "%s\nfailed to send Slack notification" e in
     let secrets = Context.get_secrets_exn ctx in
     let headers, url, webhook_mode =
@@ -179,7 +179,10 @@ module Slack : Api.Slack = struct
       | None -> [], None, false
     in
     match url with
-    | None -> Lwt.return @@ build_error @@ sprintf "no token or webhook configured to notify channel %s" msg.channel
+    | None ->
+      Lwt.return
+      @@ build_error
+      @@ sprintf "no token or webhook configured to notify channel %s" (Slack_channel.Any.project msg.channel)
     | Some url ->
       let data = Slack_j.string_of_post_message_req msg in
       let body = `Raw ("application/json", data) in
@@ -208,17 +211,21 @@ module Slack : Api.Slack = struct
     request_token_auth ~name:"retrieve bot information" ~ctx `POST "auth.test" Slack_j.read_auth_test_res
 
   let get_thread_permalink ~(ctx : Context.t) (thread : State_t.slack_thread) =
-    let url_args = Web.make_url_args [ "channel", thread.cid; "message_ts", thread.ts ] in
+    let url_args =
+      Web.make_url_args
+        [ "channel", Slack_channel.Ident.project thread.cid; "message_ts", Slack_timestamp.project thread.ts ]
+    in
     match%lwt
       request_token_auth ~name:"retrieve message permalink" ~ctx `GET
         (sprintf "chat.getPermalink?%s" url_args)
         Slack_j.read_permalink_res
     with
     | Error (s : string) ->
-      log#warn "couldn't fetch permalink for slack thread %s: %s" thread.ts s;
+      log#warn "couldn't fetch permalink for slack thread %s: %s" (Slack_timestamp.project thread.ts) s;
       Lwt.return_none
     | Ok (res : Slack_t.permalink_res) when res.ok = false ->
-      log#warn "bad request fetching permalink for slack thread %s: %s" thread.ts (Option.default "" res.error);
+      log#warn "bad request fetching permalink for slack thread %s: %s" (Slack_timestamp.project thread.ts)
+        (Option.default "" res.error);
       Lwt.return_none
     | Ok ({ permalink; _ } : Slack_t.permalink_res) -> Lwt.return_some permalink
 end

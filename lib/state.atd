@@ -2,10 +2,10 @@ type status_state <ocaml from="Github"> = abstract
 type 'v map_as_object <ocaml from="Common"> = abstract
 type 'v table_as_object <ocaml from="Common"> = abstract
 type string_set <ocaml from="Common"> = abstract
-type post_message_res <ocaml from="Slack"> = {
-  channel: string;
-  ts: string;
-}
+type timestamp = string wrap <ocaml t="Common.Slack_timestamp.t" wrap="Common.Slack_timestamp.inject" unwrap="Common.Slack_timestamp.project">
+type user_id = string wrap <ocaml t="Common.Slack_user_id.t" wrap="Common.Slack_user_id.inject" unwrap="Common.Slack_user_id.project">
+type channel_id = string wrap <ocaml t="Common.Slack_channel.Ident.t" wrap="Common.Slack_channel.Ident.inject" unwrap="Common.Slack_channel.Ident.project">
+type any_channel = string wrap <ocaml t="Common.Slack_channel.Any.t" wrap="Common.Slack_channel.Any.inject" unwrap="Common.Slack_channel.Any.project">
 
 type ci_commit = {
   sha: string;
@@ -39,8 +39,9 @@ type commit_sets = {
 type pipeline_commits = commit_sets map_as_object
 
 type slack_thread = {
-  inherit post_message_res;
-  cid: string;
+  ts: timestamp;
+  channel: any_channel;
+  cid: channel_id;
 }
 
 type slack_threads = slack_thread list map_as_object
@@ -55,5 +56,5 @@ type repo_state = {
 (* The serializable runtime state of the bot *)
 type state = {
   repos : repo_state table_as_object;
-  ?bot_user_id <ocaml mutable>: string nullable;
+  ?bot_user_id <ocaml mutable>: user_id nullable;
 }

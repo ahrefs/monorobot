@@ -114,7 +114,7 @@ let get_thread { state } ~repo_url ~pr_url channel =
   | Some threads ->
     List.find_map
       (fun (thread : State_t.slack_thread) ->
-        match String.equal channel thread.channel with
+        match Slack_channel.equal channel thread.channel with
         | false -> None
         | true -> Some thread)
       threads
@@ -125,7 +125,9 @@ let add_thread_if_new { state } ~repo_url ~pr_url (msg : State_t.slack_thread) =
     match threads with
     | None -> Some [ msg ]
     | Some threads ->
-    match List.exists (fun (thread : State_t.slack_thread) -> String.equal msg.channel thread.channel) threads with
+    match
+      List.exists (fun (thread : State_t.slack_thread) -> Slack_channel.equal msg.channel thread.channel) threads
+    with
     | true -> Some threads
     | false -> Some (msg :: threads)
   in

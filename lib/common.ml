@@ -1,3 +1,62 @@
+open Devkit
+
+module Slack_timestamp = Fresh (String) ()
+
+module Slack_channel : sig
+  type 'kind t
+
+  val equal : 'kind t -> 'kind t -> bool
+  val compare : 'kind t -> 'kind t -> int
+  val hash : 'kind t -> int
+
+  module Ident : sig
+    type nonrec t = [ `Id ] t
+    val inject : string -> t
+    val project : t -> string
+  end
+  module Name : sig
+    type nonrec t = [ `Name ] t
+    val inject : string -> t
+    val project : t -> string
+  end
+  module Any : sig
+    type nonrec t = [ `Any ] t
+    val inject : string -> t
+    val project : t -> string
+  end
+
+  val to_any : 'kind t -> Any.t
+end = struct
+  type 'kind t = string
+
+  let equal = String.equal
+  let compare = String.compare
+  let hash = Hashtbl.hash
+  let to_any = id
+
+  module Ident = struct
+    type nonrec t = [ `Id ] t
+    let inject = id
+    let project = id
+  end
+  module Name = struct
+    type nonrec t = [ `Name ] t
+    let inject = id
+    let project = id
+  end
+  module Any = struct
+    type nonrec t = [ `Any ] t
+    let inject = id
+    let project = id
+  end
+end
+
+module Slack_user_id = struct
+  include Fresh (String) ()
+
+  let to_channel_id = Slack_channel.Any.inject $ project
+end
+
 module StringSet = struct
   include Set.Make (String)
 
@@ -6,21 +65,28 @@ module StringSet = struct
   let unwrap = to_list
 end
 
-module StringMap = struct
-  include Map.Make (String)
+module Map (S : Map.OrderedType) = struct
+  include Map.Make (S)
 
-  let to_list (l : 'a t) : (string * 'a) list = to_seq l |> List.of_seq
-  let of_list (m : (string * 'a) list) : 'a t = List.to_seq m |> of_seq
+  let to_list (l : 'a t) : (S.t * 'a) list = to_seq l |> List.of_seq
+  let of_list (m : (S.t * 'a) list) : 'a t = List.to_seq m |> of_seq
   let wrap = of_list
   let unwrap = to_list
 
-  let of_list_multi (m : (string * 'a) list) : 'a list t =
+  let of_list_multi (m : (S.t * 'a) list) : 'a list t =
     let update_f v = function
       | None -> Some [ v ]
       | Some vs -> Some (v :: vs)
     in
     List.fold_right (fun (k, v) b -> update k (update_f v) b) m empty
 end
+
+module StringMap = Map (String)
+
+module ChannelMap = Map (struct
+  include Slack_channel.Any
+  let compare = Slack_channel.compare
+end)
 
 module Stringtbl = struct
   include Hashtbl

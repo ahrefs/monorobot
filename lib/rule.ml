@@ -89,7 +89,7 @@ module Prefix = struct
              | Some l, Some [] -> Printf.printf "  %s" (show_match l)
              | Some l, Some i -> Printf.printf "  %s and not %s" (show_match l) (show_match i)
            end;
-           Printf.printf " -> #%s\n%!" rule.channel_name)
+           Printf.printf " -> #%s\n%!" (Slack_channel.Name.project rule.channel_name))
 end
 
 module Label = struct
@@ -109,7 +109,7 @@ module Label = struct
       | None | Some [] -> Some rule.channel_name
       | Some allow_list -> if List.exists label_name_equal allow_list then Some rule.channel_name else None
     in
-    rules |> List.filter_map match_rule |> List.sort_uniq String.compare
+    rules |> List.filter_map match_rule |> List.sort_uniq Slack_channel.compare
 
   let print_label_routing rules =
     let show_match l = String.concat " or " l in
@@ -124,7 +124,7 @@ module Label = struct
              | Some l, Some [] -> Printf.printf "  %s" (show_match l)
              | Some l, Some i -> Printf.printf "  %s and not %s" (show_match l) (show_match i)
            end;
-           Printf.printf " -> #%s\n%!" rule.channel_name)
+           Printf.printf " -> #%s\n%!" (Slack_channel.Name.project rule.channel_name))
 end
 
 module Project_owners = struct

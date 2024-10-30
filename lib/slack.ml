@@ -1,4 +1,5 @@
 open Printf
+open Devkit
 open Common
 open Util
 open Mrkdwn
@@ -64,7 +65,9 @@ let add_slack_mentions_to_body slack_match_func body =
   let replace_match m =
     let gh_handle = Re2.Match.get_exn ~sub:(`Index 0) m in
     let gh_handle_without_at = Re2.Match.get_exn ~sub:(`Index 1) m in
-    Option.map_default (sprintf "<@%s>") gh_handle (slack_match_func gh_handle_without_at)
+    match slack_match_func gh_handle_without_at with
+    | None -> gh_handle
+    | Some user_id -> sprintf "<@%s>" (Slack_user_id.project user_id)
   in
   Re2.replace_exn github_handle_regex body ~f:replace_match
 
@@ -159,13 +162,15 @@ let generate_pr_review_notification ~slack_match_func ~(ctx : Context.t) ~get_th
     let%lwt thread_mention = make_thread_mention ~ctx thread get_thread_permalink in
     let body = Some (sprintf "**Comment**: %s\n%s" (Option.default "" review.body) thread_mention) in
     Lwt.return
-    @@ make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
+    @@ make_message ~text:summary
+         ?attachments:(format_attachments ~slack_match_func ~footer:None ~body)
+         ~channel:(Slack_channel.to_any channel) ()
   in
 
   let msg =
     make_message ~text:summary ?thread
       ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:review.body)
-      ~channel ()
+      ~channel:(Slack_channel.to_any channel) ()
   in
   (* If we have a thread for the current PR, we post the review msg in the thread and the summary msg on the channel.
      Otherwise, we only send one message, but to the channel *)
@@ -197,7 +202,7 @@ let generate_pr_review_comment_notification ~slack_match_func ~(ctx : Context.t)
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
   make_message ~text:summary ?thread
     ?attachments:(format_attachments ~slack_match_func ~footer:file ~body:(Some comment.body))
-    ~channel ()
+    ~channel:(Slack_channel.to_any channel) ()
 
 let generate_issue_notification ~slack_match_func notification channel =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
@@ -249,12 +254,14 @@ let generate_issue_comment_notification ~(ctx : Context.t) ~slack_match_func ~ge
     let body = Some (sprintf "**Comment**: %s\n%s" comment.body thread_mention) in
 
     Lwt.return
-    @@ make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
+    @@ make_message ~text:summary
+         ?attachments:(format_attachments ~slack_match_func ~footer:None ~body)
+         ~channel:(Slack_channel.to_any channel) ()
   in
   let msg =
     make_message ~text:summary ?thread
       ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:(Some comment.body))
-      ~channel ()
+      ~channel:(Slack_channel.to_any channel) ()
   in
   (* If we have a thread for the current PR, we post the review msg in the thread and the summary msg on the channel.
      Otherwise, we only send the normal message, but to the channel *)
@@ -360,7 +367,7 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
       (let mention =
          match slack_user_id with
          | None -> ""
-         | Some id -> sprintf "<@%s>" id
+         | Some id -> sprintf "<@%s>" (Slack_user_id.project id)
        in
        sprintf "*Commit*: `<%s|%s>` %s" html_url (git_short_sha_hash sha) mention);
     ]
@@ -417,7 +424,8 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
       | Some pipelines ->
         List.exists
           (fun ({ name; failed_builds_channel } : Config_t.pipeline) ->
-            String.equal name context && Option.map_default (String.equal channel) false failed_builds_channel)
+            String.equal name context
+            && Option.map_default Slack_channel.(equal channel $ to_any) false failed_builds_channel)
           pipelines
     in
     match Util.Build.is_failed_build notification && is_failed_builds_channel with
@@ -426,7 +434,7 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
       let repo_state = State.find_or_add_repo ctx.state repository.url in
       let pipeline = notification.context in
       let slack_step_link (s, l) =
-        let step = Devkit.Stre.drop_prefix s (pipeline ^ "/") in
+        let step = Stre.drop_prefix s (pipeline ^ "/") in
         Printf.sprintf "<%s|%s> " l step
       in
       (match Build.new_failed_steps notification repo_state pipeline with
@@ -437,7 +445,7 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
   let attachment =
     { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text = Some msg }
   in
-  make_message ~text:summary ~attachments:[ attachment ] ~channel ()
+  make_message ~text:summary ~attachments:[ attachment ] ~channel:(Slack_channel.to_any channel) ()
 
 let generate_commit_comment_notification ~slack_match_func api_commit notification channel =
   let { commit; _ } = api_commit in

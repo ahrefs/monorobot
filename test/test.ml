@@ -63,7 +63,7 @@ let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_
 let process_slack_event ~(secrets : Config_t.secrets) path =
   let ctx = Context.make () in
   ctx.secrets <- Some secrets;
-  State.set_bot_user_id ctx.state "bot_user";
+  State.set_bot_user_id ctx.state (Common.Slack_user_id.inject "bot_user");
   Printf.printf "===== file %s =====\n" path;
   match Slack_j.event_notification_of_string (Std.input_file path) with
   | exception exn ->

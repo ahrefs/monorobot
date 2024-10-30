@@ -65,7 +65,7 @@ module Slack : Api.Slack = struct
 
   let lookup_user ?cache:_ ~ctx:_ ~(cfg : Config_t.config) ~email () =
     let email = List.assoc_opt email cfg.user_mappings |> Option.default email in
-    let mock_user = { Slack_t.id = sprintf "id[%s]" email; profile = { email = Some email } } in
+    let mock_user = { Slack_t.id = Slack_user_id.inject (sprintf "id[%s]" email); profile = { email = Some email } } in
     let mock_response = { Slack_t.user = mock_user } in
     Lwt.return @@ Ok mock_response
 
@@ -75,26 +75,30 @@ module Slack : Api.Slack = struct
 
   let send_notification ~ctx:_ ~msg =
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
-    Printf.printf "will notify #%s\n" msg.channel;
+    Printf.printf "will notify #%s\n" (Slack_channel.Any.project msg.channel);
     Printf.printf "%s\n" json;
     Lwt.return @@ Ok None
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts ~unfurls () =
     let req = Slack_j.{ channel; ts; unfurls } in
     let data = req |> Slack_j.string_of_chat_unfurl_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
-    Printf.printf "will unfurl in #%s\n" channel;
+    Printf.printf "will unfurl in #%s\n" (Slack_channel.Ident.project channel);
     Printf.printf "%s\n" data;
     Lwt.return @@ Ok ()
 
   let send_auth_test ~ctx:_ () =
     Lwt.return
-    @@ Ok ({ url = ""; team = ""; user = ""; team_id = ""; user_id = "test_slack_user" } : Slack_t.auth_test_res)
+    @@ Ok
+         ({ url = ""; team = ""; user = ""; team_id = ""; user_id = Slack_user_id.inject "test_slack_user" }
+           : Slack_t.auth_test_res)
 
   let get_thread_permalink ~ctx:_ (thread : State_t.slack_thread) =
     Lwt.return_some
-    @@ Printf.sprintf "https://monorobot.slack.com/archives/%s/p%s?thread_ts=%s&cid=%s" thread.cid
-         (Stre.replace_all ~str:thread.ts ~sub:"." ~by:"")
-         thread.ts thread.cid
+    @@ Printf.sprintf "https://monorobot.slack.com/archives/%s/p%s?thread_ts=%s&cid=%s"
+         (Slack_channel.Ident.project thread.cid)
+         (Stre.replace_all ~str:(Slack_timestamp.project thread.ts) ~sub:"." ~by:"")
+         (Slack_timestamp.project thread.ts)
+         (Slack_channel.Ident.project thread.cid)
 end
 
 (** Simple messages (only the actual text messages that users see) output to log for checking payload commands *)
@@ -104,14 +108,14 @@ module Slack_simple : Api.Slack = struct
   let log = Log.from "slack"
 
   let send_notification ~ctx:_ ~(msg : Slack_t.post_message_req) =
-    log#info "will notify %s%s" msg.channel
+    log#info "will notify %s%s" (Slack_channel.Any.project msg.channel)
       (match msg.Slack_t.text with
       | None -> ""
       | Some s -> sprintf " with %S" s);
     Lwt.return @@ Ok None
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
-    Printf.printf "will unfurl in #%s\n" channel;
+    Printf.printf "will unfurl in #%s\n" (Slack_channel.Ident.project channel);
     let unfurl_text =
       List.map (fun ((_, unfurl) : string * Slack_t.message_attachment) -> unfurl.text) (StringMap.to_list unfurls)
     in
@@ -120,7 +124,9 @@ module Slack_simple : Api.Slack = struct
 
   let send_auth_test ~ctx:_ () =
     Lwt.return
-    @@ Ok ({ url = ""; team = ""; user = ""; team_id = ""; user_id = "test_slack_user" } : Slack_t.auth_test_res)
+    @@ Ok
+         ({ url = ""; team = ""; user = ""; team_id = ""; user_id = Slack_user_id.inject "test_slack_user" }
+           : Slack_t.auth_test_res)
 
   let get_thread_permalink ~ctx:_ (_thread : State_t.slack_thread) = Lwt.return_none
 end
@@ -132,25 +138,26 @@ module Slack_json : Api.Slack = struct
   let log = Log.from "slack"
 
   let send_notification ~ctx:_ ~(msg : Slack_t.post_message_req) =
-    log#info "will notify %s" msg.channel;
+    log#info "will notify %s" (Slack_channel.Any.project msg.channel);
     let json = Slack_j.string_of_post_message_req msg in
     let url = Uri.of_string "https://api.slack.com/docs/messages/builder" in
     let url = Uri.add_query_param url ("msg", [ json ]) in
     log#info "%s" (Uri.to_string url);
     log#info "%s" json;
-    Lwt.return @@ Ok None
+    Lwt.return_ok None
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
-    log#info "will notify %s" channel;
+    log#info "will notify %s" (Slack_channel.Ident.project channel);
     let json = List.map (fun (_, unfurl) -> Slack_j.string_of_unfurl unfurl) (StringMap.to_list unfurls) in
     let url = Uri.of_string "https://slack.com/api/chat.unfurl" in
     log#info "%s" (Uri.to_string url);
     log#info "%s" (String.concat ";\n" json);
-    Lwt.return @@ Ok ()
+    Lwt.return_ok ()
 
   let send_auth_test ~ctx:_ () =
-    Lwt.return
-    @@ Ok ({ url = ""; team = ""; user = ""; team_id = ""; user_id = "test_slack_user" } : Slack_t.auth_test_res)
+    Lwt.return_ok
+      ({ url = ""; team = ""; user = ""; team_id = ""; user_id = Slack_user_id.inject "test_slack_user" }
+        : Slack_t.auth_test_res)
 
   let get_thread_permalink ~ctx:_ (_thread : State_t.slack_thread) = Lwt.return_none
 end

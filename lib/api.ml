@@ -1,3 +1,4 @@
+open Common
 open Github_t
 open Slack_t
 
@@ -26,9 +27,9 @@ module type Slack = sig
 
   val send_chat_unfurl :
     ctx:Context.t ->
-    channel:string ->
-    ts:string ->
-    unfurls:message_attachment Common.StringMap.t ->
+    channel:Slack_channel.Ident.t ->
+    ts:Slack_timestamp.t ->
+    unfurls:message_attachment StringMap.t ->
     unit ->
     unit slack_response Lwt.t
 
