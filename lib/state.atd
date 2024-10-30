@@ -47,9 +47,9 @@ type slack_threads = slack_thread list map_as_object
 
 (* The runtime state of a given GitHub repository *)
 type repo_state = {
-  pipeline_statuses <ocaml mutable>: pipeline_statuses;
-  pipeline_commits <ocaml mutable>: pipeline_commits;
-  slack_threads <ocaml mutable>: slack_threads;
+  ~pipeline_statuses <ocaml mutable default="Common.StringMap.empty">: pipeline_statuses;
+  ~pipeline_commits <ocaml mutable default="Common.StringMap.empty">: pipeline_commits;
+  ~slack_threads <ocaml mutable default="Common.StringMap.empty">: slack_threads;
 }
 
 (* The serializable runtime state of the bot *)
