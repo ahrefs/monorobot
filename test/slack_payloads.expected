@@ -149,7 +149,8 @@ will notify #default
       "text": "handle issue comment"
     }
   ],
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/issue_comment.created_in_issue_by_ignored.json =====
 ===== file ../mock_payloads/issue_comment.created_in_pr.json =====
@@ -165,7 +166,8 @@ will notify #a1-bot
       "text": "comment example"
     }
   ],
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 will notify #backend
 {
@@ -179,7 +181,8 @@ will notify #backend
       "text": "comment example"
     }
   ],
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/issue_comment.created_with_mention.json =====
 will notify #default
@@ -194,7 +197,8 @@ will notify #default
       "text": "<@U06PUSUR2Q1> test comment"
     }
   ],
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/issue_comment.deleted.json =====
 ===== file ../mock_payloads/issue_comment.draft_pr.json =====
@@ -210,7 +214,8 @@ will notify #frontend-bot
       "text": "> I do not understand this\n\nDo you have access to the logs on the website?"
     }
   ],
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/issue_comment.edited.json =====
 ===== file ../mock_payloads/issues.closed.json =====
@@ -277,14 +282,16 @@ will notify #a1-bot
 {
   "channel": "a1-bot",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by *xinyuluo*",
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/pull_request.closed_no_labels.json =====
 will notify #default
 {
   "channel": "default",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #2 <https://github.com/xinyuluo/monorepo/pull/2|Update README.md> merged by *xinyuluo*",
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/pull_request.labeled_two_labels_no_thread.json =====
 ===== file ../mock_payloads/pull_request.labeled_two_labels_with_thread.json =====
@@ -353,20 +360,6 @@ will notify #default
 will notify #default
 {
   "channel": "default",
-  "text": "<https://github.com/Khady/monorepo|[Khady/monorepo]> *Khady* <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "text" ],
-      "color": "#ccc",
-      "text": "*Comment*: approve review\n*Slack thread*: <https://monorobot.slack.com/archives/Cdefault/p1728399554482879?thread_ts=1728399554.482879&cid=Cdefault|comments and reviews>"
-    }
-  ],
-  "unfurl_links": false
-}
-will notify #default
-{
-  "channel": "default",
   "thread_ts": "1728399554.482879",
   "text": "<https://github.com/Khady/monorepo|[Khady/monorepo]> *Khady* <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|approved> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>",
   "attachments": [
@@ -377,23 +370,10 @@ will notify #default
       "text": "approve review"
     }
   ],
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/pull_request_review.commented.json =====
-will notify #frontend-bot
-{
-  "channel": "frontend-bot",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|reviewed> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "text" ],
-      "color": "#ccc",
-      "text": "*Comment*: submit a PR review\n*Slack thread*: <https://monorobot.slack.com/archives/Cfebot/p1728399554482879?thread_ts=1728399554.482879&cid=Cfebot|comments and reviews>"
-    }
-  ],
-  "unfurl_links": false
-}
 will notify #frontend-bot
 {
   "channel": "frontend-bot",
@@ -407,25 +387,12 @@ will notify #frontend-bot
       "text": "submit a PR review"
     }
   ],
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/pull_request_review.dismissed.json =====
 ===== file ../mock_payloads/pull_request_review.edited.json =====
 ===== file ../mock_payloads/pull_request_review.request_changes.json =====
-will notify #default
-{
-  "channel": "default",
-  "text": "<https://github.com/Khady/monorepo|[Khady/monorepo]> *Khady* <https://github.com/Khady/monorepo/pull/6#pullrequestreview-0|requested changes on> #6 <https://github.com/Khady/monorepo/pull/6|create pr_review_test.md>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "text" ],
-      "color": "#ccc",
-      "text": "*Comment*: request changes review\n*Slack thread*: <https://monorobot.slack.com/archives/Cdefault/p1728399554482879?thread_ts=1728399554.482879&cid=Cdefault|comments and reviews>"
-    }
-  ],
-  "unfurl_links": false
-}
 will notify #default
 {
   "channel": "default",
@@ -439,23 +406,10 @@ will notify #default
       "text": "request changes review"
     }
   ],
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/pull_request_review.submitted_comment.json =====
-will notify #frontend-bot
-{
-  "channel": "frontend-bot",
-  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/3#pullrequestreview-0|reviewed> #3 <https://github.com/xinyuluo/monorepo/pull/3|Update README.md>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "text" ],
-      "color": "#ccc",
-      "text": "*Comment*: This is a great PR, thank you!\n*Slack thread*: <https://monorobot.slack.com/archives/Cfebot/p1728399554482879?thread_ts=1728399554.482879&cid=Cfebot|comments and reviews>"
-    }
-  ],
-  "unfurl_links": false
-}
 will notify #frontend-bot
 {
   "channel": "frontend-bot",
@@ -469,7 +423,8 @@ will notify #frontend-bot
       "text": "This is a great PR, thank you!"
     }
   ],
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/pull_request_review.submitted_no_comment.json =====
 ===== file ../mock_payloads/pull_request_review.submitted_null_body.json =====

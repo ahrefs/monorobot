@@ -69,6 +69,7 @@ type post_message_req = {
   ?blocks: message_block list nullable;
   ?unfurl_media : bool nullable;
   ?unfurl_links : bool nullable;
+  ~reply_broadcast <ocaml default="false"> : bool;
 }
 
 type post_message_res = {

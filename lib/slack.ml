@@ -45,7 +45,7 @@ let markdown_text_attachment ~footer markdown_body =
     };
   ]
 
-let make_message ?username ?text ?attachments ?blocks ?thread ?handler ~channel () =
+let make_message ?username ?text ?attachments ?blocks ?thread ?handler ?(reply_broadcast = false) ~channel () =
   ( {
       channel;
       thread_ts = Option.map (fun (t : State_t.slack_thread) -> t.ts) thread;
@@ -55,6 +55,7 @@ let make_message ?username ?text ?attachments ?blocks ?thread ?handler ~channel 
       username;
       unfurl_links = Some false;
       unfurl_media = None;
+      reply_broadcast;
     },
     handler )
 
@@ -77,18 +78,10 @@ let format_attachments ~slack_match_func ~footer ~body =
   in
   Option.map (fun t -> markdown_text_attachment ~footer t |> List.map format_mention_in_markdown) body
 
-let make_thread_mention ~ctx (thread : State_t.slack_thread option) get_thread_link =
-  match thread with
-  | Some thread ->
-    (match%lwt get_thread_link ~ctx thread with
-    | None -> Lwt.return ""
-    | Some permalink -> Lwt.return @@ sprintf "**Slack thread**: [comments and reviews](%s)" permalink)
-  | None -> Lwt.return ""
-
-let generate_pull_request_notification ~slack_match_func ~(ctx : Context.t) ~get_thread_permalink notification channel =
+let generate_pull_request_notification ~slack_match_func ~(ctx : Context.t) notification channel =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
-  let action, body =
+  let action_label, body =
     match action with
     | Opened | Ready_for_review ->
       let labels_banner = show_labels labels in
@@ -105,34 +98,28 @@ let generate_pull_request_notification ~slack_match_func ~(ctx : Context.t) ~get
            (string_of_pr_action action))
   in
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
-  let%lwt summary =
-    Lwt.return
-    @@ sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
-         (pp_link ~url:html_url title) action sender.login
+  let summary =
+    sprintf "<%s|[%s]> Pull request #%d %s %s by *%s*" repository.url repository.full_name number
+      (pp_link ~url:html_url title) action_label sender.login
   in
+  let attachments = format_attachments ~slack_match_func ~footer:None ~body in
   let handler (res : Slack_t.post_message_res) =
     match notification.action with
-    | Opened | Ready_for_review | Labeled ->
+    | Opened | Ready_for_review | Labeled | Reopened ->
       State.add_thread_if_new ctx.state ~repo_url:repository.url ~pr_url:html_url
         { cid = res.channel; channel; ts = res.ts }
     | Closed -> State.delete_thread ctx.state ~repo_url:repository.url ~pr_url:html_url
     | _ -> ()
   in
-  let make_message' =
-    make_message ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~handler ~channel
+  let reply_broadcast =
+    (* for closed/merged notifications, we want to notify the channel *)
+    match action with
+    | Closed -> true
+    | _ -> false
   in
-  match notification.action = Closed, thread with
-  | true, Some slack_thread ->
-    let%lwt summary_with_thread =
-      match%lwt get_thread_permalink ~ctx slack_thread with
-      | None -> Lwt.return ""
-      | Some permalink -> Lwt.return @@ sprintf "%s\n> *Slack thread*: <%s|comments and reviews>" summary permalink
-    in
-    (* for closed/merged notifications, we want to notify the channel and the thread. *)
-    Lwt.return [ make_message' ~text:summary ?thread (); make_message' ~text:summary_with_thread () ]
-  | _ -> Lwt.return [ make_message' ~text:summary ?thread () ]
+  make_message ~text:summary ?attachments ?thread ~handler ~reply_broadcast ~channel ()
 
-let generate_pr_review_notification ~slack_match_func ~(ctx : Context.t) ~get_thread_permalink notification channel =
+let generate_pr_review_notification ~slack_match_func ~(ctx : Context.t) notification channel =
   let { action; sender; pull_request; review; repository } = notification in
   let ({ number; title; html_url; _ } : pull_request) = pull_request in
   let action_str =
@@ -153,31 +140,9 @@ let generate_pr_review_notification ~slack_match_func ~(ctx : Context.t) ~get_th
       number (pp_link ~url:html_url title)
   in
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
-
-  let%lwt pr_summary =
-    let summary =
-      sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login review.html_url
-        action_str number (pp_link ~url:html_url title)
-    in
-    let%lwt thread_mention = make_thread_mention ~ctx thread get_thread_permalink in
-    let body = Some (sprintf "**Comment**: %s\n%s" (Option.default "" review.body) thread_mention) in
-    Lwt.return
-    @@ make_message ~text:summary
-         ?attachments:(format_attachments ~slack_match_func ~footer:None ~body)
-         ~channel:(Slack_channel.to_any channel) ()
-  in
-
-  let msg =
-    make_message ~text:summary ?thread
-      ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:review.body)
-      ~channel:(Slack_channel.to_any channel) ()
-  in
-  (* If we have a thread for the current PR, we post the review msg in the thread and the summary msg on the channel.
-     Otherwise, we only send one message, but to the channel *)
-  Lwt.return
-    (match Option.is_some thread with
-    | false -> [ msg ]
-    | true -> [ pr_summary; msg ])
+  make_message ~text:summary ?thread ~reply_broadcast:true
+    ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:review.body)
+    ~channel ()
 
 let generate_pr_review_comment_notification ~slack_match_func ~(ctx : Context.t) notification channel =
   let { action; pull_request; sender; comment; repository } = notification in
@@ -200,7 +165,7 @@ let generate_pr_review_comment_notification ~slack_match_func ~(ctx : Context.t)
     | Some a -> Some (sprintf "Commented in file <%s|%s>" comment.html_url a)
   in
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
-  make_message ~text:summary ?thread
+  make_message ~text:summary ?thread ~reply_broadcast:false (* send comments to thread only *)
     ?attachments:(format_attachments ~slack_match_func ~footer:file ~body:(Some comment.body))
     ~channel:(Slack_channel.to_any channel) ()
 
@@ -222,11 +187,9 @@ let generate_issue_notification ~slack_match_func notification channel =
     sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number (pp_link ~url:html_url title)
       action sender.login
   in
-
   make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
 
-let generate_issue_comment_notification ~(ctx : Context.t) ~slack_match_func ~get_thread_permalink notification channel
-    =
+let generate_issue_comment_notification ~(ctx : Context.t) ~slack_match_func notification channel =
   let { action; issue; sender; comment; repository } = notification in
   let { number; title; html_url; _ } = issue in
   let action_str =
@@ -243,32 +206,9 @@ let generate_issue_comment_notification ~(ctx : Context.t) ~slack_match_func ~ge
       action_str number (pp_link ~url:issue.html_url title)
   in
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
-  let%lwt comment_summary =
-    let summary =
-      sprintf "<%s|[%s]> *%s* <%s|%s> #%d %s" repository.url repository.full_name sender.login html_url action_str
-        number (pp_link ~url:html_url title)
-    in
-
-    let%lwt thread_mention = make_thread_mention ~ctx thread get_thread_permalink in
-
-    let body = Some (sprintf "**Comment**: %s\n%s" comment.body thread_mention) in
-
-    Lwt.return
-    @@ make_message ~text:summary
-         ?attachments:(format_attachments ~slack_match_func ~footer:None ~body)
-         ~channel:(Slack_channel.to_any channel) ()
-  in
-  let msg =
-    make_message ~text:summary ?thread
-      ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:(Some comment.body))
-      ~channel:(Slack_channel.to_any channel) ()
-  in
-  (* If we have a thread for the current PR, we post the review msg in the thread and the summary msg on the channel.
-     Otherwise, we only send the normal message, but to the channel *)
-  Lwt.return
-    (match Option.is_some thread with
-    | false -> [ msg ]
-    | true -> [ comment_summary; msg ])
+  make_message ~text:summary ?thread ~reply_broadcast:true
+    ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:(Some comment.body))
+    ~channel ()
 
 let git_short_sha_hash hash = String.sub hash 0 8
 
