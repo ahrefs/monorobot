@@ -76,7 +76,11 @@ let format_attachments ~slack_match_func ~footer ~body =
   let format_mention_in_markdown (md : unfurl) =
     { md with text = Option.map (add_slack_mentions_to_body slack_match_func) md.text }
   in
-  Option.map (fun t -> markdown_text_attachment ~footer t |> List.map format_mention_in_markdown) body
+  match body with
+  | None | Some "" (* GitHub sometimes sends empty string as comment body *) -> None
+  | Some body ->
+    let attachments = markdown_text_attachment ~footer body in
+    Some (List.map format_mention_in_markdown attachments)
 
 let thread_state_handler ~ctx ~channel ~repo_url ~html_url action (response : Slack_t.post_message_res) =
   match action with
