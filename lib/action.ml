@@ -277,7 +277,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let repo = Github.repo_of_notification req in
     let cfg = Context.find_repo_config_exn ctx repo.url in
     let slack_match_func = match_github_login_to_slack_id cfg in
-    let get_thread_permalink = Slack_api.get_thread_permalink in
     match ignore_notifications_from_user cfg req with
     | true -> Lwt.return []
     | false ->
@@ -285,28 +284,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     | Github.Push n ->
       partition_push cfg n |> List.map (fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
     | Pull_request n ->
-      let%lwt notifications =
-        partition_pr cfg ctx n
-        |> Lwt_list.map_p (generate_pull_request_notification ~ctx ~slack_match_func ~get_thread_permalink n)
-      in
-      Lwt.return @@ List.flatten notifications
+      partition_pr cfg ctx n |> List.map (generate_pull_request_notification ~ctx ~slack_match_func n) |> Lwt.return
     | PR_review n ->
-      let%lwt notifications =
-        partition_pr_review cfg n
-        |> Lwt_list.map_p (generate_pr_review_notification ~ctx ~slack_match_func ~get_thread_permalink n)
-      in
-      Lwt.return @@ List.flatten notifications
+      partition_pr_review cfg n |> List.map (generate_pr_review_notification ~ctx ~slack_match_func n) |> Lwt.return
     | PR_review_comment n ->
       partition_pr_review_comment cfg n
       |> List.map (generate_pr_review_comment_notification ~ctx ~slack_match_func n)
       |> Lwt.return
-    | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification ~slack_match_func n) |> Lwt.return
+    | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification ~ctx ~slack_match_func n) |> Lwt.return
     | Issue_comment n ->
-      let%lwt notifications =
-        partition_issue_comment cfg n
-        |> Lwt_list.map_p (generate_issue_comment_notification ~ctx ~slack_match_func ~get_thread_permalink n)
-      in
-      Lwt.return @@ List.flatten notifications
+      partition_issue_comment cfg n
+      |> List.map (generate_issue_comment_notification ~ctx ~slack_match_func n)
+      |> Lwt.return
     | Commit_comment n ->
       let%lwt channels, api_commit = partition_commit_comment ctx n in
       let notifs = List.map (generate_commit_comment_notification ~slack_match_func api_commit n) channels in
