@@ -291,7 +291,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       partition_pr_review_comment cfg n
       |> List.map (generate_pr_review_comment_notification ~ctx ~slack_match_func n)
       |> Lwt.return
-    | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification ~slack_match_func n) |> Lwt.return
+    | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification ~ctx ~slack_match_func n) |> Lwt.return
     | Issue_comment n ->
       partition_issue_comment cfg n
       |> List.map (generate_issue_comment_notification ~ctx ~slack_match_func n)

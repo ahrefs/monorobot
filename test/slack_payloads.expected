@@ -223,7 +223,8 @@ will notify #backend
 {
   "channel": "backend",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Issue #6 <https://github.com/xinyuluo/monorepo/issues/6|create a test for issue_notification> closed by *xinyuluo*",
-  "unfurl_links": false
+  "unfurl_links": false,
+  "reply_broadcast": true
 }
 ===== file ../mock_payloads/issues.labeled.json =====
 will notify #backend

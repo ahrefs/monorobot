@@ -78,6 +78,26 @@ let format_attachments ~slack_match_func ~footer ~body =
   in
   Option.map (fun t -> markdown_text_attachment ~footer t |> List.map format_mention_in_markdown) body
 
+let thread_state_handler ~ctx ~channel ~repo_url ~html_url action (response : Slack_t.post_message_res) =
+  match action with
+  | `Add ->
+    State.add_thread_if_new ctx.Context.state ~repo_url ~pr_url:html_url
+      { cid = response.channel; channel; ts = response.ts }
+  | `Delete -> State.delete_thread ctx.state ~repo_url ~pr_url:html_url
+  | `Noop -> ()
+
+let thread_state_action_of_pr_action : pr_action -> _ = function
+  | Opened | Ready_for_review | Labeled
+  | Reopened (* thread state deleted when PR closed, so need to re-add on reopen *) ->
+    `Add
+  | Closed -> `Delete
+  | _ -> `Noop
+
+let thread_state_action_of_issue_action : issue_action -> _ = function
+  | Opened | Labeled | Reopened (* thread state deleted when PR closed, so need to re-add on reopen *) -> `Add
+  | Closed -> `Delete
+  | _ -> `Noop
+
 let generate_pull_request_notification ~slack_match_func ~(ctx : Context.t) notification channel =
   let { action; number; sender; pull_request; repository } = notification in
   let ({ body; title; html_url; labels; merged; _ } : pull_request) = pull_request in
@@ -103,13 +123,8 @@ let generate_pull_request_notification ~slack_match_func ~(ctx : Context.t) noti
       (pp_link ~url:html_url title) action_label sender.login
   in
   let attachments = format_attachments ~slack_match_func ~footer:None ~body in
-  let handler (res : Slack_t.post_message_res) =
-    match notification.action with
-    | Opened | Ready_for_review | Labeled | Reopened ->
-      State.add_thread_if_new ctx.state ~repo_url:repository.url ~pr_url:html_url
-        { cid = res.channel; channel; ts = res.ts }
-    | Closed -> State.delete_thread ctx.state ~repo_url:repository.url ~pr_url:html_url
-    | _ -> ()
+  let handler =
+    thread_state_handler ~ctx ~channel ~repo_url:repository.url ~html_url (thread_state_action_of_pr_action action)
   in
   let reply_broadcast =
     (* for closed/merged notifications, we want to notify the channel *)
@@ -169,10 +184,10 @@ let generate_pr_review_comment_notification ~slack_match_func ~(ctx : Context.t)
     ?attachments:(format_attachments ~slack_match_func ~footer:file ~body:(Some comment.body))
     ~channel:(Slack_channel.to_any channel) ()
 
-let generate_issue_notification ~slack_match_func notification channel =
+let generate_issue_notification ~slack_match_func ~ctx notification channel =
   let ({ action; sender; issue; repository } : issue_notification) = notification in
   let { number; body; title; html_url; labels; _ } = issue in
-  let action, body =
+  let action_label, body =
     match action with
     | Opened -> "opened", body
     | Closed -> "closed", None
@@ -185,9 +200,20 @@ let generate_issue_notification ~slack_match_func notification channel =
   in
   let summary =
     sprintf "<%s|[%s]> Issue #%d %s %s by *%s*" repository.url repository.full_name number (pp_link ~url:html_url title)
-      action sender.login
+      action_label sender.login
   in
-  make_message ~text:summary ?attachments:(format_attachments ~slack_match_func ~footer:None ~body) ~channel ()
+  let handler =
+    thread_state_handler ~ctx ~channel ~repo_url:repository.url ~html_url (thread_state_action_of_issue_action action)
+  in
+  let reply_broadcast =
+    (* for closed notifications, we want to notify the channel *)
+    match action with
+    | Closed -> true
+    | _ -> false
+  in
+  make_message ~text:summary
+    ?attachments:(format_attachments ~slack_match_func ~footer:None ~body)
+    ~handler ~reply_broadcast ~channel ()
 
 let generate_issue_comment_notification ~(ctx : Context.t) ~slack_match_func notification channel =
   let { action; issue; sender; comment; repository } = notification in
