@@ -181,8 +181,13 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
 ```json
 "status_rules": {
     "allowed_pipelines": [
-        "default",
-        "buildkite/monorobot-test"
+      {
+        "name": "default"
+      },
+      {
+        "failed_builds_channel": "failed-builds",
+        "name": "buildkite/monorobot-test"
+      }
     ],
     "rules": [
         {
@@ -204,7 +209,7 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
 
 | value | description | default |
 |-|-|-|
-| `allowed_pipelines` | a list of pipeline names; if specified, payloads whose pipeline name is not in the list will be ignored immediately, without checking the **status rules** | all pipelines included in the status rule check |
+| `allowed_pipelines` | a list of pipelines objects. Pipelines can have two properties: name (mandatory) and `failed_builds_channel` (optional). If specified, payloads whose pipeline name is not in the list will be ignored immediately, without checking the **status rules**. When the `failed_builds_channel` is set, monorobot will notify that channel whenever we have a failed build on the main branch. | all pipelines included in the status rule check |
 | `rules` | a list of **status rules** to determine whether to *allow* or *ignore* a payload for further processing | required field |
 
 ### Status Rules
