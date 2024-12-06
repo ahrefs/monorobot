@@ -28,7 +28,44 @@ let sign_string_sha256 ~key ~basestring =
   Cstruct.of_string basestring |> Nocrypto.Hash.SHA256.hmac ~key:(Cstruct.of_string key) |> Hex.of_cstruct |> Hex.show
 
 module Build = struct
+  type pipeline_check = {
+    is_pipeline_step : bool;
+    pipeline_name : string;
+  }
+
   let buildkite_is_failed_re = Re2.create_exn {|^Build #\d+ failed|}
+
+  let parse_context ~context ~build_url =
+    let rec get_name context build_url =
+      match String.length context with
+      | 0 -> Error "failed to get pipeline name from notification"
+      | _ when Devkit.Stre.exists build_url (context ^ "/") ->
+        (* We need to add the "/" to context to avoid partial matches between the context and the build_url *)
+        Ok context
+      | _ ->
+      (* Matches the notification context against the build_url to get the base pipeline name.
+         Drop path levels from the context until we find a match with the build_url. This is the base name. *)
+      match String.rindex_opt context '/' with
+      | Some idx -> get_name (String.sub context 0 idx) build_url
+      | None -> Error "failed to get pipeline name from notification"
+    in
+    (* if we have a buildkit pipeline, we need to strip the `buildkite/` prefix to get the real name *)
+    let context' = Stre.drop_prefix context "buildkite/" in
+    let pipeline_name = get_name context' build_url in
+    Result.map (fun pipeline_name -> { is_pipeline_step = pipeline_name <> context'; pipeline_name }) pipeline_name
+
+  let get_build_number ~context ~build_url =
+    match parse_context ~context ~build_url with
+    | Error msg -> Error msg
+    | Ok { pipeline_name; _ } ->
+      (* build urls are in the form of .../<base_pipeline_name>/builds/<build_number>.
+         Pipeline steps have an html anchor after the build number *)
+      let re = Re2.create_exn (Printf.sprintf ".*/%s/builds/(\\d+)#?" pipeline_name) in
+      (match Re2.find_submatches_exn re build_url with
+      | [| _; Some build_number |] -> Ok build_number
+      | _ | (exception _) ->
+        (* we either match on the first case or get an exception. *)
+        Error "failed to get build number from url")
 
   let is_failed_build (n : Github_t.status_notification) =
     n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description)

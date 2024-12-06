@@ -7,6 +7,38 @@ type user_id = string wrap <ocaml t="Common.Slack_user_id.t" wrap="Common.Slack_
 type channel_id = string wrap <ocaml t="Common.Slack_channel.Ident.t" wrap="Common.Slack_channel.Ident.inject" unwrap="Common.Slack_channel.Ident.project">
 type any_channel = string wrap <ocaml t="Common.Slack_channel.Any.t" wrap="Common.Slack_channel.Any.inject" unwrap="Common.Slack_channel.Any.project">
 
+type ci_commit_new = {
+  sha: string;
+  author: string;
+  commit_message: string;
+}
+
+type failed_step = {
+  name: string;
+  build_link: string option;
+}
+
+type build_status_new = {
+  status: status_state;
+  build_number: string;
+  build_link: string option;
+  commit: ci_commit_new;
+  is_finished: bool;
+  failed_steps: failed_step list;
+  created_at: string;
+  finished_at: string nullable;
+}
+
+(* A map from builds numbers to build statuses *)
+type build_statuses = build_status_new map_as_object
+
+(* A map from branch names to [build_statuses] maps *)
+type branch_statuses_new = build_statuses map_as_object
+
+(* A map from pipeline names to [branch_statuses] maps.
+   This tracks the last build state matched by the status_rules for each pipeline and branch *)
+type pipeline_statuses_new = branch_statuses_new map_as_object
+
 type ci_commit = {
   sha: string;
   author: string;
@@ -48,6 +80,7 @@ type slack_threads = slack_thread list map_as_object
 
 (* The runtime state of a given GitHub repository *)
 type repo_state = {
+  ~pipeline_statuses_new <ocaml mutable default="Common.StringMap.empty">: pipeline_statuses_new;
   ~pipeline_statuses <ocaml mutable default="Common.StringMap.empty">: pipeline_statuses;
   ~pipeline_commits <ocaml mutable default="Common.StringMap.empty">: pipeline_commits;
   ~slack_threads <ocaml mutable default="Common.StringMap.empty">: slack_threads;

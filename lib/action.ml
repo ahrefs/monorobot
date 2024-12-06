@@ -161,7 +161,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         if notify_dm then begin
           match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email () with
           | Ok res ->
-            State.set_repo_pipeline_commit ctx.state repo.url ~pipeline ~commit:n.sha;
+            State.set_repo_pipeline_commit ctx.state n;
             (* To send a DM, channel parameter is set to the user id of the recipient *)
             Lwt.return [ Slack_user_id.to_channel_id res.user.id ]
           | Error e ->
@@ -233,7 +233,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       end
       else Lwt.return []
     in
-    State.set_repo_pipeline_status ctx.state repo.url ~pipeline n;
+    State.set_repo_pipeline_status_new ctx.state n;
     Lwt.return recipients
 
   let partition_commit_comment (ctx : Context.t) n =
