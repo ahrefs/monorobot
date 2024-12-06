@@ -403,11 +403,11 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
     | true ->
       let repo_state = State.find_or_add_repo ctx.state repository.url in
       let pipeline = notification.context in
-      let slack_step_link (s, l) =
-        let step = Stre.drop_prefix s (pipeline ^ "/") in
-        Printf.sprintf "<%s|%s> " l step
+      let slack_step_link (s : State_t.failed_step) =
+        let step = Stre.drop_prefix s.name (pipeline ^ "/") in
+        Printf.sprintf "<%s|%s> " (Option.default "" s.build_link) step
       in
-      (match Build.new_failed_steps notification repo_state pipeline with
+      (match Build.new_failed_steps notification repo_state with
       | [] -> []
       | steps -> [ sprintf "*Steps broken*: %s" (String.concat ", " (List.map slack_step_link steps)) ])
   in

@@ -1,4 +1,5 @@
 open Devkit
+open Common
 
 let fmt_error ?exn fmt =
   Printf.ksprintf
@@ -70,27 +71,36 @@ module Build = struct
   let is_failed_build (n : Github_t.status_notification) =
     n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description)
 
-  let new_failed_steps (n : Github_t.status_notification) (repo_state : State_t.repo_state) pipeline =
-    let to_failed_steps branch step statuses acc =
-      (* check if step of an allowed pipeline *)
-      match step with
-      | step when step = pipeline -> acc
-      | step when not @@ Devkit.Stre.starts_with step pipeline -> acc
-      | _ ->
-      match Common.StringMap.find_opt branch statuses with
-      | Some (s : State_t.build_status) when s.status = Failure ->
-        (match s.current_failed_commit, s.original_failed_commit with
-        | Some _, _ ->
-          (* if we have a value for current_failed_commit, this step was already failed and notified *)
-          acc
-        | None, Some { build_link = Some build_link; sha; _ } when sha = n.commit.sha ->
-          (* we need to check the value of the commit sha to avoid false positives *)
-          (step, build_link) :: acc
-        | _ -> acc)
-      | _ -> acc
-    in
+  let new_failed_steps (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
+    let build_url = Option.get n.target_url in
+    let { pipeline_name = pipeline; _ } = Result.get_ok @@ parse_context ~context:n.context ~build_url in
     match n.state = Failure, n.branches with
     | false, _ -> []
-    | true, [ branch ] -> Common.StringMap.fold (to_failed_steps branch.name) repo_state.pipeline_statuses []
+    | true, [ branch ] ->
+      (match StringMap.find_opt pipeline repo_state.pipeline_statuses with
+      | Some branches_statuses ->
+        (match StringMap.find_opt branch.name branches_statuses with
+        | Some builds_maps ->
+          let current_build_number =
+            match get_build_number ~context:n.context ~build_url with
+            | Ok build_number -> build_number
+            | Error msg -> failwith msg
+          in
+          let to_previous_failed_steps n build_number (build_status : State_t.build_status) acc =
+            match int_of_string build_number >= n with
+            | true -> acc
+            | false -> build_status.failed_steps @ acc
+          in
+          let previous_failed_steps =
+            StringMap.fold (to_previous_failed_steps @@ int_of_string current_build_number) builds_maps []
+            |> List.sort_uniq Stdlib.compare
+          in
+          let current_build =
+            (* We assume that when this function is called, the current build is finished *)
+            Option.get @@ StringMap.find_opt current_build_number builds_maps
+          in
+          List.filter (fun step -> not @@ List.mem step previous_failed_steps) current_build.failed_steps
+        | None -> [])
+      | None -> [])
     | true, _ -> []
 end
