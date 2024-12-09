@@ -150,6 +150,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let cfg = Context.find_repo_config_exn ctx repo.url in
     let pipeline = n.context in
     let rules = cfg.status_rules.rules in
+    let repo_state = State.find_or_add_repo ctx.state repo.url in
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
       let is_main_branch =
         match cfg.main_branch_name with
@@ -184,9 +185,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
             let chans = partition_commit cfg commit.files in
             Lwt.return (List.map Slack_channel.to_any chans))
       in
-      (* only notify the failed builds channels for full failed builds on the main branch *)
+      (* only notify the failed builds channels for full failed builds with new failed steps on the main branch *)
       let notify_failed_builds_channel =
         Util.Build.is_failed_build n
+        && Util.Build.new_failed_steps n repo_state <> []
         && is_main_branch
         && Option.map_default
              (fun allowed_pipelines ->

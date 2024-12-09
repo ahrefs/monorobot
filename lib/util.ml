@@ -72,6 +72,7 @@ module Build = struct
     n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description)
 
   let new_failed_steps (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
+    if not (is_failed_build n) then failwith "Error: new_failed_steps fn must be called on a finished build";
     let build_url = Option.get n.target_url in
     let { pipeline_name = pipeline; _ } = Result.get_ok @@ parse_context ~context:n.context ~build_url in
     match n.state = Failure, n.branches with
@@ -99,7 +100,10 @@ module Build = struct
             (* We assume that when this function is called, the current build is finished *)
             Option.get @@ StringMap.find_opt current_build_number builds_maps
           in
-          List.filter (fun step -> not @@ List.mem step previous_failed_steps) current_build.failed_steps
+          List.filter
+            (fun (step : State_t.failed_step) ->
+              not @@ List.exists (fun (prev : State_t.failed_step) -> prev.name = step.name) previous_failed_steps)
+            current_build.failed_steps
         | None -> [])
       | None -> [])
     | true, _ -> []
