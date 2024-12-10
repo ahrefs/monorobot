@@ -56,29 +56,37 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     | Ok context, Ok build_number -> context, build_number
     | Error msg, _ | _, Error msg -> failwith msg
   in
+  let is_finished = (not is_pipeline_step) && (n.state = Success || n.state = Failure || n.state = Error) in
+  let finished_at =
+    match is_finished with
+    | true -> Some n.updated_at
+    | false -> None
+  in
+  (* Even if this is an initial build state, we can't just set an "empty" state because we don't know
+     the order we will get the status notifications in. *)
   let init_build_state =
-    (* TODO: handle getting a notification for a step before we get the notification for build started. (edge case).
-       What would happen is that the build status is created with the "wrong" state and with empty failing steps *)
+    let commit =
+      { State_t.sha = n.sha; author = n.commit.commit.author.email; commit_message = n.commit.commit.message }
+    in
+    let failed_steps =
+      match is_pipeline_step, n.state with
+      | true, Failure -> [ { State_t.name = n.context; build_link = n.target_url } ]
+      | _ -> []
+    in
     {
       State_t.status = n.state;
       build_number;
       build_link = n.target_url;
-      commit = { sha = n.sha; author = n.commit.commit.author.email; commit_message = n.commit.commit.message };
-      is_finished = false;
-      failed_steps = [];
+      commit;
+      is_finished;
+      failed_steps;
       created_at = n.updated_at;
-      finished_at = None;
+      finished_at;
     }
   in
   let update_build_status builds_map build_number =
     match StringMap.find_opt build_number builds_map with
     | Some ({ failed_steps; _ } as current_build_status : State_t.build_status) ->
-      let is_finished = (not is_pipeline_step) && (n.state = Success || n.state = Failure || n.state = Error) in
-      let finished_at =
-        match is_finished with
-        | true -> Some n.updated_at
-        | false -> None
-      in
       let failed_steps =
         match is_pipeline_step, n.state with
         | true, Failure -> { State_t.name = n.context; build_link = n.target_url } :: failed_steps
@@ -87,7 +95,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
       { current_build_status with status = n.state; is_finished; finished_at; failed_steps }
     | None -> init_build_state
   in
-  let update_branch_status =
+  let update_pipeline_status =
     update_builds_in_branches ~branches:n.branches
       ~default_builds_map:(StringMap.singleton build_number init_build_state) ~f:(fun builds_map ->
         let updated_status = update_build_status builds_map build_number in
@@ -126,7 +134,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     | false ->
       repo_state.pipeline_statuses <- StringMap.update pipeline_name rm_successful_build repo_state.pipeline_statuses)
   | _ ->
-    repo_state.pipeline_statuses <- StringMap.update pipeline_name update_branch_status repo_state.pipeline_statuses
+    repo_state.pipeline_statuses <- StringMap.update pipeline_name update_pipeline_status repo_state.pipeline_statuses
 
 let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
   let rotation_threshold = 1000 in
