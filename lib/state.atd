@@ -15,13 +15,13 @@ type ci_commit = {
 
 type failed_step = {
   name: string;
-  build_link: string option;
+  build_url: string;
 }
 
 type build_status = {
   status: status_state;
   build_number: string;
-  build_link: string option;
+  build_url: string;
   commit: ci_commit;
   is_finished: bool;
   failed_steps: failed_step list;

@@ -46,102 +46,103 @@ let update_builds_in_branches ~branches ?(default_builds_map = StringMap.empty) 
   Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) current_statuses updated_statuses)
 
 let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
-  let target_url = Option.get n.target_url in
-  let context = n.context in
-  let { Util.Build.is_pipeline_step; pipeline_name }, build_number =
-    match
-      ( Util.Build.parse_context ~context ~build_url:target_url,
-        Util.Build.get_build_number ~context ~build_url:target_url )
-    with
-    | Ok context, Ok build_number -> context, build_number
-    | Error msg, _ | _, Error msg -> failwith msg
-  in
-  let is_finished = (not is_pipeline_step) && (n.state = Success || n.state = Failure || n.state = Error) in
-  let finished_at =
-    match is_finished with
-    | true -> Some n.updated_at
-    | false -> None
-  in
-  (* Even if this is an initial build state, we can't just set an "empty" state because we don't know
-     the order we will get the status notifications in. *)
-  let init_build_state =
-    let commit =
-      { State_t.sha = n.sha; author = n.commit.commit.author.email; commit_message = n.commit.commit.message }
+  match n.target_url with
+  | None ->
+    (* if we don't have a target_url value, we don't have a build number and cant't track build state *)
+    ()
+  | Some build_url ->
+    let context = n.context in
+    let { Util.Build.is_pipeline_step; pipeline_name } = Util.Build.parse_context_exn ~context ~build_url in
+    let build_number = Util.Build.get_build_number_exn ~context ~build_url in
+    let is_finished = (not is_pipeline_step) && (n.state = Success || n.state = Failure || n.state = Error) in
+    let finished_at =
+      match is_finished with
+      | true -> Some n.updated_at
+      | false -> None
     in
-    let failed_steps =
-      match is_pipeline_step, n.state with
-      | true, Failure -> [ { State_t.name = n.context; build_link = n.target_url } ]
-      | _ -> []
-    in
-    {
-      State_t.status = n.state;
-      build_number;
-      build_link = n.target_url;
-      commit;
-      is_finished;
-      failed_steps;
-      created_at = n.updated_at;
-      finished_at;
-    }
-  in
-  let update_build_status builds_map build_number =
-    match StringMap.find_opt build_number builds_map with
-    | Some ({ failed_steps; _ } as current_build_status : State_t.build_status) ->
+    (* Even if this is an initial build state, we can't just set an "empty" state because we don't know
+       the order we will get the status notifications in. *)
+    let init_build_state =
+      let commit =
+        { State_t.sha = n.sha; author = n.commit.commit.author.email; commit_message = n.commit.commit.message }
+      in
       let failed_steps =
         match is_pipeline_step, n.state with
-        | true, Failure -> { State_t.name = n.context; build_link = n.target_url } :: failed_steps
-        | _ -> failed_steps
+        | true, Failure -> [ { State_t.name = n.context; build_url } ]
+        | _ -> []
       in
-      { current_build_status with status = n.state; is_finished; finished_at; failed_steps }
-    | None -> init_build_state
-  in
-  let update_pipeline_status =
-    update_builds_in_branches ~branches:n.branches
-      ~default_builds_map:(StringMap.singleton build_number init_build_state) ~f:(fun builds_map ->
-        let updated_status = update_build_status builds_map build_number in
-        StringMap.add build_number updated_status builds_map)
-  in
-  let rm_successful_build = update_builds_in_branches ~branches:n.branches ~f:(StringMap.remove build_number) in
-  let rm_successful_step =
-    update_builds_in_branches ~branches:n.branches ~f:(fun builds_map ->
-        StringMap.mapi
-          (fun build_number' (build_status : State_t.build_status) ->
-            let failed_steps =
-              List.filter
-                (* remove the fixed step from previous finished builds *)
-                  (fun (s : State_t.failed_step) ->
-                  not (build_number' < build_number && s.name = n.context && build_status.is_finished))
-                build_status.failed_steps
-            in
-            { build_status with failed_steps })
-          builds_map
-        |> StringMap.filter (fun build_number' build_status ->
-               (* Remove old builds without failed steps *)
-               match build_status.State_t.failed_steps with
-               | [] when build_number' < build_number && build_status.is_finished -> false
-               | _ -> true))
-  in
-  let repo_state = find_or_add_repo' state n.repository.url in
-  match n.state with
-  | Success ->
-    (* If a build step is successful, we remove it from the failed steps list of past builds.
-       If old builds have no more failed steps, we remove them.
-       If the whole build is successful, we remove it from state to avoid the state file on disk growing too much.
-    *)
-    (match is_pipeline_step with
-    | true ->
-      repo_state.pipeline_statuses <- StringMap.update pipeline_name rm_successful_step repo_state.pipeline_statuses
-    | false ->
-      repo_state.pipeline_statuses <- StringMap.update pipeline_name rm_successful_build repo_state.pipeline_statuses)
-  | _ ->
-    repo_state.pipeline_statuses <- StringMap.update pipeline_name update_pipeline_status repo_state.pipeline_statuses
+      {
+        State_t.status = n.state;
+        build_number;
+        build_url;
+        commit;
+        is_finished;
+        failed_steps;
+        created_at = n.updated_at;
+        finished_at;
+      }
+    in
+    let update_build_status builds_map build_number =
+      match StringMap.find_opt build_number builds_map with
+      | Some ({ failed_steps; _ } as current_build_status : State_t.build_status) ->
+        let failed_steps =
+          match is_pipeline_step, n.state with
+          | true, Failure -> { State_t.name = n.context; build_url } :: failed_steps
+          | _ -> failed_steps
+        in
+        { current_build_status with status = n.state; is_finished; finished_at; failed_steps }
+      | None -> init_build_state
+    in
+    let update_pipeline_status =
+      update_builds_in_branches ~branches:n.branches
+        ~default_builds_map:(StringMap.singleton build_number init_build_state) ~f:(fun builds_map ->
+          let updated_status = update_build_status builds_map build_number in
+          StringMap.add build_number updated_status builds_map)
+    in
+    let rm_successful_build =
+      update_builds_in_branches ~branches:n.branches ~f:(fun builds_map ->
+          StringMap.remove build_number builds_map
+          |> StringMap.filter (fun build_number' build_status ->
+                 (* Remove old builds without failed steps because they were fixed and cleaned from state *)
+                 match build_status.State_t.failed_steps with
+                 | [] when build_number' < build_number && build_status.is_finished -> false
+                 | _ -> true))
+    in
+    let rm_successful_step =
+      update_builds_in_branches ~branches:n.branches ~f:(fun builds_map ->
+          StringMap.mapi
+            (fun build_number' (build_status : State_t.build_status) ->
+              let failed_steps =
+                List.filter
+                  (* remove the fixed step from previous finished builds *)
+                    (fun (s : State_t.failed_step) ->
+                    not (build_number' < build_number && s.name = n.context && build_status.is_finished))
+                  build_status.failed_steps
+              in
+              { build_status with failed_steps })
+            builds_map)
+    in
+    let repo_state = find_or_add_repo' state n.repository.url in
+    (match n.state with
+    | Success ->
+      (* If a build step is successful, we remove it from the failed steps list of past builds.
+         If old builds have no more failed steps, we remove them.
+         If the whole build is successful, we remove it from state to avoid the state file on disk growing too much.
+      *)
+      (match is_pipeline_step with
+      | true ->
+        repo_state.pipeline_statuses <- StringMap.update pipeline_name rm_successful_step repo_state.pipeline_statuses
+      | false ->
+        repo_state.pipeline_statuses <- StringMap.update pipeline_name rm_successful_build repo_state.pipeline_statuses)
+    | Error | Failure | Pending ->
+      repo_state.pipeline_statuses <- StringMap.update pipeline_name update_pipeline_status repo_state.pipeline_statuses)
 
 let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
   let rotation_threshold = 1000 in
   let repo_state = find_or_add_repo' state n.repository.url in
   let pipeline =
     (* We only need to track messages for the base pipeline, not the steps *)
-    match Util.Build.parse_context ~context:n.context ~build_url:(Option.get n.target_url) with
+    match Util.Build.parse_context ~context:n.context ~build_url:(Option.default "" n.target_url) with
     | Ok { Util.Build.pipeline_name; _ } -> pipeline_name
     | Error _ -> n.context
   in
@@ -156,7 +157,7 @@ let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
 let mem_repo_pipeline_commits { state } (n : Github_t.status_notification) =
   let pipeline =
     (* We only need to track messages for the base pipeline, not the steps *)
-    match Util.Build.parse_context ~context:n.context ~build_url:(Option.get n.target_url) with
+    match Util.Build.parse_context ~context:n.context ~build_url:(Option.default "" n.target_url) with
     | Ok { Util.Build.pipeline_name; _ } -> pipeline_name
     | Error _ -> n.context
   in
