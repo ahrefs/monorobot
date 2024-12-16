@@ -247,7 +247,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
                     | false ->
                       let _, previous_build = StringMap.max_binding previous_builds in
                       previous_build.status = n.state)
-                  | _ ->
+                  | None ->
                     (* if we don't have any builds for this branch yet, it's the first notification for this pipeline *)
                     false
                 in

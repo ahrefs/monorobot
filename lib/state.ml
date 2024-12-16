@@ -24,9 +24,11 @@ let set_repo_state { state } repo_url repo_state = Stringtbl.replace state.repos
 let find_or_add_repo { state } repo_url = find_or_add_repo' state repo_url
 
 (** Updates the builds map in the branches statuses.
-     [default_builds_map] is the builds map to use if we don't have the current branch in the branches statuses.
-     [f] is the function to use to update the builds map. Takes the [State_t.build_status] Map for the current branch as argument.
-     [branches_statuses] is the branches statuses Map to update.  Returns the updated branches statuses Map. *)
+     [default_builds_map] (optional, defaults to an empty map) is the builds map to use if we don't have the current
+     branch in the branches statuses.
+     [f] is the function to use to update the builds map. Takes the [State_t.build_status] Map for the current branch
+     as argument.
+     [branches_statuses] is the branches statuses Map to update. Returns the updated branches statuses Map. *)
 let update_builds_in_branches ~branches ?(default_builds_map = StringMap.empty) ~f branches_statuses =
   let current_statuses = Option.default StringMap.empty branches_statuses in
   let updated_statuses =

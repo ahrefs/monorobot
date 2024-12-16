@@ -52,7 +52,7 @@ module Build = struct
         Error
           (Printf.sprintf "failed to get pipeline name from notification. Context: %s, Build URL: %s" context build_url)
     in
-    (* if we have a buildkit pipeline, we need to strip the `buildkite/` prefix to get the real name *)
+    (* if we have a buildkite pipeline, we need to strip the `buildkite/` prefix to get the real name *)
     let context' = Stre.drop_prefix context "buildkite/" in
     let pipeline_name = get_name context' build_url in
     Result.map (fun pipeline_name -> { is_pipeline_step = pipeline_name <> context'; pipeline_name }) pipeline_name

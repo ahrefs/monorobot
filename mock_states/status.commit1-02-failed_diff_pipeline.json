@@ -3,7 +3,7 @@
     "qa": {
       "author/patches/js-storage": {
         "181732": {
-          "status": "pending",
+          "status": "failure",
           "build_number": "181732",
           "build_url": "https://buildkite.com/ahrefs/qa/builds/181732",
           "commit": {
@@ -11,7 +11,7 @@
             "author": "author@ahrefs.com",
             "commit_message": "c1 message"
           },
-          "is_finished": false,
+          "is_finished": true,
           "failed_steps": [
             {
               "name": "qa/failed-step",
