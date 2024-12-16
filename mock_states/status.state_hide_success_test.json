@@ -2,23 +2,29 @@
   "pipeline_statuses": {
     "default": {
       "master": {
-        "status": "failure",
-        "original_failed_commit": {
-          "sha": "0d95302addd66c1816bce1b1d495ed1c93ccd478",
-          "author": "mail@example.org",
-          "commit_message": "Update README.md",
-          "build_link": [
-            "Some",
-            "https://buildkite.com/org/pipeline2/builds/2"
+        "2": {
+          "status": "failure",
+          "build_number": "2",
+          "build_url": "https://buildkite.com/ahrefs/default/builds/2",
+          "commit": {
+            "sha": "0d95302addd66c1816bce1b1d495ed1c93ccd478",
+            "author": "mail@example.org",
+            "commit_message": "Update README.md"
+          },
+          "is_finished": true,
+          "failed_steps": [
+            {
+              "name": "default/failed-step",
+              "build_url": "https://buildkite.com/ahrefs/default/builds/2#0192347d-e4ee-4072-9da4-f441eeb65ed4"
+            }
           ],
-          "last_updated": "2020-06-02T03:21:39+00:00"
+          "created_at": "2024-06-02T04:57:47+00:00",
+          "finished_at": "2024-06-02T04:58:47+00:00"
         }
       }
     },
-    "buildkite/pipeline2": {
-      "master": {
-        "status": "success"
-      }
+    "pipeline2": {
+      "master": {}
     }
   },
   "pipeline_commits": {},

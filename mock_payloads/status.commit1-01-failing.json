@@ -2,7 +2,7 @@
   "id": 17813250,
   "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
   "name": "ahrefs/monorepo",
-  "target_url": "https://buildkite.com/ahrefs/monorepo/builds/181732",
+  "target_url": "https://buildkite.com/ahrefs/pipeline2/builds/181732",
   "avatar_url": "https://github.com/avatars/oa/6?",
   "context": "buildkite/pipeline2",
   "description": "Build #181732 is failing",

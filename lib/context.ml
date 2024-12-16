@@ -76,13 +76,13 @@ let hook_of_channel ctx channel_name =
 (** [is_pipeline_allowed ctx repo_url ~pipeline] returns [true] if [status_rules]
     doesn't define a whitelist of allowed pipelines in the config of [repo_url],
     or if the list contains [pipeline]; returns [false] otherwise. *)
-let is_pipeline_allowed ctx repo_url ~pipeline =
+let is_pipeline_allowed ctx repo_url ~context =
   match find_repo_config ctx repo_url with
   | None -> true
   | Some config ->
   match config.status_rules.allowed_pipelines with
   | Some allowed_pipelines
-    when not @@ List.exists (fun (p : Config_t.pipeline) -> String.equal p.name pipeline) allowed_pipelines ->
+    when not @@ List.exists (fun (p : Config_t.pipeline) -> String.equal p.name context) allowed_pipelines ->
     false
   | _ -> true
 

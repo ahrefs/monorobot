@@ -2,7 +2,7 @@
   "id": 0,
   "sha": "0d95302addd66c1816bce1b1d495ed1c93ccd478",
   "name": "ahrefs/monorepo",
-  "target_url": "https://buildkite.com/org/pipeline2/builds/2",
+  "target_url": "https://buildkite.com/ahrefs/pipeline2/builds/2",
   "avatar_url": "https://github.com/avatars/oa/0",
   "context": "buildkite/pipeline2",
   "description": "Build #2 failed (20 seconds)",
