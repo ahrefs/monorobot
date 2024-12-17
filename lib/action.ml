@@ -215,7 +215,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         Lwt.return (direct_message @ chans)
     in
     let%lwt recipients =
-      if Context.is_pipeline_allowed ctx repo.url ~context then begin
+      if Context.is_pipeline_allowed ctx repo.url n then begin
         match Rule.Status.match_rules ~rules n with
         | Some (Ignore, _, _) | None -> Lwt.return []
         | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
