@@ -227,8 +227,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
               let pipeline_name =
                 (* We only need to track messages for the base pipeline, not the steps *)
                 match Util.Build.parse_context ~context ~build_url with
-                | Ok { Util.Build.pipeline_name; _ } -> pipeline_name
-                | Error _ -> context
+                | Some { Util.Build.pipeline_name; _ } -> pipeline_name
+                | None -> context
               in
               (match StringMap.find_opt pipeline_name repo_state.pipeline_statuses with
               | None ->

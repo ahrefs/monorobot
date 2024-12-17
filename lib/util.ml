@@ -39,46 +39,40 @@ module Build = struct
   let parse_context ~context ~build_url =
     let rec get_name context build_url =
       match String.length context with
-      | 0 -> Error "failed to get pipeline name from notification - empty string"
-      | _ when Devkit.Stre.exists build_url (context ^ "/") ->
+      | 0 -> None
+      | _ when Stre.exists build_url (context ^ "/") ->
         (* We need to add the "/" to context to avoid partial matches between the context and the build_url *)
-        Ok context
+        Some context
       | _ ->
       (* Matches the notification context against the build_url to get the base pipeline name.
          Drop path levels from the context until we find a match with the build_url. This is the base name. *)
       match String.rindex_opt context '/' with
       | Some idx -> get_name (String.sub context 0 idx) build_url
-      | None ->
-        Error
-          (Printf.sprintf "failed to get pipeline name from notification. Context: %s, Build URL: %s" context build_url)
+      | None -> None
     in
     (* if we have a buildkite pipeline, we need to strip the `buildkite/` prefix to get the real name *)
     let context' = Stre.drop_prefix context "buildkite/" in
     let pipeline_name = get_name context' build_url in
-    Result.map (fun pipeline_name -> { is_pipeline_step = pipeline_name <> context'; pipeline_name }) pipeline_name
+    Option.map (fun pipeline_name -> { is_pipeline_step = pipeline_name <> context'; pipeline_name }) pipeline_name
 
   let parse_context_exn ~context ~build_url =
+    match String.length context with
+    | 0 -> failwith "failed to get pipeline name from notification - empty string"
+    | _ ->
     match parse_context ~context ~build_url with
-    | Ok c -> c
-    | Error msg -> failwith msg
-
-  let get_build_number ~context ~build_url =
-    match parse_context ~context ~build_url with
-    | Error msg -> Error msg
-    | Ok { pipeline_name; _ } ->
-      (* build urls are in the form of .../<base_pipeline_name>/builds/<build_number>.
-         Pipeline steps have an html anchor after the build number *)
-      let re = Re2.create_exn (Printf.sprintf ".*/%s/builds/(\\d+)#?" pipeline_name) in
-      (match Re2.find_submatches_exn re build_url with
-      | [| _; Some build_number |] -> Ok build_number
-      | _ | (exception _) ->
-        (* we either match on the first case or get an exception. *)
-        Error "failed to get build number from url")
+    | Some c -> c
+    | None ->
+      failwith
+        (Printf.sprintf "failed to get pipeline name from notification. Context: %s, Build URL: %s" context build_url)
 
   let get_build_number_exn ~context ~build_url =
-    match get_build_number ~context ~build_url with
-    | Ok n -> n
-    | Error msg -> failwith msg
+    let { pipeline_name; _ } = parse_context_exn ~context ~build_url in
+    (* build urls are in the form of .../<base_pipeline_name>/builds/<build_number>.
+       Pipeline steps have an html anchor after the build number *)
+    let re = Re2.create_exn (Printf.sprintf ".*/%s/builds/(\\d+)#?" pipeline_name) in
+    match Re2.find_first_exn ~sub:(`Index 1) re build_url with
+    | build_number -> build_number
+    | exception _ -> failwith "failed to get build number from url"
 
   let is_failed_build (n : Github_t.status_notification) =
     n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description)
@@ -109,7 +103,7 @@ module Build = struct
               |> List.sort_uniq Stdlib.compare
             in
             let current_build =
-              (* When this function is called, the current build is finished *)
+              (* We will not get an exception here because we checked that the build is failed and finished *)
               Option.get @@ StringMap.find_opt current_build_number builds_maps
             in
             List.filter

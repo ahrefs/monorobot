@@ -380,7 +380,7 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
         let pipeline_url =
           match String.split_on_char '/' target_url with
           | "https:" :: "" :: "buildkite.com" :: org :: pipeline :: "builds" :: _ ->
-            Some (Printf.sprintf "https://buildkite.com/%s/%s" org pipeline)
+            Some (sprintf "https://buildkite.com/%s/%s" org pipeline)
           | _ -> None
         in
         match pipeline_url with
@@ -405,7 +405,7 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
       let pipeline = notification.context in
       let slack_step_link (s : State_t.failed_step) =
         let step = Stre.drop_prefix s.name (pipeline ^ "/") in
-        Printf.sprintf "<%s|%s> " s.build_url step
+        sprintf "<%s|%s> " s.build_url step
       in
       (match Build.new_failed_steps notification repo_state with
       | [] -> []
@@ -449,6 +449,6 @@ let validate_signature ?(version = "v0") ?signing_key ~headers body =
   match List.assoc_opt "x-slack-request-timestamp" headers with
   | None -> Error "unable to find header X-Slack-Request-Timestamp"
   | Some timestamp ->
-    let basestring = Printf.sprintf "%s:%s:%s" version timestamp body in
-    let expected_signature = Printf.sprintf "%s=%s" version (Util.sign_string_sha256 ~key ~basestring) in
+    let basestring = sprintf "%s:%s:%s" version timestamp body in
+    let expected_signature = sprintf "%s=%s" version (Util.sign_string_sha256 ~key ~basestring) in
     if String.equal expected_signature signature then Ok () else Error "signatures don't match"

@@ -56,7 +56,11 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     let context = n.context in
     let { Util.Build.is_pipeline_step; pipeline_name } = Util.Build.parse_context_exn ~context ~build_url in
     let build_number = Util.Build.get_build_number_exn ~context ~build_url in
-    let is_finished = (not is_pipeline_step) && (n.state = Success || n.state = Failure || n.state = Error) in
+    let is_finished =
+      match is_pipeline_step, n.state with
+      | true, (Success | Failure | Error) -> true
+      | _ -> false
+    in
     let finished_at =
       match is_finished with
       | true -> Some n.updated_at
@@ -142,11 +146,11 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
 let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
   let rotation_threshold = 1000 in
   let repo_state = find_or_add_repo' state n.repository.url in
-  let pipeline =
+  let pipeline_name =
     (* We only need to track messages for the base pipeline, not the steps *)
     match Util.Build.parse_context ~context:n.context ~build_url:(Option.default "" n.target_url) with
-    | Ok { Util.Build.pipeline_name; _ } -> pipeline_name
-    | Error _ -> n.context
+    | Some { Util.Build.pipeline_name; _ } -> pipeline_name
+    | None -> n.context
   in
   let set_commit commits =
     let { State_t.s1; s2 } = Option.default { State_t.s1 = StringSet.empty; s2 = StringSet.empty } commits in
@@ -154,17 +158,17 @@ let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
     let s1, s2 = if StringSet.cardinal s1 > rotation_threshold then StringSet.empty, s1 else s1, s2 in
     Some { State_t.s1; s2 }
   in
-  repo_state.pipeline_commits <- StringMap.update pipeline set_commit repo_state.pipeline_commits
+  repo_state.pipeline_commits <- StringMap.update pipeline_name set_commit repo_state.pipeline_commits
 
 let mem_repo_pipeline_commits { state } (n : Github_t.status_notification) =
-  let pipeline =
+  let pipeline_name =
     (* We only need to track messages for the base pipeline, not the steps *)
     match Util.Build.parse_context ~context:n.context ~build_url:(Option.default "" n.target_url) with
-    | Ok { Util.Build.pipeline_name; _ } -> pipeline_name
-    | Error _ -> n.context
+    | Some { Util.Build.pipeline_name; _ } -> pipeline_name
+    | None -> n.context
   in
   let repo_state = find_or_add_repo' state n.repository.url in
-  match StringMap.find_opt pipeline repo_state.pipeline_commits with
+  match StringMap.find_opt pipeline_name repo_state.pipeline_commits with
   | None -> false
   | Some { State_t.s1; s2 } -> StringSet.mem n.sha s1 || StringSet.mem n.sha s2
 
