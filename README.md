@@ -60,6 +60,29 @@ Monorobot will also try to match mentioned GitHub handles (e.g., in PR/issue/com
 
 If your canonicalised GitHub handle is different from your canonicalised Slack email, or if you want to override this default matching scheme, you can create a manual mapping in your repository configuration under the `user_mappings` option. See the [documentation](./documentation/config_docs.md) for details.
 
+### Slack notifications to a channel dedicated to failed builds
+
+When a pipelinel is configured with a failed builds channel, Monorobot will send notifications to that Slack channel when a build fails for the main branch in the configured pipeline. This notification will mention the commit author and the build steps broken by the commit. This is useful for tracking the status of builds in Slack, and for getting notifications when a build fails.
+
+Currently, this feature is only supported for Buildkite builds.
+
+The logic is as follows:
+1. We receive a notification from GitHub for each step in the CI build lifecycle, including both individual steps and the entire build. We maintain a log of failed builds and failed steps for each build.
+2. When a notification for a failed build is received, we evaluate the failures by reviewing that build's history and compare it with the previous builds.
+3. We identify which steps were newly broken by the current build, i.e, did not fail in previous builds. We assume that previous builds still running will succeed while we haven't received a notifications for failed steps, so we treat any newly broken steps in the current build as broken by the current build.
+4. If there are newly broken steps, we notify the configured failed builds channel, including the commit author's name and the broken steps.
+5. If no steps were newly broken in the current build, we do not send a notification.
+6. In summary, only additional breakages are notified and notifications are sent as the builds finish. This means that they are not necessarily sent in the same order as the builds were started.
+
+Some examples:
+- Build #1 breaks steps `a` and `b`, build #2 then breaks steps `a` and `c`.
+  - This will notifify the channel for build #1 regarding the steps `a` and `b`, and for build #2 regarding the step `c`.
+- Build #1 breaks steps `a` and `b`, build #2 breaks step `a` and `c`, build #3 breaks step `a` and `b`.
+  - Similar as above, but we assume build #2 fixed step `b` and build #3 broke it again. So we notify the channel like above for the first two builds, and for build #3 regarding the step `b` only.
+- Build #1 is running for a long time, breaks step `a` in the process and we get the notification (with which we update the builds state), build #2 breaks step `a` and `b`. Build #2 finishes before build #1.
+  - Will notify the channel for build #2 regarding step `b`. Then build #1 finishes and we notify the channel for the steps that build #1 newly broke.
+  - Edge case: if by the time build #2 finishes we didn't receive any notification for a failed step in build #1, we will notify the channel for build #2 for the steps `a` and `b`, and then again for build #1.
+
 ### Documentation
 
 Commit a configuration file to the root of each repository you want to support, and add a secrets file on the bot server itself. Read on for instructions to set up each file:
