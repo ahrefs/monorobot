@@ -75,7 +75,7 @@ let hook_of_channel ctx channel_name =
 
 (** [is_pipeline_allowed ctx repo_url notification] returns [true] if [status_rules]
     doesn't define a whitelist of allowed pipelines in the config of [repo_url],
-    or if the list contains [pipeline]; returns [false] otherwise. *)
+    or if the list contains the pipeline name in [notification.context]; returns [false] otherwise. *)
 let is_pipeline_allowed ctx repo_url (n : Github_t.status_notification) =
   match find_repo_config ctx repo_url with
   | None -> true

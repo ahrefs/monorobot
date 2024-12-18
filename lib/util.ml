@@ -38,12 +38,10 @@ module Build = struct
 
   let parse_context ~context ~build_url =
     let rec get_name context build_url =
-      match String.length context with
-      | 0 -> None
-      | _ when Stre.exists build_url (context ^ "/") ->
-        (* We need to add the "/" to context to avoid partial matches between the context and the build_url *)
-        Some context
-      | _ ->
+      match Stre.exists build_url (context ^ "/") with
+      (* We need to add the "/" to context to avoid partial matches between the context and the build_url *)
+      | true -> Some context
+      | false ->
       (* Matches the notification context against the build_url to get the base pipeline name.
          Drop path levels from the context until we find a match with the build_url. This is the base name. *)
       match String.rindex_opt context '/' with
@@ -56,9 +54,6 @@ module Build = struct
     Option.map (fun pipeline_name -> { is_pipeline_step = pipeline_name <> context'; pipeline_name }) pipeline_name
 
   let parse_context_exn ~context ~build_url =
-    match String.length context with
-    | 0 -> failwith "failed to get pipeline name from notification - empty string"
-    | _ ->
     match parse_context ~context ~build_url with
     | Some c -> c
     | None ->
@@ -104,7 +99,7 @@ module Build = struct
             in
             let current_build =
               (* We will not get an exception here because we checked that the build is failed and finished *)
-              Option.get @@ StringMap.find_opt current_build_number builds_maps
+              StringMap.find current_build_number builds_maps
             in
             List.filter
               (fun (step : State_t.failed_step) ->

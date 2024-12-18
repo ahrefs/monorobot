@@ -147,9 +147,13 @@ let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
   let rotation_threshold = 1000 in
   let repo_state = find_or_add_repo' state n.repository.url in
   let pipeline_name =
-    (* We only need to track messages for the base pipeline, not the steps *)
-    match Util.Build.parse_context ~context:n.context ~build_url:(Option.default "" n.target_url) with
-    | Some { Util.Build.pipeline_name; _ } -> pipeline_name
+    match n.target_url with
+    | None -> n.context
+    | Some build_url ->
+    match Util.Build.parse_context ~context:n.context ~build_url with
+    | Some { pipeline_name; _ } ->
+      (* We only want to track messages for the base pipeline, not the steps *)
+      pipeline_name
     | None -> n.context
   in
   let set_commit commits =
@@ -162,9 +166,13 @@ let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
 
 let mem_repo_pipeline_commits { state } (n : Github_t.status_notification) =
   let pipeline_name =
-    (* We only need to track messages for the base pipeline, not the steps *)
-    match Util.Build.parse_context ~context:n.context ~build_url:(Option.default "" n.target_url) with
-    | Some { Util.Build.pipeline_name; _ } -> pipeline_name
+    match n.target_url with
+    | None -> n.context
+    | Some build_url ->
+    match Util.Build.parse_context ~context:n.context ~build_url with
+    | Some { pipeline_name; _ } ->
+      (* We only want to track messages for the base pipeline, not the steps *)
+      pipeline_name
     | None -> n.context
   in
   let repo_state = find_or_add_repo' state n.repository.url in
