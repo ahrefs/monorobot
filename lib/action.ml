@@ -226,7 +226,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
             | Some build_url ->
               let pipeline_name =
                 (* We only want to track messages for the base pipeline, not the steps *)
-                match Util.Build.parse_context ~context ~build_url with
+                match Util.Build.parse_context ~context with
                 | Some { pipeline_name; _ } -> pipeline_name
                 | None -> context
               in

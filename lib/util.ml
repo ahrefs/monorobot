@@ -36,32 +36,33 @@ module Build = struct
 
   let buildkite_is_failed_re = Re2.create_exn {|^Build #\d+ failed|}
 
-  let parse_context ~context ~build_url =
-    let rec get_name context build_url =
-      match Stre.exists build_url (context ^ "/") with
-      (* We need to add the "/" to context to avoid partial matches between the context and the build_url *)
-      | true -> Some context
-      | false ->
-      (* Matches the notification context against the build_url to get the base pipeline name.
-         Drop path levels from the context until we find a match with the build_url. This is the base name. *)
-      match String.rindex_opt context '/' with
-      | Some idx -> get_name (String.sub context 0 idx) build_url
-      | None -> None
-    in
-    (* if we have a buildkite pipeline, we need to strip the `buildkite/` prefix to get the real name *)
-    let context' = Stre.drop_prefix context "buildkite/" in
-    let pipeline_name = get_name context' build_url in
-    Option.map (fun pipeline_name -> { is_pipeline_step = pipeline_name <> context'; pipeline_name }) pipeline_name
+  let buildkite_is_step_re =
+    (* Checks if a pipeline or build step, by looking into the buildkite context
+       buildkite/<pipeline_name>/<step_name>(/<substep_name>?) *)
+    Re2.create_exn {|buildkite/[\w_-]+/([\w_-]+(/[\w_-]+)*)|}
 
-  let parse_context_exn ~context ~build_url =
-    match parse_context ~context ~build_url with
+  let buildkite_pipeline_name_re =
+    (* Gets the pipeline name from the buildkite context *)
+    Re2.create_exn {|buildkite/([\w_-]+)|}
+
+  (** For now we only care about buildkite pipelines and steps. Other CI systems are not supported yet. *)
+  let parse_context ~context =
+    match Stre.starts_with context "buildkite/" with
+    | false -> None
+    | true ->
+    try
+      let is_pipeline_step = Re2.matches buildkite_is_step_re context in
+      let pipeline_name = Re2.find_first_exn ~sub:(`Index 1) buildkite_pipeline_name_re context in
+      Some { is_pipeline_step; pipeline_name }
+    with _ -> None
+
+  let parse_context_exn ~context =
+    match parse_context ~context with
     | Some c -> c
-    | None ->
-      failwith
-        (Printf.sprintf "failed to get pipeline name from notification. Context: %s, Build URL: %s" context build_url)
+    | None -> failwith (Printf.sprintf "failed to get pipeline name from notification. Context: %s" context)
 
   let get_build_number_exn ~context ~build_url =
-    let { pipeline_name; _ } = parse_context_exn ~context ~build_url in
+    let { pipeline_name; _ } = parse_context_exn ~context in
     (* build urls are in the form of .../<base_pipeline_name>/builds/<build_number>.
        Pipeline steps have an html anchor after the build number *)
     let re = Re2.create_exn (Printf.sprintf ".*/%s/builds/(\\d+)#?" pipeline_name) in
@@ -79,7 +80,7 @@ module Build = struct
       (* if we don't have a target_url value, we don't have a build number and cant't track build state *)
       []
     | Some build_url ->
-      let { pipeline_name; _ } = parse_context_exn ~context:n.context ~build_url in
+      let { pipeline_name; _ } = parse_context_exn ~context:n.context in
       (match n.state = Failure, n.branches with
       | false, _ -> []
       | true, [ branch ] ->
