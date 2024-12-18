@@ -61,12 +61,13 @@ module Build = struct
     | Some c -> c
     | None -> failwith (Printf.sprintf "failed to get pipeline name from notification. Context: %s" context)
 
-  let get_build_number_exn ~context ~build_url =
-    let { pipeline_name; _ } = parse_context_exn ~context in
-    (* build urls are in the form of .../<base_pipeline_name>/builds/<build_number>.
-       Pipeline steps have an html anchor after the build number *)
-    let re = Re2.create_exn (Printf.sprintf ".*/%s/builds/(\\d+)#?" pipeline_name) in
-    match Re2.find_first_exn ~sub:(`Index 1) re build_url with
+  let buildkite_build_number_re =
+    (* buildkite.com/<org_name>/<pipeline_name>/builds/<build_id> *)
+    Re2.create_exn {|buildkite.com/[\w_-]+/[\w_-]+/builds/(\d+)|}
+
+  (** For now we only care about buildkite pipelines and steps. Other CI systems are not supported yet. *)
+  let get_build_number_exn ~build_url =
+    match Re2.find_first_exn ~sub:(`Index 1) buildkite_build_number_re build_url with
     | build_number -> int_of_string build_number
     | exception _ -> failwith "failed to get build number from url"
 
@@ -88,7 +89,7 @@ module Build = struct
         | Some branches_statuses ->
           (match StringMap.find_opt branch.name branches_statuses with
           | Some builds_maps ->
-            let current_build_number = get_build_number_exn ~context:n.context ~build_url in
+            let current_build_number = get_build_number_exn ~build_url in
             let to_previous_failed_steps n build_number (build_status : State_t.build_status) acc =
               match build_number >= n with
               | true -> acc

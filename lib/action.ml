@@ -238,7 +238,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
                 let has_same_status (branch : branch) =
                   match StringMap.find_opt branch.name branch_statuses with
                   | Some build_statuses ->
-                    let current = Util.Build.get_build_number_exn ~context ~build_url in
+                    let current = Util.Build.get_build_number_exn ~build_url in
                     let previous_builds = IntMap.filter (fun build_num _ -> build_num < current) build_statuses in
                     (match IntMap.is_empty previous_builds with
                     | true ->
