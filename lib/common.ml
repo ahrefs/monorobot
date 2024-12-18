@@ -83,6 +83,21 @@ end
 
 module StringMap = Map (String)
 
+module IntMap = Map (Int)
+
+module IntMapJson = struct
+  type 'a t = 'a IntMap.t
+
+  let to_list (m : 'a t) : (string * 'a) list =
+    IntMap.to_seq m |> Seq.map (fun (k, v) -> string_of_int k, v) |> List.of_seq
+
+  let of_list (l : (string * 'a) list) : 'a t =
+    List.to_seq l |> Seq.map (fun (k, v) -> int_of_string k, v) |> IntMap.of_seq
+
+  let wrap = of_list
+  let unwrap = to_list
+end
+
 module ChannelMap = Map (struct
   include Slack_channel.Any
   let compare = Slack_channel.compare

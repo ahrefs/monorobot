@@ -239,13 +239,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
                   match StringMap.find_opt branch.name branch_statuses with
                   | Some build_statuses ->
                     let current = Util.Build.get_build_number_exn ~context ~build_url in
-                    let previous_builds = StringMap.filter (fun build_num _ -> build_num < current) build_statuses in
-                    (match StringMap.is_empty previous_builds with
+                    let previous_builds = IntMap.filter (fun build_num _ -> build_num < current) build_statuses in
+                    (match IntMap.is_empty previous_builds with
                     | true ->
                       (* if we have no previous builds, it means they were successful and cleaned from state *)
                       n.state = Github_t.Success
                     | false ->
-                      let _, previous_build = StringMap.max_binding previous_builds in
+                      let _, previous_build = IntMap.max_binding previous_builds in
                       previous_build.status = n.state)
                   | None ->
                     (* if we don't have any builds for this branch yet, it's the first notification for this pipeline *)

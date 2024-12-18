@@ -29,7 +29,7 @@ let find_or_add_repo { state } repo_url = find_or_add_repo' state repo_url
      [f] is the function to use to update the builds map. Takes the [State_t.build_status] Map for the current branch
      as argument.
      [branches_statuses] is the branches statuses Map to update. Returns the updated branches statuses Map. *)
-let update_builds_in_branches ~branches ?(default_builds_map = StringMap.empty) ~f branches_statuses =
+let update_builds_in_branches ~branches ?(default_builds_map = IntMap.empty) ~f branches_statuses =
   let current_statuses = Option.default StringMap.empty branches_statuses in
   let updated_statuses =
     List.map
@@ -89,7 +89,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
       }
     in
     let update_build_status builds_map build_number =
-      match StringMap.find_opt build_number builds_map with
+      match IntMap.find_opt build_number builds_map with
       | Some ({ failed_steps; _ } as current_build_status : State_t.build_status) ->
         let failed_steps =
           match is_pipeline_step, n.state with
@@ -101,14 +101,14 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     in
     let update_pipeline_status =
       update_builds_in_branches ~branches:n.branches
-        ~default_builds_map:(StringMap.singleton build_number init_build_state) ~f:(fun builds_map ->
+        ~default_builds_map:(IntMap.singleton build_number init_build_state) ~f:(fun builds_map ->
           let updated_status = update_build_status builds_map build_number in
-          StringMap.add build_number updated_status builds_map)
+          IntMap.add build_number updated_status builds_map)
     in
     let rm_successful_build =
       update_builds_in_branches ~branches:n.branches ~f:(fun builds_map ->
-          StringMap.remove build_number builds_map
-          |> StringMap.filter (fun build_number' build_status ->
+          IntMap.remove build_number builds_map
+          |> IntMap.filter (fun build_number' build_status ->
                  (* Remove old builds without failed steps because they were fixed and cleaned from state *)
                  match build_status.State_t.failed_steps with
                  | [] when build_number' < build_number && build_status.is_finished -> false
@@ -116,7 +116,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     in
     let rm_successful_step =
       update_builds_in_branches ~branches:n.branches ~f:(fun builds_map ->
-          StringMap.mapi
+          IntMap.mapi
             (fun build_number' (build_status : State_t.build_status) ->
               let failed_steps =
                 List.filter

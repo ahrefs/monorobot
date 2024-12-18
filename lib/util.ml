@@ -66,7 +66,7 @@ module Build = struct
        Pipeline steps have an html anchor after the build number *)
     let re = Re2.create_exn (Printf.sprintf ".*/%s/builds/(\\d+)#?" pipeline_name) in
     match Re2.find_first_exn ~sub:(`Index 1) re build_url with
-    | build_number -> build_number
+    | build_number -> int_of_string build_number
     | exception _ -> failwith "failed to get build number from url"
 
   let is_failed_build (n : Github_t.status_notification) =
@@ -89,17 +89,18 @@ module Build = struct
           | Some builds_maps ->
             let current_build_number = get_build_number_exn ~context:n.context ~build_url in
             let to_previous_failed_steps n build_number (build_status : State_t.build_status) acc =
-              match int_of_string build_number >= n with
+              match build_number >= n with
               | true -> acc
               | false -> build_status.failed_steps @ acc
             in
             let previous_failed_steps =
-              StringMap.fold (to_previous_failed_steps @@ int_of_string current_build_number) builds_maps []
-              |> List.sort_uniq Stdlib.compare
+              IntMap.fold (to_previous_failed_steps current_build_number) builds_maps []
+              |> List.sort_uniq (fun (s1 : State_t.failed_step) (s2 : State_t.failed_step) ->
+                     String.compare s1.name s2.name)
             in
             let current_build =
               (* We will not get an exception here because we checked that the build is failed and finished *)
-              StringMap.find current_build_number builds_maps
+              IntMap.find current_build_number builds_maps
             in
             List.filter
               (fun (step : State_t.failed_step) ->

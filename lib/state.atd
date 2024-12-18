@@ -1,5 +1,6 @@
 type status_state <ocaml from="Github"> = abstract
 type 'v map_as_object <ocaml from="Common"> = abstract
+type 'v int_map_as_object <ocaml from="Common"> = abstract
 type 'v table_as_object <ocaml from="Common"> = abstract
 type string_set <ocaml from="Common"> = abstract
 type timestamp = string wrap <ocaml t="Common.Slack_timestamp.t" wrap="Common.Slack_timestamp.inject" unwrap="Common.Slack_timestamp.project">
@@ -20,7 +21,7 @@ type failed_step = {
 
 type build_status = {
   status: status_state;
-  build_number: string;
+  build_number: int;
   build_url: string;
   commit: ci_commit;
   is_finished: bool;
@@ -30,7 +31,7 @@ type build_status = {
 }
 
 (* A map from builds numbers to build statuses *)
-type build_statuses = build_status map_as_object
+type build_statuses = build_status int_map_as_object
 
 (* A map from branch names to [build_statuses] maps *)
 type branch_statuses = build_statuses map_as_object
