@@ -58,7 +58,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     let build_number = Util.Build.get_build_number_exn ~build_url in
     let is_finished =
       match is_pipeline_step, n.state with
-      | true, (Success | Failure | Error) -> true
+      | false, (Success | Failure | Error) -> true
       | _ -> false
     in
     let finished_at =
