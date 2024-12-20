@@ -401,7 +401,6 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
     match Build.is_failed_build notification && (is_failed_builds_channel || Status_notification.is_user channel) with
     | false -> []
     | true ->
-      (* TODO: don't send @mention on DM notification for failed builds *)
       let repo_state = State.find_or_add_repo ctx.state repository.url in
       let pipeline = notification.context in
       let slack_step_link (s : State_t.failed_step) =

@@ -164,15 +164,16 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Ok res ->
             let is_failing_build = Util.Build.is_failing_build n in
             let is_failed_build = Util.Build.is_failed_build n in
-            (* Check if config holds Github to Slack email mapping for the commit author *)
+            (* Check if config holds Github to Slack email mapping for the commit author. The user id we get from slack
+               is not an email, so we need to see if we can map the commit author email to a slack user's email. *)
             let author = List.assoc_opt email cfg.user_mappings |> Option.default email in
             let dm_after_failed_build =
-              List.assoc_opt author cfg.dev_notifications.dm_after_failed_build
+              List.assoc_opt author cfg.notifications_configs.dm_after_failed_build
               |> (* dm_after_failed_build is opt in *)
               Option.default false
             in
             let dm_for_failing_build =
-              List.assoc_opt author cfg.dev_notifications.dm_for_failing_build
+              List.assoc_opt author cfg.notifications_configs.dm_for_failing_build
               |> (* dm_for_failing_build is opt out *)
               Option.default true
             in
@@ -180,9 +181,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
             | true ->
               (* if we send a dm for a failing build and we want another dm after the build is finished, we don't
                  set the pipeline commit immediately. Otherwise, we wouldn't be able to notify later *)
-              if (is_failing_build && not dm_after_failed_build) || is_failed_build (* TODO: test double opt in *) then
+              if (is_failing_build && not dm_after_failed_build) || is_failed_build then
                 State.set_repo_pipeline_commit ctx.state n;
-              (* To send a DM, channel parameter is set to the user id of the recipient *)
               Lwt.return [ Status_notification.User res.user.id ]
             | false -> Lwt.return [])
           | Error e ->
