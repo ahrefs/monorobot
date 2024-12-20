@@ -1,8 +1,27 @@
 (library
  (name lib)
- (libraries atdgen atdgen-runtime biniou cstruct curl curl.lwt base64
-   devkit devkit.core extlib hex lwt lwt.unix nocrypto omd re2 sexplib0 uri
-   yojson)
+ (libraries
+  atdgen
+  atdgen-runtime
+  base64
+  biniou
+  cstruct
+  curl
+  curl.lwt
+  devkit
+  devkit.core
+  extlib
+  hex
+  lwt
+  lwt.unix
+  nocrypto
+  omd
+  ptime
+  ptime.clock
+  re2
+  sexplib0
+  uri
+  yojson)
  (preprocess
   (pps lwt_ppx)))
 

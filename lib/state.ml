@@ -63,7 +63,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     in
     let finished_at =
       match is_finished with
-      | true -> Some n.updated_at
+      | true -> Some (Timestamp.wrap_with_fallback n.updated_at)
       | false -> None
     in
     (* Even if this is an initial build state, we can't just set an "empty" state because we don't know
@@ -84,7 +84,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
         commit;
         is_finished;
         failed_steps;
-        created_at = n.updated_at;
+        created_at = Timestamp.wrap_with_fallback n.updated_at;
         finished_at;
       }
     in
@@ -107,11 +107,24 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     in
     let rm_successful_build =
       update_builds_in_branches ~branches:n.branches ~f:(fun builds_map ->
+          let open Ptime in
+          let threshold =
+            (* 2h as the threshold for long running or stale builds *)
+            Ptime.Span.of_int_s (60 * 60 * 2)
+          in
+          let is_past_threshold (build_status : State_t.build_status) threshold =
+            let now = Ptime_clock.now () in
+            match add_span build_status.created_at threshold with
+            | Some t_plus_threshold -> is_earlier ~than:now t_plus_threshold
+            | None -> false
+          in
           IntMap.remove build_number builds_map
           |> IntMap.filter (fun build_number' build_status ->
-                 (* Remove old builds without failed steps because they were fixed and cleaned from state *)
                  match build_status.State_t.failed_steps with
+                 (* Remove old builds without failed steps because they were fixed and cleaned from state *)
                  | [] when build_number' < build_number && build_status.is_finished -> false
+                 (* Remove builds that ran for more than the threshold or for which we didn't get an end notification *)
+                 | _ when is_past_threshold build_status threshold -> false
                  | _ -> true))
     in
     let rm_successful_step =
