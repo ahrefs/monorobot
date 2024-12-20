@@ -401,6 +401,7 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
     match Build.is_failed_build notification && is_failed_builds_channel with
     | false -> []
     | true ->
+      (* TODO: don't send @mention on DM notification for failed builds *)
       let repo_state = State.find_or_add_repo ctx.state repository.url in
       let pipeline = notification.context in
       let slack_step_link (s : State_t.failed_step) =
@@ -415,7 +416,7 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
   let attachment =
     { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text = Some msg }
   in
-  make_message ~text:summary ~attachments:[ attachment ] ~channel:(Slack_channel.to_any channel) ()
+  make_message ~text:summary ~attachments:[ attachment ] ~channel ()
 
 let generate_commit_comment_notification ~slack_match_func api_commit notification channel =
   let { commit; _ } = api_commit in

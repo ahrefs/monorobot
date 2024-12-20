@@ -1,4 +1,5 @@
 # Repository Configuration
+TODO add docs for dev_notifications
 
 A repository configuration file specifies how notifications should be handled for a given repository. It should be at the root of your
 monorepo in the main branch. The bot will look for a `.monorobot.json` file by default, but you can change this behavior with the `--config` flag.

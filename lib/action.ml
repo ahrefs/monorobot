@@ -149,6 +149,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let repo = n.repository in
     let cfg = Context.find_repo_config_exn ctx repo.url in
     let context = n.context in
+    let email = n.commit.commit.author.email in
     let rules = cfg.status_rules.rules in
     let repo_state = State.find_or_add_repo ctx.state repo.url in
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
@@ -159,11 +160,47 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
       in
       let%lwt direct_message =
         if notify_dm then begin
-          match%lwt Slack_api.lookup_user ~ctx ~cfg ~email:n.commit.commit.author.email () with
+          match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
           | Ok res ->
-            State.set_repo_pipeline_commit ctx.state n;
-            (* To send a DM, channel parameter is set to the user id of the recipient *)
-            Lwt.return [ Slack_user_id.to_channel_id res.user.id ]
+            let is_failing_build = Util.Build.is_failing_build n in
+            let is_failed_build = Util.Build.is_failed_build n in
+            (* Check if config holds the Github to Slack email mapping for the commit author *)
+            let author = List.assoc_opt email cfg.user_mappings |> Option.default email in
+            let dm_after_failed_build =
+              List.assoc_opt author cfg.dev_notifications.dm_after_failed_build
+              |> (* dm_after_failed_build is opt in *)
+              Option.default false
+            in
+            let dm_for_failing_build =
+              List.assoc_opt author cfg.dev_notifications.dm_for_failing_build
+              |> (* dm_for_failing_build is opt out *)
+              Option.default true
+            in
+            print_endline
+            @@ Printf.sprintf
+                 {|
+
+            ================================================
+            user_id_str: %s
+            finds in config?: %b
+            is_failing_build: %b
+            is_failed_build: %b
+            dm_after_failed_build: %b
+            dm_for_failing_build: %b
+            ================================================
+            |}
+                 author
+                 (Option.is_some (List.assoc_opt author cfg.dev_notifications.dm_after_failed_build))
+                 is_failing_build is_failed_build dm_after_failed_build dm_for_failing_build;
+            (match (dm_for_failing_build && is_failing_build) || (dm_after_failed_build && is_failed_build) with
+            | true ->
+              (* if we send a dm for a failing build and we want another dm after the build is finished, we don't
+                 set the pipeline commit immediately. Otherwise, we wouldn't be able to notify later *)
+              if (is_failing_build && not dm_after_failed_build) || is_failed_build (* TODO: test double opt in *) then
+                State.set_repo_pipeline_commit ctx.state n;
+              (* To send a DM, channel parameter is set to the user id of the recipient *)
+              Lwt.return [ Slack_user_id.to_channel_id res.user.id ]
+            | false -> Lwt.return [])
           | Error e ->
             log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
             Lwt.return []
