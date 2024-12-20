@@ -164,7 +164,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           | Ok res ->
             let is_failing_build = Util.Build.is_failing_build n in
             let is_failed_build = Util.Build.is_failed_build n in
-            (* Check if config holds the Github to Slack email mapping for the commit author *)
+            (* Check if config holds Github to Slack email mapping for the commit author *)
             let author = List.assoc_opt email cfg.user_mappings |> Option.default email in
             let dm_after_failed_build =
               List.assoc_opt author cfg.dev_notifications.dm_after_failed_build
@@ -176,22 +176,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
               |> (* dm_for_failing_build is opt out *)
               Option.default true
             in
-            print_endline
-            @@ Printf.sprintf
-                 {|
-
-            ================================================
-            user_id_str: %s
-            finds in config?: %b
-            is_failing_build: %b
-            is_failed_build: %b
-            dm_after_failed_build: %b
-            dm_for_failing_build: %b
-            ================================================
-            |}
-                 author
-                 (Option.is_some (List.assoc_opt author cfg.dev_notifications.dm_after_failed_build))
-                 is_failing_build is_failed_build dm_after_failed_build dm_for_failing_build;
             (match (dm_for_failing_build && is_failing_build) || (dm_after_failed_build && is_failed_build) with
             | true ->
               (* if we send a dm for a failing build and we want another dm after the build is finished, we don't
@@ -199,7 +183,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
               if (is_failing_build && not dm_after_failed_build) || is_failed_build (* TODO: test double opt in *) then
                 State.set_repo_pipeline_commit ctx.state n;
               (* To send a DM, channel parameter is set to the user id of the recipient *)
-              Lwt.return [ Slack_user_id.to_channel_id res.user.id ]
+              Lwt.return [ Status_notification.User res.user.id ]
             | false -> Lwt.return [])
           | Error e ->
             log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
@@ -214,13 +198,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
         (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
         match is_main_branch with
         | false ->
-          Lwt.return (Option.map_default (fun c -> [ Slack_channel.to_any c ]) [] cfg.prefix_rules.default_channel)
+          Lwt.return
+            (Option.map_default (fun c -> [ Status_notification.inject_channel c ]) [] cfg.prefix_rules.default_channel)
         | true ->
           (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha:n.commit.sha with
           | Error e -> action_error e
           | Ok commit ->
             let chans = partition_commit cfg commit.files in
-            Lwt.return (List.map Slack_channel.to_any chans))
+            Lwt.return (List.map Status_notification.inject_channel chans))
       in
       (* only notify the failed builds channels for full failed builds with new failed steps on the main branch *)
       let notify_failed_builds_channel =
@@ -243,11 +228,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
           List.find_map
             (fun ({ name; failed_builds_channel } : Config_t.pipeline) ->
               match String.equal name context, failed_builds_channel with
-              | true, Some failed_builds_channel -> Some (Slack_channel.to_any failed_builds_channel :: chans)
+              | true, Some failed_builds_channel ->
+                Some (Status_notification.inject_channel failed_builds_channel :: chans)
               | _ -> None)
             allowed_pipelines
           |> Option.default chans
-          |> List.sort_uniq Slack_channel.compare
+          |> List.sort_uniq Status_notification.compare
         in
         Lwt.return (direct_message @ chans)
     in

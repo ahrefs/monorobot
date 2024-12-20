@@ -335,9 +335,9 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
   let commit_info =
     [
       (let mention =
-         match slack_user_id with
-         | None -> ""
-         | Some id -> sprintf "<@%s>" (Slack_user_id.project id)
+         match slack_user_id, channel with
+         | None, _ | _, Status_notification.User _ -> ""
+         | Some id, Channel _ -> sprintf "<@%s>" (Slack_user_id.project id)
        in
        sprintf "*Commit*: `<%s|%s>` %s" html_url (git_short_sha_hash sha) mention);
     ]
@@ -395,10 +395,10 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
         List.exists
           (fun ({ name; failed_builds_channel } : Config_t.pipeline) ->
             String.equal name context
-            && Option.map_default Slack_channel.(equal channel $ to_any) false failed_builds_channel)
+            && Option.map_default Status_notification.(equal channel $ inject_channel) false failed_builds_channel)
           pipelines
     in
-    match Build.is_failed_build notification && is_failed_builds_channel with
+    match Build.is_failed_build notification && (is_failed_builds_channel || Status_notification.is_user channel) with
     | false -> []
     | true ->
       (* TODO: don't send @mention on DM notification for failed builds *)
@@ -416,7 +416,7 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
   let attachment =
     { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text = Some msg }
   in
-  make_message ~text:summary ~attachments:[ attachment ] ~channel ()
+  make_message ~text:summary ~attachments:[ attachment ] ~channel:(Status_notification.to_slack_channel channel) ()
 
 let generate_commit_comment_notification ~slack_match_func api_commit notification channel =
   let { commit; _ } = api_commit in

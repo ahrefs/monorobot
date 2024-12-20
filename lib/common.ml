@@ -65,6 +65,25 @@ module StringSet = struct
   let unwrap = to_list
 end
 
+module Status_notification = struct
+  type t =
+    | Channel of Slack_channel.Any.t
+    | User of Slack_user_id.t
+
+  let inject_channel c = Channel (Slack_channel.to_any c)
+
+  let to_slack_channel = function
+    | Channel c -> c
+    | User u -> Slack_user_id.to_channel_id u
+
+  let is_user = function
+    | User _ -> true
+    | Channel _ -> false
+
+  let compare a b = Slack_channel.compare (to_slack_channel a) (to_slack_channel b)
+  let equal a b = compare a b = 0
+end
+
 module Map (S : Map.OrderedType) = struct
   include Map.Make (S)
 
