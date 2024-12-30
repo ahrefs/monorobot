@@ -105,8 +105,12 @@ module Build = struct
                      String.compare s1.name s2.name)
             in
             let current_build =
-              (* We will not get an exception here because we checked that the build is failed and finished *)
-              IntMap.find current_build_number builds_maps
+              try IntMap.find current_build_number builds_maps
+              with _ ->
+                (* edge case: we got a notification for a build that ran longer than the defined threshold
+                   and was cleaned from state. This shouldn't happen, but adding an error message to make
+                   clearer what is happening if it does. *)
+                failwith "Error: failed to find current build in state, maybe it was cleaned up?"
             in
             List.filter
               (fun (step : State_t.failed_step) ->

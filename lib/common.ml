@@ -2,6 +2,21 @@ open Devkit
 
 module Slack_timestamp = Fresh (String) ()
 
+module Timestamp = struct
+  type t = Ptime.t
+
+  let wrap s =
+    match Ptime.of_rfc3339 s with
+    | Ok (t, _, _) -> t
+    | Error _ -> failwith "Invalid timestamp"
+  let unwrap t = Ptime.to_rfc3339 t
+
+  let wrap_with_fallback ?(fallback = Ptime_clock.now ()) s =
+    match Ptime.of_rfc3339 s with
+    | Ok (t, _, _) -> t
+    | Error _ -> fallback
+end
+
 module Slack_channel : sig
   type 'kind t
 
