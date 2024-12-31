@@ -35,9 +35,18 @@ type project_owners = {
   rules: project_owners_rule list;
 }
 
+type steps_types_configs = {
+  build: string list;
+  deploy: string list;
+  test: string list;
+  lint: string list;
+  ignore: string list
+}
+
 type notifications_configs = {
   ~dm_for_failing_build <ocaml default="[]">: (string * bool) list <json repr="object">;
-  ~dm_after_failed_build <ocaml default="[]">: (string * bool) list <json repr="object">
+  ~dm_after_failed_build <ocaml default="[]">: (string * bool) list <json repr="object">;
+  ?steps_config : steps_types_configs nullable
 }
 
 (* This is the structure of the repository configuration file. It should be at the
@@ -50,7 +59,7 @@ type config = {
   ~ignored_users <ocaml default="[]">: string list; (* list of ignored users *)
   ?main_branch_name : string nullable; (* the name of the main branch; used to filter out notifications about merges of main branch into other branches *)
   ~user_mappings <ocaml default="[]">: (string * string) list <json repr="object">; (* list of github to slack profile mappings *)
-  ~notifications_configs <ocaml default="{dm_after_failed_build = []; dm_for_failing_build = []}"> : notifications_configs;
+  ~notifications <ocaml default="{dm_after_failed_build = []; dm_for_failing_build = []; steps_config = None}"> : notifications_configs;
 }
 
 (* This specifies the Slack webhook to query to post to the channel with the given name *)
