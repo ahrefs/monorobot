@@ -168,12 +168,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
                is not an email, so we need to see if we can map the commit author email to a slack user's email. *)
             let author = List.assoc_opt email cfg.user_mappings |> Option.default email in
             let dm_after_failed_build =
-              List.assoc_opt author cfg.notifications_configs.dm_after_failed_build
+              List.assoc_opt author cfg.notifications.dm_after_failed_build
               |> (* dm_after_failed_build is opt in *)
               Option.default false
             in
             let dm_for_failing_build =
-              List.assoc_opt author cfg.notifications_configs.dm_for_failing_build
+              List.assoc_opt author cfg.notifications.dm_for_failing_build
               |> (* dm_for_failing_build is opt out *)
               Option.default true
             in
