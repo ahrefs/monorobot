@@ -149,66 +149,65 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
     let repo = n.repository in
     let cfg = Context.find_repo_config_exn ctx repo.url in
     let context = n.context in
-    let email = n.commit.commit.author.email in
-    let rules = cfg.status_rules.rules in
     let repo_state = State.find_or_add_repo ctx.state repo.url in
-    let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
-      let is_main_branch =
-        match cfg.main_branch_name with
-        | None -> false
-        | Some main_branch -> List.exists (fun ({ name } : branch) -> String.equal name main_branch) n.branches
-      in
-      let%lwt direct_message =
-        if notify_dm then begin
-          match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
-          | Ok res ->
-            let is_failing_build = Util.Build.is_failing_build n in
-            let is_failed_build = Util.Build.is_failed_build n in
-            (* Check if config holds Github to Slack email mapping for the commit author. The user id we get from slack
-               is not an email, so we need to see if we can map the commit author email to a slack user's email. *)
-            let author = List.assoc_opt email cfg.user_mappings |> Option.default email in
-            let dm_after_failed_build =
-              List.assoc_opt author cfg.notifications_configs.dm_after_failed_build
-              |> (* dm_after_failed_build is opt in *)
-              Option.default false
-            in
-            let dm_for_failing_build =
-              List.assoc_opt author cfg.notifications_configs.dm_for_failing_build
-              |> (* dm_for_failing_build is opt out *)
-              Option.default true
-            in
-            (match (dm_for_failing_build && is_failing_build) || (dm_after_failed_build && is_failed_build) with
-            | true ->
-              (* if we send a dm for a failing build and we want another dm after the build is finished, we don't
-                 set the pipeline commit immediately. Otherwise, we wouldn't be able to notify later *)
-              if (is_failing_build && not dm_after_failed_build) || is_failed_build then
-                State.set_repo_pipeline_commit ctx.state n;
-              Lwt.return [ Status_notification.User res.user.id ]
-            | false -> Lwt.return [])
-          | Error e ->
-            log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
-            Lwt.return []
-        end
-        else Lwt.return []
-      in
-      let%lwt chans =
-        match notify_channels, branches with
-        | false, _ | _, [] -> Lwt.return []
-        | _ ->
-        (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
-        match is_main_branch with
-        | false ->
-          Lwt.return
-            (Option.map_default (fun c -> [ Status_notification.inject_channel c ]) [] cfg.prefix_rules.default_channel)
-        | true ->
-          (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha:n.commit.sha with
-          | Error e -> action_error e
-          | Ok commit ->
-            let chans = partition_commit cfg commit.files in
-            Lwt.return (List.map Status_notification.inject_channel chans))
-      in
+    let is_main_branch =
+      match cfg.main_branch_name with
+      | None -> false
+      | Some main_branch -> List.exists (fun ({ name } : branch) -> String.equal name main_branch) n.branches
+    in
+    let get_dm_id ~notify_dm =
+      let email = n.commit.commit.author.email in
+      match notify_dm with
+      | false -> Lwt.return []
+      | true ->
+        (match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+        | Ok ({ user = { id; _ } } : Slack_t.lookup_user_res) ->
+          (* Check if config holds Github to Slack email mapping for the commit author. The user id we get from slack
+             is not an email, so we need to see if we can map the commit author email to a slack user's email. *)
+          let author = List.assoc_opt email cfg.user_mappings |> Option.default email in
+          let dm_after_failed_build =
+            List.assoc_opt author cfg.notifications_configs.dm_after_failed_build
+            |> (* dm_after_failed_build is opt in *)
+            Option.default false
+          in
+          let dm_after_failing_build =
+            List.assoc_opt author cfg.notifications_configs.dm_for_failing_build
+            |> (* dm_for_failing_build is opt out *)
+            Option.default true
+          in
+          let is_failing_build = Util.Build.is_failing_build n in
+          let is_failed_build = Util.Build.is_failed_build n in
+          (match (dm_after_failing_build && is_failing_build) || (dm_after_failed_build && is_failed_build) with
+          | true ->
+            (* if we send a dm for a failing build and we want another dm after the build is finished, we don't
+               set the pipeline commit immediately. Otherwise, we wouldn't be able to notify later *)
+            if (is_failing_build && not dm_after_failed_build) || is_failed_build then
+              State.set_repo_pipeline_commit ctx.state n;
+            Lwt.return [ Status_notification.User id ]
+          | false -> Lwt.return [])
+        | Error e ->
+          log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
+          Lwt.return [])
+    in
+    let get_channel_ids ~notify_channels ~branches =
+      match notify_channels, branches with
+      | false, _ | _, [] -> Lwt.return []
+      | _ ->
+      (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
+      match is_main_branch with
+      | false ->
+        Lwt.return
+          (Option.map_default (fun c -> [ Status_notification.inject_channel c ]) [] cfg.prefix_rules.default_channel)
+      | true ->
+        (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha:n.commit.sha with
+        | Error e -> action_error e
+        | Ok commit ->
+          let chans = partition_commit cfg commit.files in
+          Lwt.return (List.map Status_notification.inject_channel chans))
+    in
+    let get_failed_builds_channel_id () =
       (* only notify the failed builds channels for full failed builds with new failed steps on the main branch *)
-      let notify_failed_builds_channel =
+      let should_notify =
         is_main_branch
         && Util.Build.is_failed_build n
         && Util.Build.new_failed_steps n repo_state <> []
@@ -219,67 +218,66 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) = struct
                  allowed_pipelines)
              false cfg.status_rules.allowed_pipelines
       in
-      match notify_failed_builds_channel, cfg.status_rules.allowed_pipelines with
-      | false, _ | _, None -> Lwt.return (direct_message @ chans)
+      match should_notify, cfg.status_rules.allowed_pipelines with
+      | false, _ | _, None -> []
       | true, Some allowed_pipelines ->
-        (* if we have a failed builds channel configured, we send one notification there too,
-           but we don't notify the same channel twice *)
-        let chans =
-          List.find_map
-            (fun ({ name; failed_builds_channel } : Config_t.pipeline) ->
-              match String.equal name context, failed_builds_channel with
-              | true, Some failed_builds_channel ->
-                Some (Status_notification.inject_channel failed_builds_channel :: chans)
-              | _ -> None)
-            allowed_pipelines
-          |> Option.default chans
-          |> List.sort_uniq Status_notification.compare
+        let to_failed_builds_channel_id ({ name; failed_builds_channel } : Config_t.pipeline) =
+          match String.equal name context, failed_builds_channel with
+          | true, Some failed_builds_channel -> Some [ Status_notification.inject_channel failed_builds_channel ]
+          | _ -> None
         in
-        Lwt.return (direct_message @ chans)
+        List.find_map to_failed_builds_channel_id allowed_pipelines |> Option.default []
+    in
+    let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
+      let%lwt direct_message = get_dm_id ~notify_dm in
+      let%lwt chans = get_channel_ids ~notify_channels ~branches in
+      let failed_builds_channel = get_failed_builds_channel_id () in
+      Lwt.return (chans @ direct_message @ failed_builds_channel |> List.sort_uniq Status_notification.compare)
     in
     let%lwt recipients =
-      if Context.is_pipeline_allowed ctx repo.url n then begin
-        match Rule.Status.match_rules ~rules n with
-        | Some (Ignore, _, _) | None -> Lwt.return []
-        | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
-        | Some (Allow_once, notify_channels, notify_dm) ->
-          let branches =
-            match n.target_url with
-            | None -> n.branches
-            | Some build_url ->
-              let pipeline_name =
-                (* We only want to track messages for the base pipeline, not the steps *)
-                match Util.Build.parse_context ~context with
-                | Some { pipeline_name; _ } -> pipeline_name
-                | None -> context
+      let rules = cfg.status_rules.rules in
+      match Context.is_pipeline_allowed ctx repo.url n with
+      | false -> Lwt.return []
+      | true ->
+      match Rule.Status.match_rules ~rules n with
+      | Some (Ignore, _, _) | None -> Lwt.return []
+      | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
+      | Some (Allow_once, notify_channels, notify_dm) ->
+        let branches =
+          match n.target_url with
+          | None -> n.branches
+          | Some build_url ->
+            let pipeline_name =
+              (* We only want to track messages for the base pipeline, not the steps *)
+              match Util.Build.parse_context ~context with
+              | Some { pipeline_name; _ } -> pipeline_name
+              | None -> context
+            in
+            (match StringMap.find_opt pipeline_name repo_state.pipeline_statuses with
+            | None ->
+              (* this is the first notification for a pipeline, so no need to filter branches *)
+              n.branches
+            | Some branch_statuses ->
+              let has_same_status (branch : branch) =
+                match StringMap.find_opt branch.name branch_statuses with
+                | Some build_statuses ->
+                  let current = Util.Build.get_build_number_exn ~build_url in
+                  let previous_builds = IntMap.filter (fun build_num _ -> build_num < current) build_statuses in
+                  (match IntMap.is_empty previous_builds with
+                  | true ->
+                    (* if we have no previous builds, it means they were successful and cleaned from state *)
+                    n.state = Github_t.Success
+                  | false ->
+                    let _, previous_build = IntMap.max_binding previous_builds in
+                    previous_build.status = n.state)
+                | None ->
+                  (* if we don't have any builds for this branch yet, it's the first notification for this pipeline *)
+                  false
               in
-              (match StringMap.find_opt pipeline_name repo_state.pipeline_statuses with
-              | None ->
-                (* this is the first notification for a pipeline, so no need to filter branches *)
-                n.branches
-              | Some branch_statuses ->
-                let has_same_status (branch : branch) =
-                  match StringMap.find_opt branch.name branch_statuses with
-                  | Some build_statuses ->
-                    let current = Util.Build.get_build_number_exn ~build_url in
-                    let previous_builds = IntMap.filter (fun build_num _ -> build_num < current) build_statuses in
-                    (match IntMap.is_empty previous_builds with
-                    | true ->
-                      (* if we have no previous builds, it means they were successful and cleaned from state *)
-                      n.state = Github_t.Success
-                    | false ->
-                      let _, previous_build = IntMap.max_binding previous_builds in
-                      previous_build.status = n.state)
-                  | None ->
-                    (* if we don't have any builds for this branch yet, it's the first notification for this pipeline *)
-                    false
-                in
-                List.filter (Fun.negate has_same_status) n.branches)
-          in
-          let notify_dm = notify_dm && not (State.mem_repo_pipeline_commits ctx.state n) in
-          action_on_match branches ~notify_channels ~notify_dm
-      end
-      else Lwt.return []
+              List.filter (Fun.negate has_same_status) n.branches)
+        in
+        let notify_dm = notify_dm && not (State.mem_repo_pipeline_commits ctx.state n) in
+        action_on_match branches ~notify_channels ~notify_dm
     in
     State.set_repo_pipeline_status ctx.state n;
     Lwt.return recipients

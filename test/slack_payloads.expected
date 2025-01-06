@@ -527,9 +527,9 @@ will notify #longest-a1
 }
 ===== file ../mock_payloads/status.cancelled_test.json =====
 ===== file ../mock_payloads/status.commit1-01-failing.json =====
-will notify #id[author@ahrefs.com]
+will notify #default
 {
-  "channel": "id[author@ahrefs.com]",
+  "channel": "default",
   "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181732|#​181732> is failing for \"c1 message\"",
   "attachments": [
     {
@@ -541,9 +541,9 @@ will notify #id[author@ahrefs.com]
   ],
   "unfurl_links": false
 }
-will notify #default
+will notify #id[author@ahrefs.com]
 {
-  "channel": "default",
+  "channel": "id[author@ahrefs.com]",
   "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181732|#​181732> is failing for \"c1 message\"",
   "attachments": [
     {
