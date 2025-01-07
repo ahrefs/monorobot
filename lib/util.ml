@@ -25,8 +25,7 @@ let http_request ?headers ?body meth path =
   | `Ok s -> Lwt.return @@ Ok s
   | `Error e -> Lwt.return @@ Error e
 
-let sign_string_sha256 ~key ~basestring =
-  Cstruct.of_string basestring |> Nocrypto.Hash.SHA256.hmac ~key:(Cstruct.of_string key) |> Hex.of_cstruct |> Hex.show
+let sign_string_sha256 ~key ~basestring = Digestif.SHA256.(hmac_string ~key basestring |> to_hex)
 
 module Build = struct
   type pipeline_check = {

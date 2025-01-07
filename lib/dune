@@ -5,16 +5,14 @@
   atdgen-runtime
   base64
   biniou
-  cstruct
   curl
   curl.lwt
   devkit
   devkit.core
+  digestif
   extlib
-  hex
   lwt
   lwt.unix
-  nocrypto
   omd
   ptime
   ptime.clock

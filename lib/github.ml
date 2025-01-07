@@ -64,11 +64,7 @@ let is_merge_commit_to_ignore ~(cfg : Config_t.config) ~branch commit =
 let modified_files_of_commit commit = List.concat [ commit.added; commit.removed; commit.modified ]
 
 let is_valid_signature ~secret headers_sig body =
-  let request_hash =
-    let key = Cstruct.of_string secret in
-    Cstruct.to_string @@ Nocrypto.Hash.SHA1.hmac ~key (Cstruct.of_string body)
-  in
-  let (`Hex request_hash) = Hex.of_string request_hash in
+  let request_hash = Digestif.SHA1.(hmac_string ~key:secret body |> to_hex) in
   String.equal headers_sig (sprintf "sha1=%s" request_hash)
 
 let validate_signature ?signing_key ~headers body =
