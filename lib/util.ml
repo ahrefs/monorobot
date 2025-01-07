@@ -36,6 +36,7 @@ module Build = struct
 
   let buildkite_is_failed_re = Re2.create_exn {|^Build #\d+ failed|}
   let buildkite_is_failing_re = Re2.create_exn {|^Build #(\d+) is failing|}
+  let buildkite_is_success_re = Re2.create_exn {|^Build #\d+ passed|}
 
   let buildkite_is_step_re =
     (* Checks if a pipeline or build step, by looking into the buildkite context
@@ -77,6 +78,9 @@ module Build = struct
 
   let is_failing_build (n : Github_t.status_notification) =
     n.state = Failure && Re2.matches buildkite_is_failing_re (Option.default "" n.description)
+
+  let is_success_build (n : Github_t.status_notification) =
+    n.state = Success && Re2.matches buildkite_is_success_re (Option.default "" n.description)
 
   let new_failed_steps (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
     if not (is_failed_build n) then failwith "Error: new_failed_steps fn must be called on a finished build";
