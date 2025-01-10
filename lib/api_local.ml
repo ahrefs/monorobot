@@ -19,17 +19,17 @@ let rec clean_forward_slashes str =
   let cont, ns = ExtLib.String.replace ~str ~sub:"/" ~by:"_" in
   if cont then clean_forward_slashes ns else ns
 
-(** get a member of the repo cached API call providing
+module Github : Api.Github = struct
+  (** get a member of the repo cached API call providing
 the member kind (pull, issue, commit, compare, etc),
 _ref (pr number, issue number, commit sha, compare basehead, etc),
 and its Github_j.<kind>_of_string function.
 NB: please save the cache file in the same format *)
-let get_repo_member_cache ~(repo : Github_t.repository) ~kind ~ref_ ~of_string =
-  let file = clean_forward_slashes (sprintf "%s_%s_%s" repo.full_name kind ref_) in
-  let url = Filename.concat github_cache_dir file in
-  with_cache_file url of_string
+  let get_repo_member_cache ~(repo : Github_t.repository) ~kind ~ref_ ~of_string =
+    let file = clean_forward_slashes (sprintf "%s_%s_%s" repo.full_name kind ref_) in
+    let url = Filename.concat github_cache_dir file in
+    with_cache_file url of_string
 
-module Github : Api.Github = struct
   let get_config ~(ctx : Context.t) ~repo:_ =
     let url = Filename.concat cwd ctx.config_filename in
     with_cache_file url Config_j.config_of_string

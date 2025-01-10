@@ -68,10 +68,10 @@ module Build = struct
   let parse_context_exn ~context =
     match parse_context ~context with
     | Some c -> c
-    | None -> failwith (Printf.sprintf "failed to get pipeline name from notification. Context: %s" context)
+    | None -> failwith (sprintf "failed to get pipeline name from notification. Context: %s" context)
 
   let buildkite_build_number_re =
-    (* buildkite.com/<org_name>/<pipeline_name>/builds/<build_id> *)
+    (* buildkite.com/<org_name>/<pipeline_name>/builds/<build_number> *)
     Re2.create_exn {|buildkite.com/[\w_-]+/[\w_-]+/builds/(\d+)|}
 
   (** For now we only care about buildkite pipelines and steps. Other CI systems are not supported yet. *)
