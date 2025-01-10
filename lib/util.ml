@@ -152,11 +152,16 @@ module Cache (T : Cache_t) = struct
     table : (string, cache_entry) Hashtbl.t;
     mutable last_purge : Ptime.t;
     ttl : Span.t;
+    purge_interval : Span.t;
   }
 
   let now = Ptime_clock.now
 
-  let create ?(ttl = Build.stale_build_threshold) () : t = { table = Hashtbl.create 128; ttl; last_purge = now () }
+  (* purge every 24h by default *)
+  let default_purge_interval = Ptime.Span.of_int_s (60 * 60 * 24)
+
+  let create ?(ttl = Build.stale_build_threshold) ?(purge_interval = default_purge_interval) () : t =
+    { table = Hashtbl.create 128; ttl; last_purge = now (); purge_interval }
 
   let set cache key value =
     let expires_at = add_span (now ()) cache.ttl in
@@ -170,15 +175,20 @@ module Cache (T : Cache_t) = struct
       cache.table;
     cache.last_purge <- now ()
 
-  (* Get an entry from the cache, purging if the ttl has passed *)
+  (* Get an entry from the cache, purging if the purge interval has passed *)
   let get cache key =
     let should_purge cache =
-      match add_span cache.last_purge cache.ttl with
+      match add_span cache.last_purge cache.purge_interval with
       | Some threshold_time -> is_later ~than:threshold_time (now ())
       | None -> false
     in
     if should_purge cache then purge cache;
     match Hashtbl.find_opt cache.table key with
-    | Some entry -> Some entry.value
+    | Some entry ->
+      (match is_later ~than:entry.expires_at (now ()) with
+      | true ->
+        Hashtbl.remove cache.table key;
+        None
+      | false -> Some entry.value)
     | None -> None
 end
