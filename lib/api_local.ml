@@ -173,6 +173,8 @@ module Buildkite : Api.Buildkite = struct
     | [| Some _; Some org; Some pipeline; Some build_nr |] ->
       let file = clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr) in
       let url = Filename.concat buildkite_cache_dir file in
-      with_cache_file url Buildkite_j.get_build_response_of_string
+      with_cache_file url (fun s : Github_t.branch ->
+          let { branch; _ } : Buildkite_t.get_build_response = Buildkite_j.get_build_response_of_string s in
+          { name = branch })
     | _ -> failwith "failed to get all build details from the notification. Is this a Buildkite notification?"
 end

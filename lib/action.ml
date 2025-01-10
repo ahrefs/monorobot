@@ -400,7 +400,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         | false -> Lwt.return branches
         | true ->
           (match%lwt Buildkite_api.get_build_branch ~ctx n with
-          | Ok build -> Lwt.return [ ({ name = build.branch } : Github_t.branch) ]
+          | Ok branch -> Lwt.return [ branch ]
           | Error e ->
             log#error "failed to get buildkite build details: %s" e;
             Lwt.return branches)

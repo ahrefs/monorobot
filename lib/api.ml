@@ -39,6 +39,5 @@ module type Slack = sig
 end
 
 module type Buildkite = sig
-  val get_build_branch :
-    ctx:Context.t -> Github_t.status_notification -> (Buildkite_t.get_build_response, string) Result.t Lwt.t
+  val get_build_branch : ctx:Context.t -> Github_t.status_notification -> (Github_t.branch, string) Result.t Lwt.t
 end

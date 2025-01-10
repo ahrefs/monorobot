@@ -264,7 +264,7 @@ module Buildkite : Api.Buildkite = struct
     | exception _ -> failwith (sprintf "failed to parse Buildkite build url: %s" build_url)
     | [| Some _; Some org; Some pipeline; Some build_nr |] ->
       (match Builds_cache.get builds_cache build_nr with
-      | Some build -> Lwt.return_ok build
+      | Some build -> Lwt.return_ok ({ name = build.branch } : Github_t.branch)
       | None ->
         let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
         (match%lwt
@@ -273,7 +273,7 @@ module Buildkite : Api.Buildkite = struct
          with
         | Ok build ->
           Builds_cache.set builds_cache build_nr build;
-          Lwt.return_ok build
+          Lwt.return_ok ({ name = build.branch } : Github_t.branch)
         | Error e -> Lwt.return_error e))
     | _ -> failwith "failed to get the build details from the notification. Is this a Buildkite notification?"
 end
