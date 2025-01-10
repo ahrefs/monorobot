@@ -172,11 +172,26 @@ let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
       pipeline_name
     | None -> n.context
   in
+  let to_branch_commits branches_commits (branch : Github_t.branch) =
+    let empty_commits = { State_t.s1 = StringSet.empty; s2 = StringSet.empty } in
+    let updated_commits =
+      Option.map_default
+        (fun (branches_commits : State_t.commit_sets StringMap.t) ->
+          match StringMap.find_opt branch.name branches_commits with
+          | None -> empty_commits
+          | Some branch_commits ->
+            let { State_t.s1; s2 } = branch_commits in
+            let s1 = StringSet.add n.sha s1 in
+            let s1, s2 = if StringSet.cardinal s1 > rotation_threshold then StringSet.empty, s1 else s1, s2 in
+            { State_t.s1; s2 })
+        empty_commits branches_commits
+    in
+    branch.name, updated_commits
+  in
   let set_commit commits =
-    let { State_t.s1; s2 } = Option.default { State_t.s1 = StringSet.empty; s2 = StringSet.empty } commits in
-    let s1 = StringSet.add n.sha s1 in
-    let s1, s2 = if StringSet.cardinal s1 > rotation_threshold then StringSet.empty, s1 else s1, s2 in
-    Some { State_t.s1; s2 }
+    let current_commits = Option.default StringMap.empty commits in
+    let updated_commits = List.map (to_branch_commits commits) n.branches in
+    Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) current_commits updated_commits)
   in
   repo_state.pipeline_commits <- StringMap.update pipeline_name set_commit repo_state.pipeline_commits
 
@@ -191,7 +206,13 @@ let mem_repo_pipeline_commits { state } (n : Github_t.status_notification) =
   let repo_state = find_or_add_repo' state n.repository.url in
   match StringMap.find_opt pipeline_name repo_state.pipeline_commits with
   | None -> false
-  | Some { State_t.s1; s2 } -> StringSet.mem n.sha s1 || StringSet.mem n.sha s2
+  | Some pipeline_commits ->
+    List.exists
+      (fun (b : Github_t.branch) ->
+        match StringMap.find_opt b.name pipeline_commits with
+        | None -> false
+        | Some { State_t.s1; s2 } -> StringSet.mem n.sha s1 || StringSet.mem n.sha s2)
+      n.branches
 
 let has_pr_thread { state } ~repo_url ~pr_url =
   let repo_state = find_or_add_repo' state repo_url in

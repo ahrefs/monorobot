@@ -48,7 +48,10 @@ type commit_sets = {
 
 (* A map from pipeline names to a set of commits. This tracks the commits
    that have triggered a direct message notification. *)
-type pipeline_commits = commit_sets map_as_object
+type branch_commits = commit_sets map_as_object
+
+(* A map from pipeline names to [branch_commits] maps *)
+type pipeline_commits = branch_commits map_as_object
 
 type slack_thread = {
   ts: slack_timestamp;
