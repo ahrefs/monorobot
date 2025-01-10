@@ -26,8 +26,10 @@
   },
   "pipeline_commits": {
     "pipeline2": {
-      "s1": ["0d95302addd66c1816bce1b1d495ed1c93ccd478"],
-      "s2": []
+      "develop": {
+        "s1": ["0d95302addd66c1816bce1b1d495ed1c93ccd478"],
+        "s2": []
+      }
     }
   }
 }
