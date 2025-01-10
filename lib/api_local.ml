@@ -5,6 +5,7 @@ open Printf
 let cwd = Sys.getcwd ()
 let github_cache_dir = Filename.concat cwd "github-api-cache"
 let slack_cache_dir = Filename.concat cwd "slack-api-cache"
+let buildkite_cache_dir = Filename.concat cwd "buildkite-api-cache"
 
 (** return the file with a function f applied unless the file is empty;
  empty file:this is needed to simulate 404 returns from github *)
@@ -160,4 +161,18 @@ module Slack_json : Api.Slack = struct
         : Slack_t.auth_test_res)
 
   let get_thread_permalink ~ctx:_ (_thread : State_t.slack_thread) = Lwt.return_none
+end
+
+module Buildkite : Api.Buildkite = struct
+  let get_build_branch ~ctx:_ (n : Github_t.status_notification) =
+    match n.target_url with
+    | None -> Lwt.return_error "no build url. Is this a Buildkite notification?"
+    | Some build_url ->
+    match Re2.find_submatches_exn Util.Build.buildkite_org_pipeline_build_re build_url with
+    | exception _ -> failwith "Failed to parse Buildkite build url"
+    | [| Some _; Some org; Some pipeline; Some build_nr |] ->
+      let file = clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr) in
+      let url = Filename.concat buildkite_cache_dir file in
+      with_cache_file url Buildkite_j.get_build_response_of_string
+    | _ -> failwith "failed to get all build details from the notification. Is this a Buildkite notification?"
 end

@@ -28,8 +28,7 @@ let http_server_action addr port config secrets state logfile loglevel =
       | Ok ctx -> Request_handler.run ~ctx ~addr ~port
     end
 
-(** In check mode, instead of actually sending the message to slack, we
-    simply print it in the console *)
+(** In check mode, instead of actually sending the message to slack, we simply print it in the console *)
 let check_gh_action file json config secrets state =
   match Github.event_of_filename (Filename.basename file) with
   | None ->
@@ -45,11 +44,11 @@ let check_gh_action file json config secrets state =
     | Ok ctx ->
       Lwt_main.run
         (if json then
-           let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_json) in
+           let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_json) (Api_remote.Buildkite) in
            let%lwt () = Action.refresh_username_to_slack_id_tbl ~ctx in
            Action.process_github_notification ctx headers body
          else
-           let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_simple) in
+           let module Action = Action.Action (Api_remote.Github) (Api_local.Slack_simple) (Api_remote.Buildkite) in
            let%lwt () = Action.refresh_username_to_slack_id_tbl ~ctx in
            Action.process_github_notification ctx headers body))
 

@@ -48,6 +48,18 @@
   (run atdgen -j -j-std %{deps})))
 
 (rule
+ (targets buildkite_t.ml buildkite_t.mli)
+ (deps buildkite.atd)
+ (action
+  (run atdgen -t %{deps})))
+
+(rule
+ (targets buildkite_j.ml buildkite_j.mli)
+ (deps buildkite.atd)
+ (action
+  (run atdgen -j -j-std %{deps})))
+
+(rule
  (targets slack_t.ml slack_t.mli)
  (deps slack.atd)
  (action

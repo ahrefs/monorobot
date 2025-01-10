@@ -105,7 +105,6 @@ end
 
 module Slack : Api.Slack = struct
   let log = Log.from "slack"
-  let query_error_msg url e = sprintf "error while querying %s: %s" url e
 
   let slack_api_request ?headers ?body meth url read =
     match%lwt http_request ?headers ?body meth url with
@@ -114,8 +113,6 @@ module Slack : Api.Slack = struct
     match Slack_j.slack_response_of_string read s with
     | res -> Lwt.return res
     | exception exn -> Lwt.return_error (query_error_msg url (Exn.to_string exn))
-
-  let bearer_token_header access_token = sprintf "Authorization: Bearer %s" (Uri.pct_encode access_token)
 
   let request_token_auth ~name ?headers ?body ~ctx meth path read =
     log#info "%s: starting request" name;
@@ -228,4 +225,55 @@ module Slack : Api.Slack = struct
         (Option.default "" res.error);
       Lwt.return_none
     | Ok ({ permalink; _ } : Slack_t.permalink_res) -> Lwt.return_some permalink
+end
+
+module Buildkite : Api.Buildkite = struct
+  let log = Log.from "buildkite"
+
+  module Builds_cache = Cache (struct
+    type t = Buildkite_t.get_build_response
+  end)
+
+  let builds_cache = Builds_cache.create ()
+
+  let buildkite_api_request ?headers ?body meth url read =
+    match%lwt http_request ?headers ?body meth url with
+    | Error e -> Lwt.return_error (query_error_msg url e)
+    | Ok s ->
+    match read s with
+    | res -> Lwt.return_ok res
+    | exception exn -> Lwt.return_error (query_error_msg url (Exn.to_string exn))
+
+  let request_token_auth ~name ?headers ?body ~ctx meth path read =
+    log#info "%s: starting request" name;
+    let secrets = Context.get_secrets_exn ctx in
+    match secrets.buildkite_access_token with
+    | None -> Lwt.return @@ fmt_error "%s: failed to retrieve Buildkite access token" name
+    | Some access_token ->
+      let headers = bearer_token_header access_token :: Option.default [] headers in
+      let url = sprintf "https://api.buildkite.com/v2/%s" path in
+      (match%lwt buildkite_api_request ?body ~headers meth url read with
+      | Ok res -> Lwt.return @@ Ok res
+      | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e)
+
+  let get_build_branch ~(ctx : Context.t) (n : Github_t.status_notification) =
+    match n.target_url with
+    | None -> Lwt.return_error "no build url. Is this a Buildkite notification?"
+    | Some build_url ->
+    match Re2.find_submatches_exn Build.buildkite_org_pipeline_build_re build_url with
+    | exception _ -> failwith (sprintf "failed to parse Buildkite build url: %s" build_url)
+    | [| Some _; Some org; Some pipeline; Some build_nr |] ->
+      (match Builds_cache.get builds_cache build_nr with
+      | Some build -> Lwt.return_ok build
+      | None ->
+        let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
+        (match%lwt
+           request_token_auth ~name:"get buildkite build details" ~ctx `GET build_url
+             Buildkite_j.get_build_response_of_string
+         with
+        | Ok build ->
+          Builds_cache.set builds_cache build_nr build;
+          Lwt.return_ok build
+        | Error e -> Lwt.return_error e))
+    | _ -> failwith "failed to get the build details from the notification. Is this a Buildkite notification?"
 end

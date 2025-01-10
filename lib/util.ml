@@ -1,8 +1,9 @@
 open Devkit
 open Common
+open Printf
 
 let fmt_error ?exn fmt =
-  Printf.ksprintf
+  ksprintf
     (fun s ->
       match exn with
       | Some exn -> Error (s ^ " :  exn " ^ Exn.str exn)
@@ -25,6 +26,10 @@ let http_request ?headers ?body meth path =
   | `Ok s -> Lwt.return @@ Ok s
   | `Error e -> Lwt.return @@ Error e
 
+let bearer_token_header access_token = sprintf "Authorization: Bearer %s" (Uri.pct_encode access_token)
+
+let query_error_msg url e = sprintf "error while querying %s: %s" url e
+
 let sign_string_sha256 ~key ~basestring = Digestif.SHA256.(hmac_string ~key basestring |> to_hex)
 
 module Build = struct
@@ -36,6 +41,9 @@ module Build = struct
   let buildkite_is_failed_re = Re2.create_exn {|^Build #\d+ failed|}
   let buildkite_is_failing_re = Re2.create_exn {|^Build #(\d+) is failing|}
   let buildkite_is_success_re = Re2.create_exn {|^Build #\d+ passed|}
+  let buildkite_org_pipeline_build_re =
+    (* buildkite.com/<org_name>/<pipeline_name>/builds/<build_number> *)
+    Re2.create_exn {|buildkite.com/([\w_-]+)/([\w_-]+)/builds/(\d+)|}
 
   let buildkite_is_step_re =
     (* Checks if a pipeline or build step, by looking into the buildkite context
@@ -122,4 +130,55 @@ module Build = struct
           | None -> [])
         | None -> [])
       | true, _ -> [])
+
+  let stale_build_threshold =
+    (* 2h as the threshold for long running or stale builds *)
+    Ptime.Span.of_int_s (60 * 60 * 2)
+end
+
+module type Cache_t = sig
+  type t
+end
+
+module Cache (T : Cache_t) = struct
+  open Ptime
+
+  type cache_entry = {
+    value : T.t;
+    expires_at : Ptime.t;
+  }
+
+  type t = {
+    table : (string, cache_entry) Hashtbl.t;
+    mutable last_purge : Ptime.t;
+    ttl : Span.t;
+  }
+
+  let now = Ptime_clock.now
+
+  let create ?(ttl = Build.stale_build_threshold) () : t = { table = Hashtbl.create 128; ttl; last_purge = now () }
+
+  let set cache key value =
+    let expires_at = add_span (now ()) cache.ttl in
+    match expires_at with
+    | Some expires_at -> Hashtbl.replace cache.table key { value; expires_at }
+    | None -> Devkit.Exn.fail "Cache: Ptime overflow adding expiration"
+
+  let purge cache =
+    Hashtbl.filter_map_inplace
+      (fun _key entry -> if is_later ~than:entry.expires_at (now ()) then None else Some entry)
+      cache.table;
+    cache.last_purge <- now ()
+
+  (* Get an entry from the cache, purging if the ttl has passed *)
+  let get cache key =
+    let should_purge cache =
+      match add_span cache.last_purge cache.ttl with
+      | Some threshold_time -> is_later ~than:threshold_time (now ())
+      | None -> false
+    in
+    if should_purge cache then purge cache;
+    match Hashtbl.find_opt cache.table key with
+    | Some entry -> Some entry.value
+    | None -> None
 end

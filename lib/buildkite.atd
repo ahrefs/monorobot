@@ -1,0 +1,5 @@
+type get_build_response = {
+  number: int;
+  branch: string;
+  (* There are more fields, but we don't need/want them for now *)
+}
