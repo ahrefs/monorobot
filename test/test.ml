@@ -11,7 +11,7 @@ let () =
   Log.set_filter `Error;
   Log.set_filter ~name:"test" `Info
 
-module Action_local = Action.Action (Api_local.Github) (Api_local.Slack)
+module Action_local = Action.Action (Api_local.Github) (Api_local.Slack) (Api_local.Buildkite)
 
 let get_sorted_files_from dir =
   let files = Sys.readdir dir in

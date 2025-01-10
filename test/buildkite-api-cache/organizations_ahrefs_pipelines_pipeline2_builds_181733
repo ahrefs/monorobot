@@ -1,0 +1,132 @@
+{
+  "id": "018fd828-7bce-4c40-a75e-df46ea0bae8d",
+  "graphql_id": "QnVpbGQtLS0wMThmZDgyOC03YmNlLTRjNDAtYTc1ZS1kZjQ2ZWEwYmFlOGQ=",
+  "url": "https://api.buildkite.com/v2/organizations/ahrefs/pipelines/pipeline2/builds/181733",
+  "web_url": "https://buildkite.com/ahrefs/pipeline2/builds/181733",
+  "number": 181733,
+  "state": "passed",
+  "cancel_reason": null,
+  "blocked": false,
+  "blocked_state": "",
+  "message": "c1 message",
+  "commit": "51d7c2d0fc8f182f8ffad40ef79471789e6f5578",
+  "branch": "other-branch",
+  "tag": null,
+  "env": {},
+  "source": "webhook",
+  "author": {
+    "name": "author",
+    "email": "author@ahrefs.com",
+    "date": "2024-05-31T03:54:00Z"
+  },
+  "creator": {
+    "id": "5d606b51-82ad-41aa-acf3-d0bf150ed353",
+    "graphql_id": "VXNlci0tLTVkNjA2YjUxLTgyYWQtNDFhYS1hY2YzLWQwYmYxNTBlZDM1Mw==",
+    "name": "author",
+    "email": "author@ahrefs.com",
+    "avatar_url": "https://www.gravatar.com/avatar/f9e385f84bc0fa77bfb0f5893a5c18d5",
+    "created_at": "2016-08-29T05:29:30.389Z"
+  },
+  "created_at": "2024-06-02T08:54:42.920Z",
+  "scheduled_at": "2024-06-02T08:54:42.867Z",
+  "started_at": "2024-06-02T08:54:47.128Z",
+  "finished_at": "2024-06-02T09:19:17.829Z",
+  "pull_request": null,
+  "rebuilt_from": null,
+  "pipeline": {
+    "id": "fa4ddfa6-bed6-4323-ae7b-74ff7164c147",
+    "graphql_id": "UGlwZWxpbmUtLS1mYTRkZGZhNi1iZWQ2LTQzMjMtYWU3Yi03NGZmNzE2NGMxNDc=",
+    "url": "https://api.buildkite.com/v2/organizations/ahrefs/pipelines/pipeline2",
+    "web_url": "https://buildkite.com/ahrefs/pipeline2",
+    "name": "pipeline2",
+    "description": "",
+    "slug": "pipeline2",
+    "repository": "git@git.ahrefs.com:ahrefs/pipeline2.git",
+    "cluster_id": null,
+    "pipeline_template_uuid": null,
+    "default_branch": "develop",
+    "skip_queued_branch_builds": true,
+    "skip_queued_branch_builds_filter": "",
+    "cancel_running_branch_builds": false,
+    "cancel_running_branch_builds_filter": "",
+    "allow_rebuilds": true,
+    "provider": {
+      "id": "github_enterprise",
+      "settings": {
+        "build_branches": true,
+        "build_merge_group_checks_requested": false,
+        "build_pull_request_base_branch_changed": false,
+        "build_pull_request_forks": false,
+        "build_pull_request_labels_changed": false,
+        "build_pull_request_ready_for_review": false,
+        "build_pull_requests": true,
+        "build_tags": true,
+        "cancel_deleted_branch_builds": true,
+        "filter_enabled": false,
+        "prefix_pull_request_fork_branch_names": true,
+        "publish_blocked_as_pending": false,
+        "publish_commit_status_per_step": true,
+        "publish_commit_status": true,
+        "pull_request_branch_filter_enabled": false,
+        "separate_pull_request_statuses": false,
+        "skip_builds_for_existing_commits": false,
+        "skip_pull_request_builds_for_existing_commits": true,
+        "trigger_mode": "code",
+        "use_step_key_as_commit_status": false,
+        "repository": "ahrefs/pipeline2",
+        "pull_request_branch_filter_configuration": "",
+        "filter_condition": ""
+      },
+      "webhook_url": ""
+    },
+    "builds_url": "https://api.buildkite.com/v2/organizations/ahrefs/pipelines/pipeline2/builds",
+    "badge_url": "https://badge.buildkite.com/93c1e7b73b922bbb48eeb8cdab4f2efdb6a00ce1aa06441fd6.svg",
+    "created_by": {
+      "id": "d5617cb0-e22d-46ab-ba1b-fba1f2a32c6f",
+      "graphql_id": "VXNlci0tLWQ1NjE3Y2IwLWUyMmQtNDZhYi1iYTFiLWZiYTFmMmEzMmM2Zg==",
+      "name": "user",
+      "email": "user@ahrefs.com",
+      "avatar_url": "https://www.gravatar.com/avatar/de1d8b95df4bc5d94c40583280a72876",
+      "created_at": "2014-11-25T10:09:34.691Z"
+    },
+    "created_at": "2018-04-03T21:13:37.212Z",
+    "archived_at": null,
+    "env": {
+      "TERM": "xterm",
+      "PERCY_TOKEN": "55f03b47a01d723f07c755b9fe2ca530a119d7c53fa5c2b3556713f56d44519f",
+      "PERCY_TARGET_BRANCH": "develop",
+      "LOCALIZEJS_KEY": "de1d8b95df4bc5d94c40583280a72876"
+    },
+    "scheduled_builds_count": 0,
+    "running_builds_count": 4,
+    "scheduled_jobs_count": 1,
+    "running_jobs_count": 9,
+    "waiting_jobs_count": 2,
+    "visibility": "private",
+    "tags": null,
+    "emoji": null,
+    "color": null,
+    "steps": [
+      {
+        "type": "script",
+        "name": "setup",
+        "command": "",
+        "artifact_paths": "",
+        "branch_configuration": "",
+        "env": {},
+        "timeout_in_minutes": null,
+        "agent_query_rules": [
+          "bookworm=true"
+        ],
+        "concurrency": null,
+        "parallelism": null
+      }
+    ],
+    "cluster_url": null
+  },
+  "jobs": [
+    "..."
+  ],
+  "cluster_id": null,
+  "cluster_url": null
+}
