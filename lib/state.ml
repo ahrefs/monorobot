@@ -173,18 +173,18 @@ let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
     | None -> n.context
   in
   let to_branch_commits branches_commits (branch : Github_t.branch) =
-    let empty_commits = { State_t.s1 = StringSet.empty; s2 = StringSet.empty } in
+    let single_commit = { State_t.s1 = StringSet.add n.sha StringSet.empty; s2 = StringSet.empty } in
     let updated_commits =
       Option.map_default
         (fun (branches_commits : State_t.commit_sets StringMap.t) ->
           match StringMap.find_opt branch.name branches_commits with
-          | None -> empty_commits
+          | None -> single_commit
           | Some branch_commits ->
             let { State_t.s1; s2 } = branch_commits in
             let s1 = StringSet.add n.sha s1 in
             let s1, s2 = if StringSet.cardinal s1 > rotation_threshold then StringSet.empty, s1 else s1, s2 in
             { State_t.s1; s2 })
-        empty_commits branches_commits
+        single_commit branches_commits
     in
     branch.name, updated_commits
   in
