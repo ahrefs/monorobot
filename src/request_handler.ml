@@ -4,7 +4,7 @@ open Lib
 
 let log = Log.from "request_handler"
 
-module Action = Action.Action (Api_remote.Github) (Api_remote.Slack)
+module Action = Action.Action (Api_remote.Github) (Api_remote.Slack) (Api_remote.Buildkite)
 
 let run ~ctx ~addr ~port =
   let open Httpev in

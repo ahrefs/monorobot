@@ -37,3 +37,7 @@ module type Slack = sig
 
   val get_thread_permalink : ctx:Context.t -> State_t.slack_thread -> string option Lwt.t
 end
+
+module type Buildkite = sig
+  val get_build_branch : ctx:Context.t -> Github_t.status_notification -> (Github_t.branch, string) Result.t Lwt.t
+end

@@ -116,12 +116,9 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     in
     let rm_successful_build =
       update_builds_in_branches ~branches:n.branches ~f:(fun builds_map ->
-          let open Ptime in
-          let threshold =
-            (* 2h as the threshold for long running or stale builds *)
-            Ptime.Span.of_int_s (60 * 60 * 2)
-          in
+          let threshold = Util.Build.stale_build_threshold in
           let is_past_threshold (build_status : State_t.build_status) threshold =
+            let open Ptime in
             let now = Ptime_clock.now () in
             match add_span build_status.created_at threshold with
             | Some t_plus_threshold -> is_earlier ~than:now t_plus_threshold

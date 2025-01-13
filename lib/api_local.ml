@@ -5,6 +5,7 @@ open Printf
 let cwd = Sys.getcwd ()
 let github_cache_dir = Filename.concat cwd "github-api-cache"
 let slack_cache_dir = Filename.concat cwd "slack-api-cache"
+let buildkite_cache_dir = Filename.concat cwd "buildkite-api-cache"
 
 (** return the file with a function f applied unless the file is empty;
  empty file:this is needed to simulate 404 returns from github *)
@@ -18,17 +19,17 @@ let rec clean_forward_slashes str =
   let cont, ns = ExtLib.String.replace ~str ~sub:"/" ~by:"_" in
   if cont then clean_forward_slashes ns else ns
 
-(** get a member of the repo cached API call providing
+module Github : Api.Github = struct
+  (** get a member of the repo cached API call providing
 the member kind (pull, issue, commit, compare, etc),
 _ref (pr number, issue number, commit sha, compare basehead, etc),
 and its Github_j.<kind>_of_string function.
 NB: please save the cache file in the same format *)
-let get_repo_member_cache ~(repo : Github_t.repository) ~kind ~ref_ ~of_string =
-  let file = clean_forward_slashes (sprintf "%s_%s_%s" repo.full_name kind ref_) in
-  let url = Filename.concat github_cache_dir file in
-  with_cache_file url of_string
+  let get_repo_member_cache ~(repo : Github_t.repository) ~kind ~ref_ ~of_string =
+    let file = clean_forward_slashes (sprintf "%s_%s_%s" repo.full_name kind ref_) in
+    let url = Filename.concat github_cache_dir file in
+    with_cache_file url of_string
 
-module Github : Api.Github = struct
   let get_config ~(ctx : Context.t) ~repo:_ =
     let url = Filename.concat cwd ctx.config_filename in
     with_cache_file url Config_j.config_of_string
@@ -160,4 +161,20 @@ module Slack_json : Api.Slack = struct
         : Slack_t.auth_test_res)
 
   let get_thread_permalink ~ctx:_ (_thread : State_t.slack_thread) = Lwt.return_none
+end
+
+module Buildkite : Api.Buildkite = struct
+  let get_build_branch ~ctx:_ (n : Github_t.status_notification) =
+    match n.target_url with
+    | None -> Lwt.return_error "no build url. Is this a Buildkite notification?"
+    | Some build_url ->
+    match Re2.find_submatches_exn Util.Build.buildkite_org_pipeline_build_re build_url with
+    | exception _ -> failwith "Failed to parse Buildkite build url"
+    | [| Some _; Some org; Some pipeline; Some build_nr |] ->
+      let file = clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr) in
+      let url = Filename.concat buildkite_cache_dir file in
+      with_cache_file url (fun s : Github_t.branch ->
+          let { branch; _ } : Buildkite_t.get_build_response = Buildkite_j.get_build_response_of_string s in
+          { name = branch })
+    | _ -> failwith "failed to get all build details from the notification. Is this a Buildkite notification?"
 end
