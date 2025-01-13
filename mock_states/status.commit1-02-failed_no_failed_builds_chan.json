@@ -26,8 +26,10 @@
   },
   "pipeline_commits": {
     "bau": {
-      "s1": ["7e0a933e9c71b4ca107680ca958ca1888d5e479b"],
-      "s2": []
+      "author/patches/js-storage": {
+        "s1": ["7e0a933e9c71b4ca107680ca958ca1888d5e479b"],
+        "s2": []
+      }
     }
   }
 }
