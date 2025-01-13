@@ -234,7 +234,8 @@ module Buildkite : Api.Buildkite = struct
     type t = Buildkite_t.get_build_response
   end)
 
-  let builds_cache = Builds_cache.create ()
+  (* 24h cache ttl and purge interval. We store so little data per build that it's not worth cleaning up entries sooner. *)
+  let builds_cache = Builds_cache.create ~ttl:Builds_cache.default_purge_interval ()
 
   let buildkite_api_request ?headers ?body meth url read =
     match%lwt http_request ?headers ?body meth url with
