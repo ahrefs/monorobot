@@ -78,7 +78,7 @@ let validate_signature ?signing_key ~headers body =
 (** Parse a payload. The type of the payload is detected from the headers.
 
     @raise Failure if unable to extract event from header *)
-let parse_exn headers body =
+let parse_exn ~get_build_branch headers body =
   let string_of_abstract_issue_state = function
     | Open -> "open"
     | Closed -> "closed"
@@ -111,45 +111,67 @@ let parse_exn headers body =
     log#info "[%s] event %s: sender=%s, head=%s, ref=%s" n.repository.full_name event n.sender.login
       (print_opt (fun c -> print_commit_hash c.id) n.head_commit)
       n.ref;
-    Push n
+    Lwt.return @@ Push n
   | "pull_request" ->
     let n = pr_notification_of_string body in
     log#info "[%s] event %s: number=%d, state=%s" n.repository.full_name event n.pull_request.number
       (string_of_abstract_issue_state n.pull_request.state);
-    Pull_request n
+    Lwt.return @@ Pull_request n
   | "pull_request_review" ->
     let n = pr_review_notification_of_string body in
     log#info "[%s] event %s: number=%d, sender=%s, action=%s, body=%S" n.repository.full_name event
       n.pull_request.number n.sender.login (string_of_pr_review_action n.action)
       (print_opt print_comment_preview n.review.body);
-    PR_review n
+    Lwt.return @@ PR_review n
   | "pull_request_review_comment" ->
     let n = pr_review_comment_notification_of_string body in
     log#info "[%s] event %s: number=%d, sender=%s, action=%s, body=%S" n.repository.full_name event
       n.pull_request.number n.sender.login (string_of_comment_action n.action) (print_comment_preview n.comment.body);
-    PR_review_comment n
+    Lwt.return @@ PR_review_comment n
   | "issues" ->
     let n = issue_notification_of_string body in
     log#info "[%s] event %s: number=%d, state=%s" n.repository.full_name event n.issue.number
       (string_of_abstract_issue_state n.issue.state);
-    Issue n
+    Lwt.return @@ Issue n
   | "issue_comment" ->
     let n = issue_comment_notification_of_string body in
     log#info "[%s] event %s: number=%d, sender=%s, action=%s, body=%S" n.repository.full_name event n.issue.number
       n.sender.login (string_of_comment_action n.action) (print_comment_preview n.comment.body);
-    Issue_comment n
+    Lwt.return @@ Issue_comment n
   | "status" ->
     let n = status_notification_of_string body in
-    log#info "[%s] event %s: commit=%s, state=%s, context=%s, target_url=%s" n.repository.full_name event
-      (print_commit_hash n.commit.sha) (string_of_status_state n.state) n.context (print_opt id n.target_url);
-    Status n
+    (* some commits live in multiple branches, so `n.branches` will be a list of those branches.
+       However, builds are associated with a single branch, so we need to get the correct branch,
+       to correctly track build/branch state.
+       For buildkite notifications, we need to get the branch from the buildkite api and update
+       the value on the notification before we handle it.
+       At the moment we don't need to handle this logic in other notification types. *)
+    let%lwt built_branch =
+      match n.branches, n.target_url with
+      | [], _ | [ _ ], _ | _, None -> Lwt.return n.branches
+      | branches, Some build_url ->
+      match Stre.exists build_url "buildkite" with
+      | false -> Lwt.return branches
+      | true ->
+        (match%lwt get_build_branch n with
+        | Ok branch -> Lwt.return [ branch ]
+        | Error e ->
+          log#error "failed to get buildkite build details: %s" e;
+          Lwt.return branches)
+    in
+    let n = { n with branches = built_branch } in
+    let branches_str = sprintf "[%s]" @@ String.concat ", " (List.map (fun (b : branch) -> b.name) n.branches) in
+    log#info "[%s] event %s: commit=%s, state=%s, context=%s, target_url=%s, branches=%s" n.repository.full_name event
+      (print_commit_hash n.commit.sha) (string_of_status_state n.state) n.context (print_opt id n.target_url)
+      branches_str;
+    Lwt.return @@ Status n
   | "commit_comment" ->
     let n = commit_comment_notification_of_string body in
     log#info "[%s] event %s: commit=%s, sender=%s, action=%s, body=%S" n.repository.full_name event
       (print_opt print_commit_hash n.comment.commit_id)
       n.sender.login n.action (print_comment_preview n.comment.body);
-    Commit_comment n
-  | event -> Exn.fail "unhandled event type : %s" event
+    Lwt.return @@ Commit_comment n
+  | event -> Lwt.return @@ Exn.fail "unhandled event type : %s" event
 
 type basehead = string * string
 

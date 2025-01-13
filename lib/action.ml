@@ -386,26 +386,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       let notifs = List.map (generate_commit_comment_notification ~slack_match_func api_commit n) channels in
       Lwt.return notifs
     | Status n ->
-      (* some commits live in multiple branches, so `n.branches` will be a list of those branches.
-         However, builds are associated with a single branch, so we need to get the correct branch,
-         to correctly track build/branch state.
-         For buildkite notifications, we need to get the branch from the buildkite api and update
-         the value on the notification before we handle it.
-         At the moment we don't need to handle this logic in other notification types. *)
-      let%lwt built_branch =
-        match n.branches, n.target_url with
-        | [], _ | [ _ ], _ | _, None -> Lwt.return n.branches
-        | branches, Some build_url ->
-        match Stre.exists build_url "buildkite" with
-        | false -> Lwt.return branches
-        | true ->
-          (match%lwt Buildkite_api.get_build_branch ~ctx n with
-          | Ok branch -> Lwt.return [ branch ]
-          | Error e ->
-            log#error "failed to get buildkite build details: %s" e;
-            Lwt.return branches)
-      in
-      let n = { n with branches = built_branch } in
       let%lwt channels = partition_status ctx n in
       let%lwt slack_user_id =
         match Util.Build.is_failed_build n with
@@ -491,7 +471,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     in
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
-      match Github.parse_exn headers body with
+      match%lwt Github.parse_exn headers body ~get_build_branch:(Buildkite_api.get_build_branch ~ctx) with
       | exception Failure msg ->
         log#warn "skipping event : %s" msg;
         Lwt.return_unit
