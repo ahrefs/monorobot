@@ -126,12 +126,17 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
           in
           IntMap.remove build_number builds_map
           |> IntMap.filter (fun build_number' build_status ->
-                 match build_status.State_t.failed_steps with
-                 (* Remove old builds without failed steps because they were fixed and cleaned from state *)
-                 | [] when build_number' < build_number && build_status.is_finished -> false
-                 (* Remove builds that ran for more than the threshold or for which we didn't get an end notification *)
-                 | _ when is_past_threshold build_status threshold -> false
-                 | _ -> true))
+                 match build_status.State_t.is_finished, build_number' < build_number with
+                 | true, true ->
+                   (* remove all finished older builds *)
+                   false
+                 | false, true when is_past_threshold build_status threshold ->
+                   (* remove older builds that ran for longer than the threshold,
+                      or for which we might not have received a final notification *)
+                   false
+                 | _ ->
+                   (* keep all other builds *)
+                   true))
     in
     let rm_successful_step =
       update_builds_in_branches ~branches:n.branches ~f:(fun builds_map ->
