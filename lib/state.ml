@@ -90,11 +90,18 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     in
     let update_build_status builds_map build_number =
       match IntMap.find_opt build_number builds_map with
-      | Some ({ failed_steps; _ } as current_build_status : State_t.build_status) ->
+      | Some ({ failed_steps; is_finished; _ } as current_build_status : State_t.build_status) ->
         let failed_steps =
           match is_pipeline_step, n.state with
           | true, Failure -> { State_t.name = n.context; build_url } :: failed_steps
           | _ -> failed_steps
+        in
+        (* we need to figure out the value of is_finished here too because of step notifications that might
+           arrive after the build notification and revert the value to false *)
+        let is_finished =
+          match is_pipeline_step, n.state with
+          | false, (Success | Failure | Error) -> true
+          | _ -> is_finished
         in
         { current_build_status with status = n.state; is_finished; finished_at; failed_steps }
       | None -> init_build_state
