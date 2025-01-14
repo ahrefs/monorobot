@@ -32,10 +32,12 @@ let get_mock_slack_events () =
 let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_path) =
   let headers = [ "x-github-event", kind ] in
   let make_test_context event =
-    let repo = Github.repo_of_notification @@ Github.parse_exn headers event in
+    let ctx = Context.make () in
+    let get_build_branch = Api_local.Buildkite.get_build_branch ~ctx in
+    let%lwt n = Github.parse_exn headers event ~get_build_branch in
+    let repo = Github.repo_of_notification n in
     (* overwrite repo url in secrets with that of notification for this test case *)
     let secrets = { secrets with repos = [ { url = repo.url; gh_token = None; gh_hook_secret = None } ] } in
-    let ctx = Context.make () in
     ctx.secrets <- Some secrets;
     let (_ : State_t.repo_state) = State.find_or_add_repo ctx.state repo.url in
     let () =
@@ -48,13 +50,13 @@ let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_
         Context.set_repo_config ctx repo.url config
       | exception exn -> log#error ~exn "failed to load state from file %s" state_path
     in
-    ctx
+    Lwt.return ctx
   in
   Printf.printf "===== file %s =====\n" path;
   let headers = [ "x-github-event", kind ] in
   match Std.input_file path with
   | event ->
-    let ctx = make_test_context event in
+    let%lwt ctx = make_test_context event in
     Action_local.process_github_notification ctx headers event
   | exception exn ->
     log#error ~exn "failed to read file %s" path;
