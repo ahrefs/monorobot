@@ -26,6 +26,8 @@ type build_status = {
   build_url: string;
   commit: ci_commit;
   is_finished: bool;
+  (* TODO: remove default value once we migrated the current state over *)
+  ~is_canceled <ocaml default="false">: bool;
   failed_steps: failed_step list;
   created_at: timestamp;
   finished_at: timestamp nullable;

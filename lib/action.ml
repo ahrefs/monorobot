@@ -216,8 +216,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                  allowed_pipelines)
              false cfg.status_rules.allowed_pipelines
       in
-      (* only notify the failed builds channels for full failed builds on the main branch with new failed steps *)
-      let should_notify_fail = is_failed_build n && has_failed_builds_channel && new_failed_steps n repo_state <> [] in
+      (* only notify the failed builds channels for full failed or canceled builds on the main branch
+         that have new failed steps that weren't failing in previous builds *)
+      let should_notify_fail =
+        (is_failed_build n || is_canceled_build n) && has_failed_builds_channel && new_failed_steps n repo_state <> []
+      in
+
       (* only notify the failed builds channels for successful builds on the main branch if they fix the pipeline *)
       let should_notify_success =
         match parse_context ~context with
@@ -239,8 +243,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
               let current_build_number = get_build_number_exn ~build_url in
               let previous_builds =
                 IntMap.filter
-                  (fun build_num (build_status : State_t.build_status) ->
-                    build_status.is_finished && build_num < current_build_number)
+                  (fun build_num ({ is_finished; is_canceled; _ } : State_t.build_status) ->
+                    (* we don't take canceled builds into account, since they didn't run to completion *)
+                    is_finished && (not is_canceled) && build_num < current_build_number)
                   build_statuses
               in
               (match IntMap.is_empty previous_builds with

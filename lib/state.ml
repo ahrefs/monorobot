@@ -83,6 +83,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
         build_url;
         commit;
         is_finished;
+        is_canceled = false;
         failed_steps;
         created_at = Timestamp.wrap_with_fallback n.updated_at;
         finished_at;
@@ -103,7 +104,14 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
           | false, (Success | Failure | Error) -> true
           | _ -> is_finished
         in
-        { current_build_status with status = n.state; is_finished; finished_at; failed_steps }
+        {
+          current_build_status with
+          status = n.state;
+          is_finished;
+          is_canceled = Util.Build.is_canceled_build n;
+          finished_at;
+          failed_steps;
+        }
       | None -> init_build_state
     in
     let update_failing_build_status builds_map build_number =
@@ -117,7 +125,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
           let updated_status =
             match Util.Build.is_failing_build n with
             | true -> update_failing_build_status builds_map build_number
-            | _ -> update_build_status builds_map build_number
+            | false -> update_build_status builds_map build_number
           in
           IntMap.add build_number updated_status builds_map)
     in
