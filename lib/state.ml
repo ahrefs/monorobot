@@ -114,19 +114,10 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
         }
       | None -> init_build_state
     in
-    let update_failing_build_status builds_map build_number =
-      match IntMap.find_opt build_number builds_map with
-      | Some (current_build_status : State_t.build_status) -> { current_build_status with status = Failure }
-      | None -> init_build_state
-    in
     let update_pipeline_status =
       update_builds_in_branches ~branches:n.branches
         ~default_builds_map:(IntMap.singleton build_number init_build_state) ~f:(fun builds_map ->
-          let updated_status =
-            match Util.Build.is_failing_build n with
-            | true -> update_failing_build_status builds_map build_number
-            | false -> update_build_status builds_map build_number
-          in
+          let updated_status = update_build_status builds_map build_number in
           IntMap.add build_number updated_status builds_map)
     in
     let rm_successful_build =

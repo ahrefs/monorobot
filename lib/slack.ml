@@ -393,12 +393,15 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
       | None -> false
       | Some pipelines ->
         List.exists
-          (fun ({ name; failed_builds_channel } : Config_t.pipeline) ->
+          (fun ({ name; failed_builds_channel; _ } : Config_t.pipeline) ->
             String.equal name context
             && Option.map_default Status_notification.(equal channel $ inject_channel) false failed_builds_channel)
           pipelines
     in
-    match Build.is_failed_build notification && (is_failed_builds_channel || Status_notification.is_user channel) with
+    match
+      Build.(is_failed_build notification || is_canceled_build notification)
+      && (is_failed_builds_channel || Status_notification.is_user channel)
+    with
     | false -> []
     | true ->
       let repo_state = State.find_or_add_repo ctx.state repository.url in

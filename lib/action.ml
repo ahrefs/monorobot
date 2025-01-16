@@ -207,19 +207,28 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           Lwt.return (List.map Status_notification.inject_channel chans))
     in
     let get_failed_builds_channel_id () =
-      let has_failed_builds_channel =
-        is_main_branch
-        && Option.map_default
-             (fun allowed_pipelines ->
-               List.exists
-                 (fun { failed_builds_channel; name } -> name = context && Option.is_some failed_builds_channel)
-                 allowed_pipelines)
-             false cfg.status_rules.allowed_pipelines
+      let pipeline_config, has_failed_builds_channel =
+        match cfg.status_rules.allowed_pipelines with
+        | None -> None, false
+        | Some allowed_pipelines ->
+          List.fold_left
+            (fun acc ({ failed_builds_channel; name; _ } as pipeline_config) ->
+              match is_main_branch && name = context && Option.is_some failed_builds_channel with
+              | true -> Some pipeline_config, true
+              | false -> acc)
+            (None, false) allowed_pipelines
       in
       (* only notify the failed builds channels for full failed or canceled builds on the main branch
          that have new failed steps that weren't failing in previous builds *)
       let should_notify_fail =
-        (is_failed_build n || is_canceled_build n) && has_failed_builds_channel && new_failed_steps n repo_state <> []
+        let notify_cancelled_build =
+          Option.map_default
+            (fun pipeline_config -> pipeline_config.notify_cancelled_builds && is_canceled_build n)
+            false pipeline_config
+        in
+        (is_failed_build n || notify_cancelled_build)
+        && has_failed_builds_channel
+        && new_failed_steps n repo_state <> []
       in
 
       (* only notify the failed builds channels for successful builds on the main branch if they fix the pipeline *)
@@ -262,7 +271,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       match should_notify_fail || should_notify_success, cfg.status_rules.allowed_pipelines with
       | false, _ | _, None -> []
       | true, Some allowed_pipelines ->
-        let to_failed_builds_channel_id ({ name; failed_builds_channel } : Config_t.pipeline) =
+        let to_failed_builds_channel_id ({ name; failed_builds_channel; _ } : Config_t.pipeline) =
           match String.equal name context, failed_builds_channel with
           | true, Some failed_builds_channel -> Some [ Status_notification.inject_channel failed_builds_channel ]
           | _ -> None
