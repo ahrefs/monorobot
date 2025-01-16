@@ -525,7 +525,7 @@ will notify #longest-a1
   "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false
 }
-===== file ../mock_payloads/status.cancelled_test.json =====
+===== file ../mock_payloads/status.canceled_test.json =====
 ===== file ../mock_payloads/status.commit1-01-failing.json =====
 will notify #default
 {

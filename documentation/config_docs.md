@@ -199,7 +199,7 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
       {
         "failed_builds_channel": "failed-builds",
         "name": "buildkite/monorobot-test",
-        "notify_cancelled_builds": false
+        "notify_canceled_builds": false
       }
     ],
     "rules": [
@@ -222,7 +222,7 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
 
 | value | description | default |
 |-|-|-|
-| `allowed_pipelines` | a list of pipelines objects with the following keys: `name` (mandatory), `failed_builds_channel` (optional), and `notify_cancelled_builds` (optional, defaults to true). If `failed_builds_channel` is specified, payloads whose pipeline name is not in the list will be ignored. Monorobot will notify the defined channel for failed builds with new failed steps on the main branch, in addition to any notification originating from applying the **status rules**. Cancelled builds with new failed steps will be notified like failed builds unless `notify_cancelled_builds` is set to false. | all pipelines included in the status rule check |
+| `allowed_pipelines` | a list of pipelines objects with the following keys: `name` (mandatory), `failed_builds_channel` (optional), and `notify_canceled_builds` (optional, defaults to true). If `failed_builds_channel` is specified, payloads whose pipeline name is not in the list will be ignored. Monorobot will notify the defined channel for failed builds with new failed steps on the main branch, in addition to any notification originating from applying the **status rules**. canceled builds with new failed steps will be notified like failed builds unless `notify_canceled_builds` is set to false. | all pipelines included in the status rule check |
 | `rules` | a list of **status rules** to determine whether to *allow* or *ignore* a payload for further processing | required field |
 
 ### Status Rules

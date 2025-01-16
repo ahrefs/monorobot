@@ -221,14 +221,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       (* only notify the failed builds channels for full failed or canceled builds on the main branch
          that have new failed steps that weren't failing in previous builds *)
       let should_notify_fail =
-        let notify_cancelled_build =
+        let notify_canceled_build =
           Option.map_default
-            (fun pipeline_config -> pipeline_config.notify_cancelled_builds && is_canceled_build n)
+            (fun pipeline_config -> pipeline_config.notify_canceled_builds && is_canceled_build n)
             false pipeline_config
         in
-        (is_failed_build n || notify_cancelled_build)
-        && has_failed_builds_channel
-        && new_failed_steps n repo_state <> []
+        (is_failed_build n || notify_canceled_build) && has_failed_builds_channel && new_failed_steps n repo_state <> []
       in
 
       (* only notify the failed builds channels for successful builds on the main branch if they fix the pipeline *)
