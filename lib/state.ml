@@ -74,8 +74,8 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
       in
       let failed_steps =
         match is_pipeline_step, n.state with
-        | true, Failure -> [ { State_t.name = n.context; build_url } ]
-        | _ -> []
+        | true, Failure -> FailedStepSet.singleton { Buildkite_t.name = n.context; build_url }
+        | _ -> FailedStepSet.empty
       in
       {
         State_t.status = n.state;
@@ -94,7 +94,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
       | Some ({ failed_steps; is_finished; _ } as current_build_status : State_t.build_status) ->
         let failed_steps =
           match is_pipeline_step, n.state with
-          | true, Failure -> { State_t.name = n.context; build_url } :: failed_steps
+          | true, Failure -> FailedStepSet.add { Buildkite_t.name = n.context; build_url } failed_steps
           | _ -> failed_steps
         in
         (* we need to figure out the value of is_finished here too because of step notifications that might
@@ -149,9 +149,9 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
           IntMap.mapi
             (fun build_number' (build_status : State_t.build_status) ->
               let failed_steps =
-                List.filter
+                FailedStepSet.filter
                   (* remove the fixed step from previous finished builds *)
-                    (fun (s : State_t.failed_step) ->
+                    (fun (s : Buildkite_t.failed_step) ->
                     not (build_number' < build_number && s.name = n.context && build_status.is_finished))
                   build_status.failed_steps
               in

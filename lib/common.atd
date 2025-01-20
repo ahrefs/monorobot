@@ -13,3 +13,9 @@ type 'v table_as_object =
 type string_set =
   string list
     wrap <ocaml module="Common.StringSet">
+
+type failed_step <ocaml from="Buildkite" t="failed_step"> = abstract
+
+type failed_step_set =
+  failed_step list
+    wrap <ocaml module="Common.FailedStepSet" t="Common.FailedStepSet.t">

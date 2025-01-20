@@ -109,15 +109,13 @@ module Build = struct
           (match StringMap.find_opt branch.name branches_statuses with
           | Some builds_maps ->
             let current_build_number = get_build_number_exn ~build_url in
-            let to_previous_failed_steps n build_number (build_status : State_t.build_status) acc =
-              match build_number >= n with
-              | true -> acc
-              | false -> build_status.failed_steps @ acc
-            in
             let previous_failed_steps =
-              IntMap.fold (to_previous_failed_steps current_build_number) builds_maps []
-              |> List.sort_uniq (fun (s1 : State_t.failed_step) (s2 : State_t.failed_step) ->
-                     String.compare s1.name s2.name)
+              IntMap.fold
+                (fun build_number (build_status : State_t.build_status) acc ->
+                  match build_number >= current_build_number with
+                  | true -> acc
+                  | false -> FailedStepSet.union build_status.failed_steps acc)
+                builds_maps FailedStepSet.empty
             in
             let current_build =
               try IntMap.find current_build_number builds_maps
@@ -127,10 +125,7 @@ module Build = struct
                    clearer what is happening if it does. *)
                 failwith "Error: failed to find current build in state, maybe it was cleaned up?"
             in
-            List.filter
-              (fun (step : State_t.failed_step) ->
-                not @@ List.exists (fun (prev : State_t.failed_step) -> prev.name = step.name) previous_failed_steps)
-              current_build.failed_steps
+            FailedStepSet.(diff current_build.failed_steps previous_failed_steps |> elements)
           | None -> [])
         | None -> [])
       | true, _ -> [])

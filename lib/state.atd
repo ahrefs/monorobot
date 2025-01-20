@@ -3,6 +3,7 @@ type 'v map_as_object <ocaml from="Common"> = abstract
 type 'v int_map_as_object <ocaml from="Common"> = abstract
 type 'v table_as_object <ocaml from="Common"> = abstract
 type string_set <ocaml from="Common"> = abstract
+type failed_step_set <ocaml from="Common"> = abstract
 type slack_timestamp = string wrap <ocaml t="Common.Slack_timestamp.t" wrap="Common.Slack_timestamp.inject" unwrap="Common.Slack_timestamp.project">
 type timestamp = string wrap <ocaml module="Common.Timestamp">
 type user_id = string wrap <ocaml t="Common.Slack_user_id.t" wrap="Common.Slack_user_id.inject" unwrap="Common.Slack_user_id.project">
@@ -15,11 +16,6 @@ type ci_commit = {
   commit_message: string;
 }
 
-type failed_step = {
-  name: string;
-  build_url: string;
-}
-
 type build_status = {
   status: status_state;
   build_number: int;
@@ -28,7 +24,7 @@ type build_status = {
   is_finished: bool;
   (* TODO: remove default value once we migrated the current state over *)
   ~is_canceled <ocaml default="false">: bool;
-  failed_steps: failed_step list;
+  failed_steps: failed_step_set;
   created_at: timestamp;
   finished_at: timestamp nullable;
 }

@@ -406,7 +406,7 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
     | true ->
       let repo_state = State.find_or_add_repo ctx.state repository.url in
       let pipeline = notification.context in
-      let slack_step_link (s : State_t.failed_step) =
+      let slack_step_link (s : Buildkite_t.failed_step) =
         let step = Stre.drop_prefix s.name (pipeline ^ "/") in
         sprintf "<%s|%s> " s.build_url step
       in
