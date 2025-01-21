@@ -308,7 +308,7 @@ let generate_push_notification notification channel =
 
 let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
 
-let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config_t.config)
+let generate_status_notification ?slack_user_id ?failed_steps (cfg : Config_t.config)
   (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; html_url; _ } : status_commit) = commit in
@@ -404,15 +404,14 @@ let generate_status_notification ~(ctx : Context.t) ?slack_user_id (cfg : Config
     with
     | false -> []
     | true ->
-      let repo_state = State.find_or_add_repo ctx.state repository.url in
       let pipeline = notification.context in
       let slack_step_link (s : Buildkite_t.failed_step) =
         let step = Stre.drop_prefix s.name (pipeline ^ "/") in
         sprintf "<%s|%s> " s.build_url step
       in
-      (match Build.new_failed_steps notification repo_state with
-      | [] -> []
-      | steps -> [ sprintf "*Steps broken*: %s" (String.concat ", " (List.map slack_step_link steps)) ])
+      (match failed_steps with
+      | None -> []
+      | Some steps -> [ sprintf "*Steps broken*: %s" (String.concat ", " (List.map slack_step_link steps)) ])
   in
   let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info; failed_builds_info ] in
   let attachment =

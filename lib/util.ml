@@ -94,41 +94,99 @@ module Build = struct
   let is_success_build (n : Github_t.status_notification) =
     n.state = Success && Re2.matches buildkite_is_success_re (Option.default "" n.description)
 
-  let new_failed_steps (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
-    match n.target_url with
-    | None ->
+  let get_branch_builds (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
+    match n.branches, parse_context ~context:n.context with
+    | [ branch ], Some { pipeline_name; _ } ->
+      (match StringMap.find_opt pipeline_name repo_state.pipeline_statuses with
+      | None -> None
+      | Some pipeline_statuses -> StringMap.find_opt branch.name pipeline_statuses)
+    | _ -> None
+
+  let get_current_build (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
+    match n.target_url, get_branch_builds n repo_state with
+    | Some build_url, Some builds_maps ->
+      let n = get_build_number_exn ~build_url in
+      IntMap.find_opt n builds_maps
+    | _ -> None
+
+  let new_failed_steps ~get_build (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
+    let log = Log.from "new_failed_steps" in
+    match n.target_url, get_branch_builds n repo_state with
+    | None, _ | _, None ->
       (* if we don't have a target_url value, we don't have a build number and cant't track build state *)
-      []
-    | Some build_url ->
-      let { pipeline_name; _ } = parse_context_exn ~context:n.context in
-      (match n.state = Failure, n.branches with
-      | false, _ -> []
-      | true, [ branch ] ->
-        (match StringMap.find_opt pipeline_name repo_state.pipeline_statuses with
-        | Some branches_statuses ->
-          (match StringMap.find_opt branch.name branches_statuses with
-          | Some builds_maps ->
-            let current_build_number = get_build_number_exn ~build_url in
-            let previous_failed_steps =
-              IntMap.fold
-                (fun build_number (build_status : State_t.build_status) acc ->
-                  match build_number >= current_build_number with
-                  | true -> acc
-                  | false -> FailedStepSet.union build_status.failed_steps acc)
-                builds_maps FailedStepSet.empty
-            in
-            let current_build =
-              try IntMap.find current_build_number builds_maps
-              with _ ->
-                (* edge case: we got a notification for a build that ran longer than the defined threshold
-                   and was cleaned from state. This shouldn't happen, but adding an error message to make
-                   clearer what is happening if it does. *)
-                failwith "Error: failed to find current build in state, maybe it was cleaned up?"
-            in
-            FailedStepSet.(diff current_build.failed_steps previous_failed_steps |> elements)
-          | None -> [])
-        | None -> [])
-      | true, _ -> [])
+      Lwt.return []
+    | Some build_url, Some builds_maps ->
+    match is_failed_build n || is_canceled_build n with
+    | false -> failwith (sprintf "can't calculate failed steps: build %s is not failed or canceled" build_url)
+    | true ->
+      let current_build_number = get_build_number_exn ~build_url in
+      let previous_failed_steps =
+        IntMap.fold
+          (fun build_number (build_status : State_t.build_status) acc ->
+            match build_number >= current_build_number with
+            | true -> acc
+            | false -> FailedStepSet.union build_status.failed_steps acc)
+          builds_maps FailedStepSet.empty
+      in
+      let%lwt failed_steps =
+        let get_failed_steps_from_buildkite () =
+          log#info "getting failed steps from buildkite for %s" build_url;
+          match%lwt get_build n with
+          | Error e ->
+            log#error "failed to get build %s from buildkite API: %s" build_url e;
+            Lwt.return @@ FailedStepSet.empty
+          | Ok (build : Buildkite_t.get_build_res) ->
+          match build.state with
+          | Failed | Canceled ->
+            Lwt.return
+            @@ FailedStepSet.of_list
+            @@ List.filter_map
+                 (fun (j : Buildkite_t.job) ->
+                   match j.state with
+                   | Failed -> Some { Buildkite_t.name = j.name; build_url = j.web_url }
+                   | _ -> None)
+                 build.jobs
+          | _ ->
+            log#warn "build state for %s is not failed in buildkite. We will not calculate failed steps" build_url;
+            Lwt.return @@ FailedStepSet.empty
+        in
+        match get_current_build n repo_state with
+        | Some b when not @@ FailedStepSet.is_empty b.failed_steps -> Lwt.return b.failed_steps
+        | Some _ ->
+          (* if the current build isn't in state, or doesn't have any failed steps in state, it might be that
+             we didn't get all the notifications, or that the step notifications might arrive after the build
+             failed notification. We need to get the build from the api and parse it to get the failed steps *)
+          get_failed_steps_from_buildkite ()
+        | None ->
+          log#warn "failed to find build %s in state, maybe it was cleaned up?" build_url;
+          get_failed_steps_from_buildkite ()
+      in
+      Lwt.return @@ FailedStepSet.(diff failed_steps previous_failed_steps |> elements)
+
+  (* builds should be notified in the builds failed channel if:
+     -  the build is failed OR the build is canceled and notify_canceled_builds is true
+     -  the build is for the main branch
+     -  the pipeline is in the allowed_pipelines list
+     -  a failed_builds_channel is defined for the pipeline
+  *)
+  let notify_fail (n : Github_t.status_notification) (cfg : Config_t.config) =
+    let is_main_branch =
+      match cfg.main_branch_name with
+      | None -> false
+      | Some main_branch -> List.exists (fun ({ name } : Github_t.branch) -> String.equal name main_branch) n.branches
+    in
+    match cfg.status_rules.allowed_pipelines with
+    | None -> false
+    | Some allowed_pipelines ->
+      let has_failed_builds_channel, notify_canceled_build =
+        List.fold_left
+          (fun acc ({ Config_t.failed_builds_channel; name; _ } as pipeline_config) ->
+            match is_main_branch && name = n.context && Option.is_some failed_builds_channel with
+            | false -> acc
+            | true -> true, pipeline_config.notify_canceled_builds && is_canceled_build n)
+          (false, false) allowed_pipelines
+      in
+      (is_failed_build n || notify_canceled_build) && has_failed_builds_channel
 
   let stale_build_threshold =
     (* 2h as the threshold for long running or stale builds *)

@@ -164,7 +164,7 @@ module Slack_json : Api.Slack = struct
 end
 
 module Buildkite : Api.Buildkite = struct
-  let get_build_branch ~ctx:_ (n : Github_t.status_notification) =
+  let get_build ~ctx:_ (n : Github_t.status_notification) =
     match n.target_url with
     | None -> Lwt.return_error "no build url. Is this a Buildkite notification?"
     | Some build_url ->
@@ -173,8 +173,6 @@ module Buildkite : Api.Buildkite = struct
     | [| Some _; Some org; Some pipeline; Some build_nr |] ->
       let file = clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr) in
       let url = Filename.concat buildkite_cache_dir file in
-      with_cache_file url (fun s : Github_t.branch ->
-          let { branch; _ } : Buildkite_t.get_build_response = Buildkite_j.get_build_response_of_string s in
-          { name = branch })
+      with_cache_file url Buildkite_j.get_build_res_of_string
     | _ -> failwith "failed to get all build details from the notification. Is this a Buildkite notification?"
 end

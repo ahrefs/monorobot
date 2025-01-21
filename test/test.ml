@@ -33,8 +33,8 @@ let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_
   let headers = [ "x-github-event", kind ] in
   let make_test_context event =
     let ctx = Context.make () in
-    let get_build_branch = Api_local.Buildkite.get_build_branch ~ctx in
-    let%lwt n = Github.parse_exn headers event ~get_build_branch in
+    let get_build = Api_local.Buildkite.get_build ~ctx in
+    let%lwt n = Github.parse_exn headers event ~get_build in
     let repo = Github.repo_of_notification n in
     (* overwrite repo url in secrets with that of notification for this test case *)
     let secrets = { secrets with repos = [ { url = repo.url; gh_token = None; gh_hook_secret = None } ] } in

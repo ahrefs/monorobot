@@ -78,7 +78,7 @@ let validate_signature ?signing_key ~headers body =
 (** Parse a payload. The type of the payload is detected from the headers.
 
     @raise Failure if unable to extract event from header *)
-let parse_exn ~get_build_branch headers body =
+let parse_exn ~get_build headers body =
   let string_of_abstract_issue_state = function
     | Open -> "open"
     | Closed -> "closed"
@@ -153,8 +153,9 @@ let parse_exn ~get_build_branch headers body =
       match Stre.exists build_url "buildkite" with
       | false -> Lwt.return branches
       | true ->
-        (match%lwt get_build_branch n with
-        | Ok branch -> Lwt.return [ branch ]
+        log#info "Found multiple branches in notification, calling buildkite API to get the one for %s" build_url;
+        (match%lwt get_build n with
+        | Ok (build : Buildkite_t.get_build_res) -> Lwt.return [ ({ name = build.branch } : Github_t.branch) ]
         | Error e ->
           log#error "failed to get buildkite build details: %s" e;
           Lwt.return branches)

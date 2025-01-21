@@ -125,7 +125,50 @@
     "cluster_url": null
   },
   "jobs": [
-    "..."
+    {
+      "id": "018fd828-7be6-4e25-b4b8-0f4eeff74f17",
+      "graphql_id": "Sm9iLS0tMDE4ZmQ4MjgtN2JlNi00ZTI1LWI0YjgtMGY0ZWVmZjc0ZjE3",
+      "type": "script",
+      "name": "setup",
+      "step_key": null,
+      "step": {
+        "id": "018fd828-7bce-4d7f-b32c-224089a56687",
+        "signature": null
+      },
+      "priority": {
+        "number": 0
+      },
+      "agent_query_rules": [],
+      "state": "passed",
+      "build_url": "https://api.buildkite.com/v2/organizations/ahrefs/pipelines/monorepo/builds/181733",
+      "web_url": "https://buildkite.com/ahrefs/monorepo/builds/181733#018fd828-7be6-4e25-b4b8-0f4eeff74f17",
+      "log_url": "https://api.buildkite.com/v2/organizations/ahrefs/pipelines/monorepo/builds/181733/jobs/018fd828-7be6-4e25-b4b8-0f4eeff74f17/log",
+      "raw_log_url": "https://api.buildkite.com/v2/organizations/ahrefs/pipelines/monorepo/builds/181733/jobs/018fd828-7be6-4e25-b4b8-0f4eeff74f17/log.txt",
+      "artifacts_url": "https://api.buildkite.com/v2/organizations/ahrefs/pipelines/monorepo/builds/181733/jobs/018fd828-7be6-4e25-b4b8-0f4eeff74f17/artifacts",
+      "command": "",
+      "soft_failed": false,
+      "exit_status": 0,
+      "artifact_paths": "",
+      "created_at": "2024-06-02T08:54:42.894Z",
+      "scheduled_at": "2024-06-02T08:54:42.894Z",
+      "runnable_at": "2024-06-02T08:54:42.961Z",
+      "started_at": "2024-06-02T08:54:47.128Z",
+      "finished_at": "2024-06-02T08:54:56.649Z",
+      "expired_at": null,
+      "retried": false,
+      "retried_in_job_id": null,
+      "retries_count": null,
+      "retry_source": null,
+      "retry_type": null,
+      "parallel_group_index": null,
+      "parallel_group_total": null,
+      "matrix": null,
+      "agent": null,
+      "cluster_id": null,
+      "cluster_url": null,
+      "cluster_queue_id": null,
+      "cluster_queue_url": null
+    }
   ],
   "cluster_id": null,
   "cluster_url": null
