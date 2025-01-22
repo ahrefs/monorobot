@@ -22,11 +22,11 @@ type job = {
 }
 
 type get_build_res = {
-  number: int;
-  branch: string;
   state: build_state;
+  created_at: string;
+  finished_at: string nullable;
   jobs: job list;
-  (* There are more fields, but we don't need/want them for now *)
+  branch: string;
 }
 
 (* This is a custom type for the steps state and not a Buildkite type. We have it here

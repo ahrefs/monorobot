@@ -82,6 +82,15 @@ module Build = struct
     | build_number -> int_of_string build_number
     | exception _ -> failwith "failed to get build number from url"
 
+  let get_org_pipeline_build (n : Github_t.status_notification) =
+    match n.target_url with
+    | None -> Error "no build url. Is this a Buildkite notification?"
+    | Some build_url ->
+    match Re2.find_submatches_exn buildkite_org_pipeline_build_re build_url with
+    | exception _ -> failwith (sprintf "failed to parse Buildkite build url: %s" build_url)
+    | [| Some _; Some org; Some pipeline; Some build_nr |] -> Ok (org, pipeline, build_nr)
+    | _ -> failwith "failed to get the build details from the notification. Is this a Buildkite notification?"
+
   let is_failed_build (n : Github_t.status_notification) =
     n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description)
 
@@ -131,32 +140,82 @@ module Build = struct
       let%lwt failed_steps =
         let get_failed_steps_from_buildkite () =
           log#info "getting failed steps from buildkite for %s" build_url;
-          match%lwt get_build n with
+          match%lwt get_build ?cache:(Some `Refresh) n with
           | Error e ->
             log#error "failed to get build %s from buildkite API: %s" build_url e;
             Lwt.return @@ FailedStepSet.empty
           | Ok (build : Buildkite_t.get_build_res) ->
           match build.state with
           | Failed | Canceled ->
-            Lwt.return
-            @@ FailedStepSet.of_list
-            @@ List.filter_map
-                 (fun (j : Buildkite_t.job) ->
-                   match j.state with
-                   | Failed -> Some { Buildkite_t.name = j.name; build_url = j.web_url }
-                   | _ -> None)
-                 build.jobs
+            (* if we get here, we know we can use parse_context_exn *)
+            let { pipeline_name; _ } = parse_context_exn ~context:n.context in
+            let failed_steps =
+              FailedStepSet.of_list
+              @@ List.filter_map
+                   (fun (j : Buildkite_t.job) ->
+                     match j.state with
+                     | Failed -> Some { Buildkite_t.name = String.lowercase_ascii j.name; build_url = j.web_url }
+                     | _ -> None)
+                   build.jobs
+            in
+            (* we may not have this build in state, so we need to create one in that case.
+               We need to have a little bit of duplication with state.ml to avoid circular dependencies *)
+            let init_build_state =
+              {
+                State_t.status = n.state;
+                build_number = current_build_number;
+                build_url;
+                commit =
+                  { sha = n.sha; author = n.commit.commit.author.email; commit_message = n.commit.commit.message };
+                is_finished = true;
+                is_canceled = build.state = Canceled;
+                failed_steps;
+                created_at = Timestamp.wrap build.created_at;
+                finished_at = Option.map Timestamp.wrap build.finished_at;
+              }
+            in
+            let update_build_status builds_map =
+              let updated_status =
+                match IntMap.find_opt current_build_number builds_map with
+                | Some (current_build_status : State_t.build_status) -> { current_build_status with failed_steps }
+                | None -> init_build_state
+              in
+              IntMap.add current_build_number updated_status builds_map
+            in
+            let update_pipeline_status branches_statuses =
+              let init_branch_state = IntMap.singleton current_build_number init_build_state in
+              let current_statuses = Option.default StringMap.empty branches_statuses in
+              let updated_statuses =
+                List.map
+                  (fun (branch : Github_t.branch) ->
+                    let builds_map =
+                      Option.map_default
+                        (fun branches_statuses ->
+                          match StringMap.find_opt branch.name branches_statuses with
+                          | Some builds_map -> update_build_status builds_map
+                          | None -> init_branch_state)
+                        init_branch_state branches_statuses
+                    in
+                    branch.name, builds_map)
+                  n.branches
+              in
+              Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) current_statuses updated_statuses)
+            in
+            (* we need to update the state with the failed steps, otherwise we can't calculate
+               the new failed steps in future builds *)
+            repo_state.pipeline_statuses <-
+              StringMap.update pipeline_name update_pipeline_status repo_state.pipeline_statuses;
+            Lwt.return failed_steps
           | _ ->
             log#warn "build state for %s is not failed in buildkite. We will not calculate failed steps" build_url;
             Lwt.return @@ FailedStepSet.empty
         in
+        (* if the current build isn't in state, or doesn't have any failed steps in state, it might be that
+           we didn't get all the notifications, or that the step notifications might arrive after the build
+           failed notification. We need to get the build from the api and parse it to get the failed steps *)
         match get_current_build n repo_state with
         | Some b when not @@ FailedStepSet.is_empty b.failed_steps -> Lwt.return b.failed_steps
-        | Some _ ->
-          (* if the current build isn't in state, or doesn't have any failed steps in state, it might be that
-             we didn't get all the notifications, or that the step notifications might arrive after the build
-             failed notification. We need to get the build from the api and parse it to get the failed steps *)
-          get_failed_steps_from_buildkite ()
+        | Some _ -> get_failed_steps_from_buildkite ()
         | None ->
           log#warn "failed to find build %s in state, maybe it was cleaned up?" build_url;
           get_failed_steps_from_buildkite ()

@@ -407,7 +407,7 @@ let generate_status_notification ?slack_user_id ?failed_steps (cfg : Config_t.co
       let pipeline = notification.context in
       let slack_step_link (s : Buildkite_t.failed_step) =
         let step = Stre.drop_prefix s.name (pipeline ^ "/") in
-        sprintf "<%s|%s> " s.build_url step
+        sprintf "<%s|%s>" s.build_url step
       in
       (match failed_steps with
       | None -> []

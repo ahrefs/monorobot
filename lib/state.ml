@@ -91,6 +91,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     in
     let update_build_status builds_map build_number =
       match IntMap.find_opt build_number builds_map with
+      | None -> init_build_state
       | Some ({ failed_steps; is_finished; _ } as current_build_status : State_t.build_status) ->
         let failed_steps =
           match is_pipeline_step, n.state with
@@ -112,7 +113,6 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
           finished_at;
           failed_steps;
         }
-      | None -> init_build_state
     in
     let update_pipeline_status =
       update_builds_in_branches ~branches:n.branches

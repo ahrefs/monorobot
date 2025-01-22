@@ -489,7 +489,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     in
     try%lwt
       let secrets = Context.get_secrets_exn ctx in
-      match%lwt Github.parse_exn headers body ~get_build:(Buildkite_api.get_build ~ctx) with
+      match%lwt Github.parse_exn headers body ~get_build_branch:(Buildkite_api.get_build_branch ~ctx) with
       | exception Failure msg ->
         log#warn "skipping event : %s" msg;
         Lwt.return_unit

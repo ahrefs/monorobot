@@ -609,7 +609,7 @@ will notify #failed-builds
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` <@id[author@ahrefs.com]>\n*Branch*: develop\n*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step> "
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` <@id[author@ahrefs.com]>\n*Branch*: develop\n*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step>"
     }
   ],
   "unfurl_links": false
@@ -669,7 +669,7 @@ will notify #failed-builds
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` <@id[slack_mail@example.com]>\n*Branch*: develop\n*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/2#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step> "
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` <@id[slack_mail@example.com]>\n*Branch*: develop\n*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/2#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step>"
     }
   ],
   "unfurl_links": false
