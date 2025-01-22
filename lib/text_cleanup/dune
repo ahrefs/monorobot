@@ -1,0 +1,4 @@
+(library
+ (name text_cleanup))
+
+(ocamllex lexer)

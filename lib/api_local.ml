@@ -164,6 +164,7 @@ module Slack_json : Api.Slack = struct
 end
 
 module Buildkite : Api.Buildkite = struct
+  let get_job_log ~ctx:_ _build = failwith "Not implemented"
   let get_build' (n : Github_t.status_notification) read =
     match n.target_url with
     | None -> Lwt.return_error "no build url. Is this a Buildkite notification?"
@@ -172,8 +173,10 @@ module Buildkite : Api.Buildkite = struct
     | exception _ -> failwith "Failed to parse Buildkite build url"
     | [| Some _; Some org; Some pipeline; Some build_nr |] ->
       let file = clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr) in
-      let url = Filename.concat buildkite_cache_dir file in
-      with_cache_file url read
+      if not (Sys.file_exists file) then Lwt.return_error (sprintf "No file %s found." file)
+      else (
+        let url = Filename.concat buildkite_cache_dir file in
+        with_cache_file url read)
     | _ -> failwith "failed to get all build details from the notification. Is this a Buildkite notification?"
 
   [@@@warning "-27"]
