@@ -19,7 +19,8 @@
   re2
   sexplib0
   uri
-  yojson)
+  yojson
+  text_cleanup)
  (preprocess
   (pps lwt_ppx)))
 

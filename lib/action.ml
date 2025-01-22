@@ -329,6 +329,26 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Some sender_login -> List.exists (String.equal sender_login) cfg.ignored_users
     | None -> false
 
+  let get_logs ~ctx (n : status_notification) =
+    let ( let* ) = Lwt_result.bind in
+    match n.state with
+    | Success | Pending -> Lwt.return_ok None
+    | Failure | Error ->
+      let* build = Buildkite_api.get_build ~ctx n in
+      let failed_jobs =
+        List.filter_map
+          (fun (job : Buildkite_t.job_type) ->
+            match job with
+            | Script ({ state = Failed; _ } as job) | Trigger ({ state = Failed; _ } as job) -> Some job
+            | _ -> None)
+          build.jobs
+      in
+      (match failed_jobs with
+      | [] -> Lwt.return_ok None
+      | _ :: _ ->
+        let* log = Buildkite_api.get_job_log ~ctx (List.hd failed_jobs) in
+        Lwt.return_ok (Some log.content))
+
   let generate_notifications (ctx : Context.t) (req : Github.t) =
     let repo = Github.repo_of_notification req in
     let cfg = Context.find_repo_config_exn ctx repo.url in
@@ -377,13 +397,27 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           let%lwt failed_steps = Util.Build.new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state in
           Lwt.return_some failed_steps
       in
-      let notifs = List.map (generate_status_notification ?slack_user_id ?failed_steps cfg n) channels in
+      let%lwt job_log =
+        match%lwt get_logs ~ctx n with
+        | Error e ->
+          log#warn "couldn't fetch logs for build: %s" e;
+          Lwt.return_none
+        | Ok job_log -> Lwt.return job_log
+      in
+      let notifs = List.map (generate_status_notification ?slack_user_id ~job_log ?failed_steps cfg n) channels in
       Lwt.return notifs
 
   let send_notifications (ctx : Context.t) notifications =
-    let notify (msg, handler) =
+    let notify_reply msg ts reply =
+      let msg = message_of_reply ~msg ~ts reply in
+      match%lwt Slack_api.send_notification ~ctx ~msg with
+      | Ok _ -> Lwt.return_unit
+      | Error e -> action_error e
+    in
+    let notify (msg, handler, replies) =
       match%lwt Slack_api.send_notification ~ctx ~msg with
       | Ok (Some res) ->
+        let%lwt () = Lwt_list.iter_s (notify_reply msg res.ts) replies in
         (match handler with
         | None -> Lwt.return_unit
         | Some handler ->

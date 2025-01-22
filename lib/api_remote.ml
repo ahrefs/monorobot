@@ -252,10 +252,18 @@ module Buildkite : Api.Buildkite = struct
     | None -> Lwt.return @@ fmt_error "%s: failed to retrieve Buildkite access token" name
     | Some access_token ->
       let headers = bearer_token_header access_token :: Option.default [] headers in
-      let url = sprintf "https://api.buildkite.com/v2/%s" path in
+      let url =
+        if String.starts_with ~prefix:"https://api.buildkite.com/v2/" path then path
+        else sprintf "https://api.buildkite.com/v2/%s" path
+      in
       (match%lwt buildkite_api_request ?body ~headers meth url read with
       | Ok res -> Lwt.return @@ Ok res
       | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e)
+
+  let get_job_log ~ctx (job : Buildkite_t.job) =
+    match%lwt request_token_auth ~name:"get buildkite job logs" ~ctx `GET job.log_url Buildkite_j.job_log_of_string with
+    | Ok logs -> Lwt.return_ok logs
+    | Error e -> Lwt.return_error e
 
   let get_build' ~ctx ~org ~pipeline ~build_nr map =
     let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
