@@ -52,6 +52,7 @@ type config = {
   ?main_branch_name : string nullable; (* the name of the main branch; used to filter out notifications about merges of main branch into other branches *)
   ~user_mappings <ocaml default="[]">: (string * string) list <json repr="object">; (* list of github to slack profile mappings *)
   ~notifications_configs <ocaml default="{dm_after_failed_build = []; dm_for_failing_build = []}"> : notifications_configs;
+  ~include_logs_in_notifs <ocaml default="true"> : bool;
 }
 
 (* This specifies the Slack webhook to query to post to the channel with the given name *)

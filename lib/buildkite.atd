@@ -1,24 +1,61 @@
 (* We keep this type an open enum because buildkite's documentation is not up to date and might have
    more states. It shouldn't be an issue because we don't care about all the possible states. *)
-type build_state = [
+   type build_state = [
+    | Blocked <json name="blocked">
+    | Canceled <json name="canceled">
+    | Canceling <json name="canceling">
+    | Failed <json name="failed">
+    | Failing <json name="failing">
+    | Finished <json name="finished">
+    | Not_run <json name="not_run">
+    | Passed <json name="passed">
+    | Running <json name="running">
+    | Scheduled <json name="scheduled">
+    | Skipped <json name="skipped">
+    | Other of string
+  ] <json open_enum> <ocaml repr="classic">
+
+
+type job_state = [
+  | Pending <json name="pending">
+  | Waiting <json name="waiting">
+  | Waiting_failed <json name="waiting_failed">
   | Blocked <json name="blocked">
-  | Canceled <json name="canceled">
-  | Canceling <json name="canceling">
-  | Failed <json name="failed">
-  | Failing <json name="failing">
-  | Finished <json name="finished">
-  | Not_run <json name="not_run">
-  | Passed <json name="passed">
-  | Running <json name="running">
+  | Blocked_failed <json name="blocked_failed">
+  | Unblocked <json name="unblocked">
+  | Unblocked_failed <json name="unblocked_failed">
+  | Limiting <json name="limiting">
+  | Limited <json name="limited">
   | Scheduled <json name="scheduled">
+  | Assigned <json name="assigned">
+  | Accepted <json name="accepted">
+  | Running <json name="running">
+  | Finished <json name="finished">
+  | Canceling <json name="canceling">
+  | Canceled <json name="canceled">
+  | Expired <json name="expired">
+  | Timing_out <json name="timing_out">
+  | Timed_out <json name="timed_out">
   | Skipped <json name="skipped">
+  | Broken <json name="broken">
+  | Passed <json name="passed">
+  | Failed <json name="failed">
   | Other of string
 ] <json open_enum> <ocaml repr="classic">
 
-type job = {
-  name: string;
-  state: build_state;
-  web_url: string;
+type job_log = {
+  url: string;
+  content: string;
+  size: int
+}
+
+type job =  {
+  id : string;
+  ?log_url: string option;
+  name : string;
+  type_ <json name="type"> : string;
+  state : job_state;
+  web_url : string;
 }
 
 type non_job = {
@@ -45,4 +82,12 @@ type get_build_res = {
 type failed_step = {
   name: string;
   build_url: string;
+}
+
+type get_build_response = {
+  number: int;
+  branch: string;
+  jobs: job list;
+  url: string;
+  (* There are more fields, but we don't need/want them for now *)
 }

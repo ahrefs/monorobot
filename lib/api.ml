@@ -36,9 +36,13 @@ module type Slack = sig
   val send_auth_test : ctx:Context.t -> unit -> auth_test_res slack_response Lwt.t
 
   val get_thread_permalink : ctx:Context.t -> State_t.slack_thread -> string option Lwt.t
+
+  val send_file : ctx:Context.t -> file:Slack.file_req -> (unit, string) result Lwt.t
 end
 
 module type Buildkite = sig
+  val get_job_log :
+    ctx:Context.t -> Github_t.status_notification -> Buildkite_t.job -> (Buildkite_t.job_log, string) result Lwt.t
   val get_build_branch : ctx:Context.t -> Github_t.status_notification -> (Github_t.branch, string) Result.t Lwt.t
 
   val get_build :
