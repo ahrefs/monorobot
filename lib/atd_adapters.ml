@@ -82,3 +82,35 @@ module Strings_to_pipelines_adapter : Atdgen_runtime.Json_adapter.S = struct
     | `Assoc [ ("name", `String s); ("failed_builds_channel", _) ] -> `String s
     | _ -> x
 end
+
+module Buildkite_jobs_adapter : Atdgen_runtime.Json_adapter.S = struct
+  let normalize (x : Yojson.Safe.t) =
+    let filter_non_script_jobs jobs =
+      List.filter
+        (function
+          | `Assoc fields ->
+            (try
+               (* This will ignore jobs objects with that don't conform to the type we want *)
+               let web_url = List.assoc "web_url" fields in
+               match web_url with
+               | `String _ -> true
+               | _ -> false
+             with Not_found -> false)
+          | _ -> false)
+        jobs
+    in
+    match x with
+    | `Assoc fields as original -> begin
+      try
+        let jobs = List.assoc "jobs" fields in
+        match jobs with
+        | `List job_list ->
+          let filtered_jobs = filter_non_script_jobs job_list in
+          `Assoc (("jobs", `List filtered_jobs) :: List.remove_assoc "jobs" fields)
+        | _ -> original
+      with Not_found -> original
+    end
+    | _ -> x
+
+  let restore (x : Yojson.Safe.t) = x
+end

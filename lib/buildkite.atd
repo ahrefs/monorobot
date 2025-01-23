@@ -27,7 +27,7 @@ type get_build_res = {
   finished_at: string nullable;
   jobs: job list;
   branch: string;
-}
+} <json adapter.ocaml="Atd_adapters.Buildkite_jobs_adapter">
 
 (* This is a custom type for the steps state and not a Buildkite type. We have it here
    to avoid circular dependencies with common.atd, common.ml and state.m  *)
