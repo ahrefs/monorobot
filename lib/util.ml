@@ -152,8 +152,8 @@ module Build = struct
             let failed_steps =
               FailedStepSet.of_list
               @@ List.filter_map
-                   (fun (j : Buildkite_t.job) ->
-                     match j.state with
+                   (fun ({ name; state; web_url; _ } : Buildkite_t.job) ->
+                     match state with
                      | Failed ->
                        let name =
                          (* replace spaces and underscores with dashes, like buildkite does *)
@@ -161,14 +161,14 @@ module Build = struct
                            (function
                              | ' ' | '_' -> '-'
                              | c -> c)
-                           (String.lowercase_ascii j.name)
+                           (String.lowercase_ascii name)
                        in
                        Some
                          {
-                           Buildkite_t.name =
+                           Buildkite_t.build_url = web_url;
+                           name =
                              (* mimic notification context structure so that steps can match with the existing ones *)
                              sprintf "buildkite/%s/%s" pipeline_name name;
-                           build_url = j.web_url;
                          }
                      | _ -> None)
                    build.jobs

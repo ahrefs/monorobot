@@ -279,7 +279,5 @@ module Buildkite : Api.Buildkite = struct
       | `Refresh -> get_build' ())
 
   let get_build_branch ~(ctx : Context.t) (n : Github_t.status_notification) =
-    match%lwt get_build ~ctx n with
-    | Ok (build : Buildkite_t.get_build_res) -> Lwt.return_ok ({ name = build.branch } : Github_t.branch)
-    | Error e -> Lwt.return_error e
+    Lwt_result.map (fun { Buildkite_t.branch; _ } : Github_t.branch -> { name = branch }) (get_build ~ctx n)
 end

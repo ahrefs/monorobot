@@ -180,8 +180,6 @@ module Buildkite : Api.Buildkite = struct
   let get_build ?(cache : [ `Use | `Refresh ] option) ~ctx:_ (n : Github_t.status_notification) =
     get_build' n Buildkite_j.get_build_res_of_string
 
-  let get_build_branch ~ctx:_ (n : Github_t.status_notification) =
-    get_build' n (fun s : Github_t.branch ->
-        let { branch; _ } : Buildkite_t.get_build_res = Buildkite_j.get_build_res_of_string s in
-        { name = branch })
+  let get_build_branch ~ctx (n : Github_t.status_notification) =
+    Lwt_result.map (fun { Buildkite_t.branch; _ } : Github_t.branch -> { name = branch }) (get_build ~ctx n)
 end
