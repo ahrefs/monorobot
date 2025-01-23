@@ -1,0 +1,78 @@
+{
+  "pipeline_statuses": {
+    "pipeline2": {
+      "develop": {
+        "181732": {
+          "status": "failure",
+          "build_number": "181732",
+          "build_url": "https://buildkite.com/ahrefs/pipeline2/builds/181732",
+          "commit": {
+            "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
+            "author": "author@ahrefs.com",
+            "commit_message": "c1 message"
+          },
+          "is_finished": true,
+          "failed_steps": [
+            {
+              "name": "buildkite/pipeline2/fail",
+              "build_url": "https://buildkite.com/ahrefs/pipeline2/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4"
+            },
+            {
+              "name": "buildkite/pipeline2/trigger-infra",
+              "build_url": "https://buildkite.com/ahrefs/pipeline2/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4"
+            }
+          ],
+          "created_at": "2024-06-02T04:57:47+00:00",
+          "finished_at": "2024-06-02T04:58:47+00:00"
+        },
+        "181734": {
+          "status": "pending",
+          "build_number": "181734",
+          "build_url": "https://buildkite.com/ahrefs/pipeline2/builds/181734",
+          "commit": {
+            "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
+            "author": "author@ahrefs.com",
+            "commit_message": "c1 message"
+          },
+          "is_finished": false,
+          "failed_steps": [],
+          "created_at": "2024-06-02T04:57:47+00:00",
+          "finished_at": null
+        }
+      },
+      "other-branch": {
+        "181733": {
+          "status": "pending",
+          "build_number": "181733",
+          "build_url": "https://buildkite.com/ahrefs/pipeline2/builds/181733",
+          "commit": {
+            "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
+            "author": "author@ahrefs.com",
+            "commit_message": "c1 message"
+          },
+          "is_finished": false,
+          "failed_steps": [
+            {
+              "name": "buildkite/pipeline2/failed-step",
+              "build_url": "https://buildkite.com/ahrefs/pipeline2/builds/181733#0192347d-e4ee-4072-9da4-f441eeb65ed4"
+            }
+          ],
+          "created_at": "2024-06-02T04:57:47+00:00",
+          "finished_at": null
+        }
+      }
+    }
+  },
+  "pipeline_commits": {
+    "pipeline2": {
+      "develop": {
+        "s1": ["7e0a933e9c71b4ca107680ca958ca1888d5e479b"],
+        "s2": []
+      },
+      "other-branch": {
+        "s1": ["7e0a933e9c71b4ca107680ca958ca1888d5e479b"],
+        "s2": []
+      }
+    }
+  }
+}

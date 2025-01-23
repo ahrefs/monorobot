@@ -72,15 +72,15 @@ module Slack_user_id = struct
   let to_channel_id = Slack_channel.Any.inject $ project
 end
 
-module VSet (S : Set.OrderedType) = struct
+module Set (S : Set.OrderedType) = struct
   include Set.Make (S)
 
   let wrap = of_list
   let unwrap = elements
 end
 
-module StringSet = VSet (String)
-module FailedStepSet = VSet (struct
+module StringSet = Set (String)
+module FailedStepSet = Set (struct
   type t = Buildkite_t.failed_step
   let compare (t1 : t) (t2 : t) = String.compare t1.name t2.name
 end)

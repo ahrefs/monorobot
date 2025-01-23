@@ -231,7 +231,7 @@ module Buildkite : Api.Buildkite = struct
   let log = Log.from "buildkite"
 
   module Builds_cache = Cache (struct
-    type t = Buildkite_t.get_build_response
+    type t = Buildkite_t.get_build_res
   end)
 
   (* 24h cache ttl and purge interval. We store so little data per build that it's not worth cleaning up entries sooner. *)
@@ -257,24 +257,27 @@ module Buildkite : Api.Buildkite = struct
       | Ok res -> Lwt.return @@ Ok res
       | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e)
 
-  let get_build_branch ~(ctx : Context.t) (n : Github_t.status_notification) =
-    match n.target_url with
-    | None -> Lwt.return_error "no build url. Is this a Buildkite notification?"
-    | Some build_url ->
-    match Re2.find_submatches_exn Build.buildkite_org_pipeline_build_re build_url with
-    | exception _ -> failwith (sprintf "failed to parse Buildkite build url: %s" build_url)
-    | [| Some _; Some org; Some pipeline; Some build_nr |] ->
-      (match Builds_cache.get builds_cache build_nr with
-      | Some build -> Lwt.return_ok ({ name = build.branch } : Github_t.branch)
-      | None ->
+  let get_build ?(cache : [ `Use | `Refresh ] = `Use) ~(ctx : Context.t) (n : Github_t.status_notification) =
+    match Util.Build.get_org_pipeline_build n with
+    | Error e -> Lwt.return_error e
+    | Ok (org, pipeline, build_nr) ->
+      let get_build' () =
         let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
-        (match%lwt
-           request_token_auth ~name:"get buildkite build details" ~ctx `GET build_url
-             Buildkite_j.get_build_response_of_string
-         with
+        match%lwt
+          request_token_auth ~name:"get build details" ~ctx `GET build_url Buildkite_j.get_build_res_of_string
+        with
         | Ok build ->
           Builds_cache.set builds_cache build_nr build;
-          Lwt.return_ok ({ name = build.branch } : Github_t.branch)
-        | Error e -> Lwt.return_error e))
-    | _ -> failwith "failed to get the build details from the notification. Is this a Buildkite notification?"
+          Lwt.return_ok build
+        | Error e -> Lwt.return_error e
+      in
+      (match cache with
+      | `Use ->
+        (match Builds_cache.get builds_cache build_nr with
+        | Some build -> Lwt.return_ok build
+        | None -> get_build' ())
+      | `Refresh -> get_build' ())
+
+  let get_build_branch ~(ctx : Context.t) (n : Github_t.status_notification) =
+    Lwt_result.map (fun { Buildkite_t.branch; _ } : Github_t.branch -> { name = branch }) (get_build ~ctx n)
 end
