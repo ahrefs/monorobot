@@ -154,7 +154,22 @@ module Build = struct
               @@ List.filter_map
                    (fun (j : Buildkite_t.job) ->
                      match j.state with
-                     | Failed -> Some { Buildkite_t.name = String.lowercase_ascii j.name; build_url = j.web_url }
+                     | Failed ->
+                       let name =
+                         (* replace spaces and underscores with dashes, like buildkite does *)
+                         String.map
+                           (function
+                             | ' ' | '_' -> '-'
+                             | c -> c)
+                           (String.lowercase_ascii j.name)
+                       in
+                       Some
+                         {
+                           Buildkite_t.name =
+                             (* mimic notification context structure so that steps can match with the existing ones *)
+                             sprintf "buildkite/%s/%s" pipeline_name name;
+                           build_url = j.web_url;
+                         }
                      | _ -> None)
                    build.jobs
             in
