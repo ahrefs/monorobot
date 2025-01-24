@@ -152,7 +152,10 @@ module Build = struct
             let failed_steps =
               FailedStepSet.of_list
               @@ List.filter_map
-                   (fun ({ name; state; web_url; _ } : Buildkite_t.job) ->
+                   (fun (job : Buildkite_t.job_type) ->
+                     match job with
+                     | Manual _ | Waiter _ -> None
+                     | Script { name; state; web_url; _ } | Trigger { name; state; web_url; _ } ->
                      match state with
                      | Failed ->
                        let name =

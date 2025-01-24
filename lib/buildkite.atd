@@ -21,13 +21,24 @@ type job = {
   web_url: string;
 }
 
+type non_job = {
+  id: string;
+}
+
+type job_type = [
+  | Script <json name="script"> of job
+  | Trigger <json name="trigger"> of job
+  | Manual <json name="manual"> of non_job
+  | Waiter <json name="waiter"> of non_job
+] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field"> <ocaml repr="classic">
+
 type get_build_res = {
   state: build_state;
   created_at: string;
   finished_at: string nullable;
-  jobs: job list;
+  jobs: job_type list;
   branch: string;
-} <json adapter.ocaml="Atd_adapters.Buildkite_jobs_adapter">
+}
 
 (* This is a custom type for the steps state and not a Buildkite type. We have it here
    to avoid circular dependencies with common.atd, common.ml and state.m  *)
