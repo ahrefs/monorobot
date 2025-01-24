@@ -257,27 +257,33 @@ module Buildkite : Api.Buildkite = struct
       | Ok res -> Lwt.return @@ Ok res
       | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e)
 
+  let get_build' ~ctx ~org ~pipeline ~build_nr map =
+    let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
+    match%lwt request_token_auth ~name:"get build details" ~ctx `GET build_url Buildkite_j.get_build_res_of_string with
+    | Ok build ->
+      Builds_cache.set builds_cache build_nr build;
+      Lwt.return_ok (map build)
+    | Error e -> Lwt.return_error e
+
   let get_build ?(cache : [ `Use | `Refresh ] = `Use) ~(ctx : Context.t) (n : Github_t.status_notification) =
     match Util.Build.get_org_pipeline_build n with
     | Error e -> Lwt.return_error e
     | Ok (org, pipeline, build_nr) ->
-      let get_build' () =
-        let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
-        match%lwt
-          request_token_auth ~name:"get build details" ~ctx `GET build_url Buildkite_j.get_build_res_of_string
-        with
-        | Ok build ->
-          Builds_cache.set builds_cache build_nr build;
-          Lwt.return_ok build
-        | Error e -> Lwt.return_error e
-      in
-      (match cache with
-      | `Use ->
-        (match Builds_cache.get builds_cache build_nr with
-        | Some build -> Lwt.return_ok build
-        | None -> get_build' ())
-      | `Refresh -> get_build' ())
+    match cache with
+    | `Use ->
+      (match Builds_cache.get builds_cache build_nr with
+      | Some build -> Lwt.return_ok build
+      | None -> get_build' ~ctx ~org ~pipeline ~build_nr id)
+    | `Refresh -> get_build' ~ctx ~org ~pipeline ~build_nr id
 
   let get_build_branch ~(ctx : Context.t) (n : Github_t.status_notification) =
-    Lwt_result.map (fun { Buildkite_t.branch; _ } : Github_t.branch -> { name = branch }) (get_build ~ctx n)
+    match Util.Build.get_org_pipeline_build n with
+    | Error e -> Lwt.return_error e
+    | Ok (org, pipeline, build_nr) ->
+      let map_branch { Buildkite_t.branch; _ } : Github_t.branch = { name = branch } in
+      (match Builds_cache.get builds_cache build_nr with
+      | Some { Buildkite_t.branch; _ } -> Lwt.return_ok ({ name = branch } : Github_t.branch)
+      | None ->
+        log#info "Fetching branch details for build %s in pipeline %s" build_nr pipeline;
+        get_build' ~ctx ~org ~pipeline ~build_nr map_branch)
 end

@@ -153,11 +153,10 @@ let parse_exn ~get_build_branch headers body =
       match Stre.exists build_url "buildkite" with
       | false -> Lwt.return branches
       | true ->
-        log#info "Found multiple branches in notification, calling buildkite API to get the one for %s" build_url;
         (match%lwt get_build_branch n with
         | Ok branch -> Lwt.return [ branch ]
         | Error e ->
-          log#error "failed to get buildkite build details: %s" e;
+          log#error "failed to get buildkite build details for %s: %s" build_url e;
           Lwt.return branches)
     in
     let n = { n with branches = built_branch } in
