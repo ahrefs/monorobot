@@ -314,6 +314,20 @@ let generate_status_notification ?slack_user_id ?failed_steps (cfg : Config_t.co
   let ({ commit : inner_commit; sha; html_url; _ } : status_commit) = commit in
   let ({ message; _ } : inner_commit) = commit in
   let is_buildkite = String.starts_with context ~prefix:"buildkite" in
+  let is_failed_build_notification =
+    let is_failed_builds_channel =
+      match cfg.status_rules.allowed_pipelines with
+      | None -> false
+      | Some pipelines ->
+        List.exists
+          (fun ({ name; failed_builds_channel; _ } : Config_t.pipeline) ->
+            String.equal name context
+            && Option.map_default Status_notification.(equal channel $ inject_channel) false failed_builds_channel)
+          pipelines
+    in
+    Build.(is_failed_build notification || is_canceled_build notification)
+    && (is_failed_builds_channel || Status_notification.is_user channel)
+  in
   let color_info = if state = Success then "good" else "danger" in
   let build_desc =
     match description with
@@ -332,16 +346,12 @@ let generate_status_notification ?slack_user_id ?failed_steps (cfg : Config_t.co
       (* we either match on the first case or get an exception *)
       s
   in
-  let commit_info =
-    [
-      (let mention =
-         match slack_user_id, channel with
-         | None, _ | _, Status_notification.User _ -> ""
-         | Some id, Channel _ -> sprintf "<@%s>" (Slack_user_id.project id)
-       in
-       sprintf "*Commit*: `<%s|%s>` %s" html_url (git_short_sha_hash sha) mention);
-    ]
+  let author_mention =
+    match slack_user_id, channel with
+    | None, _ | _, Status_notification.User _ -> ""
+    | Some id, Channel _ -> sprintf "<@%s>" (Slack_user_id.project id)
   in
+  let commit_info = [ sprintf "*Commit*: `<%s|%s>` %s" html_url (git_short_sha_hash sha) author_mention ] in
   let branches_info =
     match List.map (fun ({ name } : branch) -> name) notification.branches with
     | [] -> [] (* happens when branch is force-pushed by the time CI notification arrives *)
@@ -385,38 +395,27 @@ let generate_status_notification ?slack_user_id ?failed_steps (cfg : Config_t.co
         in
         match pipeline_url with
         | None -> default_summary
-        | Some pipeline_url -> sprintf "<%s|[%s]>: %s for \"%s\"" pipeline_url context build_desc commit_message)
+        | Some pipeline_url ->
+        match is_failed_build_notification with
+        | false -> sprintf "<%s|[%s]>: %s for \"%s\"" pipeline_url context build_desc commit_message
+        | true ->
+          sprintf "<%s|[%s]>: %s for \"<%s|%s>\" %s" pipeline_url context build_desc html_url commit_message
+            author_mention)
   in
-  let failed_builds_info =
-    let is_failed_builds_channel =
-      match cfg.status_rules.allowed_pipelines with
-      | None -> false
-      | Some pipelines ->
-        List.exists
-          (fun ({ name; failed_builds_channel; _ } : Config_t.pipeline) ->
-            String.equal name context
-            && Option.map_default Status_notification.(equal channel $ inject_channel) false failed_builds_channel)
-          pipelines
-    in
-    match
-      Build.(is_failed_build notification || is_canceled_build notification)
-      && (is_failed_builds_channel || Status_notification.is_user channel)
-    with
-    | false -> []
+  let text =
+    match is_failed_build_notification with
+    | false -> Some (String.concat "\n" @@ List.concat [ commit_info; branches_info ])
     | true ->
       let pipeline = notification.context in
       let slack_step_link (s : Buildkite_t.failed_step) =
         let step = Stre.drop_prefix s.name (pipeline ^ "/") in
         sprintf "<%s|%s>" s.build_url step
       in
-      (match failed_steps with
-      | None -> []
-      | Some steps -> [ sprintf "*Steps broken*: %s" (String.concat ", " (List.map slack_step_link steps)) ])
+      Option.map
+        (fun steps -> sprintf "*Steps broken*: %s" (String.concat ", " (List.map slack_step_link steps)))
+        failed_steps
   in
-  let msg = String.concat "\n" @@ List.concat [ commit_info; branches_info; failed_builds_info ] in
-  let attachment =
-    { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text = Some msg }
-  in
+  let attachment = { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text } in
   make_message ~text:summary ~attachments:[ attachment ] ~channel:(Status_notification.to_slack_channel channel) ()
 
 let generate_commit_comment_notification ~slack_match_func api_commit notification channel =
