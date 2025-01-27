@@ -4,6 +4,8 @@ open Github_j
 
 let log = Log.from "github"
 
+type buildkite_logs = string
+
 type t =
   | Push of commit_pushed_notification
   | Pull_request of pr_notification
@@ -74,6 +76,7 @@ let validate_signature ?signing_key ~headers body =
   match List.assoc_opt "x-hub-signature" headers with
   | None -> Error "unable to find header x-hub-signature"
   | Some signature -> if is_valid_signature ~secret signature body then Ok () else Error "signatures don't match"
+
 
 (** Parse a payload. The type of the payload is detected from the headers.
 

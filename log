@@ -1,0 +1,10 @@
+[2025-01-27T16:01:38.8271] 3389822: [monorobot:info] monorobot starting
+[2025-01-27T16:01:38.8273] 3389822: [httpev:info] monorobot listen TCP 127.0.0.1:8080
+[2025-01-27T16:01:38.8273] 3389822: [action:info] updating github to slack username mapping
+[2025-01-27T16:01:38.8273] 3389822: [slack:info] list users: starting request
+[2025-01-27T16:01:38.8273] 3389822: [lib:info] GET #1 https://slack.com/api/users.list? 
+[2025-01-27T16:01:39.0523] 3389822: [lib:info] GET #1 225ms ⇓977B ⇑0B 18.159.197.225 HTTP 200 https://slack.com/api/users.list
+[2025-01-27T16:10:56.9901] 3389822: [signal:info] Received signal -6 (exit)...
+[2025-01-27T16:10:56.9910] 3389822: [httpev:info] canceling accept loop
+[2025-01-27T16:10:56.9911] 3389822: [httpev:info] monorobot 127.0.0.1:8080 exit
+[2025-01-27T16:10:56.9912] 3389822: [signal:info] Signal handler done.
