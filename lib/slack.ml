@@ -312,7 +312,7 @@ let generate_status_notification ?slack_user_id ?failed_steps (cfg : Config_t.co
   (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; html_url; _ } : status_commit) = commit in
-  let ({ message; _ } : inner_commit) = commit in
+  let ({ message; author; _ } : inner_commit) = commit in
   let is_buildkite = String.starts_with context ~prefix:"buildkite" in
   let is_failed_build_notification =
     let is_failed_builds_channel =
@@ -347,9 +347,10 @@ let generate_status_notification ?slack_user_id ?failed_steps (cfg : Config_t.co
       s
   in
   let author_mention =
-    match slack_user_id, channel with
-    | None, _ | _, Status_notification.User _ -> ""
-    | Some id, Channel _ -> sprintf "<@%s>" (Slack_user_id.project id)
+    match is_failed_build_notification, slack_user_id, channel with
+    | true, None, _ | true, _, Status_notification.User _ -> author.email
+    | _, Some id, Channel _ -> sprintf "<@%s>" (Slack_user_id.project id)
+    | _ -> ""
   in
   let commit_info = [ sprintf "*Commit*: `<%s|%s>` %s" html_url (git_short_sha_hash sha) author_mention ] in
   let branches_info =
