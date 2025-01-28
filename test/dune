@@ -1,7 +1,6 @@
 (executables
  (names test github_link_test longest_prefix_test)
- (libraries lib devkit devkit.core extlib lwt.unix
-   yojson)
+ (libraries lib devkit devkit.core extlib lwt.unix yojson)
  (preprocess
   (pps lwt_ppx)))
 
@@ -15,9 +14,11 @@
   monorobot.json
   secrets.json)
  (action
-  (with-stdout-to
-   slack_payloads.out
-   (run ./test.exe))))
+  (with-stderr-to
+   log_err.out
+   (with-stdout-to
+    slack_payloads.out
+    (run ./test.exe)))))
 
 (rule
  (alias runtest)
@@ -27,9 +28,15 @@
 (rule
  (alias runtest)
  (action
-   (run ./github_link_test.exe)))
+  (diff log_err.expected log_err.out)))
+
 
 (rule
  (alias runtest)
  (action
-   (run ./longest_prefix_test.exe)))
+  (run ./github_link_test.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./longest_prefix_test.exe)))
