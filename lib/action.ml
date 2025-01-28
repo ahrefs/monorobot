@@ -329,25 +329,32 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Some sender_login -> List.exists (String.equal sender_login) cfg.ignored_users
     | None -> false
 
-  let get_logs ~ctx (n : status_notification) =
-    let ( let* ) = Lwt_result.bind in
-    match n.state with
-    | Success | Pending -> Lwt.return_ok None
-    | Failure | Error ->
-      let* build = Buildkite_api.get_build ~ctx n in
-      let failed_jobs =
-        List.filter_map
-          (fun (job : Buildkite_t.job_type) ->
-            match job with
-            | Script ({ state = Failed; _ } as job) | Trigger ({ state = Failed; _ } as job) -> Some job
-            | _ -> None)
-          build.jobs
-      in
+  let get_failed_jobs jobs =
+    List.filter_map
+      (fun (job : Buildkite_t.job_type) ->
+        match job with
+        | Script ({ state = Failed; _ } as job) | Trigger ({ state = Failed; _ } as job) -> Some job
+        | _ -> None)
+      jobs
+
+  let log_content_of_job ~ctx job =
+    match%lwt Buildkite_api.get_job_log ~ctx job with
+    | Error _ as e -> Lwt.return e
+    | Ok log -> Lwt.return_ok (Some log.content)
+
+  let get_logs' ~ctx (n : status_notification) =
+    match%lwt Buildkite_api.get_build ~ctx n with
+    | Error _ as e -> Lwt.return e
+    | Ok build ->
+      let failed_jobs = get_failed_jobs build.jobs in
       (match failed_jobs with
       | [] -> Lwt.return_ok None
-      | _ :: _ ->
-        let* log = Buildkite_api.get_job_log ~ctx (List.hd failed_jobs) in
-        Lwt.return_ok (Some log.content))
+      | _ :: _ -> log_content_of_job ~ctx (List.hd failed_jobs))
+
+  let get_logs ~ctx (n : status_notification) =
+    match n.state with
+    | Success | Pending -> Lwt.return_ok None
+    | Failure | Error -> get_logs' ~ctx n
 
   let generate_notifications (ctx : Context.t) (req : Github.t) =
     let repo = Github.repo_of_notification req in
