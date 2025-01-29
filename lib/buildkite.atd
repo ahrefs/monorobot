@@ -53,7 +53,7 @@ type job_log = {
 
 type job =  {
   id : string;
-  log_url: string;
+  ?log_url: string option;
   name : string;
   type_ <json name="type"> : string;
   state : job_state;

@@ -340,7 +340,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
   let log_content_of_job ~ctx job =
     match%lwt Buildkite_api.get_job_log ~ctx job with
     | Error _ as e -> Lwt.return e
-    | Ok log -> Lwt.return_ok (Some log.content)
+    | Ok job_log -> Lwt.return_ok (Some job_log.content)
 
   let get_logs' ~ctx (n : status_notification) =
     match%lwt Buildkite_api.get_build ~ctx n with
@@ -407,6 +407,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       let%lwt job_log =
         match%lwt get_logs ~ctx n with
         | Error e ->
+          (* is this reasonable ? *)
           log#warn "couldn't fetch logs for build: %s" e;
           Lwt.return_none
         | Ok job_log -> Lwt.return job_log

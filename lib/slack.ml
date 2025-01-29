@@ -52,8 +52,7 @@ type msg_reply = {
   reply_broadcast : bool;
 }
 
-let make_reply ?text ?attachments ?blocks ?(reply_broadcast = false) () =
-  { text; attachments; blocks; reply_broadcast }
+let make_reply ?text ?attachments ?blocks ?(reply_broadcast = false) () = { text; attachments; blocks; reply_broadcast }
 
 let make_message ?username ?text ?attachments ?blocks ?thread ?handler ?(reply_broadcast = false) ?(replies = [])
   ~channel () =
