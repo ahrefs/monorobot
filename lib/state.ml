@@ -23,31 +23,28 @@ let find_or_add_repo' state repo_url =
 let set_repo_state { state } repo_url repo_state = Stringtbl.replace state.repos repo_url repo_state
 let find_or_add_repo { state } repo_url = find_or_add_repo' state repo_url
 
-(** Updates the builds map in the branches statuses.
-     [default_builds_map] (optional, defaults to an empty map) is the builds map to use if we don't have the current
-     branch in the branches statuses.
-     [f] is the function to use to update the builds map. Takes the [State_t.build_status] Map for the current branch
-     as argument.
-     [branches_statuses] is the branches statuses Map to update. Returns the updated branches statuses Map. *)
-let update_builds_in_branches ~branches ?(default_builds_map = IntMap.empty) ~f branches_statuses =
-  let current_statuses = Option.default StringMap.empty branches_statuses in
-  let updated_statuses =
-    List.map
-      (fun (branch : Github_t.branch) ->
-        let builds_map =
-          Option.map_default
-            (fun branches_statuses ->
-              match StringMap.find_opt branch.name branches_statuses with
-              | Some builds_map -> f builds_map
-              | None -> default_builds_map)
-            default_builds_map branches_statuses
-        in
-        branch.name, builds_map)
-      branches
-  in
-  Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) current_statuses updated_statuses)
-
 let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
+  (* Updates the builds map in the branches statuses.
+       [default_builds_map] (optional, defaults to an empty map) is the builds map to use if we don't have the current
+       branch in the branches statuses.
+       [f] is the function to use to update the builds map. Takes the [State_t.build_status] Map for the current branch
+       as argument.
+       [branches_statuses] is the branches statuses Map to update. Returns the updated branches statuses Map. *)
+  let update_builds_in_branches ?(default_builds_map = IntMap.empty) ~f branches_statuses =
+    let current_statuses = Option.default StringMap.empty branches_statuses in
+    let repo_state = find_or_add_repo' state n.repository.url in
+    let updated_statuses =
+      List.map
+        (fun (branch : Github_t.branch) ->
+          ( branch.name,
+            match Util.Build.get_branch_builds n repo_state with
+            | None -> default_builds_map
+            | Some builds_map -> f builds_map ))
+        n.branches
+    in
+    Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) current_statuses updated_statuses)
+  in
+
   match n.target_url with
   | None ->
     (* if we don't have a target_url value, we don't have a build number and cant't track build state *)
@@ -66,6 +63,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
       | true -> Some (Timestamp.wrap_with_fallback n.updated_at)
       | false -> None
     in
+
     (* Even if this is an initial build state, we can't just set an "empty" state because we don't know
        the order we will get the status notifications in. *)
     let init_build_state =
@@ -89,8 +87,10 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
         finished_at;
       }
     in
-    let update_build_status builds_map build_number =
-      match IntMap.find_opt build_number builds_map with
+
+    let update_build_status () =
+      let repo_state = find_or_add_repo { state } n.repository.url in
+      match Util.Build.get_current_build n repo_state with
       | None -> init_build_state
       | Some ({ failed_steps; is_finished; _ } as current_build_status : State_t.build_status) ->
         let failed_steps =
@@ -114,14 +114,16 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
           failed_steps;
         }
     in
+
     let update_pipeline_status =
-      update_builds_in_branches ~branches:n.branches
-        ~default_builds_map:(IntMap.singleton build_number init_build_state) ~f:(fun builds_map ->
-          let updated_status = update_build_status builds_map build_number in
-          IntMap.add build_number updated_status builds_map)
+      let updated_status = update_build_status () in
+      update_builds_in_branches
+        ~default_builds_map:(IntMap.singleton build_number init_build_state)
+        ~f:(IntMap.add build_number updated_status)
     in
+
     let rm_successful_build =
-      update_builds_in_branches ~branches:n.branches ~f:(fun builds_map ->
+      update_builds_in_branches ~f:(fun builds_map ->
           let threshold = Util.Build.stale_build_threshold in
           let is_past_threshold (build_status : State_t.build_status) threshold =
             let open Ptime in
@@ -144,8 +146,9 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
                    (* keep all other builds *)
                    true))
     in
+
     let rm_successful_step =
-      update_builds_in_branches ~branches:n.branches ~f:(fun builds_map ->
+      update_builds_in_branches ~f:(fun builds_map ->
           IntMap.mapi
             (fun build_number' (build_status : State_t.build_status) ->
               let failed_steps =
@@ -158,6 +161,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
               { build_status with failed_steps })
             builds_map)
     in
+
     let repo_state = find_or_add_repo' state n.repository.url in
     (match n.state with
     | Success ->
@@ -183,47 +187,30 @@ let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
       pipeline_name
     | None -> n.context
   in
-  let to_branch_commits branches_commits (branch : Github_t.branch) =
+  let to_branch_commits (branch : Github_t.branch) =
     let single_commit = { State_t.s1 = StringSet.add n.sha StringSet.empty; s2 = StringSet.empty } in
     let updated_commits =
-      Option.map_default
-        (fun (branches_commits : State_t.commit_sets StringMap.t) ->
-          match StringMap.find_opt branch.name branches_commits with
-          | None -> single_commit
-          | Some branch_commits ->
-            let { State_t.s1; s2 } = branch_commits in
-            let s1 = StringSet.add n.sha s1 in
-            let s1, s2 = if StringSet.cardinal s1 > rotation_threshold then StringSet.empty, s1 else s1, s2 in
-            { State_t.s1; s2 })
-        single_commit branches_commits
+      match Util.Build.get_branch_commits n repo_state with
+      | None -> single_commit
+      | Some { State_t.s1; s2 } ->
+        let s1 = StringSet.add n.sha s1 in
+        let s1, s2 = if StringSet.cardinal s1 > rotation_threshold then StringSet.empty, s1 else s1, s2 in
+        { State_t.s1; s2 }
     in
     branch.name, updated_commits
   in
   let set_commit commits =
     let current_commits = Option.default StringMap.empty commits in
-    let updated_commits = List.map (to_branch_commits commits) n.branches in
+    let updated_commits = List.map to_branch_commits n.branches in
     Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) current_commits updated_commits)
   in
   repo_state.pipeline_commits <- StringMap.update pipeline_name set_commit repo_state.pipeline_commits
 
 let mem_repo_pipeline_commits { state } (n : Github_t.status_notification) =
-  let pipeline_name =
-    match Util.Build.parse_context ~context:n.context with
-    | Some { pipeline_name; _ } ->
-      (* We only want to track messages for the base pipeline, not the steps *)
-      pipeline_name
-    | None -> n.context
-  in
   let repo_state = find_or_add_repo' state n.repository.url in
-  match StringMap.find_opt pipeline_name repo_state.pipeline_commits with
+  match Util.Build.get_branch_commits n repo_state with
   | None -> false
-  | Some pipeline_commits ->
-    List.exists
-      (fun (b : Github_t.branch) ->
-        match StringMap.find_opt b.name pipeline_commits with
-        | None -> false
-        | Some { State_t.s1; s2 } -> StringSet.mem n.sha s1 || StringSet.mem n.sha s2)
-      n.branches
+  | Some { State_t.s1; s2 } -> StringSet.mem n.sha s1 || StringSet.mem n.sha s2
 
 let has_pr_thread { state } ~repo_url ~pr_url =
   let repo_state = find_or_add_repo' state repo_url in

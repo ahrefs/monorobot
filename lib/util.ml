@@ -103,6 +103,22 @@ module Build = struct
   let is_success_build (n : Github_t.status_notification) =
     n.state = Success && Re2.matches buildkite_is_success_re (Option.default "" n.description)
 
+  let is_main_branch (cfg : Config_t.config) (n : Github_t.status_notification) =
+    match cfg.main_branch_name with
+    | None -> false
+    | Some main_branch -> List.exists (fun ({ name } : Github_t.branch) -> String.equal name main_branch) n.branches
+
+  let get_pipeline_config (cfg : Config_t.config) (n : Github_t.status_notification) =
+    match cfg.status_rules.allowed_pipelines with
+    | None -> None
+    | Some allowed_pipelines ->
+      List.find_opt (fun ({ name; _ } : Config_t.pipeline) -> name = n.context) allowed_pipelines
+
+  let has_failed_builds_channel (cfg : Config_t.config) (n : Github_t.status_notification) =
+    match get_pipeline_config cfg n with
+    | Some ({ failed_builds_channel = Some _; _ } : Config_t.pipeline) -> true
+    | Some _ | None -> false
+
   let get_branch_builds (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
     match n.branches, parse_context ~context:n.context with
     | [ branch ], Some { pipeline_name; _ } ->
@@ -110,6 +126,19 @@ module Build = struct
       | None -> None
       | Some pipeline_statuses -> StringMap.find_opt branch.name pipeline_statuses)
     | _ -> None
+
+  let get_branch_commits (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
+    let pipeline_name =
+      match parse_context ~context:n.context with
+      | Some { pipeline_name; _ } ->
+        (* if we can parse the context, we want to use the base pipeline name, not the steps *)
+        pipeline_name
+      | None -> n.context
+    in
+    match StringMap.find_opt pipeline_name repo_state.pipeline_commits with
+    | None -> None
+    | Some pipeline_commits ->
+      List.find_map (fun ({ name; _ } : Github_t.branch) -> StringMap.find_opt name pipeline_commits) n.branches
 
   let get_current_build (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
     match n.target_url, get_branch_builds n repo_state with
@@ -247,23 +276,12 @@ module Build = struct
      -  a failed_builds_channel is defined for the pipeline
   *)
   let notify_fail (n : Github_t.status_notification) (cfg : Config_t.config) =
-    let is_main_branch =
-      match cfg.main_branch_name with
+    let notify_canceled_build =
+      match get_pipeline_config cfg n with
       | None -> false
-      | Some main_branch -> List.exists (fun ({ name } : Github_t.branch) -> String.equal name main_branch) n.branches
+      | Some ({ notify_canceled_builds; _ } : Config_t.pipeline) -> notify_canceled_builds && is_canceled_build n
     in
-    match cfg.status_rules.allowed_pipelines with
-    | None -> false
-    | Some allowed_pipelines ->
-      let has_failed_builds_channel, notify_canceled_build =
-        List.fold_left
-          (fun acc ({ Config_t.failed_builds_channel; name; _ } as pipeline_config) ->
-            match is_main_branch && name = n.context && Option.is_some failed_builds_channel with
-            | false -> acc
-            | true -> true, pipeline_config.notify_canceled_builds && is_canceled_build n)
-          (false, false) allowed_pipelines
-      in
-      (is_failed_build n || notify_canceled_build) && has_failed_builds_channel
+    (is_failed_build n || notify_canceled_build) && has_failed_builds_channel cfg n && is_main_branch cfg n
 
   let stale_build_threshold =
     (* 2h as the threshold for long running or stale builds *)

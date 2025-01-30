@@ -149,13 +149,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     let open Util.Build in
     let repo = n.repository in
     let cfg = Context.find_repo_config_exn ctx repo.url in
-    let context = n.context in
     let repo_state = State.find_or_add_repo ctx.state repo.url in
-    let is_main_branch =
-      match cfg.main_branch_name with
-      | None -> false
-      | Some main_branch -> List.exists (fun ({ name } : branch) -> String.equal name main_branch) n.branches
-    in
+    let is_main_branch = is_main_branch cfg n in
     let get_dm_id ~notify_dm =
       let email = n.commit.commit.author.email in
       match notify_dm with
@@ -207,16 +202,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           Lwt.return (List.map Status_notification.inject_channel chans))
     in
     let get_failed_builds_channel_id () =
-      let has_failed_builds_channel =
-        match cfg.status_rules.allowed_pipelines with
-        | None -> false
-        | Some allowed_pipelines ->
-          List.exists
-            (fun ({ failed_builds_channel; name; _ } : Config_t.pipeline) ->
-              is_main_branch && name = context && Option.is_some failed_builds_channel)
-            allowed_pipelines
-      in
-
       (* only notify the failed builds channels for full failed or canceled builds on the main branch
          that have failed steps that weren't failing in previous builds *)
       let%lwt should_notify_fail =
@@ -229,20 +214,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
 
       (* only notify the failed builds channels for successful builds on the main branch if they fix the pipeline *)
       let should_notify_success =
-        match parse_context ~context with
-        | None -> false
-        | Some { pipeline_name; _ } ->
         match n.target_url with
         | None -> false
         | Some build_url ->
-        match List.hd n.branches with
-        | exception _ -> false
-        | branch ->
           let previous_build_is_failed =
-            match StringMap.find_opt pipeline_name repo_state.pipeline_statuses with
-            | None -> false
-            | Some branch_statuses ->
-            match StringMap.find_opt branch.name branch_statuses with
+            match get_branch_builds n repo_state with
             | None -> false
             | Some build_statuses ->
               let current_build_number = get_build_number_exn ~build_url in
@@ -262,17 +238,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                 let latest_build = previous_builds |> IntMap.max_binding |> snd in
                 latest_build.status = Failure)
           in
-          is_success_build n && has_failed_builds_channel && previous_build_is_failed
+          is_success_build n && previous_build_is_failed && has_failed_builds_channel cfg n && is_main_branch
       in
-      match should_notify_fail || should_notify_success, cfg.status_rules.allowed_pipelines with
-      | false, _ | _, None -> Lwt.return []
-      | true, Some allowed_pipelines ->
-        let to_failed_builds_channel_id ({ name; failed_builds_channel; _ } : Config_t.pipeline) =
-          match String.equal name context, failed_builds_channel with
-          | true, Some failed_builds_channel -> Some [ Status_notification.inject_channel failed_builds_channel ]
-          | _ -> None
-        in
-        Lwt.return @@ (List.find_map to_failed_builds_channel_id allowed_pipelines |> Option.default [])
+      match should_notify_fail || should_notify_success, get_pipeline_config cfg n with
+      | true, Some ({ failed_builds_channel = Some failed_builds_channel; _ } : Config_t.pipeline) ->
+        Lwt.return [ Status_notification.inject_channel failed_builds_channel ]
+      | false, _ | _, None | true, Some _ -> Lwt.return []
     in
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
       let%lwt direct_message = get_dm_id ~notify_dm in
@@ -293,34 +264,22 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
               match n.target_url with
               | None -> n.branches
               | Some build_url ->
-                let pipeline_name =
-                  (* We only want to track messages for the base pipeline, not the steps *)
-                  match parse_context ~context with
-                  | Some { pipeline_name; _ } -> pipeline_name
-                  | None -> context
+                let status_switched (_ : branch) =
+                  get_branch_builds n repo_state
+                  |> Option.map_default
+                       (fun (build_statuses : State_t.build_status IntMap.t) ->
+                         let current = get_build_number_exn ~build_url in
+                         let previous_builds = IntMap.filter (fun build_num _ -> build_num < current) build_statuses in
+                         match IntMap.is_empty previous_builds with
+                         | true ->
+                           (* if we have no previous builds, it means they were successful and cleaned from state *)
+                           n.state <> Github_t.Success
+                         | false ->
+                           let _, previous_build = IntMap.max_binding previous_builds in
+                           previous_build.status <> n.state)
+                       (n.state <> Github_t.Success)
                 in
-                (match StringMap.find_opt pipeline_name repo_state.pipeline_statuses with
-                | None ->
-                  (* this is the first notification for a pipeline, so no need to filter branches *)
-                  n.branches
-                | Some branch_statuses ->
-                  let has_same_status (branch : branch) =
-                    match StringMap.find_opt branch.name branch_statuses with
-                    | Some build_statuses ->
-                      let current = get_build_number_exn ~build_url in
-                      let previous_builds = IntMap.filter (fun build_num _ -> build_num < current) build_statuses in
-                      (match IntMap.is_empty previous_builds with
-                      | true ->
-                        (* if we have no previous builds, it means they were successful and cleaned from state *)
-                        n.state = Github_t.Success
-                      | false ->
-                        let _, previous_build = IntMap.max_binding previous_builds in
-                        previous_build.status = n.state)
-                    | None ->
-                      (* if we don't have any builds for this branch yet, it's the first notification for this pipeline *)
-                      false
-                  in
-                  List.filter (Fun.negate has_same_status) n.branches)
+                List.filter status_switched n.branches
             in
             let notify_dm = notify_dm && not (State.mem_repo_pipeline_commits ctx.state n) in
             action_on_match branches ~notify_channels ~notify_dm

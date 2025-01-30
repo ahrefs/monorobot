@@ -79,12 +79,7 @@ let hook_of_channel ctx channel_name =
 let is_pipeline_allowed ctx repo_url (n : Github_t.status_notification) =
   match find_repo_config ctx repo_url with
   | None -> true
-  | Some config ->
-  match config.status_rules.allowed_pipelines with
-  | Some allowed_pipelines
-    when List.exists (fun (p : Config_t.pipeline) -> String.equal p.name n.context) allowed_pipelines ->
-    true
-  | _ -> false
+  | Some config -> Option.is_some (Util.Build.get_pipeline_config config n)
 
 let refresh_secrets ctx =
   let open Util in
