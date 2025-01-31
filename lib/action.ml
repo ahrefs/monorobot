@@ -252,7 +252,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     in
     let%lwt recipients =
       let rules = cfg.status_rules.rules in
-      match Context.is_pipeline_allowed ctx repo.url n with
+      match Context.is_pipeline_allowed ctx n with
       | false -> Lwt.return []
       | true ->
         let%lwt dm_and_channels =
@@ -287,7 +287,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         let%lwt failed_builds_channel = get_failed_builds_channel_id () in
         Lwt.return (dm_and_channels @ failed_builds_channel |> List.sort_uniq Status_notification.compare)
     in
-    State.set_repo_pipeline_status ctx.state n;
+    (* We only care about maintaining status for allowed pipelines and the main branch *)
+    if Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n then
+      State.set_repo_pipeline_status ctx.state n;
     Lwt.return recipients
 
   let partition_commit_comment (ctx : Context.t) n =
