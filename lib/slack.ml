@@ -332,8 +332,8 @@ let generate_push_notification notification channel =
 
 let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
 
-let generate_status_notification ?slack_user_id ?failed_steps ~job_log (cfg : Config_t.config)
-  (notification : status_notification) channel =
+let generate_status_notification ?slack_user_id ?failed_steps ~(job_log : (string * string) list)
+  (cfg : Config_t.config) (notification : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = notification in
   let ({ commit : inner_commit; sha; html_url; _ } : status_commit) = commit in
   let ({ message; author; _ } : inner_commit) = commit in
@@ -438,10 +438,29 @@ let generate_status_notification ?slack_user_id ?failed_steps ~job_log (cfg : Co
   let attachment = { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text } in
   let replies =
     match job_log with
-    | Some log ->
-      let text = sprintf "Log : ```\n%s\n```" (Text_cleanup.cleanup log) in
+    | [] -> []
+    | _ :: _ ->
+      let text =
+        job_log
+        |> List.map (fun (job_name, job_log) ->
+               let job_log =
+                 job_log
+                 |> Text_cleanup.cleanup
+                 |> String.split_on_char '\r'
+                 |> String.concat "\n"
+                 |> String.split_on_char '\n'
+                 |> List.rev
+                 |> List.to_seq
+                 |> Seq.filter (( <> ) "")
+                 |> Seq.take 15
+                 |> List.of_seq
+                 |> List.rev
+                 |> String.concat "\n"
+               in
+               sprintf "Log for %s: ```\n%s```" job_name job_log)
+        |> String.concat "\n"
+      in
       [ make_reply ~text () ]
-    | None -> []
   in
   make_message ~text:summary ~attachments:[ attachment ]
     ~channel:(Status_notification.to_slack_channel channel)

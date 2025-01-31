@@ -78,8 +78,8 @@ module Slack : Api.Slack = struct
     let json = msg |> Slack_j.string_of_post_message_req |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string in
     Printf.printf "will notify #%s\n" (Slack_channel.Any.project msg.channel);
     Printf.printf "%s\n" json;
-    let channel = (Slack_channel.Ident.inject (Slack_channel.Any.project msg.channel)) in
-    let res = { Slack_t.channel = channel; ts = Slack_timestamp.inject "mock_ts" } in
+    let channel = Slack_channel.Ident.inject (Slack_channel.Any.project msg.channel) in
+    let res = { Slack_t.channel; ts = Slack_timestamp.inject "mock_ts" } in
     Lwt.return @@ Ok (Some res)
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts ~unfurls () =
@@ -115,8 +115,8 @@ module Slack_simple : Api.Slack = struct
       (match msg.Slack_t.text with
       | None -> ""
       | Some s -> sprintf " with %S" s);
-      let channel = (Slack_channel.Ident.inject (Slack_channel.Any.project msg.channel)) in
-      let res = { Slack_t.channel = channel; ts = Slack_timestamp.inject "mock_ts" } in
+    let channel = Slack_channel.Ident.inject (Slack_channel.Any.project msg.channel) in
+    let res = { Slack_t.channel; ts = Slack_timestamp.inject "mock_ts" } in
     Lwt.return @@ Ok (Some res)
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
@@ -149,8 +149,8 @@ module Slack_json : Api.Slack = struct
     let url = Uri.add_query_param url ("msg", [ json ]) in
     log#info "%s" (Uri.to_string url);
     log#info "%s" json;
-    let channel = (Slack_channel.Ident.inject (Slack_channel.Any.project msg.channel)) in
-    let res = { Slack_t.channel = channel; ts = Slack_timestamp.inject "mock_ts" } in
+    let channel = Slack_channel.Ident.inject (Slack_channel.Any.project msg.channel) in
+    let res = { Slack_t.channel; ts = Slack_timestamp.inject "mock_ts" } in
     Lwt.return_ok (Some res)
 
   let send_chat_unfurl ~ctx:_ ~channel ~ts:_ ~(unfurls : Slack_t.message_attachment Common.StringMap.t) () =
@@ -172,13 +172,14 @@ end
 module Buildkite : Api.Buildkite = struct
   let get_job_log ~ctx:_ (job : Buildkite_t.job) =
     match job.log_url with
-    | None -> Lwt.return_error "Unable to get job log, job has not log_url field"
+    | None -> Lwt.return_error "Unable to get job log, job has no log_url field"
     | Some log_url ->
     match Re2.find_submatches_exn Util.Build.buildkite_api_org_pipeline_build_job_re log_url with
     | exception _ -> failwith "Failed to parse Buildkite build url"
     | [| Some _; Some org; Some pipeline; Some build_nr; Some job_nbr |] ->
       let file =
-        clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/logs" org pipeline build_nr job_nbr)
+        clean_forward_slashes
+          (sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/logs" org pipeline build_nr job_nbr)
       in
       let url = Filename.concat buildkite_cache_dir file in
       with_cache_file url Buildkite_j.job_log_of_string

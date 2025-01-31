@@ -340,20 +340,29 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
   let log_content_of_job ~ctx job =
     match%lwt Buildkite_api.get_job_log ~ctx job with
     | Error _ as e -> Lwt.return e
-    | Ok job_log -> Lwt.return_ok (Some job_log.content)
+    | Ok job_log -> Lwt.return_ok (job.name, job_log.content)
 
   let get_logs' ~ctx (n : status_notification) =
     match%lwt Buildkite_api.get_build ~ctx n with
     | Error _ as e -> Lwt.return e
     | Ok build ->
       let failed_jobs = get_failed_jobs build.jobs in
-      (match failed_jobs with
-      | [] -> Lwt.return_ok None
-      | _ :: _ -> log_content_of_job ~ctx (List.hd failed_jobs))
+      let%lwt list_result = Lwt_list.map_p (log_content_of_job ~ctx) failed_jobs in
+      let list =
+        List.filter_map
+          (function
+            | Ok content -> Some content
+            | Error e ->
+              log#warn "failed to get log content for job: %s" e;
+              None)
+          list_result
+      in
+
+      Lwt.return_ok list
 
   let get_logs ~ctx (n : status_notification) =
     match n.state with
-    | Success | Pending -> Lwt.return_ok None
+    | Success | Pending -> Lwt.return_ok []
     | Failure | Error -> get_logs' ~ctx n
 
   let generate_notifications (ctx : Context.t) (req : Github.t) =
@@ -409,7 +418,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         | Error e ->
           (* is this reasonable ? *)
           log#warn "couldn't fetch logs for build: %s" e;
-          Lwt.return_none
+          Lwt.return []
         | Ok job_log -> Lwt.return job_log
       in
       let notifs = List.map (generate_status_notification ?slack_user_id ~job_log ?failed_steps cfg n) channels in
