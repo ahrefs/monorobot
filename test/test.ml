@@ -57,7 +57,18 @@ let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_
   match Std.input_file path with
   | event ->
     let%lwt ctx = make_test_context event in
-    Action_local.process_github_notification ctx headers event
+    let%lwt () = Action_local.process_github_notification ctx headers event in
+    (match Sys.getenv_opt "PRINT_TEST_STATE" with
+    | Some s when s = "true" || Stre.exists path s ->
+      let repo_url =
+        let json = Yojson.Basic.from_string event in
+        Yojson.Basic.Util.member "repository" json |> Yojson.Basic.Util.member "html_url" |> Yojson.Basic.Util.to_string
+      in
+      let repo_state = State.find_or_add_repo ctx.state repo_url in
+      Printf.printf "-------------- State ------------\n %s\n-------------- State ------------\n"
+        (Yojson.Basic.pretty_to_string (State_j.string_of_repo_state repo_state |> Yojson.Basic.from_string))
+    | _ -> ());
+    Lwt.return_unit
   | exception exn ->
     log#error ~exn "failed to read file %s" path;
     Lwt.return_unit
@@ -104,7 +115,8 @@ let () =
     | Ok ctx ->
       let%lwt () = Action_local.refresh_username_to_slack_id_tbl ~ctx in
       let%lwt () = Lwt_list.iter_s (process_gh_payload ~secrets:(Option.get ctx.secrets) ~config) payloads in
-      Lwt_list.iter_s (process_slack_event ~secrets:(Option.get ctx.secrets)) slack_events
+      let%lwt () = Lwt_list.iter_s (process_slack_event ~secrets:(Option.get ctx.secrets)) slack_events in
+      Lwt.return_unit
     | Error e ->
       log#error "failed to read secrets:";
       log#error "%s" e;

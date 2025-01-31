@@ -1,12 +1,12 @@
 (executables
  (names test github_link_test longest_prefix_test)
- (libraries lib devkit devkit.core extlib lwt.unix
-   yojson)
+ (libraries lib devkit devkit.core extlib lwt.unix yojson)
  (preprocess
   (pps lwt_ppx)))
 
 (rule
  (deps
+  (env_var PRINT_TEST_STATE)
   (source_tree ../mock_states)
   (source_tree ../mock_payloads)
   (source_tree ../mock_slack_events)
@@ -27,9 +27,9 @@
 (rule
  (alias runtest)
  (action
-   (run ./github_link_test.exe)))
+  (run ./github_link_test.exe)))
 
 (rule
  (alias runtest)
  (action
-   (run ./longest_prefix_test.exe)))
+  (run ./longest_prefix_test.exe)))
