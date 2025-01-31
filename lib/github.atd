@@ -261,6 +261,7 @@ type status_commit = {
 }
 
 type status_notification = {
+  id: int;
   sha: commit_hash;
   commit: status_commit;
   state: status_state;
