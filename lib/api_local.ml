@@ -175,7 +175,7 @@ module Buildkite : Api.Buildkite = struct
     | None -> Lwt.return_error "Unable to get job log, job has no log_url field"
     | Some log_url ->
     match Re2.find_submatches_exn Util.Build.buildkite_api_org_pipeline_build_job_re log_url with
-    | exception _ -> failwith "Failed to parse Buildkite build url"
+    | exception exn -> Exn.fail ~exn  "failed to parse buildkite build url %s" log_url 
     | [| Some _; Some org; Some pipeline; Some build_nr; Some job_nbr |] ->
       let file =
         clean_forward_slashes

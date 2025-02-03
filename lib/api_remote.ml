@@ -264,9 +264,7 @@ module Buildkite : Api.Buildkite = struct
     match job.log_url with
     | None -> Lwt.return_error "Unable to get job log, job has no log_url field"
     | Some log_url ->
-      (match%lwt request_token_auth ~name:"get buildkite job logs" ~ctx `GET log_url Buildkite_j.job_log_of_string with
-      | Ok logs -> Lwt.return_ok logs
-      | Error e -> Lwt.return_error e)
+      request_token_auth ~name:"get buildkite job logs" ~ctx `GET log_url Buildkite_j.job_log_of_string with
 
   let get_build' ~ctx ~org ~pipeline ~build_nr map =
     let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in

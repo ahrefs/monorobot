@@ -1,7 +1,5 @@
 (* We keep this type an open enum because buildkite's documentation is not up to date and might have
    more states. It shouldn't be an issue because we don't care about all the possible states. *)
-(* We keep this type an open enum because buildkite's documentation is not up to date and might have
-   more states. It shouldn't be an issue because we don't care about all the possible states. *)
    type build_state = [
     | Blocked <json name="blocked">
     | Canceled <json name="canceled">
