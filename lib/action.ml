@@ -329,6 +329,42 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Some sender_login -> List.exists (String.equal sender_login) cfg.ignored_users
     | None -> false
 
+  let get_failed_jobs jobs =
+    List.filter_map
+      (fun (job : Buildkite_t.job_type) ->
+        match job with
+        | Script ({ state = Failed; _ } as job) | Trigger ({ state = Failed; _ } as job) -> Some job
+        | _ -> None)
+      jobs
+
+  let log_content_of_job ~ctx job =
+    match%lwt Buildkite_api.get_job_log ~ctx job with
+    | Error _ as e -> Lwt.return e
+    | Ok job_log -> Lwt.return_ok (job.name, job_log.content)
+
+  let get_logs' ~ctx (n : status_notification) =
+    match%lwt Buildkite_api.get_build ~ctx n with
+    | Error _ as e -> Lwt.return e
+    | Ok build ->
+      let failed_jobs = get_failed_jobs build.jobs in
+      let%lwt list_result = Lwt_list.map_p (log_content_of_job ~ctx) failed_jobs in
+      let list =
+        List.filter_map
+          (function
+            | Ok content -> Some content
+            | Error e ->
+              log#warn "failed to get log content for job: %s" e;
+              None)
+          list_result
+      in
+
+      Lwt.return_ok list
+
+  let get_logs ~ctx (n : status_notification) =
+    match n.state with
+    | Success | Pending -> Lwt.return_ok []
+    | Failure | Error -> get_logs' ~ctx n
+
   let generate_notifications (ctx : Context.t) (req : Github.t) =
     let repo = Github.repo_of_notification req in
     let cfg = Context.find_repo_config_exn ctx repo.url in
@@ -377,13 +413,28 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           let%lwt failed_steps = Util.Build.new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state in
           Lwt.return_some failed_steps
       in
-      let notifs = List.map (generate_status_notification ?slack_user_id ?failed_steps cfg n) channels in
+      let%lwt job_log =
+        match%lwt get_logs ~ctx n with
+        | Error e ->
+          (* is this reasonable ? *)
+          log#warn "couldn't fetch logs for build: %s" e;
+          Lwt.return []
+        | Ok job_log -> Lwt.return job_log
+      in
+      let notifs = List.map (generate_status_notification ?slack_user_id ~job_log ?failed_steps cfg n) channels in
       Lwt.return notifs
 
   let send_notifications (ctx : Context.t) notifications =
-    let notify (msg, handler) =
+    let notify_reply msg ts reply =
+      let msg = message_of_reply ~msg ~ts reply in
+      match%lwt Slack_api.send_notification ~ctx ~msg with
+      | Ok _ -> Lwt.return_unit
+      | Error e -> action_error e
+    in
+    let notify (msg, handler, replies) =
       match%lwt Slack_api.send_notification ~ctx ~msg with
       | Ok (Some res) ->
+        let%lwt () = Lwt_list.iter_s (notify_reply msg res.ts) replies in
         (match handler with
         | None -> Lwt.return_unit
         | Some handler ->

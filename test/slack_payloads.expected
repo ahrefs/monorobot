@@ -540,6 +540,13 @@ will notify #failed-builds
   ],
   "unfurl_links": false
 }
+will notify #failed-builds
+{
+  "channel": "failed-builds",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/status.canceled_empty_failed_jobs.json =====
 will notify #failed-builds
 {
@@ -555,6 +562,13 @@ will notify #failed-builds
   ],
   "unfurl_links": false
 }
+will notify #failed-builds
+{
+  "channel": "failed-builds",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/status.canceled_no_build_state.json =====
 will notify #failed-builds
 {
@@ -568,6 +582,13 @@ will notify #failed-builds
       "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
     }
   ],
+  "unfurl_links": false
+}
+will notify #failed-builds
+{
+  "channel": "failed-builds",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.canceled_test.json =====
@@ -586,6 +607,13 @@ will notify #default
   ],
   "unfurl_links": false
 }
+will notify #default
+{
+  "channel": "default",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
+  "unfurl_links": false
+}
 will notify #id[author@ahrefs.com]
 {
   "channel": "id[author@ahrefs.com]",
@@ -598,6 +626,13 @@ will notify #id[author@ahrefs.com]
       "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` \n*Branch*: author/patches/js-storage"
     }
   ],
+  "unfurl_links": false
+}
+will notify #id[author@ahrefs.com]
+{
+  "channel": "id[author@ahrefs.com]",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.commit1-02-failed.json =====
@@ -615,6 +650,13 @@ will notify #default
   ],
   "unfurl_links": false
 }
+will notify #default
+{
+  "channel": "default",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/status.commit1-02-failed_diff_pipeline.json =====
 will notify #default
 {
@@ -628,6 +670,13 @@ will notify #default
       "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` <@id[author@ahrefs.com]>\n*Branch*: author/patches/js-storage"
     }
   ],
+  "unfurl_links": false
+}
+will notify #default
+{
+  "channel": "default",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.commit1-02-failed_main_branch.json =====
@@ -645,6 +694,13 @@ will notify #all-push-events
   ],
   "unfurl_links": false
 }
+will notify #all-push-events
+{
+  "channel": "all-push-events",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
+  "unfurl_links": false
+}
 will notify #failed-builds
 {
   "channel": "failed-builds",
@@ -657,6 +713,13 @@ will notify #failed-builds
       "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step>"
     }
   ],
+  "unfurl_links": false
+}
+will notify #failed-builds
+{
+  "channel": "failed-builds",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.commit1-02-failed_no_failed_builds_chan.json =====
@@ -674,6 +737,13 @@ will notify #default
   ],
   "unfurl_links": false
 }
+will notify #default
+{
+  "channel": "default",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/status.failed_diff_failed_jobs.json =====
 will notify #failed-builds
 {
@@ -689,6 +759,13 @@ will notify #failed-builds
   ],
   "unfurl_links": false
 }
+will notify #failed-builds
+{
+  "channel": "failed-builds",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/status.failed_empty_failed_jobs.json =====
 will notify #failed-builds
 {
@@ -702,6 +779,13 @@ will notify #failed-builds
       "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
     }
   ],
+  "unfurl_links": false
+}
+will notify #failed-builds
+{
+  "channel": "failed-builds",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failed_multiple_branches.json =====
@@ -734,6 +818,13 @@ will notify #failed-builds
   ],
   "unfurl_links": false
 }
+will notify #failed-builds
+{
+  "channel": "failed-builds",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/status.failure_test.json =====
 ===== file ../mock_payloads/status.failure_test_main_branch.json =====
 will notify #all-push-events
@@ -750,6 +841,13 @@ will notify #all-push-events
   ],
   "unfurl_links": false
 }
+will notify #all-push-events
+{
+  "channel": "all-push-events",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
+  "unfurl_links": false
+}
 will notify #failed-builds
 {
   "channel": "failed-builds",
@@ -762,6 +860,13 @@ will notify #failed-builds
       "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/2#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step>"
     }
   ],
+  "unfurl_links": false
+}
+will notify #failed-builds
+{
+  "channel": "failed-builds",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failure_test_no_failed_builds_chan.json =====
@@ -777,6 +882,13 @@ will notify #default
       "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` <@id[slack_mail@example.com]>\n*Branch*: master"
     }
   ],
+  "unfurl_links": false
+}
+will notify #default
+{
+  "channel": "default",
+  "thread_ts": "mock_ts",
+  "text": "Log : ```\nThis is the job's log output\n```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.merge_develop.json =====

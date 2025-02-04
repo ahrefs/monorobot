@@ -11,6 +11,7 @@
   (source_tree ../mock_payloads)
   (source_tree ../mock_slack_events)
   (source_tree github-api-cache)
+  (source_tree buildkite-api-cache)
   (source_tree slack-api-cache)
   monorobot.json
   secrets.json)
