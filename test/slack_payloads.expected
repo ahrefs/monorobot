@@ -529,7 +529,7 @@ will notify #longest-a1
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" author@ahrefs.com",
+  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
   "attachments": [
     {
       "fallback": null,
@@ -544,7 +544,7 @@ will notify #failed-builds
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" author@ahrefs.com",
+  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
   "attachments": [
     {
       "fallback": null,
@@ -559,7 +559,7 @@ will notify #failed-builds
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" author@ahrefs.com",
+  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
   "attachments": [
     {
       "fallback": null,

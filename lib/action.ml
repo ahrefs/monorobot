@@ -359,7 +359,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Status n ->
       let%lwt channels = partition_status ctx n in
       let%lwt slack_user_id =
-        match Util.Build.is_failed_build n with
+        match Util.Build.is_failed_build n || Util.Build.is_canceled_build n with
         | false -> Lwt.return_none
         | true ->
           let email = n.commit.commit.author.email in
