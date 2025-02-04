@@ -529,13 +529,13 @@ will notify #longest-a1
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" author@ahrefs.com",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>"
+      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>"
     }
   ],
   "unfurl_links": false
@@ -544,13 +544,13 @@ will notify #failed-builds
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" author@ahrefs.com",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
+      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
     }
   ],
   "unfurl_links": false
@@ -559,13 +559,13 @@ will notify #failed-builds
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" author@ahrefs.com",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
+      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
     }
   ],
   "unfurl_links": false
@@ -575,7 +575,7 @@ will notify #failed-builds
 will notify #default
 {
   "channel": "default",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181732|#​181732> is failing for \"c1 message\"",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181732|#​181732> is failing for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
@@ -589,7 +589,7 @@ will notify #default
 will notify #id[author@ahrefs.com]
 {
   "channel": "id[author@ahrefs.com]",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181732|#​181732> is failing for \"c1 message\"",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181732|#​181732> is failing for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
@@ -604,7 +604,7 @@ will notify #id[author@ahrefs.com]
 will notify #default
 {
   "channel": "default",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
@@ -619,7 +619,7 @@ will notify #default
 will notify #default
 {
   "channel": "default",
-  "text": "<https://buildkite.com/ahrefs/qa|[buildkite/qa]>: Build <https://buildkite.com/ahrefs/qa/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
+  "text": "<https://buildkite.com/org/qa|[buildkite/qa]>: Build <https://buildkite.com/org/qa/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
@@ -634,7 +634,7 @@ will notify #default
 will notify #all-push-events
 {
   "channel": "all-push-events",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
@@ -648,13 +648,13 @@ will notify #all-push-events
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step>"
+      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step>"
     }
   ],
   "unfurl_links": false
@@ -663,7 +663,7 @@ will notify #failed-builds
 will notify #default
 {
   "channel": "default",
-  "text": "<https://buildkite.com/ahrefs/bau|[buildkite/bau]>: Build <https://buildkite.com/ahrefs/bau/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
+  "text": "<https://buildkite.com/org/bau|[buildkite/bau]>: Build <https://buildkite.com/org/bau/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
@@ -678,13 +678,13 @@ will notify #default
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>"
+      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>"
     }
   ],
   "unfurl_links": false
@@ -693,13 +693,13 @@ will notify #failed-builds
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
+      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
     }
   ],
   "unfurl_links": false
@@ -708,7 +708,7 @@ will notify #failed-builds
 will notify #default
 {
   "channel": "default",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181733|#​181733> failed (7 minutes, 29 seconds) for \"c1 message\"",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181733|#​181733> failed (7 minutes, 29 seconds) for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
@@ -723,13 +723,13 @@ will notify #default
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/ahrefs/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
+      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
     }
   ],
   "unfurl_links": false
@@ -739,7 +739,7 @@ will notify #failed-builds
 will notify #all-push-events
 {
   "channel": "all-push-events",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/2|#​2> failed (20 seconds) for \"Update README.md\"",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> failed (20 seconds) for \"Update README.md\"",
   "attachments": [
     {
       "fallback": null,
@@ -753,13 +753,13 @@ will notify #all-push-events
 will notify #failed-builds
 {
   "channel": "failed-builds",
-  "text": "<https://buildkite.com/ahrefs/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/ahrefs/pipeline2/builds/2|#​2> failed (20 seconds) for \"<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|Update README.md>\" <@id[slack_mail@example.com]>",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> failed (20 seconds) for \"<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|Update README.md>\" <@id[slack_mail@example.com]>",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/ahrefs/pipeline2/builds/2#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step>"
+      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/2#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step>"
     }
   ],
   "unfurl_links": false
@@ -768,7 +768,7 @@ will notify #failed-builds
 will notify #default
 {
   "channel": "default",
-  "text": "<https://buildkite.com/ahrefs/bau|[buildkite/bau]>: Build <https://buildkite.com/ahrefs/bau/builds/2|#​2> failed (20 seconds) for \"Update README.md\"",
+  "text": "<https://buildkite.com/org/bau|[buildkite/bau]>: Build <https://buildkite.com/org/bau/builds/2|#​2> failed (20 seconds) for \"Update README.md\"",
   "attachments": [
     {
       "fallback": null,

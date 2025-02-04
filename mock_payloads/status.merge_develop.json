@@ -2,7 +2,7 @@
   "id": 0,
   "sha": "2129f69a03641c39dfeb8e928cc08d7a8d029c6b",
   "name": "ahrefs/monorepo",
-  "target_url": "https://buildkite.com/ahrefs/pipeline1/builds/23670",
+  "target_url": "https://buildkite.com/org/pipeline1/builds/23670",
   "avatar_url": "https://github.com/avatars/oa/0",
   "context": "buildkite/pipeline1",
   "description": "Build #23670 canceled by Max",

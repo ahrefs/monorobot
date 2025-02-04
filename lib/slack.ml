@@ -342,10 +342,10 @@ let generate_status_notification ?slack_user_id ?failed_steps (cfg : Config_t.co
       s
   in
   let author_mention =
-    match is_failed_build_notification, slack_user_id, channel with
-    | true, None, _ | true, _, Status_notification.User _ -> author.email
-    | _, Some id, Channel _ -> sprintf "<@%s>" (Slack_user_id.project id)
-    | _ -> ""
+    match Build.(is_failed_build n || is_canceled_build n), slack_user_id, channel with
+    | true, None, Channel _ -> author.email
+    | true, Some id, Channel _ -> sprintf "<@%s>" (Slack_user_id.project id)
+    | true, _, User _ | false, _, _ -> ""
   in
   let commit_info = [ sprintf "*Commit*: `<%s|%s>` %s" html_url (git_short_sha_hash sha) author_mention ] in
   let branches_info =

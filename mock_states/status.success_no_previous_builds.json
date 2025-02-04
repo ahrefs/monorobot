@@ -5,7 +5,7 @@
         "3": {
           "status": "pending",
           "build_number": "3",
-          "build_url": "https://buildkite.com/ahrefs/pipeline2/builds/3",
+          "build_url": "https://buildkite.com/org/pipeline2/builds/3",
           "commit": {
             "sha": "0d95302addd66c1816bce1b1d495ed1c93ccd478",
             "author": "mail@example.org",

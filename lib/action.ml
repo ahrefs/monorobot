@@ -357,7 +357,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       (try%lwt
          let%lwt channels = partition_status ctx n in
          let%lwt slack_user_id =
-           match Util.Build.is_failed_build n with
+           match Util.Build.is_failed_build n || Util.Build.is_canceled_build n with
            | false -> Lwt.return_none
            | true ->
              let email = n.commit.commit.author.email in
@@ -390,7 +390,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
          if Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n then
            State.set_repo_pipeline_status ctx.state n;
          Lwt.return [])
-
   let send_notifications (ctx : Context.t) notifications =
     let notify (msg, handler) =
       match%lwt Slack_api.send_notification ~ctx ~msg with
