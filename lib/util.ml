@@ -51,7 +51,6 @@ let buildkite_api_org_pipeline_build_job_re =
   (* https://api.buildkite.com/v2/organizations/<org_name>/pipelines/<pipeline_name>/builds/<build_number>/jobs/<job_number>/log *)
   Re2.create_exn {|https://api.buildkite.com/v2/organizations/([\w_-]+)/pipelines/([\w_-]+)/builds/(\d+)/jobs/([\d\w_-]+)/log|}
 
-
   let buildkite_is_step_re =
     (* Checks if a pipeline or build step, by looking into the buildkite context
        buildkite/<pipeline_name>/<step_name>(/<substep_name>?) *)

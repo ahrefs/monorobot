@@ -170,12 +170,15 @@ module Slack_json : Api.Slack = struct
 end
 
 module Buildkite : Api.Buildkite = struct
-  let get_job_log ~ctx:_ (job : Buildkite_t.job) =
+  let get_job_log ~ctx:_ (_ : Github_t.status_notification) (job : Buildkite_t.job) =
+    (* using the job's log_url for the local api is better than constructing it
+       because you can cheat a little to having needing 32 cached job logs files.
+    *)
     match job.log_url with
     | None -> Lwt.return_error "Unable to get job log, job has no log_url field"
     | Some log_url ->
     match Re2.find_submatches_exn Util.Build.buildkite_api_org_pipeline_build_job_re log_url with
-    | exception exn -> Exn.fail ~exn  "failed to parse buildkite build url %s" log_url 
+    | exception exn -> Exn.fail ~exn "failed to parse buildkite build url %s" log_url
     | [| Some _; Some org; Some pipeline; Some build_nr; Some job_nbr |] ->
       let file =
         clean_forward_slashes

@@ -345,7 +345,8 @@ let generate_status_notification ?slack_user_id ?failed_steps ~(job_log : (strin
         Status_notification.(equal channel (inject_channel failed_builds_channel))
       | None | Some _ -> false
     in
-    Build.(is_failed_build notification || is_canceled_build notification) && (is_failed_builds_channel || Status_notification.is_user channel)
+    Build.(is_failed_build notification || is_canceled_build notification)
+    && (is_failed_builds_channel || Status_notification.is_user channel)
   in
   let color_info = if state = Success then "good" else "danger" in
   let build_desc =
@@ -436,28 +437,27 @@ let generate_status_notification ?slack_user_id ?failed_steps ~(job_log : (strin
         failed_steps
   in
   let attachment = { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text } in
+  let reply_of_log log =
+    log
+    |> Text_cleanup.cleanup
+    |> String.split_on_char '\r'
+    |> String.concat "\n"
+    |> String.split_on_char '\n'
+    |> List.rev
+    |> List.to_seq
+    |> Seq.filter (( <> ) "")
+    |> Seq.take 15
+    |> List.of_seq
+    |> List.rev
+    |> String.concat "\n"
+  in
   let replies =
     match job_log with
     | [] -> []
     | _ :: _ ->
       let text =
         job_log
-        |> List.map (fun (job_name, job_log) ->
-               let job_log =
-                 job_log
-                 |> Text_cleanup.cleanup
-                 |> String.split_on_char '\r'
-                 |> String.concat "\n"
-                 |> String.split_on_char '\n'
-                 |> List.rev
-                 |> List.to_seq
-                 |> Seq.filter (( <> ) "")
-                 |> Seq.take 15
-                 |> List.of_seq
-                 |> List.rev
-                 |> String.concat "\n"
-               in
-               sprintf "Log for %s: ```\n%s```" job_name job_log)
+        |> List.map (fun (job_name, job_log) -> sprintf "Log for %s: ```\n%s```" job_name (reply_of_log job_log))
         |> String.concat "\n"
       in
       [ make_reply ~text () ]

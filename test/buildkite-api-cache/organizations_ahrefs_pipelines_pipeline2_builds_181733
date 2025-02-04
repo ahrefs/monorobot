@@ -41,7 +41,7 @@
     "name": "pipeline2",
     "description": "",
     "slug": "pipeline2",
-    "repository": "git@git.ahrefs.com:ahrefs/pipeline2.git",
+    "repository": "git@git@git.org.com.com:ahrefs/pipeline2.git",
     "cluster_id": null,
     "pipeline_template_uuid": null,
     "default_branch": "develop",

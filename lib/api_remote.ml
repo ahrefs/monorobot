@@ -141,7 +141,7 @@ module Slack : Api.Slack = struct
         (sprintf "users.lookupByEmail?%s" url_args)
         Slack_j.read_lookup_user_res
     with
-    | Error _ as e -> Lwt.return e
+    | Error e -> Lwt.return_error e
     | Ok user ->
       Hashtbl.replace lookup_user_cache email user;
       Lwt.return_ok user
@@ -252,19 +252,17 @@ module Buildkite : Api.Buildkite = struct
     | None -> Lwt.return @@ fmt_error "%s: failed to retrieve Buildkite access token" name
     | Some access_token ->
       let headers = bearer_token_header access_token :: Option.default [] headers in
-      let url =
-        if String.starts_with ~prefix:"https://api.buildkite.com/v2/" path then path
-        else sprintf "https://api.buildkite.com/v2/%s" path
-      in
+      let url = sprintf "https://api.buildkite.com/v2/%s" path in
       (match%lwt buildkite_api_request ?body ~headers meth url read with
       | Ok res -> Lwt.return @@ Ok res
       | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e)
 
-  let get_job_log ~ctx (job : Buildkite_t.job) =
-    match job.log_url with
-    | None -> Lwt.return_error "Unable to get job log, job has no log_url field"
-    | Some log_url ->
-      request_token_auth ~name:"get buildkite job logs" ~ctx `GET log_url Buildkite_j.job_log_of_string with
+  let get_job_log ~ctx n (job : Buildkite_t.job) =
+    match Util.Build.get_org_pipeline_build n with
+    | Error e -> Lwt.return_error e
+    | Ok (org, pipeline, build_nr) ->
+    let url = sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/log" org pipeline build_nr job.id in
+    request_token_auth ~name:"get buildkite job logs" ~ctx `GET url Buildkite_j.job_log_of_string
 
   let get_build' ~ctx ~org ~pipeline ~build_nr map =
     let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in

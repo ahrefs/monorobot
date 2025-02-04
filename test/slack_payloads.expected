@@ -544,7 +544,7 @@ will notify #failed-builds
 {
   "channel": "failed-builds",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.canceled_empty_failed_jobs.json =====
@@ -566,7 +566,7 @@ will notify #failed-builds
 {
   "channel": "failed-builds",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.canceled_no_build_state.json =====
@@ -588,7 +588,7 @@ will notify #failed-builds
 {
   "channel": "failed-builds",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.canceled_test.json =====
@@ -611,7 +611,7 @@ will notify #default
 {
   "channel": "default",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 will notify #id[author@ahrefs.com]
@@ -632,7 +632,7 @@ will notify #id[author@ahrefs.com]
 {
   "channel": "id[author@ahrefs.com]",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.commit1-02-failed.json =====
@@ -654,7 +654,7 @@ will notify #default
 {
   "channel": "default",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.commit1-02-failed_diff_pipeline.json =====
@@ -676,7 +676,7 @@ will notify #default
 {
   "channel": "default",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.commit1-02-failed_main_branch.json =====
@@ -698,7 +698,7 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 will notify #failed-builds
@@ -719,7 +719,7 @@ will notify #failed-builds
 {
   "channel": "failed-builds",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.commit1-02-failed_no_failed_builds_chan.json =====
@@ -741,7 +741,7 @@ will notify #default
 {
   "channel": "default",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failed_diff_failed_jobs.json =====
@@ -763,7 +763,7 @@ will notify #failed-builds
 {
   "channel": "failed-builds",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failed_empty_failed_jobs.json =====
@@ -785,7 +785,7 @@ will notify #failed-builds
 {
   "channel": "failed-builds",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failed_multiple_branches.json =====
@@ -822,7 +822,7 @@ will notify #failed-builds
 {
   "channel": "failed-builds",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failure_test.json =====
@@ -845,7 +845,7 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 will notify #failed-builds
@@ -866,7 +866,7 @@ will notify #failed-builds
 {
   "channel": "failed-builds",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failure_test_no_failed_builds_chan.json =====
@@ -888,7 +888,7 @@ will notify #default
 {
   "channel": "default",
   "thread_ts": "mock_ts",
-  "text": "Log : ```\nThis is the job's log output\n```",
+  "text": "Log for Test: ```\nThis is the job's log output```\nLog for Fail: ```\nThis is the job's log output```",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.merge_develop.json =====
