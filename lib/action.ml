@@ -287,9 +287,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         let%lwt failed_builds_channel = get_failed_builds_channel_id () in
         Lwt.return (dm_and_channels @ failed_builds_channel |> List.sort_uniq Status_notification.compare)
     in
-    (* We only care about maintaining status for allowed pipelines and the main branch *)
-    if Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n then
-      State.set_repo_pipeline_status ctx.state n;
     Lwt.return recipients
 
   let partition_commit_comment (ctx : Context.t) n =
@@ -357,29 +354,42 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       let notifs = List.map (generate_commit_comment_notification ~slack_match_func api_commit n) channels in
       Lwt.return notifs
     | Status n ->
-      let%lwt channels = partition_status ctx n in
-      let%lwt slack_user_id =
-        match Util.Build.is_failed_build n || Util.Build.is_canceled_build n with
-        | false -> Lwt.return_none
-        | true ->
-          let email = n.commit.commit.author.email in
-          (match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
-          | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
-          | Error e ->
-            log#warn "couldn't match commit email %s to slack profile: %s" email e;
-            Lwt.return_none)
-      in
-      let%lwt failed_steps =
-        let repo_state = State.find_or_add_repo ctx.state repo.url in
-        match Util.Build.notify_fail n cfg with
-        | false -> Lwt.return_none
-        | true ->
-          let%lwt failed_steps = Util.Build.new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state in
-          Lwt.return_some failed_steps
-      in
-      let notifs = List.map (generate_status_notification ?slack_user_id ?failed_steps cfg n) channels in
-      Lwt.return notifs
-
+      (try%lwt
+         let%lwt channels = partition_status ctx n in
+         let%lwt slack_user_id =
+           match Util.Build.is_failed_build n || Util.Build.is_canceled_build n with
+           | false -> Lwt.return_none
+           | true ->
+             let email = n.commit.commit.author.email in
+             (match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+             | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
+             | Error e ->
+               log#warn "couldn't match commit email %s to slack profile: %s" email e;
+               Lwt.return_none)
+         in
+         let%lwt failed_steps =
+           let repo_state = State.find_or_add_repo ctx.state repo.url in
+           match Util.Build.notify_fail n cfg with
+           | false -> Lwt.return_none
+           | true ->
+             let%lwt failed_steps =
+               Util.Build.new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state
+             in
+             Lwt.return_some failed_steps
+         in
+         let notifs = List.map (generate_status_notification ?slack_user_id ?failed_steps cfg n) channels in
+         (* We only care about maintaining status for notifications of allowed pipelines in the main branch *)
+         if Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n then
+           State.set_repo_pipeline_status ctx.state n;
+         Lwt.return notifs
+       with exn ->
+         log#error "failed to process status notification %d for %s: %s" n.id (Option.default n.context n.target_url)
+           (Printexc.to_string exn);
+         (* Backup, in case something went wrong while processing the notification.
+            We need to update the pipeline status, otherwise we will get into a bad state *)
+         if Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n then
+           State.set_repo_pipeline_status ctx.state n;
+         Lwt.return [])
   let send_notifications (ctx : Context.t) notifications =
     let notify (msg, handler) =
       match%lwt Slack_api.send_notification ~ctx ~msg with
