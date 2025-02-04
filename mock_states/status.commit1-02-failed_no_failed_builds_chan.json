@@ -5,7 +5,7 @@
         "181732": {
           "status": "pending",
           "build_number": "181732",
-          "build_url": "https://buildkite.com/ahrefs/bau/builds/181732",
+          "build_url": "https://buildkite.com/org/bau/builds/181732",
           "commit": {
             "sha": "7e0a933e9c71b4ca107680ca958ca1888d5e479b",
             "author": "author@ahrefs.com",
@@ -15,7 +15,7 @@
           "failed_steps": [
             {
               "name": "bau/failed-step",
-              "build_url": "https://buildkite.com/ahrefs/bau/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4"
+              "build_url": "https://buildkite.com/org/bau/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4"
             }
           ],
           "created_at": "2024-06-02T04:57:47+00:00",
