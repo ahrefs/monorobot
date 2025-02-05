@@ -331,9 +331,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       Lwt.return notifs
     | Status n ->
       (try%lwt
+         let open Util.Build in
          let%lwt channels = partition_status ctx n in
          let%lwt slack_user_id =
-           match Util.Build.is_failed_build n || Util.Build.is_canceled_build n with
+           match is_failed_build n || is_canceled_build n with
            | false -> Lwt.return_none
            | true ->
              let email = n.commit.commit.author.email in
@@ -345,25 +346,22 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
          in
          let%lwt failed_steps =
            let repo_state = State.find_or_add_repo ctx.state repo.url in
-           match Util.Build.notify_fail n cfg with
+           match notify_fail n cfg with
            | false -> Lwt.return_none
            | true ->
-             let%lwt failed_steps =
-               Util.Build.new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state
-             in
+             let%lwt failed_steps = new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state in
              Lwt.return_some failed_steps
          in
          let notifs = List.map (generate_status_notification ?slack_user_id ?failed_steps ~ctx ~cfg n) channels in
          (* We only care about maintaining status for notifications of allowed pipelines in the main branch *)
-         if Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n then
-           State.set_repo_pipeline_status ctx.state n;
+         if is_main_branch cfg n && in_allowed_pipeline cfg n then State.set_repo_pipeline_status ctx.state n;
          Lwt.return notifs
        with exn ->
          log#error "failed to process status notification %d for %s: %s" n.id (Option.default n.context n.target_url)
            (Printexc.to_string exn);
          (* Backup, in case something went wrong while processing the notification.
             We need to update the pipeline status, otherwise we will get into a bad state *)
-         if Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n then
+         if Util.Build.is_main_branch cfg n && Util.Build.in_allowed_pipeline cfg n then
            State.set_repo_pipeline_status ctx.state n;
          Lwt.return [])
   let send_notifications (ctx : Context.t) notifications =

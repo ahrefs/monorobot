@@ -114,6 +114,12 @@ module Build = struct
     | Some allowed_pipelines ->
       List.find_opt (fun ({ name; _ } : Config_t.pipeline) -> name = n.context) allowed_pipelines
 
+  let in_allowed_pipeline (cfg : Config_t.config) (n : Github_t.status_notification) =
+    match cfg.status_rules.allowed_pipelines with
+    | None -> false
+    | Some allowed_pipelines ->
+      List.exists (fun ({ name; _ } : Config_t.pipeline) -> Stre.starts_with n.context name) allowed_pipelines
+
   let get_failed_builds_channel (cfg : Config_t.config) (n : Github_t.status_notification) =
     match get_pipeline_config cfg n with
     | Some ({ failed_builds_channel = Some failed_builds_channel; _ } : Config_t.pipeline) -> Some failed_builds_channel
