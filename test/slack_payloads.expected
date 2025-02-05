@@ -808,7 +808,7 @@ will notify #failed-builds
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "good",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` \n*Branch*: develop"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` "
     }
   ],
   "unfurl_links": false

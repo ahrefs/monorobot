@@ -214,31 +214,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
 
       (* only notify the failed builds channels for successful builds on the main branch if they fix the pipeline *)
       let should_notify_success =
-        match n.target_url with
-        | None -> false
-        | Some build_url ->
-          let previous_build_is_failed =
-            match get_branch_builds n repo_state with
-            | None -> false
-            | Some build_statuses ->
-              let current_build_number = get_build_number_exn ~build_url in
-              let previous_builds =
-                IntMap.filter
-                  (fun build_num ({ is_finished; is_canceled; _ } : State_t.build_status) ->
-                    (* we don't take canceled builds into account, since they didn't run to completion *)
-                    is_finished && (not is_canceled) && build_num < current_build_number)
-                  build_statuses
-              in
-              (match IntMap.is_empty previous_builds with
-              | true ->
-                (* if we find no previous builds, it means they were successful and cleaned from state,
-                   so we shouldn't notify the failed builds channel *)
-                false
-              | false ->
-                let latest_build = previous_builds |> IntMap.max_binding |> snd in
-                latest_build.status = Failure)
-          in
-          is_success_build n && previous_build_is_failed && has_failed_builds_channel cfg n && is_main_branch
+        is_success_build n && previous_build_is_failed n repo_state && has_failed_builds_channel cfg n && is_main_branch
       in
       match should_notify_fail || should_notify_success, get_pipeline_config cfg n with
       | true, Some ({ failed_builds_channel = Some failed_builds_channel; _ } : Config_t.pipeline) ->
@@ -377,7 +353,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
              in
              Lwt.return_some failed_steps
          in
-         let notifs = List.map (generate_status_notification ?slack_user_id ?failed_steps cfg n) channels in
+         let notifs = List.map (generate_status_notification ?slack_user_id ?failed_steps ~ctx ~cfg n) channels in
          (* We only care about maintaining status for notifications of allowed pipelines in the main branch *)
          if Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n then
            State.set_repo_pipeline_status ctx.state n;

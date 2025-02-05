@@ -308,20 +308,25 @@ let generate_push_notification notification channel =
 
 let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
 
-let generate_status_notification ?slack_user_id ?failed_steps (cfg : Config_t.config) (n : status_notification) channel
-    =
+let generate_status_notification ?slack_user_id ?failed_steps ~(ctx : Context.t) ~(cfg : Config_t.config)
+  (n : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = n in
   let ({ commit : inner_commit; sha; html_url; _ } : status_commit) = commit in
   let ({ message; author; _ } : inner_commit) = commit in
+  let repo_state = State.find_or_add_repo ctx.state repository.url in
   let is_buildkite = String.starts_with context ~prefix:"buildkite" in
+  let is_failed_builds_channel =
+    match Build.get_failed_builds_channel cfg n with
+    | Some failed_builds_channel -> Status_notification.(equal channel (inject_channel failed_builds_channel))
+    | None -> false
+  in
   let is_failed_build_notification =
-    let is_failed_builds_channel =
-      match Build.get_pipeline_config cfg n with
-      | Some ({ failed_builds_channel = Some failed_builds_channel; _ } : Config_t.pipeline) ->
-        Status_notification.(equal channel (inject_channel failed_builds_channel))
-      | None | Some _ -> false
-    in
     Build.(is_failed_build n || is_canceled_build n) && (is_failed_builds_channel || Status_notification.is_user channel)
+  in
+  let is_fix_build_notification =
+    match target_url with
+    | None -> false
+    | Some _ -> Build.(is_success_build n && previous_build_is_failed n repo_state) && is_failed_builds_channel
   in
   let color_info = if state = Success then "good" else "danger" in
   let build_desc =
@@ -399,9 +404,10 @@ let generate_status_notification ?slack_user_id ?failed_steps (cfg : Config_t.co
             author_mention)
   in
   let text =
-    match is_failed_build_notification with
-    | false -> Some (String.concat "\n" @@ List.concat [ commit_info; branches_info ])
-    | true ->
+    match is_failed_build_notification, is_fix_build_notification with
+    | false, false -> Some (String.concat "\n" @@ List.concat [ commit_info; branches_info ])
+    | false, true -> Some (String.concat "\n" commit_info)
+    | true, _ ->
       let pipeline = n.context in
       let slack_step_link (s : Buildkite_t.failed_step) =
         let step = Stre.drop_prefix s.name (pipeline ^ "/") in

@@ -114,10 +114,13 @@ module Build = struct
     | Some allowed_pipelines ->
       List.find_opt (fun ({ name; _ } : Config_t.pipeline) -> name = n.context) allowed_pipelines
 
-  let has_failed_builds_channel (cfg : Config_t.config) (n : Github_t.status_notification) =
+  let get_failed_builds_channel (cfg : Config_t.config) (n : Github_t.status_notification) =
     match get_pipeline_config cfg n with
-    | Some ({ failed_builds_channel = Some _; _ } : Config_t.pipeline) -> true
-    | Some _ | None -> false
+    | Some ({ failed_builds_channel = Some failed_builds_channel; _ } : Config_t.pipeline) -> Some failed_builds_channel
+    | Some _ | None -> None
+
+  let has_failed_builds_channel (cfg : Config_t.config) (n : Github_t.status_notification) =
+    Option.is_some (get_failed_builds_channel cfg n)
 
   let get_branch_builds (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
     match n.branches, parse_context ~context:n.context with
@@ -268,6 +271,29 @@ module Build = struct
           get_failed_steps_from_buildkite ()
       in
       Lwt.return @@ FailedStepSet.(diff failed_steps previous_failed_steps |> elements)
+
+  let previous_build_is_failed (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
+    match n.target_url with
+    | None -> failwith "no build url. Is this a Buildkite notification?"
+    | Some build_url ->
+    match get_branch_builds n repo_state with
+    | None -> false
+    | Some build_statuses ->
+      let current_build_number = get_build_number_exn ~build_url in
+      let previous_builds =
+        IntMap.filter
+          (fun build_num ({ is_finished; is_canceled; _ } : State_t.build_status) ->
+            (* we don't take canceled builds into account, since they didn't run to completion *)
+            is_finished && (not is_canceled) && build_num < current_build_number)
+          build_statuses
+      in
+      (match IntMap.is_empty previous_builds with
+      | true ->
+        (* if we find no previous builds, it means they were successful and cleaned from state *)
+        false
+      | false ->
+        let latest_build = previous_builds |> IntMap.max_binding |> snd in
+        latest_build.status = Failure)
 
   (* builds should be notified in the builds failed channel if:
      -  the build is failed OR the build is canceled and notify_canceled_builds is true
