@@ -329,14 +329,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Some sender_login -> List.exists (String.equal sender_login) cfg.ignored_users
     | None -> false
 
-  let get_failed_jobs jobs =
-    List.filter_map
-      (fun (job : Buildkite_t.job_type) ->
-        match job with
-        | Script ({ state = Failed; _ } as job) | Trigger ({ state = Failed; _ } as job) -> Some job
-        | _ -> None)
-      jobs
-
   let get_job_log_name_and_content ~ctx n (job : Buildkite_t.job) =
     Lwt_result.map
       (fun (job_log : Buildkite_t.job_log) -> job.name, job_log.content)
@@ -346,7 +338,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     match%lwt Buildkite_api.get_build ~ctx n with
     | Error e -> Lwt.return_error e
     | Ok build ->
-      let failed_jobs = get_failed_jobs build.jobs in
+      let failed_jobs = Util.Build.filter_failed_jobs build.jobs in
       let%lwt logs_or_errors = Lwt_list.map_p (get_job_log_name_and_content ~ctx n) failed_jobs in
       Lwt.return_ok
       @@ List.filter_map

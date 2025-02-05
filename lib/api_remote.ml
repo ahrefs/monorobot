@@ -261,8 +261,8 @@ module Buildkite : Api.Buildkite = struct
     match Util.Build.get_org_pipeline_build n with
     | Error e -> Lwt.return_error e
     | Ok (org, pipeline, build_nr) ->
-    let url = sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/log" org pipeline build_nr job.id in
-    request_token_auth ~name:"get buildkite job logs" ~ctx `GET url Buildkite_j.job_log_of_string
+      let url = sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/log" org pipeline build_nr job.id in
+      request_token_auth ~name:"get buildkite job logs" ~ctx `GET url Buildkite_j.job_log_of_string
 
   let get_build' ~ctx ~org ~pipeline ~build_nr map =
     let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
