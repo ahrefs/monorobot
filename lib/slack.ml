@@ -86,9 +86,12 @@ let thread_state_handler ~ctx ~channel ~repo_url ~html_url action (response : Sl
   match action with
   | `Add ->
     State.add_thread_if_new ctx.Context.state ~repo_url ~pr_url:html_url
-      { cid = response.channel; channel; ts = response.ts }
-  | `Delete -> State.delete_thread ctx.state ~repo_url ~pr_url:html_url
-  | `Noop -> ()
+      { cid = response.channel; channel; ts = response.ts };
+    Lwt.return_unit
+  | `Delete ->
+    State.delete_thread ctx.state ~repo_url ~pr_url:html_url;
+    Lwt.return_unit
+  | `Noop -> Lwt.return_unit
 
 let thread_state_action_of_pr_action : pr_action -> _ = function
   | Opened | Ready_for_review | Labeled
@@ -418,7 +421,96 @@ let generate_status_notification ?slack_user_id ?failed_steps ~(ctx : Context.t)
         failed_steps
   in
   let attachment = { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text } in
-  make_message ~text:summary ~attachments:[ attachment ] ~channel:(Status_notification.to_slack_channel channel) ()
+  let handler ({ channel; ts } : Slack_t.post_message_res) =
+    match is_failed_build_notification with
+    | false -> Lwt.return_unit
+    | true ->
+      let logs = Text.[ log1 ] in
+      let secrets = Context.get_secrets_exn ctx in
+      (match secrets.slack_access_token with
+      | None -> failwith " failed to retrieve Slack access token to upload files"
+      | Some access_token ->
+        let http_request ?headers ?body meth path =
+          let setup h =
+            Curl.set_followlocation h true;
+            Curl.set_maxredirs h 1
+          in
+          match%lwt Web.http_request_lwt ~setup ~ua:"monorobot" ~verbose:true ?headers ?body meth path with
+          | `Ok s -> Lwt.return @@ Ok s
+          | `Error e -> Lwt.return @@ Error e
+        in
+        let slack_api_request ?headers ?body meth url read =
+          match%lwt http_request ?headers ?body meth url with
+          | Error e -> Lwt.return_error (query_error_msg url e)
+          | Ok s ->
+          match Slack_j.slack_response_of_string read s with
+          | res -> Lwt.return res
+          | exception exn -> Lwt.return_error (query_error_msg url (Exn.to_string exn))
+        in
+        let request_token_auth ~name ?headers ?body meth path read =
+          print_endline @@ sprintf "%s: starting request" name;
+          let headers = bearer_token_header access_token :: Option.default [] headers in
+          let url = sprintf "https://slack.com/api/%s" path in
+          match%lwt slack_api_request ?body ~headers meth url read with
+          | Ok res -> Lwt.return @@ Ok res
+          | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e
+        in
+        let get_upload_url_external (filename, content) =
+          let data = Web.make_url_args [ "filename", filename; "length", Int.to_string (String.length content) ] in
+          print_endline @@ sprintf "data to upload file: %s" filename;
+          match%lwt
+            request_token_auth ~name:(sprintf "file.upload (%s)" filename) `GET
+              (sprintf "files.getUploadURLExternal?%s" data)
+              Slack_j.read_get_upload_url_res
+          with
+          | Error (s : string) -> failwith @@ sprintf "couldn't get get_upload_url for %s: %s" filename s
+          | Ok (res : Slack_t.get_upload_url_res) when res.ok = false ->
+            failwith @@ sprintf "bad request fetching get_upload_url for %s: %s" filename (Option.default "" res.error)
+          | Ok (res : Slack_t.get_upload_url_res) ->
+            (match%lwt http_request ~body:(`Raw ("text/plain", content)) `POST res.upload_url with
+            | Error e -> failwith @@ sprintf "failed uploading file for %s: %s" filename e
+            | Ok s ->
+              print_endline @@ sprintf "uploaded file for %s. Reply: %s" filename s;
+              Lwt.return res)
+        in
+        let complete_upload_external (files : (string * string) list) =
+          print_endline @@ sprintf "completing upload url for ";
+          let data : Slack_t.complete_upload_ext_req =
+            {
+              files = List.map (fun (id, title) -> { id; title = Some title }) files;
+              thread_ts = Some ts;
+              channel_id = Some (Slack_channel.Ident.project channel);
+              initial_comment = None;
+            }
+          in
+          print_endline
+          @@ sprintf "================\ndata to upload req: %s\n=================="
+               (Slack_j.string_of_complete_upload_ext_req data);
+          let body = `Raw ("application/json", Slack_j.string_of_complete_upload_ext_req data) in
+          (* print_endline @@ sprintf "data to upload req: %s" data; *)
+          match%lwt
+            request_token_auth
+              ~name:(sprintf "files.completeUploadExternal ")
+              ~body `POST "files.completeUploadExternal" Slack_j.read_complete_upload_ext_res
+          with
+          | Error e -> failwith @@ sprintf "failed completing uploading file: %s" e
+          | Ok _ ->
+            print_endline @@ sprintf "uploaded files";
+            Lwt.return_unit
+        in
+        let%lwt files =
+          Lwt_list.map_p
+            (fun (filename, content) ->
+              let%lwt uploaded = get_upload_url_external (filename, content) in
+              Lwt.return (uploaded.file_id, filename))
+            logs
+        in
+        let%lwt _ = complete_upload_external files in
+        Lwt.return_unit)
+  in
+  make_message ~text:summary ~attachments:[ attachment ]
+    ~channel:(Status_notification.to_slack_channel channel)
+    ~reply_broadcast:false ~handler ()
 
 let generate_commit_comment_notification ~slack_match_func api_commit notification channel =
   let { commit; _ } = api_commit in

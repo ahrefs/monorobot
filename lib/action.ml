@@ -372,7 +372,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         | None -> Lwt.return_unit
         | Some handler ->
         try
-          handler res;
+          let%lwt () = handler res in
           Lwt.return_unit
         with exn -> handler_error (Printexc.to_string exn))
       | Ok None -> Lwt.return_unit

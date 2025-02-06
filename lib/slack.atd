@@ -158,6 +158,33 @@ type permalink_res = {
   ?error: string nullable;
 }
 
+type get_upload_url_res = {
+  ok: bool;
+  upload_url: string;
+  file_id: string;
+  ?error: string nullable;
+}
+
+type file_v2 = {
+  id: string;
+  ?title : string nullable
+}
+
+type files_v2 = file_v2 list
+
+type complete_upload_ext_req = {
+  files: files_v2;
+  ?channel_id : string nullable;
+  ?initial_comment: string nullable;
+  ?thread_ts: timestamp nullable
+}
+
+type complete_upload_ext_res = {
+  ok: bool;
+  files: files_v2;
+  ?error: string nullable;
+}
+
 type ('ok, 'err) http_response <ocaml predef module="Result" t="t"> = [
   | Ok of 'ok
   | Error of 'err
