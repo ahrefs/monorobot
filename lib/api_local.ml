@@ -171,9 +171,6 @@ end
 
 module Buildkite : Api.Buildkite = struct
   let get_job_log ~ctx:_ (_ : Github_t.status_notification) (job : Buildkite_t.job) =
-    (* using the job's log_url for the local api is better than constructing it
-       because you can cheat a little to having needing 32 cached job logs files.
-    *)
     match job.log_url with
     | None -> Lwt.return_error "Unable to get job log, job has no log_url field"
     | Some log_url ->
