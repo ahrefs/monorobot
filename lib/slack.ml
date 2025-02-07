@@ -425,7 +425,7 @@ let generate_status_notification ?slack_user_id ?failed_steps ~(ctx : Context.t)
     match is_failed_build_notification with
     | false -> Lwt.return_unit
     | true ->
-      let logs = Text.[ log1 ] in
+      let logs = Text.[ log2 ] in
       let secrets = Context.get_secrets_exn ctx in
       (match secrets.slack_access_token with
       | None -> failwith " failed to retrieve Slack access token to upload files"
@@ -501,7 +501,7 @@ let generate_status_notification ?slack_user_id ?failed_steps ~(ctx : Context.t)
         let%lwt files =
           Lwt_list.map_p
             (fun (filename, content) ->
-              let%lwt uploaded = get_upload_url_external (filename, content) in
+              let%lwt uploaded = get_upload_url_external (filename, Text_cleanup.cleanup content) in
               Lwt.return (uploaded.file_id, filename))
             logs
         in
