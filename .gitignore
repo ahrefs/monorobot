@@ -6,3 +6,5 @@ _opam
 .vscode
 .DS_Store
 secrets.json
+db/monorobot.db
+state.json

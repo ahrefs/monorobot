@@ -6,27 +6,50 @@ let log = Log.from "monorobot"
 
 (* entrypoints *)
 
-let http_server_action addr port config secrets state logfile loglevel =
+let http_server_action addr port config secrets state logfile loglevel debug_db =
   Daemon.logfile := logfile;
   Option.may Log.set_loglevels loglevel;
   Log.reopen !Daemon.logfile;
   Signal.setup_lwt ();
   Daemon.install_signal_handlers ();
   Lwt_main.run
-    begin
-      log#info "monorobot starting";
-      let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
-      match Context.refresh_secrets ctx with
-      | Error e ->
-        log#error "failed to refresh secrets: %s" e;
-        Lwt.return_unit
-      | Ok ctx ->
-      match Context.refresh_state ctx with
-      | Error e ->
-        log#error "failed to refresh state: %s" e;
-        Lwt.return_unit
-      | Ok ctx -> Request_handler.run ~ctx ~addr ~port
-    end
+    (begin
+       log#info "monorobot starting";
+       let%lwt () =
+         match debug_db with
+         | true ->
+           (try
+              log#info "initializing debug database";
+              let%lwt () = Database.init Database.db_path in
+              Database.available := Database.Initialized;
+              log#info "debug database initialized";
+              Lwt.return_unit
+            with exn -> Devkit.Exn.fail ~exn "Failed to initialize debug database")
+         | false -> Lwt.return_unit
+       in
+       let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
+       match Context.refresh_secrets ctx with
+       | Error e ->
+         log#error "failed to refresh secrets: %s" e;
+         Lwt.return_unit
+       | Ok ctx ->
+       match Context.refresh_state ctx with
+       | Error e ->
+         log#error "failed to refresh state: %s" e;
+         Lwt.return_unit
+       | Ok ctx -> Request_handler.run ~ctx ~addr ~port
+     end
+       [%lwt.finally
+         let%lwt () =
+           let open Database in
+           match !available with
+           | Uninitialized | Not_available -> Lwt.return_unit
+           | Initialized ->
+             let%lwt () = Conn.Pool.shutdown (Option.get !pool) in
+             log#info "database: closed connection pool successfully";
+             Lwt.return_unit
+         in
+         Lwt.return_unit])
 
 (** In check mode, instead of actually sending the message to slack, we simply print it in the console *)
 let check_gh_action file json config secrets state =
@@ -104,6 +127,10 @@ let loglevel =
   let doc = "log level, matching the following grammar: ([<facil|prefix*>=]debug|info|warn|error[,])+" in
   Arg.(value & opt (some string) None & info [ "loglevel" ] ~docv:"LOGLEVEL" ~doc)
 
+let debug_db =
+  let doc = "if set, will store notifications in the debug database" in
+  Arg.(value & flag & info [ "debug-db" ] ~docv:"DEBUG_DB" ~doc)
+
 let gh_payload =
   let doc = "path to a JSON file containing a github webhook payload" in
   Arg.(required & pos 0 (some file) None & info [] ~docv:"GH_PAYLOAD" ~doc)
@@ -121,7 +148,7 @@ let json =
 let run =
   let doc = "launch the http server" in
   let info = Cmd.info "run" ~doc in
-  let term = Term.(const http_server_action $ addr $ port $ config $ secrets $ state $ logfile $ loglevel) in
+  let term = Term.(const http_server_action $ addr $ port $ config $ secrets $ state $ logfile $ loglevel $ debug_db) in
   Cmd.v info term
 
 let check_gh =
@@ -136,11 +163,62 @@ let check_slack =
   let term = Term.(const check_slack_action $ slack_payload $ secrets) in
   Cmd.v info term
 
+let arg_value ~doc ~docv typ names = Arg.value Arg.(opt (some typ) None & info names ~docv ~doc)
+
+let status_state_converter =
+  let parse state = try Ok (Github_j.status_state_of_string state) with Failure s -> Error (`Msg s) in
+  let print ppf p = Format.fprintf ppf "%s" (Github_j.string_of_status_state p) in
+  Arg.conv (parse, print)
+
+let db_path =
+  arg_value
+    ~doc:"path to the database file; if unspecified, the default `db/monorobot.db` path will be used"
+    ~docv:"DB_PATH" Arg.string [ "db-path" ]
+let pipeline = arg_value ~doc:"filter by pipeline name. required" ~docv:"PIPELINE_NAME" Arg.string [ "p"; "pipeline" ]
+let branch = arg_value ~doc:"filter by branch name. required" ~docv:"BRANCH_NAME" Arg.string [ "b"; "branch" ]
+let after = arg_value ~doc:"filter by build number" ~docv:"AFTER" Arg.int [ "after" ]
+let state = arg_value ~doc:"filter by notification state" ~docv:"STATE" status_state_converter [ "state" ]
+let build_number = arg_value ~doc:"filter by build number" ~docv:"BUILD_NUMBER" Arg.int [ "n"; "build-number" ]
+let step_name =
+  arg_value
+    ~doc:"filter by step name. Needs to be in the same format as in the notification.context field"
+    ~docv:"STEP_NAME" Arg.string [ "step" ]
+let sha = arg_value ~doc:"filter by sha" ~docv:"SHA" Arg.string [ "sha" ]
+
+let only_with_changes =
+  let open Arg in
+  let info = info [ "with-changes" ] ~doc:"Only replay notifications with state changes" in
+  value (flag info)
+
+let replay =
+  let doc = "replay notifications from the debug database" in
+  let info = Cmd.info "replay" ~doc in
+  let term =
+    Term.(
+      const Debug_db.replay_action
+      $ db_path
+      $ pipeline
+      $ branch
+      $ only_with_changes
+      $ after
+      $ state
+      $ build_number
+      $ step_name
+      $ sha)
+  in
+  Cmd.v info term
+
+let debug_db =
+  let doc = "debug database commands" in
+  let info = Cmd.info "debug_db" ~doc in
+  let cmds = [ replay ] in
+  Cmd.group info cmds
+
 let default, info =
   let doc = "the notification bot" in
   Term.(ret (const (`Help (`Pager, None)))), Cmd.info "monorobot" ~doc ~version:Version.current
 
 let () =
-  let cmds = [ run; check_gh; check_slack ] in
+  let cmds = [ run; check_gh; check_slack; debug_db ] in
   let group = Cmd.group ~default info cmds in
   exit @@ Cmd.eval group

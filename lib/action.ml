@@ -7,9 +7,12 @@ open Github_j
 exception Action_error of string
 exception Success_handler_error of string
 
+let log = Log.from "action"
+
 let action_error msg = raise (Action_error msg)
 let handler_error msg = raise (Success_handler_error msg)
-let log = Log.from "action"
+
+let last_handled_in = Database.Status_notifications_table.last_handled_in
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api : Api.Buildkite) = struct
   let canonical_regex = Re2.create_exn {|\.|\-|\+.*|@.*|}
@@ -147,6 +150,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
 
   let partition_status (ctx : Context.t) (n : status_notification) =
     let open Util.Build in
+    let open Database in
     let repo = n.repository in
     let cfg = Context.find_repo_config_exn ctx repo.url in
     let repo_state = State.find_or_add_repo ctx.state repo.url in
@@ -232,9 +236,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       | false -> Lwt.return []
       | true ->
         let%lwt dm_and_channels =
+          let update_matched_rule = Status_notifications_table.update_matched_rule n in
           match Rule.Status.match_rules ~rules n with
-          | Some (Ignore, _, _) | None -> Lwt.return []
-          | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
+          | Some (Ignore, _, _) | None ->
+            let%lwt (_ : int64 db_use_result) = update_matched_rule "ignore" in
+            Lwt.return []
+          | Some (Allow, notify_channels, notify_dm) ->
+            let%lwt (_ : int64 db_use_result) = update_matched_rule "allow" in
+            action_on_match n.branches ~notify_channels ~notify_dm
           | Some (Allow_once, notify_channels, notify_dm) ->
             let branches =
               match n.target_url with
@@ -257,6 +266,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                 in
                 List.filter status_switched n.branches
             in
+            let%lwt (_ : int64 db_use_result) = update_matched_rule "allow_once" in
             let notify_dm = notify_dm && not (State.mem_repo_pipeline_commits ctx.state n) in
             action_on_match branches ~notify_channels ~notify_dm
         in
@@ -353,16 +363,38 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
              Lwt.return_some failed_steps
          in
          let notifs = List.map (generate_status_notification ?slack_user_id ?failed_steps ~ctx ~cfg n) channels in
+         let%lwt (_ : int64 Database.db_use_result) =
+           let ns =
+             String.concat ", "
+             @@ List.map (fun ((n, _) : Slack_t.post_message_req * _) -> Slack_channel.Any.project n.channel) notifs
+           in
+           last_handled_in n (Printf.sprintf "Action.generate_notifications > notifs = %s" ns)
+         in
          (* We only care about maintaining status for notifications of allowed pipelines in the main branch *)
-         if is_main_branch cfg n && in_allowed_pipeline cfg n then State.set_repo_pipeline_status ctx.state n;
+         let%lwt () =
+           match Util.Build.(is_main_branch cfg n && in_allowed_pipeline cfg n) with
+           | false ->
+             let%lwt (_ : int64 Database.db_use_result) =
+               last_handled_in n "Action.generate_notifications > no set state"
+             in
+             Lwt.return_unit
+           | true -> State.set_repo_pipeline_status ctx.state n
+         in
          Lwt.return notifs
        with exn ->
          log#error "failed to process status notification %d for %s: %s" n.id (Option.default n.context n.target_url)
            (Printexc.to_string exn);
          (* Backup, in case something went wrong while processing the notification.
             We need to update the pipeline status, otherwise we will get into a bad state *)
-         if Util.Build.is_main_branch cfg n && Util.Build.in_allowed_pipeline cfg n then
-           State.set_repo_pipeline_status ctx.state n;
+         let%lwt () =
+           match Util.Build.(is_main_branch cfg n && in_allowed_pipeline cfg n) with
+           | true -> State.set_repo_pipeline_status ctx.state n
+           | false ->
+             let%lwt (_ : int64 Database.db_use_result) =
+               last_handled_in n "Action.generate_notifications > exn > no set state"
+             in
+             Lwt.return_unit
+         in
          Lwt.return [])
   let send_notifications (ctx : Context.t) notifications =
     let notify (msg, handler) =

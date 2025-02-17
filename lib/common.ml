@@ -120,7 +120,17 @@ module Map (S : Map.OrderedType) = struct
     List.fold_right (fun (k, v) b -> update k (update_f v) b) m empty
 end
 
-module StringMap = Map (String)
+module StringMap = struct
+  include Map (String)
+
+  (** [update_async key f map] updates the value of [key] in [map] using an async function [f].
+      Async equivalent of the [update] function. *)
+  let update_async key f map =
+    let current_value = find_opt key map in
+    match%lwt f current_value with
+    | None -> Lwt.return (remove key map)
+    | Some v -> Lwt.return (add key v map)
+end
 
 module IntMap = Map (Int)
 

@@ -42,13 +42,17 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
             | Some builds_map -> f builds_map ))
         n.branches
     in
-    Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) current_statuses updated_statuses)
+    Lwt.return
+    @@ Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) current_statuses updated_statuses)
   in
 
   match n.target_url with
   | None ->
     (* if we don't have a target_url value, we don't have a build number and cant't track build state *)
-    ()
+    let%lwt (_ : int64 Database.db_use_result) =
+      Database.Status_notifications_table.last_handled_in n "State.set_repo_pipeline_status > target_url is None"
+    in
+    Lwt.return_unit
   | Some build_url ->
     let context = n.context in
     let { Util.Build.is_pipeline_step; pipeline_name } = Util.Build.parse_context_exn ~context in
@@ -91,7 +95,12 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     let update_build_status () =
       let repo_state = find_or_add_repo { state } n.repository.url in
       match Util.Build.get_current_build n repo_state with
-      | None -> init_build_state
+      | None ->
+        let%lwt (_ : int64 Database.db_use_result) =
+          Database.Status_notifications_table.update_state n ~after:init_build_state
+            "State.set_repo_pipeline_status > update build status > get_current_build is None"
+        in
+        Lwt.return init_build_state
       | Some ({ failed_steps; is_finished; _ } as current_build_status : State_t.build_status) ->
         let failed_steps =
           match is_pipeline_step, n.state with
@@ -105,18 +114,24 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
           | false, (Success | Failure | Error) -> true
           | _ -> is_finished
         in
-        {
-          current_build_status with
-          status = n.state;
-          is_finished;
-          is_canceled = Util.Build.is_canceled_build n;
-          finished_at;
-          failed_steps;
-        }
+        let updated_build_status =
+          {
+            current_build_status with
+            status = n.state;
+            is_finished;
+            is_canceled = Util.Build.is_canceled_build n;
+            finished_at;
+            failed_steps;
+          }
+        in
+        let%lwt (_ : int64 Database.db_use_result) =
+          Database.Status_notifications_table.update_state n ~before:current_build_status ~after:updated_build_status
+            "State.set_repo_pipeline_status > update_build_status > get_current_build is Some"
+        in
+        Lwt.return updated_build_status
     in
 
-    let update_pipeline_status =
-      let updated_status = update_build_status () in
+    let update_pipeline_status updated_status =
       update_builds_in_branches
         ~default_builds_map:(IntMap.singleton build_number init_build_state)
         ~f:(IntMap.add build_number updated_status)
@@ -171,11 +186,24 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
       *)
       (match is_pipeline_step with
       | true ->
-        repo_state.pipeline_statuses <- StringMap.update pipeline_name rm_successful_step repo_state.pipeline_statuses
+        let%lwt updated_statuses =
+          StringMap.update_async pipeline_name rm_successful_step repo_state.pipeline_statuses
+        in
+        repo_state.pipeline_statuses <- updated_statuses;
+        Lwt.return_unit
       | false ->
-        repo_state.pipeline_statuses <- StringMap.update pipeline_name rm_successful_build repo_state.pipeline_statuses)
+        let%lwt updated_statuses =
+          StringMap.update_async pipeline_name rm_successful_build repo_state.pipeline_statuses
+        in
+        repo_state.pipeline_statuses <- updated_statuses;
+        Lwt.return_unit)
     | Error | Failure | Pending ->
-      repo_state.pipeline_statuses <- StringMap.update pipeline_name update_pipeline_status repo_state.pipeline_statuses)
+      let%lwt updated_status = update_build_status () in
+      let%lwt updated_statuses =
+        StringMap.update_async pipeline_name (update_pipeline_status updated_status) repo_state.pipeline_statuses
+      in
+      repo_state.pipeline_statuses <- updated_statuses;
+      Lwt.return_unit)
 
 let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
   let rotation_threshold = 1000 in
