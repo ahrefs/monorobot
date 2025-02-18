@@ -48,9 +48,9 @@ FROM status_notifications WHERE build_number = ? and context like @pipeline and 
 
 -- @get_by_range
 SELECT id, last_handled_in, description, notification_text, n_state, has_state_update, state_before_notification, state_after_notification
-FROM status_notifications WHERE build_number > ? and context like @pipeline and branch = @branch ORDER BY id DESC;
+FROM status_notifications WHERE build_number > ? and context like @pipeline and branch = @branch ORDER BY build_number desc, id desc;
 
 -- @get_by_step_name
 SELECT id, last_handled_in, description, notification_text, n_state, has_state_update, state_before_notification, state_after_notification
-FROM status_notifications WHERE context LIKE ? and context like @pipeline and branch = @branch ORDER BY id DESC;
+FROM status_notifications WHERE context LIKE ? and context like @pipeline and branch = @branch ORDER BY build_number desc, id DESC;
 
