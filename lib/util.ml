@@ -342,9 +342,8 @@ module Build = struct
 
   let filter_failed_jobs jobs =
     List.filter_map
-      (fun (job : Buildkite_t.job_type) ->
-        match job with
-        | Script ({ state = Failed; _ } as job) | Trigger ({ state = Failed; _ } as job) -> Some job
+      (function
+        | Buildkite_t.Script ({ state = Failed; _ } as job) | Trigger ({ state = Failed; _ } as job) -> Some job
         | _ -> None)
       jobs
 end

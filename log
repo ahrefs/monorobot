@@ -1,0 +1,317 @@
+[2025-02-19T15:50:50.3563] 3663103: [signal:info] Received signal -6 (exit)...
+[2025-02-19T15:50:50.3564] 3663103: [httpev:info] canceling accept loop
+[2025-02-19T15:50:50.3565] 3663103: [httpev:info] monorobot 127.0.0.1:8080 exit
+[2025-02-19T15:50:50.3566] 3663103: [signal:info] Signal handler done.
+[2025-02-19T15:51:02.0200] 3663334: [monorobot:info] monorobot starting
+[2025-02-19T15:51:02.0202] 3663334: [httpev:info] monorobot listen TCP 127.0.0.1:8080
+[2025-02-19T15:51:02.0202] 3663334: [action:info] updating github to slack username mapping
+[2025-02-19T15:51:02.0203] 3663334: [slack:info] list users: starting request
+[2025-02-19T15:51:02.0203] 3663334: [lib:info] GET #1 https://slack.com/api/users.list? 
+[2025-02-19T15:51:02.2356] 3663334: [lib:info] GET #1 215ms ⇓977B ⇑0B 3.68.124.168 HTTP 200 https://slack.com/api/users.list
+[2025-02-19T15:51:03.4633] 3663334: [github:info] [EmileTrotignon/monorobot_test] event status: commit=c13bbb32, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/44, branches=[master]
+[2025-02-19T15:51:03.4634] 3663334: [lib:info] GET #2 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json 
+[2025-02-19T15:51:03.7756] 3663334: [lib:info] GET #2 312ms ⇓805B ⇑0B 140.82.121.5 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json
+[2025-02-19T15:51:03.7769] 3663334: [context:info] using prefix routing:
+[2025-02-19T15:51:03.7769] 3663334: [context:info] using label routing:
+[2025-02-19T15:51:03.7769] 3663334: [context:info] signature checking disabled
+[2025-02-19T15:51:03.7770] 3663334: [slack:info] lookup user by email: starting request
+[2025-02-19T15:51:03.7770] 3663334: [lib:info] GET #3 https://slack.com/api/users.lookupByEmail?email=emile.trotignon%40gmail.com 
+[2025-02-19T15:51:03.9192] 3663334: [lib:info] GET #3 142ms ⇓578B ⇑0B 3.68.124.168 HTTP 200 https://slack.com/api/users.lookupByEmail?email=emile.trotignon%40gmail.com
+[2025-02-19T15:51:03.9195] 3663334: [buildkite:info] get build details: starting request
+[2025-02-19T15:51:03.9196] 3663334: [lib:info] GET #4 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/44 
+[2025-02-19T15:51:04.2878] 3663334: [lib:info] GET #4 368ms ⇓2KB ⇑0B 18.239.18.30 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/44
+[2025-02-19T15:51:04.2882] 3663334: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:51:04.2882] 3663334: [lib:info] GET #5 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/44/jobs/01951ee7-88e2-465e-81fb-389dad7fdc9b/log 
+[2025-02-19T15:51:04.2883] 3663334: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:51:04.2883] 3663334: [lib:info] GET #6 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/44/jobs/01951ee7-88e3-4ed1-adc3-4c356f83ae56/log 
+[2025-02-19T15:51:04.2883] 3663334: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:51:04.2883] 3663334: [lib:info] GET #7 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/44/jobs/01951ee7-88e4-41f0-9c82-df06850b7fbb/log 
+[2025-02-19T15:51:04.5233] 3663334: [lib:info] GET #5 235ms ⇓1KB ⇑0B 18.239.18.30 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/44/jobs/01951ee7-88e2-465e-81fb-389dad7fdc9b/log
+[2025-02-19T15:51:04.5273] 3663334: [lib:info] GET #7 239ms ⇓1KB ⇑0B 18.239.18.30 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/44/jobs/01951ee7-88e4-41f0-9c82-df06850b7fbb/log
+[2025-02-19T15:51:04.6609] 3663334: [lib:info] GET #6 373ms ⇓1KB ⇑0B 18.239.18.30 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/44/jobs/01951ee7-88e3-4ed1-adc3-4c356f83ae56/log
+[2025-02-19T15:51:15.9393] 3663334: [github:info] [EmileTrotignon/monorobot_test] event status: commit=c13bbb32, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/45, branches=[master]
+[2025-02-19T15:51:15.9395] 3663334: [buildkite:info] get build details: starting request
+[2025-02-19T15:51:15.9395] 3663334: [lib:info] GET #8 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/45 
+[2025-02-19T15:51:16.2791] 3663334: [lib:info] GET #8 340ms ⇓2KB ⇑0B 18.239.18.30 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/45
+[2025-02-19T15:51:16.2794] 3663334: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:51:16.2794] 3663334: [lib:info] GET #9 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/45/jobs/01951ee7-da77-4881-97e1-d89d54590cc8/log 
+[2025-02-19T15:51:16.4825] 3663334: [lib:info] GET #9 203ms ⇓1KB ⇑0B 18.239.18.30 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/45/jobs/01951ee7-da77-4881-97e1-d89d54590cc8/log
+[2025-02-19T15:51:22.9287] 3663334: [github:info] [EmileTrotignon/monorobot_test] event status: commit=c13bbb32, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/45, branches=[master]
+[2025-02-19T15:51:22.9289] 3663334: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:51:22.9289] 3663334: [lib:info] GET #10 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/45/jobs/01951ee7-da77-4881-97e1-d89d54590cc8/log 
+[2025-02-19T15:51:23.2428] 3663334: [lib:info] GET #10 314ms ⇓1KB ⇑0B 18.239.18.30 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/45/jobs/01951ee7-da77-4881-97e1-d89d54590cc8/log
+[2025-02-19T15:54:26.9627] 3663334: [signal:info] Received signal -6 (exit)...
+[2025-02-19T15:54:26.9628] 3663334: [httpev:info] canceling accept loop
+[2025-02-19T15:54:26.9628] 3663334: [httpev:info] monorobot 127.0.0.1:8080 exit
+[2025-02-19T15:54:26.9628] 3663334: [signal:info] Signal handler done.
+[2025-02-19T15:54:28.9561] 3667569: [monorobot:info] monorobot starting
+[2025-02-19T15:54:28.9562] 3667569: [httpev:info] monorobot listen TCP 127.0.0.1:8080
+[2025-02-19T15:54:28.9563] 3667569: [action:info] updating github to slack username mapping
+[2025-02-19T15:54:28.9563] 3667569: [slack:info] list users: starting request
+[2025-02-19T15:54:28.9563] 3667569: [lib:info] GET #1 https://slack.com/api/users.list? 
+[2025-02-19T15:54:29.1280] 3667569: [lib:info] GET #1 172ms ⇓977B ⇑0B 3.68.124.168 HTTP 200 https://slack.com/api/users.list
+[2025-02-19T15:54:45.4619] 3667569: [github:info] [EmileTrotignon/monorobot_test] event status: commit=c13bbb32, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/46, branches=[master]
+[2025-02-19T15:54:45.4622] 3667569: [lib:info] GET #2 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json 
+[2025-02-19T15:54:45.7180] 3667569: [lib:info] GET #2 256ms ⇓806B ⇑0B 140.82.121.5 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json
+[2025-02-19T15:54:45.7183] 3667569: [context:info] using prefix routing:
+[2025-02-19T15:54:45.7183] 3667569: [context:info] using label routing:
+[2025-02-19T15:54:45.7183] 3667569: [context:info] signature checking disabled
+[2025-02-19T15:54:45.7184] 3667569: [action:info] true
+[2025-02-19T15:54:45.7185] 3667569: [buildkite:info] get build details: starting request
+[2025-02-19T15:54:45.7185] 3667569: [lib:info] GET #3 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/46 
+[2025-02-19T15:54:46.2416] 3667569: [lib:info] GET #3 523ms ⇓2KB ⇑0B 18.239.18.63 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/46
+[2025-02-19T15:54:46.2421] 3667569: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:54:46.2421] 3667569: [lib:info] GET #4 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/46/jobs/01951eeb-0e73-4df2-9e53-b9550b096f67/log 
+[2025-02-19T15:54:46.4847] 3667569: [lib:info] GET #4 243ms ⇓1KB ⇑0B 18.239.18.63 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/46/jobs/01951eeb-0e73-4df2-9e53-b9550b096f67/log
+[2025-02-19T15:54:46.4848] 3667569: [action:info] Hello
+[2025-02-19T15:54:53.9768] 3667569: [github:info] [EmileTrotignon/monorobot_test] event status: commit=c13bbb32, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/46, branches=[master]
+[2025-02-19T15:54:53.9770] 3667569: [slack:info] lookup user by email: starting request
+[2025-02-19T15:54:53.9770] 3667569: [lib:info] GET #5 https://slack.com/api/users.lookupByEmail?email=emile.trotignon%40gmail.com 
+[2025-02-19T15:54:54.1071] 3667569: [lib:info] GET #5 130ms ⇓578B ⇑0B 3.68.124.168 HTTP 200 https://slack.com/api/users.lookupByEmail?email=emile.trotignon%40gmail.com
+[2025-02-19T15:54:54.1072] 3667569: [action:info] true
+[2025-02-19T15:54:54.1073] 3667569: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:54:54.1073] 3667569: [lib:info] GET #6 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/46/jobs/01951eeb-0e73-4df2-9e53-b9550b096f67/log 
+[2025-02-19T15:54:54.3488] 3667569: [lib:info] GET #6 241ms ⇓1KB ⇑0B 18.239.18.63 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/46/jobs/01951eeb-0e73-4df2-9e53-b9550b096f67/log
+[2025-02-19T15:54:54.3489] 3667569: [action:info] Hello
+[2025-02-19T15:56:35.9239] 3667569: [signal:info] Received signal -6 (exit)...
+[2025-02-19T15:56:35.9241] 3667569: [httpev:info] canceling accept loop
+[2025-02-19T15:56:35.9241] 3667569: [httpev:info] monorobot 127.0.0.1:8080 exit
+[2025-02-19T15:56:35.9241] 3667569: [signal:info] Signal handler done.
+[2025-02-19T15:56:38.4918] 3669595: [monorobot:info] monorobot starting
+[2025-02-19T15:56:38.4920] 3669595: [httpev:info] monorobot listen TCP 127.0.0.1:8080
+[2025-02-19T15:56:38.4920] 3669595: [action:info] updating github to slack username mapping
+[2025-02-19T15:56:38.4920] 3669595: [slack:info] list users: starting request
+[2025-02-19T15:56:38.4921] 3669595: [lib:info] GET #1 https://slack.com/api/users.list? 
+[2025-02-19T15:56:38.6863] 3669595: [lib:info] GET #1 194ms ⇓977B ⇑0B 3.68.124.168 HTTP 200 https://slack.com/api/users.list
+[2025-02-19T15:56:51.8303] 3669595: [github:info] [EmileTrotignon/monorobot_test] event status: commit=c13bbb32, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/47, branches=[master]
+[2025-02-19T15:56:51.8306] 3669595: [lib:info] GET #2 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json 
+[2025-02-19T15:56:52.1797] 3669595: [lib:info] GET #2 349ms ⇓806B ⇑0B 140.82.121.6 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json
+[2025-02-19T15:56:52.1802] 3669595: [context:info] using prefix routing:
+[2025-02-19T15:56:52.1802] 3669595: [context:info] using label routing:
+[2025-02-19T15:56:52.1802] 3669595: [context:info] signature checking disabled
+[2025-02-19T15:56:52.1803] 3669595: [action:info] true
+[2025-02-19T15:56:52.1805] 3669595: [buildkite:info] get build details: starting request
+[2025-02-19T15:56:52.1805] 3669595: [lib:info] GET #3 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/47 
+[2025-02-19T15:56:52.5573] 3669595: [lib:info] GET #3 377ms ⇓2KB ⇑0B 18.239.18.9 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/47
+[2025-02-19T15:56:52.5582] 3669595: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:56:52.5582] 3669595: [lib:info] GET #4 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/47/jobs/01951eec-f731-4dc3-b61b-cb48ba25d7b5/log 
+[2025-02-19T15:56:52.7947] 3669595: [lib:info] GET #4 236ms ⇓1KB ⇑0B 18.239.18.9 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/47/jobs/01951eec-f731-4dc3-b61b-cb48ba25d7b5/log
+[2025-02-19T15:56:52.7951] 3669595: [action:info] generated 0 notifs
+[2025-02-19T15:56:59.7557] 3669595: [github:info] [EmileTrotignon/monorobot_test] event status: commit=c13bbb32, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/47, branches=[master]
+[2025-02-19T15:56:59.7559] 3669595: [slack:info] lookup user by email: starting request
+[2025-02-19T15:56:59.7559] 3669595: [lib:info] GET #5 https://slack.com/api/users.lookupByEmail?email=emile.trotignon%40gmail.com 
+[2025-02-19T15:56:59.8806] 3669595: [lib:info] GET #5 125ms ⇓578B ⇑0B 3.68.124.168 HTTP 200 https://slack.com/api/users.lookupByEmail?email=emile.trotignon%40gmail.com
+[2025-02-19T15:56:59.8809] 3669595: [action:info] true
+[2025-02-19T15:56:59.8810] 3669595: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:56:59.8810] 3669595: [lib:info] GET #6 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/47/jobs/01951eec-f731-4dc3-b61b-cb48ba25d7b5/log 
+[2025-02-19T15:57:00.1367] 3669595: [lib:info] GET #6 256ms ⇓1KB ⇑0B 18.239.18.9 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/47/jobs/01951eec-f731-4dc3-b61b-cb48ba25d7b5/log
+[2025-02-19T15:57:00.1465] 3669595: [action:info] generated 0 notifs
+[2025-02-19T15:58:17.1871] 3669595: [signal:info] Received signal -6 (exit)...
+[2025-02-19T15:58:17.1872] 3669595: [httpev:info] canceling accept loop
+[2025-02-19T15:58:17.1872] 3669595: [httpev:info] monorobot 127.0.0.1:8080 exit
+[2025-02-19T15:58:17.1872] 3669595: [signal:info] Signal handler done.
+[2025-02-19T15:58:18.7058] 3675496: [monorobot:info] monorobot starting
+[2025-02-19T15:58:18.7060] 3675496: [httpev:info] monorobot listen TCP 127.0.0.1:8080
+[2025-02-19T15:58:18.7061] 3675496: [action:info] updating github to slack username mapping
+[2025-02-19T15:58:18.7061] 3675496: [slack:info] list users: starting request
+[2025-02-19T15:58:18.7061] 3675496: [lib:info] GET #1 https://slack.com/api/users.list? 
+[2025-02-19T15:58:18.8885] 3675496: [lib:info] GET #1 182ms ⇓977B ⇑0B 3.68.170.153 HTTP 200 https://slack.com/api/users.list
+[2025-02-19T15:58:43.7377] 3675496: [github:info] [EmileTrotignon/monorobot_test] event status: commit=c13bbb32, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/48, branches=[master]
+[2025-02-19T15:58:43.7379] 3675496: [lib:info] GET #2 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json 
+[2025-02-19T15:58:44.0181] 3675496: [lib:info] GET #2 280ms ⇓806B ⇑0B 140.82.121.6 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json
+[2025-02-19T15:58:44.0184] 3675496: [context:info] using prefix routing:
+[2025-02-19T15:58:44.0185] 3675496: [context:info] using label routing:
+[2025-02-19T15:58:44.0185] 3675496: [context:info] signature checking disabled
+[2025-02-19T15:58:44.0185] 3675496: [action:info] true
+[2025-02-19T15:58:44.0187] 3675496: [buildkite:info] get build details: starting request
+[2025-02-19T15:58:44.0187] 3675496: [lib:info] GET #3 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/48 
+[2025-02-19T15:58:44.4416] 3675496: [lib:info] GET #3 423ms ⇓2KB ⇑0B 18.239.18.71 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/48
+[2025-02-19T15:58:44.4419] 3675496: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:58:44.4420] 3675496: [lib:info] GET #4 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/48/jobs/01951eee-b074-4381-92c2-e5eca3cdbdad/log 
+[2025-02-19T15:58:44.8714] 3675496: [lib:info] GET #4 429ms ⇓1KB ⇑0B 18.239.18.71 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/48/jobs/01951eee-b074-4381-92c2-e5eca3cdbdad/log
+[2025-02-19T15:58:44.8715] 3675496: [action:info] notifying 0 channels
+[2025-02-19T15:58:44.8715] 3675496: [action:info] generated 0 notifs
+[2025-02-19T15:58:51.1814] 3675496: [github:info] [EmileTrotignon/monorobot_test] event status: commit=c13bbb32, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/48, branches=[master]
+[2025-02-19T15:58:51.1815] 3675496: [slack:info] lookup user by email: starting request
+[2025-02-19T15:58:51.1816] 3675496: [lib:info] GET #5 https://slack.com/api/users.lookupByEmail?email=emile.trotignon%40gmail.com 
+[2025-02-19T15:58:51.3134] 3675496: [lib:info] GET #5 132ms ⇓578B ⇑0B 3.68.170.153 HTTP 200 https://slack.com/api/users.lookupByEmail?email=emile.trotignon%40gmail.com
+[2025-02-19T15:58:51.3136] 3675496: [action:info] true
+[2025-02-19T15:58:51.3137] 3675496: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T15:58:51.3137] 3675496: [lib:info] GET #6 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/48/jobs/01951eee-b074-4381-92c2-e5eca3cdbdad/log 
+[2025-02-19T15:58:51.5377] 3675496: [lib:info] GET #6 224ms ⇓1KB ⇑0B 18.239.18.71 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/48/jobs/01951eee-b074-4381-92c2-e5eca3cdbdad/log
+[2025-02-19T15:58:51.5379] 3675496: [action:info] notifying 0 channels
+[2025-02-19T15:58:51.5379] 3675496: [action:info] generated 0 notifs
+[2025-02-19T16:01:38.2631] 3675496: [github:info] [EmileTrotignon/monorobot_test] event push: sender=EmileTrotignon, head=2e47ea37, ref=refs/heads/master
+[2025-02-19T16:01:38.2634] 3675496: [lib:info] GET #7 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json 
+[2025-02-19T16:01:38.6097] 3675496: [lib:info] GET #7 346ms ⇓801B ⇑0B 140.82.121.5 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json
+[2025-02-19T16:01:38.6101] 3675496: [context:info] using prefix routing:
+[2025-02-19T16:01:38.6101] 3675496: [context:info] using label routing:
+[2025-02-19T16:01:38.6101] 3675496: [context:info] signature checking disabled
+[2025-02-19T16:01:38.6102] 3675496: [slack:info] sending to new_channel
+[2025-02-19T16:01:38.6102] 3675496: [slack:info] data: {"channel":"new_channel","username":"monorobot_test:master","text":"`<https://github.com/EmileTrotignon/monorobot_test/commit/2e47ea37d65f95138b93c5974ac5b1f12552b2b7|2e47ea37>` update confgi - Emile Trotignon","unfurl_links":false}
+[2025-02-19T16:01:38.6102] 3675496: [lib:info] POST #8 https://slack.com/api/chat.postMessage application/json "{\"channel\":\"new_channel\",\"username\":\"monorob..[+184 bytes]..lse}"
+[2025-02-19T16:01:38.8408] 3675496: [lib:info] POST #8 231ms ⇓362B ⇑232B 3.68.124.95 HTTP 200 https://slack.com/api/chat.postMessage
+[2025-02-19T16:01:40.0224] 3675496: [github:info] [EmileTrotignon/monorobot_test] event status: commit=2e47ea37, state=pending, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49, branches=[master]
+[2025-02-19T16:01:40.0225] 3675496: [action:info] true
+[2025-02-19T16:01:40.0225] 3675496: [action:info] notifying 0 channels
+[2025-02-19T16:01:40.0226] 3675496: [action:info] generated 0 notifs
+[2025-02-19T16:01:40.2102] 3675496: [action:warn] skipping event : unhandled event type : workflow_run
+[2025-02-19T16:01:40.9821] 3675496: [github:info] [EmileTrotignon/monorobot_test] event status: commit=2e47ea37, state=pending, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49, branches=[master]
+[2025-02-19T16:01:40.9822] 3675496: [action:info] true
+[2025-02-19T16:01:40.9823] 3675496: [action:info] notifying 0 channels
+[2025-02-19T16:01:40.9823] 3675496: [action:info] generated 0 notifs
+[2025-02-19T16:01:45.4430] 3675496: [action:warn] skipping event : unhandled event type : check_suite
+[2025-02-19T16:01:48.1307] 3675496: [github:info] [EmileTrotignon/monorobot_test] event status: commit=2e47ea37, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49, branches=[master]
+[2025-02-19T16:01:48.1309] 3675496: [lib:info] GET #9 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/2e47ea37d65f95138b93c5974ac5b1f12552b2b7 
+[2025-02-19T16:01:48.3978] 3675496: [lib:info] GET #9 267ms ⇓1KB ⇑0B 140.82.121.5 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/2e47ea37d65f95138b93c5974ac5b1f12552b2b7
+[2025-02-19T16:01:48.3980] 3675496: [action:info] true
+[2025-02-19T16:01:48.3981] 3675496: [buildkite:info] get build details: starting request
+[2025-02-19T16:01:48.3981] 3675496: [lib:info] GET #10 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49 
+[2025-02-19T16:01:48.8104] 3675496: [lib:info] GET #10 412ms ⇓2KB ⇑0B 18.239.18.71 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49
+[2025-02-19T16:01:48.8108] 3675496: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T16:01:48.8108] 3675496: [lib:info] GET #11 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49/jobs/01951ef1-8042-44b6-a3ef-7b8355bf8e3a/log 
+[2025-02-19T16:01:49.2044] 3675496: [lib:info] GET #11 393ms ⇓1KB ⇑0B 18.239.18.71 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49/jobs/01951ef1-8042-44b6-a3ef-7b8355bf8e3a/log
+[2025-02-19T16:01:49.2045] 3675496: [action:info] notifying 1 channels
+[2025-02-19T16:01:49.2046] 3675496: [action:info] generated 1 notifs
+[2025-02-19T16:01:49.2046] 3675496: [slack:info] sending to new_channel
+[2025-02-19T16:01:49.2047] 3675496: [slack:info] data: {"channel":"new_channel","text":"<https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline|[buildkite/monorobot-test-pipeline]>: Build <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49|#​49> is failing for \"update confgi\"","attachments":[{"fallback":null,"mrkdwn_in":["fields","text"],"color":"danger","text":"*Commit*: `<https://github.com/EmileTrotignon/monorobot_test/commit/2e47ea37d65f95138b93c5974ac5b1f12552b2b7|2e47ea37>` \n*Branch*: master"}],"unfurl_links":false}
+[2025-02-19T16:01:49.2047] 3675496: [lib:info] POST #12 https://slack.com/api/chat.postMessage application/json "{\"channel\":\"new_channel\",\"text\":\"<https://bu..[+467 bytes]..lse}"
+[2025-02-19T16:01:49.3848] 3675496: [lib:info] POST #12 180ms ⇓636B ⇑515B 3.68.124.95 HTTP 200 https://slack.com/api/chat.postMessage
+[2025-02-19T16:01:54.7318] 3675496: [github:info] [EmileTrotignon/monorobot_test] event status: commit=2e47ea37, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49, branches=[master]
+[2025-02-19T16:01:54.7321] 3675496: [lib:info] GET #13 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/2e47ea37d65f95138b93c5974ac5b1f12552b2b7 
+[2025-02-19T16:01:55.0373] 3675496: [lib:info] GET #13 296ms ⇓1KB ⇑0B 140.82.121.5 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/2e47ea37d65f95138b93c5974ac5b1f12552b2b7
+[2025-02-19T16:01:55.0375] 3675496: [new_failed_steps:info] getting failed steps from buildkite for https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49
+[2025-02-19T16:01:55.0375] 3675496: [buildkite:info] get build details: starting request
+[2025-02-19T16:01:55.0376] 3675496: [lib:info] GET #14 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49 
+[2025-02-19T16:01:55.5106] 3675496: [lib:info] GET #14 473ms ⇓2KB ⇑0B 18.239.18.71 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49
+[2025-02-19T16:01:55.5111] 3675496: [action:info] true
+[2025-02-19T16:01:55.5112] 3675496: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T16:01:55.5112] 3675496: [lib:info] GET #15 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49/jobs/01951ef1-8042-44b6-a3ef-7b8355bf8e3a/log 
+[2025-02-19T16:01:55.5112] 3675496: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T16:01:55.5112] 3675496: [lib:info] GET #16 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49/jobs/01951ef1-8043-4675-a668-bb62f9f1444e/log 
+[2025-02-19T16:01:55.5112] 3675496: [buildkite:info] get buildkite job logs: starting request
+[2025-02-19T16:01:55.5113] 3675496: [lib:info] GET #17 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49/jobs/01951ef1-8043-4488-a9b3-bde79e0d473a/log 
+[2025-02-19T16:01:55.8970] 3675496: [lib:info] GET #17 386ms ⇓1KB ⇑0B 18.239.18.71 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49/jobs/01951ef1-8043-4488-a9b3-bde79e0d473a/log
+[2025-02-19T16:01:55.9059] 3675496: [lib:info] GET #15 395ms ⇓1KB ⇑0B 18.239.18.71 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49/jobs/01951ef1-8042-44b6-a3ef-7b8355bf8e3a/log
+[2025-02-19T16:01:55.9452] 3675496: [lib:info] GET #16 434ms ⇓1KB ⇑0B 18.239.18.71 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/49/jobs/01951ef1-8043-4675-a668-bb62f9f1444e/log
+[2025-02-19T16:01:55.9452] 3675496: [action:info] notifying 2 channels
+[2025-02-19T16:01:55.9457] 3675496: [action:info] generated 2 notifs
+[2025-02-19T16:01:55.9458] 3675496: [slack:info] sending to a
+[2025-02-19T16:01:55.9458] 3675496: [slack:info] data: {"channel":"a","text":"<https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline|[buildkite/monorobot-test-pipeline]>: Build <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49|#​49> failed (13 seconds) for \"<https://github.com/EmileTrotignon/monorobot_test/commit/2e47ea37d65f95138b93c5974ac5b1f12552b2b7|update confgi>\" <@U080QC0B951>","attachments":[{"fallback":null,"mrkdwn_in":["fields","text"],"color":"danger","text":"*Steps broken*: <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49#01951ef1-8043-4488-a9b3-bde79e0d473a|fail>, <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49#01951ef1-8042-44b6-a3ef-7b8355bf8e3a|test>, <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49#01951ef1-8043-4675-a668-bb62f9f1444e|test2>"}],"unfurl_links":false}
+[2025-02-19T16:01:55.9458] 3675496: [lib:info] POST #18 https://slack.com/api/chat.postMessage application/json "{\"channel\":\"a\",\"text\":\"<https://buildkite.co..[+823 bytes]..lse}"
+[2025-02-19T16:01:56.1939] 3675496: [lib:info] POST #18 248ms ⇓744B ⇑871B 3.68.124.95 HTTP 200 https://slack.com/api/chat.postMessage
+[2025-02-19T16:01:56.1941] 3675496: [slack:info] get_upload_URL_external: starting request
+[2025-02-19T16:01:56.1942] 3675496: [lib:info] GET #19 https://slack.com/api/files.getUploadURLExternal?filename=Test&length=2171 
+[2025-02-19T16:01:56.3267] 3675496: [lib:info] GET #19 133ms ⇓204B ⇑0B 3.68.124.95 HTTP 200 https://slack.com/api/files.getUploadURLExternal?filename=Test&length=2171
+[2025-02-19T16:01:56.3268] 3675496: [lib:info] POST #20 https://files.slack.com/upload/v1/CwABAAAAXAoAAcljReGEbyurCgACGCWnbK26vgAMAAMLAAEAAAALVDA4MUQ4UEVGU0wLAAIAAAALVTA4MFVQSFM4NjcLAAMAAAALRjA4RTIzTVJERlUACgAEAAAAAAAACHsACwACAAAAFO5BOodDcmiR_VIGJAAWvo2Vf801AA text/plain "~~~ Preparing working directory\n\n$ cd /home/..[+2123 bytes].. 1\n\n"
+[2025-02-19T16:01:56.6870] 3675496: [lib:info] POST #20 360ms ⇓9B ⇑2KB 18.239.18.63 HTTP 200 https://files.slack.com/upload/v1/CwABAAAAXAoAAcljReGEbyurCgACGCWnbK26vgAMAAMLAAEAAAALVDA4MUQ4UEVGU0wLAAIAAAALVTA4MFVQSFM4NjcLAAMAAAALRjA4RTIzTVJERlUACgAEAAAAAAAACHsACwACAAAAFO5BOodDcmiR_VIGJAAWvo2Vf801AA
+[2025-02-19T16:01:56.6870] 3675496: [slack:info] uploaded file for Test. Reply: OK - 2171
+[2025-02-19T16:01:56.6871] 3675496: [slack:info] get_upload_URL_external: starting request
+[2025-02-19T16:01:56.6871] 3675496: [lib:info] GET #21 https://slack.com/api/files.getUploadURLExternal?filename=Test2&length=2241 
+[2025-02-19T16:01:56.8149] 3675496: [lib:info] GET #21 128ms ⇓207B ⇑0B 3.68.124.95 HTTP 200 https://slack.com/api/files.getUploadURLExternal?filename=Test2&length=2241
+[2025-02-19T16:01:56.8150] 3675496: [lib:info] POST #22 https://files.slack.com/upload/v1/CwABAAAAXAoAAdkSVunEx96pCgACGCWnbMsYNqgMAAMLAAEAAAALVDA4MUQ4UEVGU0wLAAIAAAALVTA4MFVQSFM4NjcLAAMAAAALRjA4RTFQWVZDUloACgAEAAAAAAAACMEACwACAAAAFJkmHzPq3bLYRchj0XUSMzlJ7fiVAA text/plain "~~~ Preparing working directory\n\n$ cd /home/..[+2193 bytes].. 1\n\n"
+[2025-02-19T16:01:57.1184] 3675496: [lib:info] POST #22 303ms ⇓9B ⇑2KB 18.239.18.63 HTTP 200 https://files.slack.com/upload/v1/CwABAAAAXAoAAdkSVunEx96pCgACGCWnbMsYNqgMAAMLAAEAAAALVDA4MUQ4UEVGU0wLAAIAAAALVTA4MFVQSFM4NjcLAAMAAAALRjA4RTFQWVZDUloACgAEAAAAAAAACMEACwACAAAAFJkmHzPq3bLYRchj0XUSMzlJ7fiVAA
+[2025-02-19T16:01:57.1185] 3675496: [slack:info] uploaded file for Test2. Reply: OK - 2241
+[2025-02-19T16:01:57.1185] 3675496: [slack:info] get_upload_URL_external: starting request
+[2025-02-19T16:01:57.1185] 3675496: [lib:info] GET #23 https://slack.com/api/files.getUploadURLExternal?filename=Fail&length=2309 
+[2025-02-19T16:01:57.2599] 3675496: [lib:info] GET #23 141ms ⇓206B ⇑0B 3.68.124.95 HTTP 200 https://slack.com/api/files.getUploadURLExternal?filename=Fail&length=2309
+[2025-02-19T16:01:57.2600] 3675496: [lib:info] POST #24 https://files.slack.com/upload/v1/CwABAAAAXAoAActkR7Yy_C8dCgACGCWnbOVR3fgMAAMLAAEAAAALVDA4MUQ4UEVGU0wLAAIAAAALVTA4MFVQSFM4NjcLAAMAAAALRjA4RFoyRTExNkgACgAEAAAAAAAACQUACwACAAAAFLYUDOUZCKf3saSrurbzbNaC5koWAA text/plain "~~~ Preparing working directory\n\n$ cd /home/..[+2261 bytes].. 1\n\n"
+[2025-02-19T16:01:57.5339] 3675496: [lib:info] POST #24 274ms ⇓9B ⇑2KB 18.239.18.63 HTTP 200 https://files.slack.com/upload/v1/CwABAAAAXAoAActkR7Yy_C8dCgACGCWnbOVR3fgMAAMLAAEAAAALVDA4MUQ4UEVGU0wLAAIAAAALVTA4MFVQSFM4NjcLAAMAAAALRjA4RFoyRTExNkgACgAEAAAAAAAACQUACwACAAAAFLYUDOUZCKf3saSrurbzbNaC5koWAA
+[2025-02-19T16:01:57.5341] 3675496: [slack:info] uploaded file for Fail. Reply: OK - 2309
+[2025-02-19T16:01:57.5341] 3675496: [slack:info] send file: complete_upload_external to channel: "C080HS0VBUN" and thread "1739980916.104359"
+[2025-02-19T16:01:57.5341] 3675496: [slack:info] data: {"files":[{"id":"F08E23MRDFU"},{"id":"F08E1PYVCRZ"},{"id":"F08DZ2E116H"}],"channel_id":"C080HS0VBUN","thread_ts":"1739980916.104359"}
+[2025-02-19T16:01:57.5341] 3675496: [slack:info] complete_upload_external: starting request
+[2025-02-19T16:01:57.5341] 3675496: [lib:info] POST #25 https://slack.com/api/files.completeUploadExternal application/json; charset=utf-8 "{\"files\":[{\"id\":\"F08E23MRDFU\"},{\"id\":\"F08E1P..[+85 bytes]..59\"}"
+[2025-02-19T16:01:57.9411] 3675496: [lib:info] POST #25 407ms ⇓816B ⇑133B 3.68.124.95 HTTP 200 https://slack.com/api/files.completeUploadExternal
+[2025-02-19T16:01:57.9429] 3675496: [slack:info] sending to new_channel
+[2025-02-19T16:01:57.9430] 3675496: [slack:info] data: {"channel":"new_channel","text":"<https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline|[buildkite/monorobot-test-pipeline]>: Build <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/49|#​49> failed (13 seconds) for \"update confgi\"","attachments":[{"fallback":null,"mrkdwn_in":["fields","text"],"color":"danger","text":"*Commit*: `<https://github.com/EmileTrotignon/monorobot_test/commit/2e47ea37d65f95138b93c5974ac5b1f12552b2b7|2e47ea37>` <@U080QC0B951>\n*Branch*: master"}],"unfurl_links":false}
+[2025-02-19T16:01:57.9430] 3675496: [lib:info] POST #26 https://slack.com/api/chat.postMessage application/json "{\"channel\":\"new_channel\",\"text\":\"<https://bu..[+490 bytes]..lse}"
+[2025-02-19T16:01:58.1172] 3675496: [lib:info] POST #26 174ms ⇓655B ⇑538B 3.68.124.95 HTTP 200 https://slack.com/api/chat.postMessage
+[2025-02-19T16:04:26.7714] 3675496: [github:info] [EmileTrotignon/monorobot_test] event push: sender=EmileTrotignon, head=779601da, ref=refs/heads/master
+[2025-02-19T16:04:26.7716] 3675496: [lib:info] GET #27 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json 
+[2025-02-19T16:04:27.0827] 3675496: [lib:info] GET #27 311ms ⇓848B ⇑0B 140.82.121.6 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json
+[2025-02-19T16:04:27.0829] 3675496: [context:info] using prefix routing:
+[2025-02-19T16:04:27.0830] 3675496: [context:info] using label routing:
+[2025-02-19T16:04:27.0830] 3675496: [context:info] signature checking disabled
+[2025-02-19T16:04:27.0830] 3675496: [slack:info] sending to new_channel
+[2025-02-19T16:04:27.0830] 3675496: [slack:info] data: {"channel":"new_channel","username":"monorobot_test:master","text":"`<https://github.com/EmileTrotignon/monorobot_test/commit/779601dac282091cb4d32870cf59c2876a1f7cb5|779601da>` update config - Emile Trotignon","unfurl_links":false}
+[2025-02-19T16:04:27.0830] 3675496: [lib:info] POST #28 https://slack.com/api/chat.postMessage application/json "{\"channel\":\"new_channel\",\"username\":\"monorob..[+184 bytes]..lse}"
+[2025-02-19T16:04:27.3352] 3675496: [lib:info] POST #28 252ms ⇓356B ⇑232B 3.68.124.168 HTTP 200 https://slack.com/api/chat.postMessage
+[2025-02-19T16:04:28.3159] 3675496: [github:info] [EmileTrotignon/monorobot_test] event status: commit=779601da, state=pending, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/50, branches=[master]
+[2025-02-19T16:04:28.3161] 3675496: [action:info] false
+[2025-02-19T16:04:28.3161] 3675496: [action:info] notifying 0 channels
+[2025-02-19T16:04:28.3161] 3675496: [action:info] generated 0 notifs
+[2025-02-19T16:04:28.3279] 3675496: [action:warn] skipping event : unhandled event type : check_suite
+[2025-02-19T16:04:28.4018] 3675496: [action:warn] skipping event : unhandled event type : workflow_run
+[2025-02-19T16:04:30.5396] 3675496: [github:info] [EmileTrotignon/monorobot_test] event status: commit=779601da, state=pending, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/50, branches=[master]
+[2025-02-19T16:04:30.5397] 3675496: [action:info] false
+[2025-02-19T16:04:30.5398] 3675496: [action:info] notifying 0 channels
+[2025-02-19T16:04:30.5398] 3675496: [action:info] generated 0 notifs
+[2025-02-19T16:04:38.8150] 3675496: [github:info] [EmileTrotignon/monorobot_test] event status: commit=779601da, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/50, branches=[master]
+[2025-02-19T16:04:38.8152] 3675496: [lib:info] GET #29 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/779601dac282091cb4d32870cf59c2876a1f7cb5 
+[2025-02-19T16:04:39.0774] 3675496: [lib:info] GET #29 262ms ⇓1KB ⇑0B 140.82.121.6 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/779601dac282091cb4d32870cf59c2876a1f7cb5
+[2025-02-19T16:04:39.0776] 3675496: [action:info] false
+[2025-02-19T16:04:39.0776] 3675496: [action:info] notifying 1 channels
+[2025-02-19T16:04:39.0776] 3675496: [action:info] generated 1 notifs
+[2025-02-19T16:04:39.0777] 3675496: [slack:info] sending to new_channel
+[2025-02-19T16:04:39.0777] 3675496: [slack:info] data: {"channel":"new_channel","text":"<https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline|[buildkite/monorobot-test-pipeline]>: Build <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/50|#​50> is failing for \"update config\"","attachments":[{"fallback":null,"mrkdwn_in":["fields","text"],"color":"danger","text":"*Commit*: `<https://github.com/EmileTrotignon/monorobot_test/commit/779601dac282091cb4d32870cf59c2876a1f7cb5|779601da>` \n*Branch*: master"}],"unfurl_links":false}
+[2025-02-19T16:04:39.0777] 3675496: [lib:info] POST #30 https://slack.com/api/chat.postMessage application/json "{\"channel\":\"new_channel\",\"text\":\"<https://bu..[+467 bytes]..lse}"
+[2025-02-19T16:04:39.2639] 3675496: [lib:info] POST #30 186ms ⇓632B ⇑515B 3.68.124.168 HTTP 200 https://slack.com/api/chat.postMessage
+[2025-02-19T16:04:47.2699] 3675496: [github:info] [EmileTrotignon/monorobot_test] event status: commit=779601da, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/50, branches=[master]
+[2025-02-19T16:04:47.2702] 3675496: [lib:info] GET #31 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/779601dac282091cb4d32870cf59c2876a1f7cb5 
+[2025-02-19T16:04:47.4526] 3675496: [lib:info] GET #31 182ms ⇓1KB ⇑0B 140.82.121.6 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/779601dac282091cb4d32870cf59c2876a1f7cb5
+[2025-02-19T16:04:47.4528] 3675496: [new_failed_steps:info] getting failed steps from buildkite for https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/50
+[2025-02-19T16:04:47.4529] 3675496: [buildkite:info] get build details: starting request
+[2025-02-19T16:04:47.4529] 3675496: [lib:info] GET #32 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/50 
+[2025-02-19T16:04:47.7984] 3675496: [lib:info] GET #32 346ms ⇓2KB ⇑0B 18.239.18.30 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/50
+[2025-02-19T16:04:47.7989] 3675496: [action:info] false
+[2025-02-19T16:04:47.7989] 3675496: [action:info] notifying 1 channels
+[2025-02-19T16:04:47.7989] 3675496: [action:info] generated 1 notifs
+[2025-02-19T16:04:47.7989] 3675496: [slack:info] sending to new_channel
+[2025-02-19T16:04:47.7990] 3675496: [slack:info] data: {"channel":"new_channel","text":"<https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline|[buildkite/monorobot-test-pipeline]>: Build <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/50|#​50> failed (16 seconds) for \"update config\"","attachments":[{"fallback":null,"mrkdwn_in":["fields","text"],"color":"danger","text":"*Commit*: `<https://github.com/EmileTrotignon/monorobot_test/commit/779601dac282091cb4d32870cf59c2876a1f7cb5|779601da>` <@U080QC0B951>\n*Branch*: master"}],"unfurl_links":false}
+[2025-02-19T16:04:47.7990] 3675496: [lib:info] POST #33 https://slack.com/api/chat.postMessage application/json "{\"channel\":\"new_channel\",\"text\":\"<https://bu..[+490 bytes]..lse}"
+[2025-02-19T16:04:48.0045] 3675496: [lib:info] POST #33 205ms ⇓647B ⇑538B 3.68.124.168 HTTP 200 https://slack.com/api/chat.postMessage
+[2025-02-19T16:06:10.5953] 3675496: [signal:info] Received signal -6 (exit)...
+[2025-02-19T16:06:10.5955] 3675496: [httpev:info] canceling accept loop
+[2025-02-19T16:06:10.5956] 3675496: [httpev:info] monorobot 127.0.0.1:8080 exit
+[2025-02-19T16:06:10.5956] 3675496: [signal:info] Signal handler done.
+[2025-02-19T16:06:14.9910] 3682344: [monorobot:info] monorobot starting
+[2025-02-19T16:06:14.9914] 3682344: [httpev:info] monorobot listen TCP 127.0.0.1:8080
+[2025-02-19T16:06:14.9914] 3682344: [action:info] updating github to slack username mapping
+[2025-02-19T16:06:14.9915] 3682344: [slack:info] list users: starting request
+[2025-02-19T16:06:14.9915] 3682344: [lib:info] GET #1 https://slack.com/api/users.list? 
+[2025-02-19T16:06:15.2976] 3682344: [lib:info] GET #1 306ms ⇓977B ⇑0B 3.68.124.168 HTTP 200 https://slack.com/api/users.list
+[2025-02-19T16:06:29.2662] 3682344: [github:info] [EmileTrotignon/monorobot_test] event status: commit=779601da, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/51, branches=[master]
+[2025-02-19T16:06:29.2663] 3682344: [lib:info] GET #2 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json 
+[2025-02-19T16:06:29.6454] 3682344: [lib:info] GET #2 379ms ⇓845B ⇑0B 140.82.121.5 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/contents/.monorobot.json
+[2025-02-19T16:06:29.6456] 3682344: [context:info] using prefix routing:
+[2025-02-19T16:06:29.6456] 3682344: [context:info] using label routing:
+[2025-02-19T16:06:29.6456] 3682344: [context:info] signature checking disabled
+[2025-02-19T16:06:29.6457] 3682344: [lib:info] GET #3 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/779601dac282091cb4d32870cf59c2876a1f7cb5 
+[2025-02-19T16:06:29.9342] 3682344: [lib:info] GET #3 288ms ⇓1KB ⇑0B 140.82.121.5 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/779601dac282091cb4d32870cf59c2876a1f7cb5
+[2025-02-19T16:06:29.9345] 3682344: [slack:info] sending to new_channel
+[2025-02-19T16:06:29.9345] 3682344: [slack:info] data: {"channel":"new_channel","text":"<https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline|[buildkite/monorobot-test-pipeline]>: Build <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/51|#​51> is failing for \"update config\"","attachments":[{"fallback":null,"mrkdwn_in":["fields","text"],"color":"danger","text":"*Commit*: `<https://github.com/EmileTrotignon/monorobot_test/commit/779601dac282091cb4d32870cf59c2876a1f7cb5|779601da>` \n*Branch*: master"}],"unfurl_links":false}
+[2025-02-19T16:06:29.9345] 3682344: [lib:info] POST #4 https://slack.com/api/chat.postMessage application/json "{\"channel\":\"new_channel\",\"text\":\"<https://bu..[+467 bytes]..lse}"
+[2025-02-19T16:06:30.2554] 3682344: [lib:info] POST #4 321ms ⇓634B ⇑515B 3.68.124.168 HTTP 200 https://slack.com/api/chat.postMessage
+[2025-02-19T16:06:40.1885] 3682344: [github:info] [EmileTrotignon/monorobot_test] event status: commit=779601da, state=failure, context=buildkite/monorobot-test-pipeline, target_url=https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/51, branches=[master]
+[2025-02-19T16:06:40.1888] 3682344: [lib:info] GET #5 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/779601dac282091cb4d32870cf59c2876a1f7cb5 
+[2025-02-19T16:06:40.4328] 3682344: [lib:info] GET #5 244ms ⇓1KB ⇑0B 140.82.121.5 HTTP 200 https://api.github.com/repos/EmileTrotignon/monorobot_test/commits/779601dac282091cb4d32870cf59c2876a1f7cb5
+[2025-02-19T16:06:40.4330] 3682344: [new_failed_steps:info] getting failed steps from buildkite for https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/51
+[2025-02-19T16:06:40.4331] 3682344: [buildkite:info] get build details: starting request
+[2025-02-19T16:06:40.4331] 3682344: [lib:info] GET #6 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/51 
+[2025-02-19T16:06:40.8166] 3682344: [lib:info] GET #6 383ms ⇓2KB ⇑0B 18.239.18.9 HTTP 200 https://api.buildkite.com/v2/organizations/monorobot-test-org-2/pipelines/monorobot-test-pipeline/builds/51
+[2025-02-19T16:06:40.8170] 3682344: [slack:info] lookup user by email: starting request
+[2025-02-19T16:06:40.8170] 3682344: [lib:info] GET #7 https://slack.com/api/users.lookupByEmail?email=emile.trotignon%40gmail.com 
+[2025-02-19T16:06:40.9496] 3682344: [lib:info] GET #7 133ms ⇓578B ⇑0B 3.68.124.168 HTTP 200 https://slack.com/api/users.lookupByEmail?email=emile.trotignon%40gmail.com
+[2025-02-19T16:06:40.9497] 3682344: [slack:info] sending to a
+[2025-02-19T16:06:40.9498] 3682344: [slack:info] data: {"channel":"a","text":"<https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline|[buildkite/monorobot-test-pipeline]>: Build <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/51|#​51> failed (19 seconds) for \"<https://github.com/EmileTrotignon/monorobot_test/commit/779601dac282091cb4d32870cf59c2876a1f7cb5|update config>\" <@U080QC0B951>","attachments":[{"fallback":null,"mrkdwn_in":["fields","text"],"color":"danger","text":"*Steps broken*: <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/51#01951ef5-c11a-4c0e-96e8-d74fe029c901|fail>, <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/51#01951ef5-c100-4a51-b21c-d497e3c570be|test>, <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/51#01951ef5-c119-4f6f-864a-900719f7f32c|test2>"}],"unfurl_links":false}
+[2025-02-19T16:06:40.9498] 3682344: [lib:info] POST #8 https://slack.com/api/chat.postMessage application/json "{\"channel\":\"a\",\"text\":\"<https://buildkite.co..[+823 bytes]..lse}"
+[2025-02-19T16:06:41.1726] 3682344: [lib:info] POST #8 223ms ⇓747B ⇑871B 3.68.124.168 HTTP 200 https://slack.com/api/chat.postMessage
+[2025-02-19T16:06:41.1727] 3682344: [slack:info] sending to new_channel
+[2025-02-19T16:06:41.1727] 3682344: [slack:info] data: {"channel":"new_channel","text":"<https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline|[buildkite/monorobot-test-pipeline]>: Build <https://buildkite.com/monorobot-test-org-2/monorobot-test-pipeline/builds/51|#​51> failed (19 seconds) for \"update config\"","attachments":[{"fallback":null,"mrkdwn_in":["fields","text"],"color":"danger","text":"*Commit*: `<https://github.com/EmileTrotignon/monorobot_test/commit/779601dac282091cb4d32870cf59c2876a1f7cb5|779601da>` <@U080QC0B951>\n*Branch*: master"}],"unfurl_links":false}
+[2025-02-19T16:06:41.1728] 3682344: [lib:info] POST #9 https://slack.com/api/chat.postMessage application/json "{\"channel\":\"new_channel\",\"text\":\"<https://bu..[+490 bytes]..lse}"
+[2025-02-19T16:06:41.3609] 3682344: [lib:info] POST #9 188ms ⇓650B ⇑538B 3.68.124.168 HTTP 200 https://slack.com/api/chat.postMessage
+[2025-02-19T16:06:59.5693] 3682344: [signal:info] Received signal -6 (exit)...
+[2025-02-19T16:06:59.5694] 3682344: [httpev:info] canceling accept loop
+[2025-02-19T16:06:59.5694] 3682344: [httpev:info] monorobot 127.0.0.1:8080 exit
+[2025-02-19T16:06:59.5694] 3682344: [signal:info] Signal handler done.
