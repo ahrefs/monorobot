@@ -233,21 +233,11 @@ module Build = struct
             in
             let update_build_status builds_map =
               let%lwt updated_status =
-                let open Database in
                 match IntMap.find_opt current_build_number builds_map with
                 | Some (current_build_status : State_t.build_status) ->
                   let updated_build_status = { current_build_status with failed_steps } in
-                  let%lwt (_ : int64 db_use_result) =
-                    Status_notifications_table.update_state n ~before:current_build_status ~after:updated_build_status
-                      "Util.Build.new_failed_steps > get_current_build is Some"
-                  in
                   Lwt.return updated_build_status
-                | None ->
-                  let%lwt (_ : int64 db_use_result) =
-                    Status_notifications_table.update_state n ~after:init_build_state
-                      "Util.Build.new_failed_steps > get_current_build is None"
-                  in
-                  Lwt.return init_build_state
+                | None -> Lwt.return init_build_state
               in
               Lwt.return @@ IntMap.add current_build_number updated_status builds_map
             in
@@ -281,6 +271,10 @@ module Build = struct
                the new failed steps in future builds *)
             let%lwt updated_status =
               StringMap.update_async pipeline_name update_pipeline_status repo_state.pipeline_statuses
+            in
+            let%lwt (_ : int64 Database.db_use_result) =
+              Database.Status_notifications_table.update_state n ~before:repo_state.pipeline_statuses
+                ~after:updated_status "Util.Build.new_failed_steps > update_pipeline_status"
             in
             repo_state.pipeline_statuses <- updated_status;
             Lwt.return failed_steps

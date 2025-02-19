@@ -165,8 +165,8 @@ module Status_notifications_table = struct
   let update_matched_rule (n : n) rule = with_db (update_matched_rule ~id:(id' n) ~rule)
 
   let update_state (n : n) ?before ~after last_handled_in =
-    let before = Option.map_default State_j.string_of_build_status "{}" before in
-    let after = State_j.string_of_build_status after in
+    let before = Option.map_default State_j.string_of_pipeline_statuses "{}" before in
+    let after = State_j.string_of_pipeline_statuses after in
     with_db (update_state ~id:(id' n) ~before ~after ~last_handled_in ~has_state_update:(before <> after))
 end
 

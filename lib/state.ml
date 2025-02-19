@@ -95,12 +95,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     let update_build_status () =
       let repo_state = find_or_add_repo { state } n.repository.url in
       match Util.Build.get_current_build n repo_state with
-      | None ->
-        let%lwt (_ : int64 Database.db_use_result) =
-          Database.Status_notifications_table.update_state n ~after:init_build_state
-            "State.set_repo_pipeline_status > update build status > get_current_build is None"
-        in
-        Lwt.return init_build_state
+      | None -> Lwt.return init_build_state
       | Some ({ failed_steps; is_finished; _ } as current_build_status : State_t.build_status) ->
         let failed_steps =
           match is_pipeline_step, n.state with
@@ -123,10 +118,6 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
             finished_at;
             failed_steps;
           }
-        in
-        let%lwt (_ : int64 Database.db_use_result) =
-          Database.Status_notifications_table.update_state n ~before:current_build_status ~after:updated_build_status
-            "State.set_repo_pipeline_status > update_build_status > get_current_build is Some"
         in
         Lwt.return updated_build_status
     in
@@ -189,11 +180,19 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
         let%lwt updated_statuses =
           StringMap.update_async pipeline_name rm_successful_step repo_state.pipeline_statuses
         in
+        let%lwt (_ : int64 Database.db_use_result) =
+          Database.Status_notifications_table.update_state n ~before:repo_state.pipeline_statuses
+            ~after:updated_statuses "State.set_repo_pipeline_status > Success > is_pipeline_step true"
+        in
         repo_state.pipeline_statuses <- updated_statuses;
         Lwt.return_unit
       | false ->
         let%lwt updated_statuses =
           StringMap.update_async pipeline_name rm_successful_build repo_state.pipeline_statuses
+        in
+        let%lwt (_ : int64 Database.db_use_result) =
+          Database.Status_notifications_table.update_state n ~before:repo_state.pipeline_statuses
+            ~after:updated_statuses "State.set_repo_pipeline_status > Success > is_pipeline_step false"
         in
         repo_state.pipeline_statuses <- updated_statuses;
         Lwt.return_unit)
@@ -201,6 +200,10 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
       let%lwt updated_status = update_build_status () in
       let%lwt updated_statuses =
         StringMap.update_async pipeline_name (update_pipeline_status updated_status) repo_state.pipeline_statuses
+      in
+      let%lwt (_ : int64 Database.db_use_result) =
+        Database.Status_notifications_table.update_state n ~before:repo_state.pipeline_statuses ~after:updated_statuses
+          "State.set_repo_pipeline_status > Error | Failure | Pending"
       in
       repo_state.pipeline_statuses <- updated_statuses;
       Lwt.return_unit)
