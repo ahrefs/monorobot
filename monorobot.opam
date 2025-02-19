@@ -11,7 +11,7 @@ bug-reports: "https://github.com/ahrefs/monorobot/issues"
 dev-repo: "git+https://github.com/ahrefs/monorobot.git"
 depends: [
  "ocaml" {>= "4.14.0"}
- "dune" {>= "2.5.0"}
+ "dune" {>= "2.9.0"}
  "atd" {>= "2.2.1"}
  "atdgen" {>= "2.2.1"}
  "atdgen-runtime" {>= "2.2.1"}
@@ -24,6 +24,7 @@ depends: [
  "lwt" {>= "5.1.0"}
  "lwt_ppx" {>= "2.0.0"}
  "ptime" {>= "1.2.0"}
+ "ocamldiff"
  "re2"
  "uri"
  "omd" {< "2"}
