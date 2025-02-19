@@ -47,6 +47,11 @@ module Build = struct
     (* buildkite.com/<org_name>/<pipeline_name>/builds/<build_number> *)
     Re2.create_exn {|buildkite.com/([\w_-]+)/([\w_-]+)/builds/(\d+)|}
 
+  let buildkite_api_org_pipeline_build_job_re =
+    (* https://api.buildkite.com/v2/organizations/<org_name>/pipelines/<pipeline_name>/builds/<build_number>/jobs/<job_number>/log *)
+    Re2.create_exn
+      {|https://api.buildkite.com/v2/organizations/([\w_-]+)/pipelines/([\w_-]+)/builds/(\d+)/jobs/([\d\w_-]+)/log|}
+
   let buildkite_is_step_re =
     (* Checks if a pipeline or build step, by looking into the buildkite context
        buildkite/<pipeline_name>/<step_name>(/<substep_name>?) *)
@@ -334,6 +339,14 @@ module Build = struct
   let stale_build_threshold =
     (* 2h as the threshold for long running or stale builds *)
     Ptime.Span.of_int_s (60 * 60 * 2)
+
+  let filter_failed_jobs jobs =
+    List.filter_map
+      (fun (job : Buildkite_t.job_type) ->
+        match job with
+        | Script ({ state = Failed; _ } as job) | Trigger ({ state = Failed; _ } as job) -> Some job
+        | _ -> None)
+      jobs
 end
 
 module type Cache_t = sig

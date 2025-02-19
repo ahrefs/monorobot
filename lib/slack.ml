@@ -6,6 +6,20 @@ open Mrkdwn
 open Github_j
 open Slack_j
 
+type file = {
+  name : string;
+  alt_txt : string option;
+  content : string;
+  title : string option;
+}
+
+type file_req = {
+  files : file list;
+  channel_id : Slack_t.channel_id option;
+  initial_comment : string option;
+  thread_ts : Slack_t.timestamp option;
+}
+
 let empty_attachments =
   {
     mrkdwn_in = None;
@@ -83,6 +97,8 @@ let format_attachments ~slack_match_func ~footer ~body =
     Some (List.map format_mention_in_markdown attachments)
 
 let thread_state_handler ~ctx ~channel ~repo_url ~html_url action (response : Slack_t.post_message_res) =
+  Lwt.return_ok
+  @@
   match action with
   | `Add ->
     State.add_thread_if_new ctx.Context.state ~repo_url ~pr_url:html_url
@@ -308,8 +324,8 @@ let generate_push_notification notification channel =
 
 let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
 
-let generate_status_notification ?slack_user_id ?failed_steps ~(ctx : Context.t) ~(cfg : Config_t.config)
-  (n : status_notification) channel =
+let generate_status_notification ?slack_user_id ?failed_steps ~(job_log : (string * string) list) ~(ctx : Context.t)
+  ~(cfg : Config_t.config) (n : status_notification) channel =
   let { commit; state; description; target_url; context; repository; _ } = n in
   let ({ commit : inner_commit; sha; html_url; _ } : status_commit) = commit in
   let ({ message; author; _ } : inner_commit) = commit in
@@ -418,7 +434,26 @@ let generate_status_notification ?slack_user_id ?failed_steps ~(ctx : Context.t)
         failed_steps
   in
   let attachment = { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text } in
-  make_message ~text:summary ~attachments:[ attachment ] ~channel:(Status_notification.to_slack_channel channel) ()
+  let reply_of_log log = log |> Text_cleanup.cleanup |> String.split_on_char '\r' |> String.concat "\n" in
+  let handler =
+    match job_log with
+    | [] -> None
+    | _ :: _ when is_failed_build_notification ->
+      let files =
+        job_log
+        |> List.map (fun (job_name, job_log) ->
+               { name = job_name; title = None; alt_txt = None; content = reply_of_log job_log })
+      in
+      Some
+        (fun (upload_file : file:file_req -> (unit, string) result Lwt.t) (res : Slack_t.post_message_res) ->
+          let ({ ts; channel; _ } : post_message_res) = res in
+          let file = { files; channel_id = Some channel; initial_comment = None; thread_ts = Some ts } in
+          upload_file ~file)
+    | _ -> None
+  in
+  make_message ~text:summary ~attachments:[ attachment ] ?handler
+    ~channel:(Status_notification.to_slack_channel channel)
+    ()
 
 let generate_commit_comment_notification ~slack_match_func api_commit notification channel =
   let { commit; _ } = api_commit in

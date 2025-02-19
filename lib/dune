@@ -23,7 +23,8 @@
   sqlgg.traits
   sqlite3
   uri
-  yojson)
+  yojson
+  text_cleanup)
  (preprocess
   (pps lwt_ppx)))
 

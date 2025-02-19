@@ -114,21 +114,31 @@ module Slack : Api.Slack = struct
     | res -> Lwt.return res
     | exception exn -> Lwt.return_error (query_error_msg url (Exn.to_string exn))
 
-  let request_token_auth ~name ?headers ?body ~ctx meth path read =
+  let default_read_error name e = sprintf "%s: failure : %s" name e
+
+  let request_token_auth_err ~name ?headers ?body ~ctx meth path ~read_error read =
     log#info "%s: starting request" name;
     let secrets = Context.get_secrets_exn ctx in
     match secrets.slack_access_token with
-    | None -> Lwt.return @@ fmt_error "%s: failed to retrieve Slack access token" name
+    | None -> Lwt.return_error @@ read_error (sprintf "%s: failed to retrieve Slack access token" name)
     | Some access_token ->
       let headers = bearer_token_header access_token :: Option.default [] headers in
       let url = sprintf "https://slack.com/api/%s" path in
       (match%lwt slack_api_request ?body ~headers meth url read with
       | Ok res -> Lwt.return @@ Ok res
-      | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e)
+      | Error e -> Lwt.return_error (read_error e))
+
+  let request_token_auth ~name ?headers ?body ~ctx meth path read =
+    request_token_auth_err ~name ?headers ?body ~ctx meth path ~read_error:(default_read_error name) read
 
   let read_unit s l =
     (* must read whole response to update lexer state *)
     ignore (Slack_j.read_ok_res s l)
+
+  let join_channel ~(ctx : Context.t) (channel : Slack_channel.Ident.t) =
+    let data = Slack_j.(string_of_join_channel_req { channel }) in
+    let body = `Raw ("application/json; charset=utf-8", data) in
+    request_token_auth ~name:"join channel" ~ctx `POST ~body "conversations.join" Slack_j.read_ok_res
 
   let lookup_user_cache = Hashtbl.create 50
 
@@ -141,7 +151,7 @@ module Slack : Api.Slack = struct
         (sprintf "users.lookupByEmail?%s" url_args)
         Slack_j.read_lookup_user_res
     with
-    | Error _ as e -> Lwt.return e
+    | Error e -> Lwt.return_error e
     | Ok user ->
       Hashtbl.replace lookup_user_cache email user;
       Lwt.return_ok user
@@ -225,6 +235,78 @@ module Slack : Api.Slack = struct
         (Option.default "" res.error);
       Lwt.return_none
     | Ok ({ permalink; _ } : Slack_t.permalink_res) -> Lwt.return_some permalink
+
+  let get_upload_URL_external ~ctx ~filename ~size =
+    let url_args = Web.make_url_args [ "filename", filename; "length", Int.to_string size ] in
+    request_token_auth ~name:"get_upload_URL_external" ~ctx `GET
+      (sprintf "files.getUploadURLExternal?%s" url_args)
+      Slack_j.read_upload_url_res
+
+  let post_file_content ~upload_url ~filename ~content =
+    match%lwt http_request ~body:(`Raw ("text/plain", content)) `POST upload_url with
+    | Error e -> Lwt.return_error e
+    | Ok s ->
+      log#info "uploaded file for %s. Reply: %s" filename s;
+      Lwt.return_ok ()
+
+  let get_upload_URL_external_and_post_file_content ~ctx (file : Slack.file) =
+    let { Slack.name; alt_txt = _; content; title } = file in
+    match%lwt get_upload_URL_external ~ctx ~filename:name ~size:(String.length content) with
+    | Error e -> Lwt.return_error e
+    | Ok { Slack_t.upload_url; file_id } ->
+      (match%lwt post_file_content ~upload_url ~filename:name ~content with
+      | Error e -> Lwt.return_error e
+      | Ok () -> Lwt.return_ok ({ id = file_id; title } : Slack_t.file_v2))
+
+  let complete_upload_external ~(ctx : Context.t) ?channel_id ?thread_ts ?initial_comment files =
+    let name = "complete_upload_external" in
+    let req ~read_error () =
+      log#info "send file: complete_upload_external to channel: %S and thread %S"
+        (match channel_id with
+        | None -> "None"
+        | Some c -> Slack_channel.Ident.project c)
+        (match thread_ts with
+        | None -> "None"
+        | Some ts -> Slack_timestamp.project ts);
+      let req = { Slack_t.files; channel_id; thread_ts; initial_comment } in
+      let data = Slack_j.string_of_complete_upload_external_req req in
+      log#info "data: %s" data;
+      let body = `Raw ("application/json; charset=utf-8", data) in
+      match%lwt
+        request_token_auth_err ~name ~ctx `POST ~body
+          (sprintf "files.completeUploadExternal")
+          ~read_error Slack_j.read_complete_upload_external_res
+      with
+      | Error e -> Lwt.return_error e
+      | Ok _res -> Lwt.return_ok ()
+    in
+    match%lwt
+      req
+        ~read_error:(function
+          | "not_in_channel" -> `Not_in_channel
+          | e -> `Other e)
+        ()
+    with
+    | Error `Not_in_channel ->
+      let channel = Option.get channel_id in
+      (match%lwt join_channel ~ctx channel with
+      | Error e -> Lwt.return_error e
+      | Ok _ -> req ~read_error:(default_read_error name) ())
+    | Error (`Other e) -> Lwt.return_error e
+    | Ok () -> Lwt.return_ok ()
+  let send_file ~(ctx : Context.t) ~(file : Slack.file_req) =
+    let { Slack.files; channel_id; initial_comment; thread_ts } = file in
+    let%lwt files = Lwt_list.map_s (get_upload_URL_external_and_post_file_content ~ctx) files in
+    let files, errors =
+      List.partition_map
+        (function
+          | Ok v -> Left v
+          | Error e -> Right e)
+        files
+    in
+    match errors with
+    | e :: _ -> Lwt.return_error e
+    | [] -> complete_upload_external ~ctx ?channel_id ?thread_ts ?initial_comment files
 end
 
 module Buildkite : Api.Buildkite = struct
@@ -256,6 +338,13 @@ module Buildkite : Api.Buildkite = struct
       (match%lwt buildkite_api_request ?body ~headers meth url read with
       | Ok res -> Lwt.return @@ Ok res
       | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e)
+
+  let get_job_log ~ctx n (job : Buildkite_t.job) =
+    match Util.Build.get_org_pipeline_build n with
+    | Error e -> Lwt.return_error e
+    | Ok (org, pipeline, build_nr) ->
+      let url = sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/log" org pipeline build_nr job.id in
+      request_token_auth ~name:"get buildkite job logs" ~ctx `GET url Buildkite_j.job_log_of_string
 
   let get_build' ~ctx ~org ~pipeline ~build_nr map =
     let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in

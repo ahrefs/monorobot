@@ -56,6 +56,7 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 | `ignored_users` | list of users to be ignored on all notifications | no user is ignored |
 | `user_mappings` | list of mappings from git email and/or GitHub handle to Slack email | no mapping defined
 | `notifications_configs` | list of configs for certain types of notifications | dm_for_failing_build defaults to true and dm_after_failed_build to false
+| `include_logs_in_notifs` | when a build is failing, send error logs with the notification | true |
 
 Note that `notifications_configs` expects to match against the email used in slack. It will respect the `user_mappings` rules and then use the resulting slack email to find the correct user id and @mention. If you are not using the `user_mappings` feature, you can directly use the slack email in the `notifications_configs` field.
 

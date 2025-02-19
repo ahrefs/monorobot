@@ -312,6 +312,31 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Some sender_login -> List.exists (String.equal sender_login) cfg.ignored_users
     | None -> false
 
+  let get_job_log_name_and_content ~ctx n (job : Buildkite_t.job) =
+    Lwt_result.map
+      (fun (job_log : Buildkite_t.job_log) -> job.name, job_log.content)
+      (Buildkite_api.get_job_log ~ctx n job)
+
+  let get_logs ~ctx (n : status_notification) =
+    match%lwt Buildkite_api.get_build ~ctx n with
+    | Error e -> Lwt.return_error e
+    | Ok build ->
+      let failed_jobs = Util.Build.filter_failed_jobs build.jobs in
+      let%lwt logs_or_errors = Lwt_list.map_p (get_job_log_name_and_content ~ctx n) failed_jobs in
+      Lwt.return_ok
+      @@ List.filter_map
+           (function
+             | Ok content -> Some content
+             | Error e ->
+               log#warn "failed to get log content for job: %s" e;
+               None)
+           logs_or_errors
+
+  let get_logs_if_failed ~ctx (n : status_notification) =
+    match n.state with
+    | Success | Pending -> Lwt.return_ok []
+    | Failure | Error -> get_logs ~ctx n
+
   let generate_notifications (ctx : Context.t) (req : Github.t) =
     let repo = Github.repo_of_notification req in
     let cfg = Context.find_repo_config_exn ctx repo.url in
@@ -362,7 +387,26 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
              let%lwt failed_steps = new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state in
              Lwt.return_some failed_steps
          in
-         let notifs = List.map (generate_status_notification ?slack_user_id ?failed_steps ~ctx ~cfg n) channels in
+
+         let%lwt job_log =
+           match cfg.include_logs_in_notifs with
+           | false -> Lwt.return []
+           | true ->
+             (match%lwt get_logs_if_failed ~ctx n with
+             | Error e ->
+               log#warn "couldn't fetch logs for build: %s" e;
+               Lwt.return []
+             | Ok job_log -> Lwt.return job_log)
+         in
+         let notifs =
+           List.map
+             (fun channel ->
+               let req, handler =
+                 generate_status_notification ?slack_user_id ~job_log ?failed_steps ~ctx ~cfg n channel
+               in
+               req, Option.map (fun handler -> handler (Slack_api.send_file ~ctx)) handler)
+             channels
+         in
          let%lwt (_ : int64 Database.db_use_result) =
            let ns =
              String.concat ", "
@@ -403,10 +447,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         (match handler with
         | None -> Lwt.return_unit
         | Some handler ->
-        try
-          handler res;
-          Lwt.return_unit
-        with exn -> handler_error (Printexc.to_string exn))
+          (try%lwt
+             match%lwt handler res with
+             | Result.Error e -> handler_error e
+             | Ok () -> Lwt.return_unit
+           with exn -> handler_error (Printexc.to_string exn)))
       | Ok None -> Lwt.return_unit
       | Error e -> action_error e
     in
