@@ -56,15 +56,16 @@ module Build = struct
     (* Gets the pipeline name from the buildkite context *)
     Re2.create_exn {|buildkite/([\w_-]+)|}
 
+  let is_pipeline_step context = Re2.matches buildkite_is_step_re context
+
   (** For now we only care about buildkite pipelines and steps. Other CI systems are not supported yet. *)
   let parse_context ~context =
     match Stre.starts_with context "buildkite/" with
     | false -> None
     | true ->
     try
-      let is_pipeline_step = Re2.matches buildkite_is_step_re context in
       let pipeline_name = Re2.find_first_exn ~sub:(`Index 1) buildkite_pipeline_name_re context in
-      Some { is_pipeline_step; pipeline_name }
+      Some { is_pipeline_step = is_pipeline_step context; pipeline_name }
     with _ -> None
 
   let parse_context_exn ~context =
@@ -231,15 +232,17 @@ module Build = struct
               }
             in
             let update_build_status builds_map =
-              let updated_status =
+              let%lwt updated_status =
                 match IntMap.find_opt current_build_number builds_map with
-                | Some (current_build_status : State_t.build_status) -> { current_build_status with failed_steps }
-                | None -> init_build_state
+                | Some (current_build_status : State_t.build_status) ->
+                  let updated_build_status = { current_build_status with failed_steps } in
+                  Lwt.return updated_build_status
+                | None -> Lwt.return init_build_state
               in
-              IntMap.add current_build_number updated_status builds_map
+              Lwt.return @@ IntMap.add current_build_number updated_status builds_map
             in
             let update_pipeline_status branches_statuses =
-              let init_branch_state = IntMap.singleton current_build_number init_build_state in
+              let init_branch_state = Lwt.return @@ IntMap.singleton current_build_number init_build_state in
               let current_statuses = Option.default StringMap.empty branches_statuses in
               let updated_statuses =
                 List.map
@@ -255,12 +258,25 @@ module Build = struct
                     branch.name, builds_map)
                   n.branches
               in
-              Some (List.fold_left (fun m (key, data) -> StringMap.add key data m) current_statuses updated_statuses)
+              let%lwt updated =
+                Lwt_list.fold_left_s
+                  (fun m (key, data) ->
+                    let%lwt v = data in
+                    Lwt.return @@ StringMap.add key v m)
+                  current_statuses updated_statuses
+              in
+              Lwt.return_some updated
             in
             (* we need to update the state with the failed steps, otherwise we can't calculate
                the new failed steps in future builds *)
-            repo_state.pipeline_statuses <-
-              StringMap.update pipeline_name update_pipeline_status repo_state.pipeline_statuses;
+            let%lwt updated_status =
+              StringMap.update_async pipeline_name update_pipeline_status repo_state.pipeline_statuses
+            in
+            let%lwt (_ : int64 Database.db_use_result) =
+              Database.Status_notifications_table.update_state n ~before:repo_state.pipeline_statuses
+                ~after:updated_status "Util.Build.new_failed_steps > update_pipeline_status"
+            in
+            repo_state.pipeline_statuses <- updated_status;
             Lwt.return failed_steps
           | _ ->
             log#warn "build state for %s is not failed in buildkite. We will not calculate failed steps" build_url;

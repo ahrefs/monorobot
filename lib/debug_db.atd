@@ -1,0 +1,17 @@
+type commit_hash <ocaml from="Github"> = abstract
+type status_state <ocaml from="Github"> = abstract
+type branch <ocaml from="Github"> = abstract
+
+(* Similar to the github.atd status_notification, but removing the commit and repository fields,
+   since they are quite verbose and not needed for debugging *)
+type status_notification = {
+  id: int;
+  name: string;
+  sha: commit_hash;
+  state: status_state;
+  ?description: string nullable;
+  ?target_url: string nullable;
+  context: string;
+  branches: branch list;
+  updated_at: string;
+}
