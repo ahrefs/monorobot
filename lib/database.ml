@@ -149,12 +149,19 @@ module Status_notifications_table = struct
              create a new record and serialize it *)
           Debug_db_j.(status_notification_of_string notification_text |> string_of_status_notification)
         in
+        let n_state =
+          (* using Github_j.string_of_status state creates a string with quotes inside *)
+          match state with
+          | Pending -> "pending"
+          | Success -> "success"
+          | Error -> "error"
+          | Failure -> "failure"
+        in
         with_db
-          (insert ~id:(id' n) ~notification_text ~sha ~commit_author:author.email ~commit_url:html_url
-             ~n_state:(Github_j.string_of_status_state state) ~description ~target_url:(Option.get target_url)
-             ~build_url ~build_number ~is_step_notification ~is_canceled ~context ~repository ~branch ~last_handled_in
-             ~updated_at ~state_before_notification ~state_after_notification ~meta_created_at ~meta_updated_at
-             ~matched_rule:"" ~has_state_update:false)
+          (insert ~id:(id' n) ~notification_text ~sha ~commit_author:author.email ~commit_url:html_url ~n_state
+             ~description ~target_url:(Option.get target_url) ~build_url ~build_number ~is_step_notification
+             ~is_canceled ~context ~repository ~branch ~last_handled_in ~updated_at ~state_before_notification
+             ~state_after_notification ~meta_created_at ~meta_updated_at ~matched_rule:"" ~has_state_update:false)
     with e ->
       let exn_str = Printexc.to_string e in
       log#error "failed to create status notification: %s" exn_str;
