@@ -1,7 +1,6 @@
 type db_status =
   | Not_available
-  | Uninitialized
-  | Initialized
+  | Available
 
 type 'a db_use_result =
   | Ok of 'a
@@ -103,11 +102,8 @@ let pool : Conn.Pool.t option ref = ref None
 
 let with_db (f : connection -> 'a Lwt.t) : 'a db_use_result Lwt.t =
   match !available with
-  | Uninitialized ->
-    (* we should never be in this state when this function is called *)
-    assert false
   | Not_available -> Lwt.return Db_unavailable
-  | Initialized ->
+  | Available ->
     let pool = Option.get !pool in
     (match%lwt Conn.Pool.use pool f with
     | x -> Lwt.return (Ok x)
@@ -207,7 +203,7 @@ end
 let init ?(max_conn = 10) db_path =
   let%lwt p = Conn.Pool.create ~max_conn db_path in
   pool := Some p;
-  available := Initialized;
+  available := Available;
   match%lwt with_db Status_notifications_table.ensure_status_notifications_table with
   | Ok _ -> Lwt.return_unit
   | Error e -> failwith e

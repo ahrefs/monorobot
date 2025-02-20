@@ -462,6 +462,24 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Ok config ->
       Context.set_repo_config ctx repo.url config;
       Context.print_config ctx repo.url;
+      let%lwt () =
+        (* initiate/terminate debug db via config change *)
+        match config.debug_db, !Database.available with
+        | true, Not_available ->
+          let db_path = Option.default Database.db_path config.debug_db_path in
+          log#info "initializing debug database";
+          let%lwt () = Database.init db_path in
+          Database.available := Available;
+          log#info "debug database initialized at %s" db_path;
+          Lwt.return_unit
+        | false, Available ->
+          Database.available := Not_available;
+          log#info "shutting down debug database";
+          let%lwt () = Database.Conn.Pool.shutdown (Option.get !Database.pool) in
+          log#info "debug database: closed connection pool successfully";
+          Lwt.return_unit
+        | _, _ -> Lwt.return_unit
+      in
       Lwt.return @@ Ok ()
     | Error e -> action_error e
 

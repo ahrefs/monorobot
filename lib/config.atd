@@ -53,6 +53,8 @@ type config = {
   ~user_mappings <ocaml default="[]">: (string * string) list <json repr="object">; (* list of github to slack profile mappings *)
   ~notifications_configs <ocaml default="{dm_after_failed_build = []; dm_for_failing_build = []}"> : notifications_configs;
   ~include_logs_in_notifs <ocaml default="true"> : bool;
+  ~debug_db <ocaml default="false"> : bool;
+  ?debug_db_path : string nullable;
 }
 
 (* This specifies the Slack webhook to query to post to the channel with the given name *)
