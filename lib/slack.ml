@@ -445,10 +445,10 @@ let generate_status_notification ?slack_user_id ?failed_steps ~(job_log : (strin
                { name = job_name; title = None; alt_txt = None; content = reply_of_log job_log })
       in
       Some
-        (fun (upload_file : file:file_req -> (unit, string) result Lwt.t) (res : Slack_t.post_message_res) ->
+        (fun (send_file : file:file_req -> (unit, string) result Lwt.t) (res : Slack_t.post_message_res) ->
           let ({ ts; channel; _ } : post_message_res) = res in
           let file = { files; channel_id = Some channel; initial_comment = None; thread_ts = Some ts } in
-          upload_file ~file)
+          send_file ~file)
     | _ -> None
   in
   make_message ~text:summary ~attachments:[ attachment ] ?handler
