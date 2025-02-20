@@ -171,9 +171,24 @@ module Status_notifications_table = struct
 
   let update_matched_rule (n : n) rule = with_db (update_matched_rule ~id:(id' n) ~rule)
 
-  let update_state (n : n) ?before ~after last_handled_in =
-    let before = Option.map_default State_j.string_of_pipeline_statuses "{}" before in
-    let after = State_j.string_of_pipeline_statuses after in
+  let update_state (n : n) ~before ~after ~pipeline_name last_handled_in =
+    let string_state (pipeline_statuses : State_j.pipeline_statuses) =
+      match n.branches with
+      | [] ->
+        log#error "failed to find branch in status notification: %d" n.id;
+        "{}"
+      | _ :: _ :: _ ->
+        log#error "multiple branches found in status notification: %d" n.id;
+        "{}"
+      | [ { name = branch_name; _ } ] ->
+      match Common.StringMap.find_opt pipeline_name pipeline_statuses with
+      | None -> "{}"
+      | Some branch_statuses ->
+        let b_s = Common.StringMap.find_opt branch_name branch_statuses in
+        Option.map_default State_j.string_of_build_statuses "{}" b_s
+    in
+    let before = string_state before in
+    let after = string_state after in
     with_db (update_state ~id:(id' n) ~before ~after ~last_handled_in ~has_state_update:(before <> after))
 end
 

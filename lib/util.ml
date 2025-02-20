@@ -139,7 +139,7 @@ module Build = struct
     | [ branch ], Some { pipeline_name; _ } ->
       (match StringMap.find_opt pipeline_name repo_state.pipeline_statuses with
       | None -> None
-      | Some pipeline_statuses -> StringMap.find_opt branch.name pipeline_statuses)
+      | Some branch_statuses -> StringMap.find_opt branch.name branch_statuses)
     | _ -> None
 
   let get_branch_commits (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
@@ -274,14 +274,14 @@ module Build = struct
             in
             (* we need to update the state with the failed steps, otherwise we can't calculate
                the new failed steps in future builds *)
-            let%lwt updated_status =
+            let%lwt updated_statuses =
               StringMap.update_async pipeline_name update_pipeline_status repo_state.pipeline_statuses
             in
             let%lwt (_ : int64 Database.db_use_result) =
               Database.Status_notifications_table.update_state n ~before:repo_state.pipeline_statuses
-                ~after:updated_status "Util.Build.new_failed_steps > update_pipeline_status"
+                ~after:updated_statuses ~pipeline_name "Util.Build.new_failed_steps > update_pipeline_status"
             in
-            repo_state.pipeline_statuses <- updated_status;
+            repo_state.pipeline_statuses <- updated_statuses;
             Lwt.return failed_steps
           | _ ->
             log#warn "build state for %s is not failed in buildkite. We will not calculate failed steps" build_url;
