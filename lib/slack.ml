@@ -438,7 +438,7 @@ let generate_status_notification ?slack_user_id ?failed_steps ~(job_log : (strin
   let handler =
     match job_log with
     | [] -> None
-    | _ :: _ when is_failed_build_notification ->
+    | _ :: _ when Status_notification.is_user channel ->
       let files =
         job_log
         |> List.map (fun (job_name, job_log) ->
