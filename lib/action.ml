@@ -322,7 +322,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Error e -> Lwt.return_error e
     | Ok build ->
       let failed_jobs = Util.Build.filter_failed_jobs build.jobs in
-      let%lwt logs_or_errors = Lwt_list.map_p (get_job_log_name_and_content ~ctx n) failed_jobs in
+      let%lwt logs_or_errors = Lwt_list.map_s (get_job_log_name_and_content ~ctx n) failed_jobs in
       Lwt.return_ok
       @@ List.filter_map
            (function
@@ -387,7 +387,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
              let%lwt failed_steps = new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state in
              Lwt.return_some failed_steps
          in
-
          let%lwt job_log =
            match cfg.include_logs_in_notifs with
            | false -> Lwt.return []
@@ -447,11 +446,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         (match handler with
         | None -> Lwt.return_unit
         | Some handler ->
-          (try%lwt
-             match%lwt handler res with
-             | Result.Error e -> handler_error e
-             | Ok () -> Lwt.return_unit
-           with exn -> handler_error (Printexc.to_string exn)))
+          (match%lwt handler res with
+          | Result.Error e -> handler_error e
+          | Ok () -> Lwt.return_unit
+          | exception exn -> handler_error (Printexc.to_string exn)))
       | Ok None -> Lwt.return_unit
       | Error e -> action_error e
     in

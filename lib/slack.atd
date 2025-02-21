@@ -171,29 +171,22 @@ type upload_url_res = {
   file_id: string;
 }
 
-type file_v2 = {
+type file = {
   id: string;
   ?title: string nullable;
 }
 
-type files_v2 = file_v2 list
+type files = file list
 
 type complete_upload_external_req = {
-  files: files_v2;
+  files: files;
   ?channel_id: channel_id nullable;
   ?thread_ts: timestamp nullable;
   ?initial_comment: string nullable;
 }
 
-type complete_upload_external_file_res = {
-  url_private: string;
-  url_private_download: string;
-  permalink: string;
-  permalink_public: string;
-}
-
 type complete_upload_external_res = {
-  files: files_v2;
+  files: files;
 }
 
 type join_channel_req = {
