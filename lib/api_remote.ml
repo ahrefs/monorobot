@@ -44,39 +44,39 @@ module Github : Api.Github = struct
 
   let get_resource ~secrets ~repo url =
     let headers, url = prepare_request ~secrets ~repo url in
-    match%lwt http_request ~headers `GET url with
-    | Ok res -> Lwt.return @@ Ok res
-    | Error e -> Lwt.return @@ fmt_error "error while querying remote: %s\nfailed to get resource from %s" e url
+    http_request ~headers `GET url
+    |> Lwt_result.map_error (fun e -> sprintf "error while querying remote: %s\nfailed to get resource from %s" e url)
 
   let post_resource ~secrets ~repo body url =
     let headers, url = prepare_request ~secrets ~repo url in
-    match%lwt http_request ~headers ~body:(`Raw ("application/json; charset=utf-8", body)) `POST url with
-    | Ok res -> Lwt.return @@ Ok res
-    | Error e -> Lwt.return @@ fmt_error "POST to %s failed : %s" url e
+    http_request ~headers ~body:(`Raw ("application/json; charset=utf-8", body)) `POST url
+    |> Lwt_result.map_error (sprintf "POST to %s failed : %s" url)
 
   let get_config ~(ctx : Context.t) ~repo =
     let secrets = Context.get_secrets_exn ctx in
     let url = contents_url ~repo ~path:ctx.config_filename in
-    match%lwt get_resource ~secrets ~repo url with
-    | Error e -> Lwt.return @@ fmt_error "error while querying remote: %s\nfailed to get config from file %s" e url
-    | Ok res ->
-      let response = Github_j.content_api_response_of_string res in
-      (match response.encoding with
-      | "base64" -> begin
-        try
-          response.content
-          |> Re2.rewrite_exn (Re2.create_exn "\n") ~template:""
-          |> decode_string_pad
-          |> Config_j.config_of_string
-          |> fun res -> Lwt.return @@ Ok res
-        with exn ->
-          let e = Exn.to_string exn in
-          Lwt.return
-          @@ fmt_error "error while reading config from GitHub response: %s\nfailed to get config from file %s" e url
-      end
-      | encoding ->
+    let* res =
+      get_resource ~secrets ~repo url
+      |> Lwt_result.map_error (fun e ->
+             sprintf "error while querying remote: %s\nfailed to get config from file %s" e url)
+    in
+    let response = Github_j.content_api_response_of_string res in
+    match response.encoding with
+    | "base64" -> begin
+      try
+        response.content
+        |> Re2.rewrite_exn (Re2.create_exn "\n") ~template:""
+        |> decode_string_pad
+        |> Config_j.config_of_string
+        |> fun res -> Lwt.return @@ Ok res
+      with exn ->
+        let e = Exn.to_string exn in
         Lwt.return
-        @@ fmt_error "unexpected encoding '%s' in Github response\nfailed to get config from file %s" encoding url)
+        @@ fmt_error "error while reading config from GitHub response: %s\nfailed to get config from file %s" e url
+    end
+    | encoding ->
+      Lwt.return
+      @@ fmt_error "unexpected encoding '%s' in Github response\nfailed to get config from file %s" encoding url
 
   let get_api_commit ~(ctx : Context.t) ~(repo : Github_t.repository) ~sha =
     let%lwt res = commits_url ~repo ~sha |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo in
@@ -107,9 +107,7 @@ module Slack : Api.Slack = struct
   let log = Log.from "slack"
 
   let slack_api_request ?headers ?body meth url read =
-    match%lwt http_request ?headers ?body meth url with
-    | Error e -> Lwt.return_error (query_error_msg url e)
-    | Ok s ->
+    let* s = http_request ?headers ?body meth url |> Lwt_result.map_error (fun e -> query_error_msg url e) in
     match Slack_j.slack_response_of_string read s with
     | res -> Lwt.return res
     | exception exn -> Lwt.return_error (query_error_msg url (Exn.to_string exn))
@@ -124,9 +122,7 @@ module Slack : Api.Slack = struct
     | Some access_token ->
       let headers = bearer_token_header access_token :: Option.default [] headers in
       let url = sprintf "https://slack.com/api/%s" path in
-      (match%lwt slack_api_request ?body ~headers meth url read with
-      | Ok res -> Lwt.return @@ Ok res
-      | Error e -> Lwt.return_error (read_error e))
+      slack_api_request ?body ~headers meth url read |> Lwt_result.map_error read_error
 
   let request_token_auth ~name ?headers ?body ~ctx meth path read =
     request_token_auth_err ~name ?headers ?body ~ctx meth path ~read_error:(default_read_error name) read
@@ -173,7 +169,7 @@ module Slack : Api.Slack = struct
       uses web API with access token if available, or with webhook otherwise *)
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =
     log#info "sending to %s" (Slack_channel.Any.project msg.channel);
-    let build_error e = fmt_error "%s\nfailed to send Slack notification" e in
+    let build_error e = sprintf "%s\nfailed to send Slack notification" e in
     let secrets = Context.get_secrets_exn ctx in
     let headers, url, webhook_mode =
       match Context.hook_of_channel ctx msg.channel with
@@ -186,23 +182,24 @@ module Slack : Api.Slack = struct
     match url with
     | None ->
       Lwt.return
-      @@ build_error
-      @@ sprintf "no token or webhook configured to notify channel %s" (Slack_channel.Any.project msg.channel)
+      @@ Error
+           (build_error
+           @@ sprintf "no token or webhook configured to notify channel %s" (Slack_channel.Any.project msg.channel))
     | Some url ->
       let data = Slack_j.string_of_post_message_req msg in
       let body = `Raw ("application/json", data) in
       log#info "data: %s" data;
       if webhook_mode then begin
-        match%lwt http_request ~body ~headers `POST url with
-        | Ok _res ->
-          (* Webhooks reply only 200 `ok`. We can't generate anything useful for notification success handlers *)
-          Lwt.return @@ Ok None
-        | Error e -> Lwt.return @@ build_error (query_error_msg url e)
+        let* _res =
+          http_request ~body ~headers `POST url |> Lwt_result.map_error (fun e -> build_error (query_error_msg url e))
+        in
+        Lwt.return @@ Ok None
       end
       else begin
-        match%lwt slack_api_request ~body ~headers `POST url Slack_j.read_post_message_res with
-        | Ok res -> Lwt.return @@ Ok (Some res)
-        | Error e -> Lwt.return @@ build_error e
+        let* res =
+          slack_api_request ~body ~headers `POST url Slack_j.read_post_message_res |> Lwt_result.map_error build_error
+        in
+        Lwt.return @@ Ok (Some res)
       end
 
   let send_chat_unfurl ~(ctx : Context.t) ~channel ~ts ~unfurls () =
@@ -312,9 +309,7 @@ module Buildkite : Api.Buildkite = struct
   let builds_cache = Builds_cache.create ~ttl:Builds_cache.default_purge_interval ()
 
   let buildkite_api_request ?headers ?body meth url read =
-    match%lwt http_request ?headers ?body meth url with
-    | Error e -> Lwt.return_error (query_error_msg url e)
-    | Ok s ->
+    let* s = http_request ?headers ?body meth url |> Lwt_result.map_error (query_error_msg url) in
     match read s with
     | res -> Lwt.return_ok res
     | exception exn -> Lwt.return_error (query_error_msg url (Exn.to_string exn))
@@ -327,9 +322,8 @@ module Buildkite : Api.Buildkite = struct
     | Some access_token ->
       let headers = bearer_token_header access_token :: Option.default [] headers in
       let url = sprintf "https://api.buildkite.com/v2/%s" path in
-      (match%lwt buildkite_api_request ?body ~headers meth url read with
-      | Ok res -> Lwt.return @@ Ok res
-      | Error e -> Lwt.return @@ fmt_error "%s: failure : %s" name e)
+      buildkite_api_request ?body ~headers meth url read
+      |> Lwt_result.map_error (fun e -> sprintf "%s: failure : %s" name e)
 
   let get_job_log ~ctx n (job : Buildkite_t.job) =
     let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build n in
