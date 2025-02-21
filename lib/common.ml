@@ -170,3 +170,5 @@ module Re2 = struct
   let wrap s = create_exn s
   let unwrap = Re2.to_string
 end
+
+let ( let* ) = Lwt_result.bind

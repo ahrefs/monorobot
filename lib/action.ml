@@ -318,19 +318,17 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       (Buildkite_api.get_job_log ~ctx n job)
 
   let get_logs ~ctx (n : status_notification) =
-    match%lwt Buildkite_api.get_build ~ctx n with
-    | Error e -> Lwt.return_error e
-    | Ok build ->
-      let failed_jobs = Util.Build.filter_failed_jobs build.jobs in
-      let%lwt logs_or_errors = Lwt_list.map_p (get_job_log_name_and_content ~ctx n) failed_jobs in
-      Lwt.return_ok
-      @@ List.filter_map
-           (function
-             | Ok content -> Some content
-             | Error e ->
-               log#warn "failed to get log content for job: %s" e;
-               None)
-           logs_or_errors
+    let* build = Buildkite_api.get_build ~ctx n in
+    let failed_jobs = Util.Build.filter_failed_jobs build.jobs in
+    let%lwt logs_or_errors = Lwt_list.map_p (get_job_log_name_and_content ~ctx n) failed_jobs in
+    Lwt.return_ok
+    @@ List.filter_map
+         (function
+           | Ok content -> Some content
+           | Error e ->
+             log#warn "failed to get log content for job: %s" e;
+             None)
+         logs_or_errors
 
   let get_logs_if_failed ~ctx (n : status_notification) =
     match n.state with
