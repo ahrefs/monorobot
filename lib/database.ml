@@ -107,7 +107,10 @@ let with_db (f : connection -> 'a Lwt.t) : 'a db_use_result Lwt.t =
     let pool = Option.get !pool in
     (match%lwt Conn.Pool.use pool f with
     | x -> Lwt.return (Ok x)
-    | exception e -> Lwt.return (Error (Printexc.to_string e)))
+    | exception e ->
+      let exn_str = Printexc.to_string e in
+      log#error "%s" exn_str;
+      Lwt.return (Error exn_str))
 
 module Status_notifications_table = struct
   include Status_notifications_gen.Make (Conn)
@@ -122,46 +125,44 @@ module Status_notifications_table = struct
     let { Github_t.commit; state; description; target_url; context; branches; updated_at; _ } = n in
     let { Github_t.commit : Github_t.inner_commit; sha; html_url; _ } = commit in
     let ({ Github_t.author; _ } : Github_t.inner_commit) = commit in
-    try%lwt
-      match target_url, description with
-      | None, _ | _, None ->
-        (* We don't support notifications without a build url or description *)
-        failwith "missing build url and/or description in the status notification"
-      | Some build_url, Some description ->
-        let branch =
-          match branches with
-          | [] -> failwith "no branches found in the status notification"
-          | [ branch ] -> branch.name
-          | _ -> failwith "multiple branches are not supported in status notification"
-        in
-        let repository = n.repository.url in
-        let state_before_notification = "{}" in
-        let state_after_notification = "{}" in
-        let updated_at = Common.Timestamp.wrap_with_fallback updated_at |> Ptime.to_float_s in
-        let meta_created_at = updated_at in
-        let meta_updated_at = updated_at in
-        let notification_text =
-          (* remove the commit and repository fields from the notification json text without having to manually
-             create a new record and serialize it *)
-          Debug_db_j.(status_notification_of_string notification_text |> string_of_status_notification)
-        in
-        let n_state =
-          (* using Github_j.string_of_status state creates a string with quotes inside *)
-          match state with
-          | Pending -> "pending"
-          | Success -> "success"
-          | Error -> "error"
-          | Failure -> "failure"
-        in
-        with_db
-          (insert ~id:(id' n) ~notification_text ~sha ~commit_author:author.email ~commit_url:html_url ~n_state
-             ~description ~target_url:(Option.get target_url) ~build_url ~build_number ~is_step_notification
-             ~is_canceled ~context ~repository ~branch ~last_handled_in ~updated_at ~state_before_notification
-             ~state_after_notification ~meta_created_at ~meta_updated_at ~matched_rule:"" ~has_state_update:false)
-    with e ->
-      let exn_str = Printexc.to_string e in
-      log#error "failed to create status notification: %s" exn_str;
-      Lwt.return (Error exn_str)
+    with_db (fun dbd ->
+        match target_url, description with
+        | None, _ | _, None ->
+          (* We don't support notifications without a build url or description *)
+          failwith
+            "failed to create status notification: missing build url and/or description in the status notification"
+        | Some build_url, Some description ->
+          let branch =
+            match branches with
+            | [] -> failwith "failed to create status notification: no branches found in the status notification"
+            | [ branch ] -> branch.name
+            | _ ->
+              failwith
+                "failed to create status notification: multiple branches are not supported in status notification"
+          in
+          let repository = n.repository.url in
+          let state_before_notification = "{}" in
+          let state_after_notification = "{}" in
+          let updated_at = Common.Timestamp.wrap_with_fallback updated_at |> Ptime.to_float_s in
+          let meta_created_at = updated_at in
+          let meta_updated_at = updated_at in
+          let notification_text =
+            (* remove the commit and repository fields from the notification json text without having to manually
+               create a new record and serialize it *)
+            Debug_db_j.(status_notification_of_string notification_text |> string_of_status_notification)
+          in
+          let n_state =
+            (* using Github_j.string_of_status state creates a string with quotes inside *)
+            match state with
+            | Pending -> "pending"
+            | Success -> "success"
+            | Error -> "error"
+            | Failure -> "failure"
+          in
+          insert ~id:(id' n) ~notification_text ~sha ~commit_author:author.email ~commit_url:html_url ~n_state
+            ~description ~target_url:(Option.get target_url) ~build_url ~build_number ~is_step_notification ~is_canceled
+            ~context ~repository ~branch ~last_handled_in ~updated_at ~state_before_notification
+            ~state_after_notification ~meta_created_at ~meta_updated_at ~matched_rule:"" ~has_state_update:false dbd)
 
   let last_handled_in (n : n) last_handled_in = with_db (update_last_handled_in ~id:(id' n) ~last_handled_in)
 
