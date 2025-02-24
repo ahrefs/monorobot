@@ -107,7 +107,7 @@ module Slack : Api.Slack = struct
   let log = Log.from "slack"
 
   let slack_api_request ?headers ?body meth url read =
-    let* s = http_request ?headers ?body meth url |> Lwt_result.map_error (fun e -> query_error_msg url e) in
+    let* s = http_request ?headers ?body meth url |> Lwt_result.map_error (query_error_msg url) in
     match Slack_j.slack_response_of_string read s with
     | res -> Lwt.return res
     | exception exn -> Lwt.return_error (query_error_msg url (Exn.to_string exn))
@@ -278,7 +278,7 @@ module Slack : Api.Slack = struct
     with
     | Error `Not_in_channel ->
       let channel = Option.get channel_id in
-      let* _ = join_channel ~ctx channel in
+      let* _res = join_channel ~ctx channel in
       req ~read_error:(default_read_error name) ()
     | Error (`Other e) -> Lwt.return_error e
     | Ok () -> Lwt.return_ok ()
