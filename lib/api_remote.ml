@@ -256,7 +256,7 @@ module Slack : Api.Slack = struct
     | Ok { Slack_t.upload_url; file_id } ->
       (match%lwt post_file_content ~upload_url ~filename:name ~content with
       | Error e -> Lwt.return_error e
-      | Ok () -> Lwt.return_ok ({ id = file_id; title } : Slack_t.file_v2))
+      | Ok () -> Lwt.return_ok ({ id = file_id; title } : Slack_t.file))
 
   let complete_upload_external ~(ctx : Context.t) ?channel_id ?thread_ts ?initial_comment files =
     let name = "complete_upload_external" in
