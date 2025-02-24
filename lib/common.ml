@@ -1,5 +1,7 @@
 open Devkit
 
+let ( let* ) = Lwt_result.bind
+
 module Slack_timestamp = Fresh (String) ()
 
 module Timestamp = struct
