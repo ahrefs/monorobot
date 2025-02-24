@@ -6,7 +6,7 @@ let log = Log.from "monorobot"
 
 (* entrypoints *)
 
-let http_server_action addr port config secrets state logfile loglevel debug_db =
+let http_server_action addr port config secrets state logfile loglevel =
   Daemon.logfile := logfile;
   Option.may Log.set_loglevels loglevel;
   Log.reopen !Daemon.logfile;
@@ -15,18 +15,6 @@ let http_server_action addr port config secrets state logfile loglevel debug_db 
   Lwt_main.run
     (begin
        log#info "monorobot starting";
-       let%lwt () =
-         match debug_db with
-         | true ->
-           (try
-              log#info "initializing debug database";
-              let%lwt () = Database.init Database.db_path in
-              Database.available := Database.Initialized;
-              log#info "debug database initialized";
-              Lwt.return_unit
-            with exn -> Devkit.Exn.fail ~exn "Failed to initialize debug database")
-         | false -> Lwt.return_unit
-       in
        let ctx = Context.make ~config_filename:config ~secrets_filepath:secrets ?state_filepath:state () in
        match Context.refresh_secrets ctx with
        | Error e ->
@@ -40,16 +28,13 @@ let http_server_action addr port config secrets state logfile loglevel debug_db 
        | Ok ctx -> Request_handler.run ~ctx ~addr ~port
      end
        [%lwt.finally
-         let%lwt () =
-           let open Database in
-           match !available with
-           | Uninitialized | Not_available -> Lwt.return_unit
-           | Initialized ->
-             let%lwt () = Conn.Pool.shutdown (Option.get !pool) in
-             log#info "database: closed connection pool successfully";
-             Lwt.return_unit
-         in
-         Lwt.return_unit])
+         let open Database in
+         match !available with
+         | Not_available -> Lwt.return_unit
+         | Available ->
+           let%lwt () = Conn.Pool.shutdown (Option.get !pool) in
+           log#info "database: closed connection pool successfully";
+           Lwt.return_unit])
 
 (** In check mode, instead of actually sending the message to slack, we simply print it in the console *)
 let check_gh_action file json config secrets state =
@@ -127,10 +112,6 @@ let loglevel =
   let doc = "log level, matching the following grammar: ([<facil|prefix*>=]debug|info|warn|error[,])+" in
   Arg.(value & opt (some string) None & info [ "loglevel" ] ~docv:"LOGLEVEL" ~doc)
 
-let debug_db =
-  let doc = "if set, will store notifications in the debug database" in
-  Arg.(value & flag & info [ "debug-db" ] ~docv:"DEBUG_DB" ~doc)
-
 let gh_payload =
   let doc = "path to a JSON file containing a github webhook payload" in
   Arg.(required & pos 0 (some file) None & info [] ~docv:"GH_PAYLOAD" ~doc)
@@ -148,7 +129,7 @@ let json =
 let run =
   let doc = "launch the http server" in
   let info = Cmd.info "run" ~doc in
-  let term = Term.(const http_server_action $ addr $ port $ config $ secrets $ state $ logfile $ loglevel $ debug_db) in
+  let term = Term.(const http_server_action $ addr $ port $ config $ secrets $ state $ logfile $ loglevel) in
   Cmd.v info term
 
 let check_gh =

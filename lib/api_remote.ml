@@ -246,7 +246,7 @@ module Slack : Api.Slack = struct
     let { Slack.name; alt_txt = _; content; title } = file in
     let* { Slack_t.upload_url; file_id } = get_upload_URL_external ~ctx ~filename:name ~size:(String.length content) in
     let* () = post_file_content ~upload_url ~filename:name ~content in
-    Lwt.return_ok ({ id = file_id; title } : Slack_t.file_v2)
+    Lwt.return_ok ({ id = file_id; title } : Slack_t.file)
 
   let complete_upload_external ~(ctx : Context.t) ?channel_id ?thread_ts ?initial_comment files =
     let name = "complete_upload_external" in

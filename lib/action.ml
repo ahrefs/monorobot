@@ -320,7 +320,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
   let get_logs ~ctx (n : status_notification) =
     let* build = Buildkite_api.get_build ~ctx n in
     let failed_jobs = Util.Build.filter_failed_jobs build.jobs in
-    let%lwt logs_or_errors = Lwt_list.map_p (get_job_log_name_and_content ~ctx n) failed_jobs in
+    let%lwt logs_or_errors = Lwt_list.map_s (get_job_log_name_and_content ~ctx n) failed_jobs in
     Lwt.return_ok
     @@ List.filter_map
          (function
@@ -385,7 +385,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
              let%lwt failed_steps = new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state in
              Lwt.return_some failed_steps
          in
-
          let%lwt job_log =
            match cfg.include_logs_in_notifs with
            | false -> Lwt.return []
@@ -445,11 +444,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         (match handler with
         | None -> Lwt.return_unit
         | Some handler ->
-          (try%lwt
-             match%lwt handler res with
-             | Result.Error e -> handler_error e
-             | Ok () -> Lwt.return_unit
-           with exn -> handler_error (Printexc.to_string exn)))
+          (match%lwt handler res with
+          | Result.Error e -> handler_error e
+          | Ok () -> Lwt.return_unit
+          | exception exn -> handler_error (Printexc.to_string exn)))
       | Ok None -> Lwt.return_unit
       | Error e -> action_error e
     in
@@ -460,6 +458,24 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Ok config ->
       Context.set_repo_config ctx repo.url config;
       Context.print_config ctx repo.url;
+      let%lwt () =
+        (* initiate/terminate debug db via config change *)
+        match config.debug_db, !Database.available with
+        | true, Not_available ->
+          let db_path = Option.default Database.db_path config.debug_db_path in
+          log#info "initializing debug database";
+          let%lwt () = Database.init db_path in
+          Database.available := Available;
+          log#info "debug database initialized at %s" db_path;
+          Lwt.return_unit
+        | false, Available ->
+          Database.available := Not_available;
+          log#info "shutting down debug database";
+          let%lwt () = Database.Conn.Pool.shutdown (Option.get !Database.pool) in
+          log#info "debug database: closed connection pool successfully";
+          Lwt.return_unit
+        | _, _ -> Lwt.return_unit
+      in
       Lwt.return @@ Ok ()
     | Error e -> action_error e
 
