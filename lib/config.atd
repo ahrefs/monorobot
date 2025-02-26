@@ -85,4 +85,6 @@ type secrets = {
   ?slack_signing_secret : string nullable;
   (* Buildkite access token, used to query Buildkite API for more information about builds *)
   ?buildkite_access_token : string nullable;
+  (* Buildkite uses this secret to sign webhook requests; provide to verify incoming Buildkite requests *)
+  ?buildkite_signing_secret : string nullable;
 }

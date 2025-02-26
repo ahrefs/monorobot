@@ -6,7 +6,12 @@ let log = Log.from "state"
 type t = { state : State_t.state }
 
 let empty_repo_state () : State_t.repo_state =
-  { pipeline_statuses = StringMap.empty; pipeline_commits = StringMap.empty; slack_threads = StringMap.empty }
+  {
+    pipeline_statuses = StringMap.empty;
+    pipeline_commits = StringMap.empty;
+    slack_threads = StringMap.empty;
+    failed_steps = Stringtbl.empty ();
+  }
 
 let empty () : t =
   let state = State_t.{ repos = Stringtbl.empty (); bot_user_id = None } in

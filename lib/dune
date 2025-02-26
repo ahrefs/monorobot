@@ -125,6 +125,18 @@
   (run atdgen -j -j-std %{deps})))
 
 (rule
+ (targets buildkite_webhook_t.ml buildkite_webhook_t.mli)
+ (deps buildkite_webhook.atd)
+ (action
+  (run atdgen -t %{deps})))
+
+(rule
+ (targets buildkite_webhook_j.ml buildkite_webhook_j.mli)
+ (deps buildkite_webhook.atd)
+ (action
+  (run atdgen -j -j-std %{deps})))
+
+(rule
  (target status_notifications_gen.ml)
  (deps ../db/sql/status_notifications.sql)
  (action

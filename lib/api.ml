@@ -50,4 +50,11 @@ module type Buildkite = sig
     ctx:Context.t ->
     Github_t.status_notification ->
     (Buildkite_t.get_build_res, string) Result.t Lwt.t
+
+  val get_build' :
+    ctx:Context.t ->
+    build_url:string ->
+    build_nr:string ->
+    (Buildkite_t.get_build_res -> 'a) ->
+    ('a, string) Result.t Lwt.t
 end

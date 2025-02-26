@@ -654,6 +654,98 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     match notification.event with
     | Link_shared event -> process_link_shared_event ctx event
 
+  let process_buildkite_webhook (ctx : Context.t) headers body =
+    let open Util.Webhook in
+    try%lwt
+      let secrets = Context.get_secrets_exn ctx in
+      match validate_signature ?signing_key:secrets.buildkite_signing_secret ~headers body with
+      | Error e -> action_error e
+      | Ok () ->
+        let n = Buildkite_webhook_j.webhook_build_payload_of_string body in
+        let repo_url = validate_repo_url secrets n in
+        let%lwt cfg =
+          match Context.find_repo_config ctx repo_url with
+          | None ->
+            (* Fetch the config from github.
+               Emulate a repository record with the necessary fields to fetch the config *)
+            let (fake_repo : Github_t.repository) =
+              {
+                name = "";
+                full_name = "";
+                url = repo_url;
+                commits_url = "";
+                contents_url = Util.Build.git_ssh_to_contents_url n.pipeline.repository;
+                pulls_url = "";
+                issues_url = "";
+                compare_url = "";
+              }
+            in
+            (match%lwt fetch_config ~ctx ~repo:fake_repo with
+            | Error e -> action_error @@ Printf.sprintf "failed to fetch config for %s: %s" repo_url e
+            | Ok () -> Lwt.return @@ Context.find_repo_config_exn ctx repo_url)
+          | Some config -> Lwt.return config
+        in
+        let should_notify =
+          match Util.Build.get_org_pipeline_build' n.build.web_url with
+          | Error e ->
+            log#error "failed to get org/pipeline/build_nr from build url %s: %s" n.build.web_url e;
+            false
+          | Ok (org, pipeline, _build_nr) ->
+            let repo_state = State.find_or_add_repo ctx.state repo_url in
+            let repo_key = Printf.sprintf "%s/%s" org pipeline in
+            notify_fail cfg n || notify_success repo_state repo_key n
+        in
+        (match should_notify with
+        | false -> Lwt.return_unit
+        | true ->
+          let failed_builds_channel = failed_builds_channel_exn cfg n in
+          let%lwt slack_user_id =
+            let email = extract_metadata_email n.build.meta_data.commit |> Option.default "" in
+            match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+            | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
+            | Error e ->
+              log#warn "couldn't match commit email %s to slack profile: %s" email e;
+              Lwt.return_none
+          in
+          let repo_state = State.find_or_add_repo ctx.state repo_url in
+          let get_build ~build_url =
+            Buildkite_api.get_build' ~ctx ~build_url ~build_nr:(string_of_int n.build.number) id
+          in
+          (match%lwt new_failed_steps ~repo_state ~get_build n with
+          | Error e -> action_error e
+          | Ok failed_steps ->
+            let notifications =
+              match failed_steps with
+              | [] -> []
+              | failed_steps ->
+                let is_fix_build_notification = n.build.state = Passed in
+                let channel = Common.Status_notification.inject_channel failed_builds_channel in
+                [
+                  Slack.generate_failed_build_notification ?slack_user_id ~is_fix_build_notification ~failed_steps n
+                    channel;
+                ]
+            in
+            let%lwt () = send_notifications ctx notifications in
+            (match ctx.state_filepath with
+            | None -> Lwt.return_unit
+            | Some path ->
+            match State.save ctx.state path with
+            | Ok () -> Lwt.return_unit
+            | Error e -> action_error e)))
+    with
+    | Action_error msg ->
+      log#error "action error %s" msg;
+      Lwt.return_unit
+    | Yojson.Json_error msg ->
+      log#error "failed to parse file as valid JSON (%s): %s" msg body;
+      Lwt.return_unit
+    | Success_handler_error msg ->
+      log#error "success handler error %s" msg;
+      Lwt.return_unit
+    | Context.Context_error msg ->
+      log#error "context error %s" msg;
+      Lwt.return_unit
+
   (** debugging endpoint to return current in-memory repo config *)
   let print_config (ctx : Context.t) repo_url =
     log#info "finding config for repo_url: %s" repo_url;
