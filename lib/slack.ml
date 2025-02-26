@@ -6,6 +6,8 @@ open Mrkdwn
 open Github_j
 open Slack_j
 
+let log = Log.from "slack"
+
 type file = {
   name : string;
   alt_txt : string option;
@@ -437,8 +439,11 @@ let generate_status_notification ?slack_user_id ?failed_steps ~(job_log : (strin
   let reply_of_log log = log |> Text_cleanup.cleanup |> String.split_on_char '\r' |> String.concat "\n" in
   let handler =
     match job_log with
-    | [] -> None
+    | [] ->
+      log#info "not including the failed jobs logs because there are none";
+      None
     | _ :: _ when Status_notification.is_user channel ->
+      log#info "failed jobs logs are going to be sent";
       let files =
         job_log
         |> List.map (fun (job_name, job_log) ->
@@ -449,7 +454,9 @@ let generate_status_notification ?slack_user_id ?failed_steps ~(job_log : (strin
           let ({ ts; channel; _ } : post_message_res) = res in
           let file = { files; channel_id = Some channel; initial_comment = None; thread_ts = Some ts } in
           send_file ~file)
-    | _ -> None
+    | _ ->
+      log#info "not including the failed jobs logs because this is not a DM";
+      None
   in
   make_message ~text:summary ~attachments:[ attachment ] ?handler
     ~channel:(Status_notification.to_slack_channel channel)
