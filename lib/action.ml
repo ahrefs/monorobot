@@ -440,16 +440,15 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
   let send_notifications (ctx : Context.t) notifications =
     let notify (msg, handler) =
       match%lwt Slack_api.send_notification ~ctx ~msg with
-      | Ok (Some res) ->
-        (match handler with
-        | None -> Lwt.return_unit
-        | Some handler ->
-          (match%lwt handler res with
-          | Result.Error e -> handler_error e
-          | Ok () -> Lwt.return_unit
-          | exception exn -> handler_error (Printexc.to_string exn)))
-      | Ok None -> Lwt.return_unit
       | Error e -> action_error e
+      | Ok res ->
+      match handler with
+      | None -> Lwt.return_unit
+      | Some handler ->
+        (match%lwt handler res with
+        | Result.Error e -> handler_error e
+        | Ok () -> Lwt.return_unit
+        | exception exn -> handler_error (Printexc.to_string exn))
     in
     Lwt_list.iter_s notify notifications
 
