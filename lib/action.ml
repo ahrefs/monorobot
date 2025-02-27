@@ -205,75 +205,46 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           let chans = partition_commit cfg commit.files in
           Lwt.return (List.map Status_notification.inject_channel chans))
     in
-    let get_failed_builds_channel_id () =
-      (* only notify the failed builds channels for full failed or canceled builds on the main branch
-         that have failed steps that weren't failing in previous builds *)
-      let%lwt should_notify_fail =
-        match Util.Build.notify_fail n cfg with
-        | false -> Lwt.return false
-        | true ->
-          let%lwt new_failed_steps = new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state in
-          Lwt.return (new_failed_steps <> [])
-      in
-
-      (* only notify the failed builds channels for successful builds on the main branch if they fix the pipeline *)
-      let should_notify_success =
-        is_success_build n && previous_build_is_failed n repo_state && has_failed_builds_channel cfg n && is_main_branch
-      in
-      match should_notify_fail || should_notify_success, get_pipeline_config cfg n with
-      | true, Some ({ failed_builds_channel = Some failed_builds_channel; _ } : Config_t.pipeline) ->
-        Lwt.return [ Status_notification.inject_channel failed_builds_channel ]
-      | false, _ | _, None | true, Some _ -> Lwt.return []
-    in
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
       let%lwt direct_message = get_dm_id ~notify_dm in
       let%lwt chans = get_channel_ids ~notify_channels ~branches in
       Lwt.return (chans @ direct_message)
     in
-    let%lwt recipients =
-      let rules = cfg.status_rules.rules in
-      match Context.is_pipeline_allowed ctx n with
-      | false -> Lwt.return []
-      | true ->
-        let%lwt dm_and_channels =
-          let update_matched_rule = Status_notifications_table.update_matched_rule n in
-          match Rule.Status.match_rules ~rules n with
-          | Some (Ignore, _, _) | None ->
-            let%lwt (_ : int64 db_use_result) = update_matched_rule "ignore" in
-            Lwt.return []
-          | Some (Allow, notify_channels, notify_dm) ->
-            let%lwt (_ : int64 db_use_result) = update_matched_rule "allow" in
-            action_on_match n.branches ~notify_channels ~notify_dm
-          | Some (Allow_once, notify_channels, notify_dm) ->
-            let branches =
-              match n.target_url with
-              | None -> n.branches
-              | Some build_url ->
-                let status_switched (_ : branch) =
-                  get_branch_builds n repo_state
-                  |> Option.map_default
-                       (fun (build_statuses : State_t.build_status IntMap.t) ->
-                         let current = get_build_number_exn ~build_url in
-                         let previous_builds = IntMap.filter (fun build_num _ -> build_num < current) build_statuses in
-                         match IntMap.is_empty previous_builds with
-                         | true ->
-                           (* if we have no previous builds, it means they were successful and cleaned from state *)
-                           n.state <> Github_t.Success
-                         | false ->
-                           let _, previous_build = IntMap.max_binding previous_builds in
-                           previous_build.status <> n.state)
-                       (n.state <> Github_t.Success)
-                in
-                List.filter status_switched n.branches
+    let rules = cfg.status_rules.rules in
+    match Context.is_pipeline_allowed ctx n with
+    | false -> Lwt.return []
+    | true ->
+      let update_matched_rule = Status_notifications_table.update_matched_rule n in
+      (match Rule.Status.match_rules ~rules n with
+      | Some (Ignore, _, _) | None ->
+        let%lwt (_ : int64 db_use_result) = update_matched_rule "ignore" in
+        Lwt.return []
+      | Some (Allow, notify_channels, notify_dm) ->
+        let%lwt (_ : int64 db_use_result) = update_matched_rule "allow" in
+        action_on_match n.branches ~notify_channels ~notify_dm
+      | Some (Allow_once, notify_channels, notify_dm) ->
+        let branches =
+          match n.target_url with
+          | None -> n.branches
+          | Some build_url ->
+            let status_switched (_ : branch) =
+              match Util.Build.get_org_pipeline_build' build_url with
+              | Error e ->
+                log#error "failed to get org/pipeline/build_nr from build url %s: %s" build_url e;
+                false
+              | Ok (org, pipeline, _build_nr) ->
+                let repo_key = Util.Webhook.repo_key org pipeline in
+                let steps_state = Stringtbl.find_opt repo_state.failed_steps repo_key in
+                (match steps_state with
+                | None -> n.state = Github_t.Failure
+                | Some failed when FailedStepSet.is_empty failed.steps -> n.state = Failure
+                | Some _ -> n.state = Success)
             in
-            let%lwt (_ : int64 db_use_result) = update_matched_rule "allow_once" in
-            let notify_dm = notify_dm && not (State.mem_repo_pipeline_commits ctx.state n) in
-            action_on_match branches ~notify_channels ~notify_dm
+            List.filter status_switched n.branches
         in
-        let%lwt failed_builds_channel = get_failed_builds_channel_id () in
-        Lwt.return (dm_and_channels @ failed_builds_channel |> List.sort_uniq Status_notification.compare)
-    in
-    Lwt.return recipients
+        let%lwt (_ : int64 db_use_result) = update_matched_rule "allow_once" in
+        let notify_dm = notify_dm && not (State.mem_repo_pipeline_commits ctx.state n) in
+        action_on_match branches ~notify_channels ~notify_dm)
 
   let partition_commit_comment (ctx : Context.t) n =
     let cfg = Context.find_repo_config_exn ctx n.repository.url in
@@ -364,27 +335,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       Lwt.return notifs
     | Status n ->
       (try%lwt
-         let open Util.Build in
          let%lwt channels = partition_status ctx n in
-         let%lwt slack_user_id =
-           match is_failed_build n || is_canceled_build n with
-           | false -> Lwt.return_none
-           | true ->
-             let email = n.commit.commit.author.email in
-             (match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
-             | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
-             | Error e ->
-               log#warn "couldn't match commit email %s to slack profile: %s" email e;
-               Lwt.return_none)
-         in
-         let%lwt failed_steps =
-           let repo_state = State.find_or_add_repo ctx.state repo.url in
-           match notify_fail n cfg with
-           | false -> Lwt.return_none
-           | true ->
-             let%lwt failed_steps = new_failed_steps ~get_build:(Buildkite_api.get_build ~ctx) n repo_state in
-             Lwt.return_some failed_steps
-         in
          let%lwt job_log =
            match cfg.include_logs_in_notifs with
            | false -> Lwt.return []
@@ -398,9 +349,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
          let notifs =
            List.map
              (fun channel ->
-               let req, handler =
-                 generate_status_notification ?slack_user_id ~job_log ?failed_steps ~ctx ~cfg n channel
-               in
+               let req, handler = generate_status_notification ~job_log ~cfg n channel in
                req, Option.map (fun handler -> handler (Slack_api.send_file ~ctx)) handler)
              channels
          in
@@ -413,7 +362,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
          in
          (* We only care about maintaining status for notifications of allowed pipelines in the main branch *)
          let%lwt () =
-           match Util.Build.(is_main_branch cfg n && in_allowed_pipeline cfg n) with
+           match Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n with
            | false ->
              let%lwt (_ : int64 Database.db_use_result) =
                last_handled_in n "Action.generate_notifications > no set state"
@@ -428,7 +377,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
          (* Backup, in case something went wrong while processing the notification.
             We need to update the pipeline status, otherwise we will get into a bad state *)
          let%lwt () =
-           match Util.Build.(is_main_branch cfg n && in_allowed_pipeline cfg n) with
+           match Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n with
            | true -> State.set_repo_pipeline_status ctx.state n
            | false ->
              let%lwt (_ : int64 Database.db_use_result) =
@@ -692,7 +641,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
             false
           | Ok (org, pipeline, _build_nr) ->
             let repo_state = State.find_or_add_repo ctx.state repo_url in
-            let repo_key = Printf.sprintf "%s/%s" org pipeline in
+            let repo_key = Util.Webhook.repo_key org pipeline in
             notify_fail cfg n || notify_success repo_state repo_key n
         in
         (match should_notify with

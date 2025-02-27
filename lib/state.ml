@@ -30,11 +30,11 @@ let find_or_add_repo { state } repo_url = find_or_add_repo' state repo_url
 
 let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
   (* Updates the builds map in the branches statuses.
-       [default_builds_map] (optional, defaults to an empty map) is the builds map to use if we don't have the current
-       branch in the branches statuses.
-       [f] is the function to use to update the builds map. Takes the [State_t.build_status] Map for the current branch
-       as argument.
-       [branches_statuses] is the branches statuses Map to update. Returns the updated branches statuses Map. *)
+     [default_builds_map] (optional, defaults to an empty map) is the builds map to use if we don't have the current
+     branch in the branches statuses.
+     [f] is the function to use to update the builds map. Takes the [State_t.build_status] Map for the current branch
+     as argument.
+     [branches_statuses] is the branches statuses Map to update. Returns the updated branches statuses Map. *)
   let update_builds_in_branches ?(default_builds_map = IntMap.empty) ~f branches_statuses =
     let current_statuses = Option.default StringMap.empty branches_statuses in
     let repo_state = find_or_add_repo' state n.repository.url in
@@ -60,80 +60,22 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     Lwt.return_unit
   | Some build_url ->
     let context = n.context in
-    let { Util.Build.is_pipeline_step; pipeline_name } = Util.Build.parse_context_exn ~context in
+    let { Util.Build.pipeline_name; _ } = Util.Build.parse_context_exn ~context in
     let build_number = Util.Build.get_build_number_exn ~build_url in
-    let is_finished =
-      match is_pipeline_step, n.state with
-      | false, (Success | Failure | Error) when not @@ Util.Build.is_failing_build n -> true
-      | _ -> false
-    in
-    let finished_at =
-      match is_finished with
-      | true -> Some (Timestamp.wrap_with_fallback n.updated_at)
-      | false -> None
-    in
 
-    (* Even if this is an initial build state, we can't just set an "empty" state because we don't know
-       the order we will get the status notifications in. *)
-    let init_build_state =
-      let commit =
-        { State_t.sha = n.sha; author = n.commit.commit.author.email; commit_message = n.commit.commit.message }
+    let update_pipeline_status =
+      let updated_status =
+        let repo_state = find_or_add_repo { state } n.repository.url in
+        match Util.Build.get_current_build n repo_state with
+        | None -> { State_t.status = n.state; created_at = Timestamp.wrap_with_fallback n.updated_at }
+        | Some (current_build_status : State_t.build_status) -> { current_build_status with status = n.state }
       in
-      let failed_steps =
-        match is_pipeline_step, n.state with
-        | true, Failure -> FailedStepSet.singleton { Buildkite_t.name = n.context; build_url }
-        | _ -> FailedStepSet.empty
-      in
-      {
-        State_t.status = n.state;
-        build_number;
-        build_url;
-        commit;
-        is_finished;
-        is_canceled = false;
-        failed_steps;
-        created_at = Timestamp.wrap_with_fallback n.updated_at;
-        finished_at;
-      }
-    in
-
-    let update_build_status () =
-      let repo_state = find_or_add_repo { state } n.repository.url in
-      match Util.Build.get_current_build n repo_state with
-      | None -> Lwt.return init_build_state
-      | Some ({ failed_steps; is_finished; _ } as current_build_status : State_t.build_status) ->
-        let failed_steps =
-          match is_pipeline_step, n.state with
-          | true, Failure -> FailedStepSet.add { Buildkite_t.name = n.context; build_url } failed_steps
-          | _ -> failed_steps
-        in
-        (* we need to figure out the value of is_finished here too because of step notifications that might
-           arrive after the build notification and revert the value to false *)
-        let is_finished =
-          match is_pipeline_step, n.state with
-          | false, (Success | Failure | Error) when not @@ Util.Build.is_failing_build n -> true
-          | _ -> is_finished
-        in
-        let updated_build_status =
-          {
-            current_build_status with
-            status = n.state;
-            is_finished;
-            is_canceled = Util.Build.is_canceled_build n;
-            finished_at;
-            failed_steps;
-          }
-        in
-        Lwt.return updated_build_status
-    in
-
-    let update_pipeline_status updated_status =
       update_builds_in_branches
-        ~default_builds_map:(IntMap.singleton build_number init_build_state)
+        ~default_builds_map:(IntMap.singleton build_number updated_status)
         ~f:(IntMap.add build_number updated_status)
     in
 
-    let rm_successful_build =
+    let clean_builds =
       update_builds_in_branches ~f:(fun builds_map ->
           let threshold = Util.Build.stale_build_threshold in
           let is_past_threshold (build_status : State_t.build_status) threshold =
@@ -145,7 +87,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
           in
           IntMap.remove build_number builds_map
           |> IntMap.filter (fun build_number' build_status ->
-                 match build_status.State_t.is_finished, build_number' < build_number with
+                 match build_status.State_t.status <> Github_t.Pending, build_number' < build_number with
                  | true, true ->
                    (* remove all finished older builds *)
                    false
@@ -156,21 +98,6 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
                  | _ ->
                    (* keep all other builds *)
                    true))
-    in
-
-    let rm_successful_step =
-      update_builds_in_branches ~f:(fun builds_map ->
-          IntMap.mapi
-            (fun build_number' (build_status : State_t.build_status) ->
-              let failed_steps =
-                FailedStepSet.filter
-                  (* remove the fixed step from previous finished builds *)
-                    (fun (s : Buildkite_t.failed_step) ->
-                    not (build_number' < build_number && s.name = n.context && build_status.is_finished))
-                  build_status.failed_steps
-              in
-              { build_status with failed_steps })
-            builds_map)
     in
 
     let repo_state = find_or_add_repo' state n.repository.url in
@@ -184,19 +111,9 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
       Lwt.return_unit
     in
     (match n.state with
-    | Success ->
-      (* If a build step is successful, we remove it from the failed steps list of past builds.
-         If old builds have no more failed steps, we remove them.
-         If the whole build is successful, we remove it from state to avoid the state file on disk growing too much.
-      *)
-      (match is_pipeline_step with
-      | true -> update_curr_status rm_successful_step "State.set_repo_pipeline_status > Success > is_pipeline_step true"
-      | false ->
-        update_curr_status rm_successful_build "State.set_repo_pipeline_status > Success > is_pipeline_step false")
+    | Success -> update_curr_status clean_builds "State.set_repo_pipeline_status > Success"
     | Error | Failure | Pending ->
-      let%lwt updated_status = update_build_status () in
-      update_curr_status (update_pipeline_status updated_status)
-        "State.set_repo_pipeline_status > Error | Failure | Pending")
+      update_curr_status update_pipeline_status "State.set_repo_pipeline_status > Error | Failure | Pending")
 
 let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
   let rotation_threshold = 1000 in

@@ -526,50 +526,8 @@ will notify #longest-a1
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.canceled_diff_failed_jobs.json =====
-will notify #failed-builds
-{
-  "channel": "failed-builds",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "fields", "text" ],
-      "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>"
-    }
-  ],
-  "unfurl_links": false
-}
 ===== file ../mock_payloads/status.canceled_empty_failed_jobs.json =====
-will notify #failed-builds
-{
-  "channel": "failed-builds",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "fields", "text" ],
-      "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
-    }
-  ],
-  "unfurl_links": false
-}
 ===== file ../mock_payloads/status.canceled_no_build_state.json =====
-will notify #failed-builds
-{
-  "channel": "failed-builds",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> canceled by author (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "fields", "text" ],
-      "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
-    }
-  ],
-  "unfurl_links": false
-}
 ===== file ../mock_payloads/status.canceled_test.json =====
 ===== file ../mock_payloads/status.commit1-01-failing.json =====
 will notify #default
@@ -581,7 +539,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` \n*Branch*: author/patches/js-storage"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` author\n*Branch*: author/patches/js-storage"
     }
   ],
   "unfurl_links": false
@@ -595,7 +553,7 @@ will notify #id[author@ahrefs.com]
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` \n*Branch*: author/patches/js-storage"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` author\n*Branch*: author/patches/js-storage"
     }
   ],
   "unfurl_links": false
@@ -630,7 +588,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` <@id[author@ahrefs.com]>\n*Branch*: author/patches/js-storage"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` author\n*Branch*: author/patches/js-storage"
     }
   ],
   "unfurl_links": false
@@ -645,7 +603,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` <@id[author@ahrefs.com]>\n*Branch*: author/patches/js-storage"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` author\n*Branch*: author/patches/js-storage"
     }
   ],
   "unfurl_links": false
@@ -660,21 +618,7 @@ will notify #all-push-events
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` <@id[author@ahrefs.com]>\n*Branch*: develop"
-    }
-  ],
-  "unfurl_links": false
-}
-will notify #failed-builds
-{
-  "channel": "failed-builds",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181732|#​181732> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "fields", "text" ],
-      "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181732#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step>"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` author\n*Branch*: develop"
     }
   ],
   "unfurl_links": false
@@ -689,37 +633,37 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` <@id[author@ahrefs.com]>\n*Branch*: author/patches/js-storage"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` author\n*Branch*: author/patches/js-storage"
     }
   ],
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failed_diff_failed_jobs.json =====
-will notify #failed-builds
+will notify #all-push-events
 {
-  "channel": "failed-builds",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
+  "channel": "all-push-events",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` author\n*Branch*: develop"
     }
   ],
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failed_empty_failed_jobs.json =====
-will notify #failed-builds
+will notify #all-push-events
 {
-  "channel": "failed-builds",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
+  "channel": "all-push-events",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` author\n*Branch*: develop"
     }
   ],
   "unfurl_links": false
@@ -734,27 +678,41 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` <@id[author@ahrefs.com]>\n*Branch*: other-branch"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` author\n*Branch*: other-branch"
     }
   ],
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failed_no_build_state.json =====
-will notify #failed-builds
+will notify #all-push-events
 {
-  "channel": "failed-builds",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|c1 message>\" <@id[author@ahrefs.com]>",
+  "channel": "all-push-events",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/181734|#​181734> failed (7 minutes, 29 seconds) for \"c1 message\"",
   "attachments": [
     {
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8|fail>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|test>, <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b85-4bd7-bfe0-769f4fbbb03f|trigger-infra>"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/7e0a933e9c71b4ca107680ca958ca1888d5e479b|7e0a933e>` author\n*Branch*: develop"
     }
   ],
   "unfurl_links": false
 }
 ===== file ../mock_payloads/status.failure_test.json =====
+will notify #default
+{
+  "channel": "default",
+  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> failed (20 seconds) for \"Update README.md\"",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Khady\n*Branch*: master"
+    }
+  ],
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/status.failure_test_main_branch.json =====
 will notify #all-push-events
 {
@@ -765,21 +723,7 @@ will notify #all-push-events
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` <@id[slack_mail@example.com]>\n*Branch*: develop"
-    }
-  ],
-  "unfurl_links": false
-}
-will notify #failed-builds
-{
-  "channel": "failed-builds",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/2|#​2> failed (20 seconds) for \"<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|Update README.md>\" <@id[slack_mail@example.com]>",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "fields", "text" ],
-      "color": "danger",
-      "text": "*Steps broken*: <https://buildkite.com/org/pipeline2/builds/2#0192347d-e4ee-4072-9da4-f441eeb65ed4|pipeline2/failed-step>"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Khady\n*Branch*: develop"
     }
   ],
   "unfurl_links": false
@@ -794,7 +738,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "danger",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` <@id[slack_mail@example.com]>\n*Branch*: master"
+      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` Khady\n*Branch*: master"
     }
   ],
   "unfurl_links": false
@@ -805,34 +749,6 @@ will notify #default
 ===== file ../mock_payloads/status.state_hide_success_test.json =====
 ===== file ../mock_payloads/status.state_hide_success_test_disallowed_pipeline.json =====
 ===== file ../mock_payloads/status.success_fix_failed_builds.json =====
-will notify #all-push-events
-{
-  "channel": "all-push-events",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/3|#​3> passed (5 minutes, 19 seconds) for \"Update README.md\"",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "fields", "text" ],
-      "color": "good",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` \n*Branch*: develop"
-    }
-  ],
-  "unfurl_links": false
-}
-will notify #failed-builds
-{
-  "channel": "failed-builds",
-  "text": "<https://buildkite.com/org/pipeline2|[buildkite/pipeline2]>: Build <https://buildkite.com/org/pipeline2/builds/3|#​3> passed (5 minutes, 19 seconds) for \"Update README.md\"",
-  "attachments": [
-    {
-      "fallback": null,
-      "mrkdwn_in": [ "fields", "text" ],
-      "color": "good",
-      "text": "*Commit*: `<https://github.com/ahrefs/monorepo/commit/0d95302addd66c1816bce1b1d495ed1c93ccd478|0d95302a>` "
-    }
-  ],
-  "unfurl_links": false
-}
 ===== file ../mock_payloads/status.success_no_previous_builds.json =====
 ===== file ../mock_payloads/status.success_public_repo_no_buildkite.json =====
 will notify #default
@@ -844,7 +760,7 @@ will notify #default
       "fallback": null,
       "mrkdwn_in": [ "fields", "text" ],
       "color": "good",
-      "text": "*Commit*: `<https://github.com/Codertocat/Hello-World/commit/6113728f27ae82c7b1a177c8d03f9e96e0adf246|6113728f>` \n*Branches*: master, changes, gh-pages"
+      "text": "*Commit*: `<https://github.com/Codertocat/Hello-World/commit/6113728f27ae82c7b1a177c8d03f9e96e0adf246|6113728f>` Codertocat\n*Branches*: master, changes, gh-pages"
     }
   ],
   "unfurl_links": false

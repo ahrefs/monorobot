@@ -10,23 +10,9 @@ type user_id = string wrap <ocaml t="Common.Slack_user_id.t" wrap="Common.Slack_
 type channel_id = string wrap <ocaml t="Common.Slack_channel.Ident.t" wrap="Common.Slack_channel.Ident.inject" unwrap="Common.Slack_channel.Ident.project">
 type any_channel = string wrap <ocaml t="Common.Slack_channel.Any.t" wrap="Common.Slack_channel.Any.inject" unwrap="Common.Slack_channel.Any.project">
 
-type ci_commit = {
-  sha: string;
-  author: string;
-  commit_message: string;
-}
-
 type build_status = {
   status: status_state;
-  build_number: int;
-  build_url: string;
-  commit: ci_commit;
-  is_finished: bool;
-  (* TODO: remove default value once we migrated the current state over *)
-  ~is_canceled <ocaml default="false">: bool;
-  failed_steps: failed_step_set;
   created_at: timestamp;
-  finished_at: timestamp nullable;
 }
 
 (* A map from builds numbers to build statuses *)
