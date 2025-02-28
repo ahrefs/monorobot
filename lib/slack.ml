@@ -422,44 +422,52 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
     ~channel:(Status_notification.to_slack_channel channel)
     ()
 
-let generate_failed_build_notification ?slack_user_id ~is_fix_build_notification ~failed_steps (n : Util.Webhook.n)
-  channel =
-  let repo_url = Util.Build.git_ssh_to_https n.pipeline.repository in
-  let color_info = if n.build.state = Passed then "good" else "danger" in
-  let n_state =
-    match n.build.state with
-    | Passed -> "succeeded"
-    | Failed -> "failed"
-    | Canceled -> "failed (canceled)"
-    | _ -> "pending"
-  in
-  let build_desc = sprintf "Build <%s|#\u{200B}%d> %s" n.build.web_url n.build.number n_state in
-  let author_mention =
-    match slack_user_id with
-    | Some id -> sprintf "<@%s>" (Slack_user_id.project id)
-    | None -> sprintf "%s" (Util.Webhook.extract_metadata_email n.build.meta_data.commit |> Option.default "")
-  in
+let generate_failed_build_notification ?slack_user_id ?(is_fix_build_notification = false) ~failed_steps
+  (n : Util.Webhook.n) channel =
   let pipeline_name = Util.Webhook.pipeline_name n in
   let summary =
+    let n_state =
+      match n.build.state with
+      | Passed -> "succeeded"
+      | Failed -> "failed"
+      | Canceled -> "failed (canceled)"
+      | _ -> "pending"
+    in
+    let build_desc = sprintf "Build <%s|#\u{200B}%d> %s" n.build.web_url n.build.number n_state in
     let commit_message = Util.first_line n.build.message in
-    let commit_url = sprintf "%s/commit/%s" repo_url n.build.sha in
     match is_fix_build_notification with
     | true -> sprintf "<%s|[%s]>: %s for \"%s\"" n.pipeline.web_url pipeline_name build_desc commit_message
     | false ->
-      sprintf "<%s|[%s]>: %s for \"<%s|%s>\" %s" n.pipeline.web_url pipeline_name build_desc commit_url commit_message
+      let repo_url = Util.Build.git_ssh_to_https n.pipeline.repository in
+      let commit_url = sprintf "%s/commit/%s" repo_url n.build.sha in
+      let author_mention =
+        match slack_user_id with
+        | Some id -> sprintf " <@%s>" (Slack_user_id.project id)
+        | None -> ""
+      in
+      sprintf "<%s|[%s]>: %s for \"<%s|%s>\"%s" n.pipeline.web_url pipeline_name build_desc commit_url commit_message
         author_mention
   in
   let text =
     match is_fix_build_notification with
-    | true -> sprintf "*Commit*: `<%s|%s>` %s" n.build.web_url (git_short_sha_hash n.build.sha) author_mention
+    | true -> sprintf "*Commit*: `<%s|%s>`" n.build.web_url (git_short_sha_hash n.build.sha)
     | false ->
       let slack_step_link (s : Buildkite_t.failed_step) =
-        let step = Stre.drop_prefix s.name (pipeline_name ^ "/") |> String.lowercase_ascii in
+        let slugify s =
+          (* replace spaces and underscores with dashes *)
+          String.map
+            (function
+              | ' ' | '_' -> '-'
+              | c -> c)
+            (String.lowercase_ascii s)
+        in
+        let step = Stre.drop_prefix s.name (pipeline_name ^ "/") |> slugify in
         sprintf "<%s|%s>" s.build_url step
       in
-      sprintf "*Steps broken*: %s" (String.concat ", " (List.map slack_step_link failed_steps))
+      sprintf "*Steps broken*: %s" (String.concat ", " (List.map slack_step_link (FailedStepSet.elements failed_steps)))
   in
   let attachment =
+    let color_info = if n.build.state = Passed then "good" else "danger" in
     { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text = Some text }
   in
   make_message ~text:summary ~attachments:[ attachment ] ~channel:(Status_notification.to_slack_channel channel) ()

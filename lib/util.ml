@@ -333,7 +333,11 @@ module Webhook = struct
     (n.build.state = Failed || notify_canceled_build) && has_failed_builds_channel && is_main_branch
 
   let notify_success (repo_state : State_t.repo_state) (repo_key : string) (n : n) =
-    n.build.state = Passed && Option.is_some (Stringtbl.find_opt repo_state.failed_steps repo_key)
+    n.build.state = Passed
+    && Option.map_default
+         (fun { State_t.steps; _ } -> not (Common.FailedStepSet.is_empty steps))
+         false
+         (Stringtbl.find_opt repo_state.failed_steps repo_key)
 
   let new_failed_steps ~(repo_state : State_t.repo_state) ~get_build (n : n) =
     let* org, pipeline, build_nr = Lwt.return @@ Build.get_org_pipeline_build' n.build.web_url in
@@ -346,12 +350,12 @@ module Webhook = struct
     in
     match Stringtbl.find_opt repo_state.failed_steps repo_key with
     | Some state when n.build.number < state.last_build ->
-      (* discard notification for an earlier build *)
-      Lwt.return_ok []
+      (* discard if this build is older than the last build that was notified *)
+      Lwt.return_ok Common.FailedStepSet.empty
     | None ->
       let* failed_steps = get_failed_steps () in
       Stringtbl.replace repo_state.failed_steps repo_key { steps = failed_steps; last_build = n.build.number };
-      Lwt.return_ok (Common.FailedStepSet.elements failed_steps)
+      Lwt.return_ok failed_steps
     | Some state ->
       let* build_faild_steps = get_failed_steps () in
 
@@ -361,5 +365,5 @@ module Webhook = struct
       let new_failed_steps = Common.FailedStepSet.diff build_faild_steps state.steps in
       let updated_steps = Common.FailedStepSet.union steps_intersect new_failed_steps in
       Stringtbl.replace repo_state.failed_steps repo_key { steps = updated_steps; last_build = n.build.number };
-      Lwt.return_ok (Common.FailedStepSet.elements new_failed_steps)
+      Lwt.return_ok new_failed_steps
 end

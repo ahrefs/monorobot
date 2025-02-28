@@ -647,15 +647,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         (match should_notify with
         | false -> Lwt.return_unit
         | true ->
-          let failed_builds_channel = failed_builds_channel_exn cfg n in
-          let%lwt slack_user_id =
-            let email = extract_metadata_email n.build.meta_data.commit |> Option.default "" in
-            match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
-            | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
-            | Error e ->
-              log#warn "couldn't match commit email %s to slack profile: %s" email e;
-              Lwt.return_none
-          in
           let repo_state = State.find_or_add_repo ctx.state repo_url in
           let get_build ~build_url =
             Buildkite_api.get_build' ~ctx ~build_url ~build_nr:(string_of_int n.build.number) id
@@ -663,16 +654,29 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           (match%lwt new_failed_steps ~repo_state ~get_build n with
           | Error e -> action_error e
           | Ok failed_steps ->
-            let notifications =
-              match failed_steps with
-              | [] -> []
-              | failed_steps ->
-                let is_fix_build_notification = n.build.state = Passed in
-                let channel = Common.Status_notification.inject_channel failed_builds_channel in
-                [
-                  Slack.generate_failed_build_notification ?slack_user_id ~is_fix_build_notification ~failed_steps n
-                    channel;
-                ]
+            let%lwt notifications =
+              let channel = Common.Status_notification.inject_channel (failed_builds_channel_exn cfg n) in
+              match FailedStepSet.is_empty failed_steps with
+              | true ->
+                (match n.build.state with
+                | Passed ->
+                  Lwt.return
+                    [ Slack.generate_failed_build_notification ~is_fix_build_notification:true ~failed_steps n channel ]
+                | _ -> Lwt.return [])
+              | false ->
+                let%lwt slack_user_id =
+                  match n.build.state with
+                  | Failed | Canceled ->
+                    (* We only @mention the author if the build failed or was canceled *)
+                    let email = extract_metadata_email n.build.meta_data.commit |> Option.default "" in
+                    (match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+                    | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
+                    | Error e ->
+                      log#warn "couldn't match commit email %s to slack profile: %s" email e;
+                      Lwt.return_none)
+                  | _ -> Lwt.return_none
+                in
+                Lwt.return [ Slack.generate_failed_build_notification ?slack_user_id ~failed_steps n channel ]
             in
             let%lwt () = send_notifications ctx notifications in
             (match ctx.state_filepath with
