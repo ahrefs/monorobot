@@ -1,7 +1,6 @@
 (library
  (name lib)
  (libraries
-  atdgen
   atdgen-runtime
   base64
   biniou
