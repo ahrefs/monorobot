@@ -160,22 +160,6 @@ let parse_exn ~get_build_branch headers body =
           Lwt.return branches)
     in
     let n = { n with branches = built_branch } in
-    let%lwt () =
-      let open Util.Build in
-      match n.target_url with
-      | None ->
-        (* We don't support notifications without a build url or description *)
-        Lwt.return_unit
-      | Some build_url ->
-        let build_number = get_build_number_exn ~build_url |> Int64.of_int in
-        let is_step_notification = is_pipeline_step n.context in
-        let is_canceled = is_canceled_build n in
-        let%lwt (_ : int64 Database.db_use_result) =
-          Database.Status_notifications_table.init n ~notification_text:body ~build_number ~is_step_notification
-            ~is_canceled "Github.parse_exn"
-        in
-        Lwt.return_unit
-    in
     let branches_str = sprintf "[%s]" @@ String.concat ", " (List.map (fun (b : branch) -> b.name) n.branches) in
     log#info "[%s] event %s: commit=%s, state=%s, context=%s, target_url=%s, branches=%s" n.repository.full_name event
       (print_commit_hash n.commit.sha) (string_of_status_state n.state) n.context (print_opt id n.target_url)

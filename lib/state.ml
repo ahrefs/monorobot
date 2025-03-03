@@ -52,12 +52,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
   in
 
   match n.target_url with
-  | None ->
-    (* if we don't have a target_url value, we don't have a build number and cant't track build state *)
-    let%lwt (_ : int64 Database.db_use_result) =
-      Database.Status_notifications_table.last_handled_in n "State.set_repo_pipeline_status > target_url is None"
-    in
-    Lwt.return_unit
+  | None -> Lwt.return_unit
   | Some build_url ->
     let context = n.context in
     let { Util.Build.pipeline_name; _ } = Util.Build.parse_context_exn ~context in
@@ -108,10 +103,6 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     let repo_state = find_or_add_repo' state n.repository.url in
     let update_status_map f =
       let%lwt updated_statuses = StringMap.update_async pipeline_name f repo_state.pipeline_statuses in
-      let%lwt (_ : int64 Database.db_use_result) =
-        Database.Status_notifications_table.update_state n ~pipeline_name ~before:repo_state.pipeline_statuses
-          ~after:updated_statuses msg
-      in
       repo_state.pipeline_statuses <- updated_statuses;
       Lwt.return_unit
     in

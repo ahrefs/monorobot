@@ -12,8 +12,6 @@ let log = Log.from "action"
 let action_error msg = raise (Action_error msg)
 let handler_error msg = raise (Success_handler_error msg)
 
-let last_handled_in = Database.Status_notifications_table.last_handled_in
-
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api : Api.Buildkite) = struct
   let canonical_regex = Re2.create_exn {|\.|\-|\+.*|@.*|}
   (* Match email domain, everything after '+', as well as dots and hyphens *)
@@ -150,7 +148,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
 
   let partition_status (ctx : Context.t) (n : status_notification) =
     let open Util.Build in
-    let open Database in
     let repo = n.repository in
     let cfg = Context.find_repo_config_exn ctx repo.url in
     let repo_state = State.find_or_add_repo ctx.state repo.url in
@@ -346,21 +343,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                req, Option.map (fun handler -> handler (Slack_api.send_file ~ctx)) handler)
              channels
          in
-         let%lwt (_ : int64 Database.db_use_result) =
-           let ns =
-             String.concat ", "
-             @@ List.map (fun ((n, _) : Slack_t.post_message_req * _) -> Slack_channel.Any.project n.channel) notifs
-           in
-           last_handled_in n (Printf.sprintf "Action.generate_notifications > notifs = %s" ns)
-         in
          (* We only care about maintaining status for notifications of allowed pipelines in the main branch *)
          let%lwt () =
            match Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n with
-           | false ->
-             let%lwt (_ : int64 Database.db_use_result) =
-               last_handled_in n "Action.generate_notifications > no set state"
-             in
-             Lwt.return_unit
+           | false -> Lwt.return_unit
            | true -> State.set_repo_pipeline_status ctx.state n
          in
          Lwt.return notifs
@@ -372,11 +358,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
          let%lwt () =
            match Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n with
            | true -> State.set_repo_pipeline_status ctx.state n
-           | false ->
-             let%lwt (_ : int64 Database.db_use_result) =
-               last_handled_in n "Action.generate_notifications > exn > no set state"
-             in
-             Lwt.return_unit
+           | false -> Lwt.return_unit
          in
          Lwt.return [])
   let send_notifications (ctx : Context.t) notifications =
