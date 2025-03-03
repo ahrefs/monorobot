@@ -24,8 +24,12 @@ A secrets file stores sensitive information. Unlike the repository configuration
 | `slack_access_token` | slack bot access token to enable message posting to the workspace | Yes | try to use webhooks defined in `slack_hooks` instead |
 | `slack_hooks` | list of channel names and their corresponding webhook endpoint | Yes | try to use token defined in `slack_access_token` instead |
 | `slack_signing_secret` | specify to verify incoming slack requests | Yes | - |
+| `buildkite_access_token` | Buildkite access token, used to query the Buildkite API for builds details | Yes | - |
+| `buildkite_signing_secret` | specify to verify incoming Buildkite webhook requests | Yes | - |
 
-Note that either `slack_access_token` or `slack_hooks` must be defined. If both are present, the bot will send notifications using webhooks.
+Note that:
+- either `slack_access_token` or `slack_hooks` must be defined. If both are present, the bot will send notifications using webhooks.
+- the failed builds notifications require the `buildkite_access_token` to work
 
 ## `repos`
 
@@ -99,3 +103,17 @@ Expected format:
 ```
 
 Refer [here](https://api.slack.com/messaging/webhooks) for obtaining a webhook for a channel.
+
+## `buildkite_access_token`
+This token is used to get informations regarding builds details and components. It's required to use the failed builds notifications feature.
+
+You also need to have one webhook configured on your pipelines with the `build.finished` scope. Configure the `buildkite_signing_secret` setting to validate the payloads if you require it.
+
+To manage your API access tokens, visit your [personal settings page](https://buildkite.com/user/api-access-tokens) where you can create or edit them.
+
+Admins can go to the [API Access Audit](https://buildkite.com/organizations/%7E/api-access-audit) page to review all tokens with access to the organization's data. You can also check each token's permissions and remove access if necessary.
+
+## `buildkite_signing_secret`
+This secret is used to [validate the payloads that Buildkite sends on the webhook](https://buildkite.com/docs/apis/webhooks#webhook-signature).
+
+Webhooks can be added and configured on your organization's [Notification Services settings page](https://buildkite.com/organizations/-/services).

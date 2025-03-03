@@ -236,7 +236,12 @@ module Buildkite : Api.Buildkite = struct
       with_cache_file url Buildkite_j.job_log_of_string
     | _ -> failwith "failed to get all job log details from the job."
 
-  let get_build' (n : Github_t.status_notification) read =
+  let get_build' ~ctx:_ ~build_url ~build_nr:_ map =
+    let url = Filename.concat buildkite_cache_dir build_url in
+    with_cache_file url Buildkite_j.get_build_res_of_string |> Lwt_result.map map
+
+  [@@@warning "-27"]
+  let get_build ?(cache : [ `Use | `Refresh ] option) ~ctx (n : Github_t.status_notification) =
     match n.target_url with
     | None -> Lwt.return_error "no build url. Is this a Buildkite notification?"
     | Some build_url ->
@@ -244,13 +249,8 @@ module Buildkite : Api.Buildkite = struct
     | exception _ -> failwith "Failed to parse Buildkite build url"
     | [| Some _; Some org; Some pipeline; Some build_nr |] ->
       let file = clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr) in
-      let url = Filename.concat buildkite_cache_dir file in
-      with_cache_file url read
+      get_build' ~ctx ~build_url:file ~build_nr id
     | _ -> failwith "failed to get all build details from the notification. Is this a Buildkite notification?"
-
-  [@@@warning "-27"]
-  let get_build ?(cache : [ `Use | `Refresh ] option) ~ctx:_ (n : Github_t.status_notification) =
-    get_build' n Buildkite_j.get_build_res_of_string
 
   let get_build_branch ~ctx (n : Github_t.status_notification) =
     Lwt_result.map (fun { Buildkite_t.branch; _ } : Github_t.branch -> { name = branch }) (get_build ~ctx n)

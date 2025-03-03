@@ -14,7 +14,7 @@ type string_set =
   string list
     wrap <ocaml module="Common.StringSet">
 
-type failed_step <ocaml from="Buildkite" t="failed_step"> = abstract
+type failed_step <ocaml from="Buildkite"> = abstract
 
 type failed_step_set =
   failed_step list
