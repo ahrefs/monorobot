@@ -68,7 +68,12 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
         let repo_state = find_or_add_repo { state } n.repository.url in
         match Util.Build.get_current_build n repo_state with
         | None -> { State_t.status = n.state; created_at = Timestamp.wrap_with_fallback n.updated_at }
-        | Some (current_build_status : State_t.build_status) -> { current_build_status with status = n.state }
+        | Some (current_build_status : State_t.build_status) ->
+        match Util.Build.is_failing_build n with
+        | true ->
+          (* we don't want to have the state change to failed prematurely. *)
+          current_build_status
+        | false -> { current_build_status with status = n.state }
       in
       update_builds_in_branches
         ~default_builds_map:(IntMap.singleton build_number updated_status)
@@ -101,7 +106,7 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
     in
 
     let repo_state = find_or_add_repo' state n.repository.url in
-    let update_curr_status f msg =
+    let update_status_map f =
       let%lwt updated_statuses = StringMap.update_async pipeline_name f repo_state.pipeline_statuses in
       let%lwt (_ : int64 Database.db_use_result) =
         Database.Status_notifications_table.update_state n ~pipeline_name ~before:repo_state.pipeline_statuses
@@ -111,9 +116,8 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
       Lwt.return_unit
     in
     (match n.state with
-    | Success -> update_curr_status clean_builds "State.set_repo_pipeline_status > Success"
-    | Error | Failure | Pending ->
-      update_curr_status update_pipeline_status "State.set_repo_pipeline_status > Error | Failure | Pending")
+    | Success -> update_status_map clean_builds
+    | Error | Failure | Pending -> update_status_map update_pipeline_status)
 
 let set_repo_pipeline_commit { state } (n : Github_t.status_notification) =
   let rotation_threshold = 1000 in

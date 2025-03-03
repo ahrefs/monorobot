@@ -77,6 +77,7 @@ module Build = struct
     | [| Some _; Some "github.com"; Some user; Some repo |] ->
       sprintf "https://api.github.com/repos/%s/%s/contents/{+path}" user repo
     | [| Some _; Some url; Some user; Some repo |] ->
+      (* GHE links *)
       sprintf "https://%s/api/v3/repos/%s/%s/contents/{+path}" url user repo
     | _ -> failwith "failed to get repo details from the ssh link."
 
@@ -350,19 +351,19 @@ module Webhook = struct
     in
     match Stringtbl.find_opt repo_state.failed_steps repo_key with
     | Some state when n.build.number < state.last_build ->
-      (* discard if this build is older than the last build that was notified *)
+      (* discard if current build is older than the last build that was notified *)
       Lwt.return_ok Common.FailedStepSet.empty
     | None ->
       let* failed_steps = get_failed_steps () in
       Stringtbl.replace repo_state.failed_steps repo_key { steps = failed_steps; last_build = n.build.number };
       Lwt.return_ok failed_steps
     | Some state ->
-      let* build_faild_steps = get_failed_steps () in
+      let* build_failed_steps = get_failed_steps () in
 
-      (* return only the new failed steps. Keep all the failing steps in state, but keep the
-         original failed steps for the ones that intersect, instead of the new ones. *)
-      let steps_intersect = Common.FailedStepSet.inter state.steps build_faild_steps in
-      let new_failed_steps = Common.FailedStepSet.diff build_faild_steps state.steps in
+      (* return only the new failed steps. Keep all the failed steps in state, but keep the
+         original failed steps urls for the ones that intersect, instead of the new ones. *)
+      let steps_intersect = Common.FailedStepSet.inter state.steps build_failed_steps in
+      let new_failed_steps = Common.FailedStepSet.diff build_failed_steps state.steps in
       let updated_steps = Common.FailedStepSet.union steps_intersect new_failed_steps in
       Stringtbl.replace repo_state.failed_steps repo_key { steps = updated_steps; last_build = n.build.number };
       Lwt.return_ok new_failed_steps

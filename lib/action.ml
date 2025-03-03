@@ -214,37 +214,30 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     match Context.is_pipeline_allowed ctx n with
     | false -> Lwt.return []
     | true ->
-      let update_matched_rule = Status_notifications_table.update_matched_rule n in
-      (match Rule.Status.match_rules ~rules n with
-      | Some (Ignore, _, _) | None ->
-        let%lwt (_ : int64 db_use_result) = update_matched_rule "ignore" in
-        Lwt.return []
-      | Some (Allow, notify_channels, notify_dm) ->
-        let%lwt (_ : int64 db_use_result) = update_matched_rule "allow" in
-        action_on_match n.branches ~notify_channels ~notify_dm
-      | Some (Allow_once, notify_channels, notify_dm) ->
-        let branches =
-          match n.target_url with
-          | None -> n.branches
-          | Some build_url ->
-            let status_switched (_ : branch) =
-              match Util.Build.get_org_pipeline_build' build_url with
-              | Error e ->
-                log#error "failed to get org/pipeline/build_nr from build url %s: %s" build_url e;
-                false
-              | Ok (org, pipeline, _build_nr) ->
-                let repo_key = Util.Webhook.repo_key org pipeline in
-                let steps_state = Stringtbl.find_opt repo_state.failed_steps repo_key in
-                (match steps_state with
-                | None -> n.state = Github_t.Failure
-                | Some failed when FailedStepSet.is_empty failed.steps -> n.state = Failure
-                | Some _ -> n.state = Success)
-            in
-            List.filter status_switched n.branches
-        in
-        let%lwt (_ : int64 db_use_result) = update_matched_rule "allow_once" in
-        let notify_dm = notify_dm && not (State.mem_repo_pipeline_commits ctx.state n) in
-        action_on_match branches ~notify_channels ~notify_dm)
+    match Rule.Status.match_rules ~rules n with
+    | Some (Ignore, _, _) | None -> Lwt.return []
+    | Some (Allow, notify_channels, notify_dm) -> action_on_match n.branches ~notify_channels ~notify_dm
+    | Some (Allow_once, notify_channels, notify_dm) ->
+      let branches =
+        match n.target_url with
+        | None -> n.branches
+        | Some build_url ->
+          let status_switched (_ : branch) =
+            match Util.Build.get_org_pipeline_build' build_url with
+            | Error e ->
+              log#error "failed to get org/pipeline/build_nr from build url %s: %s" build_url e;
+              false
+            | Ok (org, pipeline, _build_nr) ->
+              let repo_key = Util.Webhook.repo_key org pipeline in
+              (match Stringtbl.find_opt repo_state.failed_steps repo_key with
+              | None -> n.state = Github_t.Failure
+              | Some failed when FailedStepSet.is_empty failed.steps -> n.state = Failure
+              | Some _ -> n.state = Success)
+          in
+          List.filter status_switched n.branches
+      in
+      let notify_dm = notify_dm && not (State.mem_repo_pipeline_commits ctx.state n) in
+      action_on_match branches ~notify_channels ~notify_dm
 
   let partition_commit_comment (ctx : Context.t) n =
     let cfg = Context.find_repo_config_exn ctx n.repository.url in
@@ -614,6 +607,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         let repo_url = validate_repo_url secrets n in
         let%lwt cfg =
           match Context.find_repo_config ctx repo_url with
+          | Some config -> Lwt.return config
           | None ->
             (* Fetch the config from github.
                Emulate a repository record with the necessary fields to fetch the config *)
@@ -632,7 +626,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
             (match%lwt fetch_config ~ctx ~repo:fake_repo with
             | Error e -> action_error @@ Printf.sprintf "failed to fetch config for %s: %s" repo_url e
             | Ok () -> Lwt.return @@ Context.find_repo_config_exn ctx repo_url)
-          | Some config -> Lwt.return config
         in
         let should_notify =
           match Util.Build.get_org_pipeline_build' n.build.web_url with

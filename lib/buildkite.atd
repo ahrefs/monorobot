@@ -85,8 +85,8 @@ type get_build_response = {
   (* There are more fields, but we don't need/want them for now *)
 }
 
-(* These are custom types for the steps state and not Buildkite types. We have them here
-   to avoid circular dependencies with common.atd, common.ml and state.m  *)
+(* Custom type for the steps state and not a Buildkite type. We have them here
+   to avoid circular dependencies with common.atd, common.ml and state.ml *)
 type failed_step = {
   name: string;
   build_url: string;
