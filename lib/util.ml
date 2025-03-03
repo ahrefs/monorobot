@@ -316,7 +316,8 @@ module Webhook = struct
   let notify_fail (cfg : Config_t.config) (n : n) =
     let pipeline_name = pipeline_name n in
     let pipeline_config = get_pipeline_config cfg pipeline_name in
-    let notify_canceled_build =
+    (* For now we don't notify for canceled builds. Can we get more value than troubles from it? *)
+    let _notify_canceled_build =
       match pipeline_config with
       | None -> false
       | Some ({ notify_canceled_builds; _ } : Config_t.pipeline) -> notify_canceled_builds && n.build.state = Canceled
@@ -331,7 +332,7 @@ module Webhook = struct
       | None -> false
       | Some main_branch -> String.equal main_branch n.build.branch
     in
-    (n.build.state = Failed || notify_canceled_build) && has_failed_builds_channel && is_main_branch
+    n.build.state = Failed && has_failed_builds_channel && is_main_branch
 
   let notify_success (repo_state : State_t.repo_state) (repo_key : string) (n : n) =
     n.build.state = Passed
