@@ -262,8 +262,19 @@ let git_short_sha_hash hash = String.sub hash 0 8
 
 (** pretty print github commit *)
 let pp_commit_common url id message author =
-  let title = first_line message in
-  sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) (escape_mrkdwn @@ title) author
+  let title = escape_mrkdwn @@ first_line message in
+  (* check if the title contains a PR number and enrich with the PR link if so *)
+  match Re2.matches Github.pr_commit_msg_re title with
+  | false -> sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author
+  | true ->
+    let f m =
+      let pr_num = Re2.Match.get_exn ~sub:(`Index 1) m in
+      match Github.gh_link_of_string url with
+      | Some ((r, _) : repository * Github.gh_resource) -> sprintf "(<%s/pull/%s|#%s>)" r.url pr_num pr_num
+      | None -> sprintf "(#%s)" pr_num
+    in
+    let title' = Re2.replace_exn Github.pr_commit_msg_re title ~f in
+    sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title' author
 
 let pp_commit ({ url; id; message; author; _ } : commit) = pp_commit_common url id message (escape_mrkdwn @@ author.name)
 

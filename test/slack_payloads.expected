@@ -507,7 +507,15 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "username": "monorepo:develop",
-  "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|12 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/75170cc6e1b1aa0c603a13b9480ee1e7d1c9b0d7|75170cc6>` Update readme 2 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/82e3497b0fb250ef1a19daa0996ae0ad51641bea|82e3497b>` Update readme 3 - jose nogueira\n+5 more...\n\n`<https://github.com/thatportugueseguy/monorepo/commit/d6a17bfc44f7e752e02176ba87ec5a97f5b3316b|d6a17bfc>` Update readme 9 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/003927e6c73068f440c28da69386798ece9cb6dc|003927e6>` Update readme 10 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/5de643873ff93dc9163c4c63d3fb7c2ee1bb33b4|5de64387>` Update readme 11 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|12 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme (<https://github.com/thatportugueseguy/monorepo/pull/230|#230>) - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/75170cc6e1b1aa0c603a13b9480ee1e7d1c9b0d7|75170cc6>` Update readme 2 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/82e3497b0fb250ef1a19daa0996ae0ad51641bea|82e3497b>` Update readme 3 - jose nogueira\n+5 more...\n\n`<https://github.com/thatportugueseguy/monorepo/commit/d6a17bfc44f7e752e02176ba87ec5a97f5b3316b|d6a17bfc>` Update readme 9 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/003927e6c73068f440c28da69386798ece9cb6dc|003927e6>` Update readme 10 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/5de643873ff93dc9163c4c63d3fb7c2ee1bb33b4|5de64387>` Update readme 11 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "unfurl_links": false
+}
+===== file ../mock_payloads/push.merge.json =====
+will notify #default
+{
+  "channel": "default",
+  "username": "repo:main",
+  "text": "`<https://github.com/org/repo/commit/2f929e604610c6b1c6830439c0bbe927cb553eb5|2f239e60>` Very important changes on very important files (<https://github.com/org/repo/pull/16|#16>) - User Name",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/push.two_commits_longest_match.json =====

@@ -183,6 +183,7 @@ type gh_resource =
 
 type gh_link = repository * gh_resource
 
+let pr_commit_msg_re = Re2.create_exn {|\(#(\d+)\)|}
 let commit_sha_re = Re2.create_exn {|[a-f0-9]{4,40}|}
 let comparer_re = {|([a-zA-Z0-9/:\-_.~\^]+)|}
 let compare_basehead_re = Re2.create_exn (sprintf {|%s([.]{3})%s|} comparer_re comparer_re)

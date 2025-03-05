@@ -12,7 +12,7 @@
       "id": "80452f696a8988e7234063d47720a62e902f2afc",
       "tree_id": "bf7530bb0b13d0b9f471ff5d1951c59488b5704c",
       "distinct": true,
-      "message": "Update readme",
+      "message": "Update readme (#230)",
       "timestamp": "2019-07-06T11:47:56+01:00",
       "url": "https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc",
       "author": {
@@ -27,9 +27,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "75170cc6e1b1aa0c603a13b9480ee1e7d1c9b0d7",
@@ -50,9 +48,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "82e3497b0fb250ef1a19daa0996ae0ad51641bea",
@@ -73,9 +69,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "21acef0853892844f9849f51738bf90dc238ece5",
@@ -96,9 +90,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "f9bff68156a92cbf415a63e0c4dd9a4f1d58e375",
@@ -119,9 +111,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "dd41341a1dab0aa56aaa32cd77f08a624080218c",
@@ -142,9 +132,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "b15b7fd1dca32314c5d0a501536b99ecba985569",
@@ -165,9 +153,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "bba51d381d0bfd56f795cf4f76c2eb66d15744ed",
@@ -188,9 +174,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "d6a17bfc44f7e752e02176ba87ec5a97f5b3316b",
@@ -211,9 +195,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "003927e6c73068f440c28da69386798ece9cb6dc",
@@ -234,9 +216,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "5de643873ff93dc9163c4c63d3fb7c2ee1bb33b4",
@@ -257,9 +237,7 @@
       },
       "added": [],
       "removed": [],
-      "modified": [
-        "README.md"
-      ]
+      "modified": ["README.md"]
     },
     {
       "id": "e2173f38ae43865433a182c1fc1b5442d9763b54",
@@ -278,9 +256,7 @@
         "email": "mail@example.org",
         "username": "thatportugueseguy"
       },
-      "added": [
-        "TESTING.md"
-      ],
+      "added": ["TESTING.md"],
       "removed": [],
       "modified": []
     }
@@ -302,9 +278,7 @@
       "email": "mail@example.org",
       "username": "thatportugueseguy"
     },
-    "added": [
-      "TESTING.md"
-    ],
+    "added": ["TESTING.md"],
     "removed": [],
     "modified": []
   },
