@@ -452,3 +452,12 @@
   user command error: exit status 1
   
   "
+  $ dune exec text_cleanup -- log3 | sed 's/\$/%/g' | sed 's/\\n/\n/g'
+  "
+  Installing to existing venv 'something'
+  
+  
+  [09:52:01 #] sudo aptitude install -y package1 package2
+  
+  \\027
+  "
