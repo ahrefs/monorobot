@@ -28,112 +28,80 @@
   (pps lwt_ppx)))
 
 (rule
- (targets common_t.ml common_t.mli)
+ (targets common_t.ml common_t.mli common_j.ml common_j.mli)
  (deps common.atd)
  (action
-  (run atdgen -t %{deps})))
+  (progn
+   (run %{bin:atdgen} -j -j-std %{deps})
+   (run %{bin:atdgen} -t %{deps}))))
 
 (rule
- (targets common_j.ml common_j.mli)
- (deps common.atd)
- (action
-  (run atdgen -j -j-std %{deps})))
-
-(rule
- (targets github_t.ml github_t.mli)
+ (targets github_t.ml github_t.mli github_j.ml github_j.mli)
  (deps github.atd)
  (action
-  (run atdgen -t %{deps})))
+  (progn
+   (run %{bin:atdgen} -j -j-std %{deps})
+   (run %{bin:atdgen} -t %{deps}))))
 
 (rule
- (targets github_j.ml github_j.mli)
- (deps github.atd)
- (action
-  (run atdgen -j -j-std %{deps})))
-
-(rule
- (targets buildkite_t.ml buildkite_t.mli)
+ (targets buildkite_t.ml buildkite_t.mli buildkite_j.ml buildkite_j.mli)
  (deps buildkite.atd)
  (action
-  (run atdgen -t %{deps})))
+  (progn
+   (run %{bin:atdgen} -j -j-std %{deps})
+   (run %{bin:atdgen} -t %{deps}))))
 
 (rule
- (targets buildkite_j.ml buildkite_j.mli)
- (deps buildkite.atd)
- (action
-  (run atdgen -j -j-std %{deps})))
-
-(rule
- (targets slack_t.ml slack_t.mli)
+ (targets slack_t.ml slack_t.mli slack_j.ml slack_j.mli)
  (deps slack.atd)
  (action
-  (run atdgen -t %{deps})))
+  (progn
+   (run %{bin:atdgen} -j -j-std %{deps})
+   (run %{bin:atdgen} -t %{deps}))))
 
 (rule
- (targets slack_j.ml slack_j.mli)
- (deps slack.atd)
- (action
-  (run atdgen -j -j-std %{deps})))
-
-(rule
- (targets rule_t.ml rule_t.mli)
+ (targets rule_t.ml rule_t.mli rule_j.ml rule_j.mli)
  (deps rule.atd)
  (action
-  (run atdgen -t %{deps})))
+  (progn
+   (run %{bin:atdgen} -j -j-std %{deps})
+   (run %{bin:atdgen} -t %{deps}))))
 
 (rule
- (targets rule_j.ml rule_j.mli)
- (deps rule.atd)
- (action
-  (run atdgen -j -j-std %{deps})))
-
-(rule
- (targets config_t.ml config_t.mli)
+ (targets config_t.ml config_t.mli config_j.ml config_j.mli)
  (deps config.atd)
  (action
-  (run atdgen -t %{deps})))
+  (progn
+   (run %{bin:atdgen} -j -j-std %{deps})
+   (run %{bin:atdgen} -t %{deps}))))
 
 (rule
- (targets config_j.ml config_j.mli)
- (deps config.atd)
- (action
-  (run atdgen -j -j-std %{deps})))
-
-(rule
- (targets state_t.ml state_t.mli)
+ (targets state_t.ml state_t.mli state_j.ml state_j.mli)
  (deps state.atd)
  (action
-  (run atdgen -t %{deps})))
+  (progn
+   (run %{bin:atdgen} -j -j-std %{deps})
+   (run %{bin:atdgen} -t %{deps}))))
 
 (rule
- (targets state_j.ml state_j.mli)
- (deps state.atd)
- (action
-  (run atdgen -j -j-std %{deps})))
-
-(rule
- (targets debug_db_t.ml debug_db_t.mli)
+ (targets debug_db_t.ml debug_db_t.mli debug_db_j.ml debug_db_j.mli)
  (deps debug_db.atd)
  (action
-  (run atdgen -t %{deps})))
+  (progn
+   (run %{bin:atdgen} -j -j-std %{deps})
+   (run %{bin:atdgen} -t %{deps}))))
 
 (rule
- (targets debug_db_j.ml debug_db_j.mli)
- (deps debug_db.atd)
- (action
-  (run atdgen -j -j-std %{deps})))
-
-(rule
- (targets buildkite_webhook_t.ml buildkite_webhook_t.mli)
+ (targets
+  buildkite_webhook_t.ml
+  buildkite_webhook_t.mli
+  buildkite_webhook_j.ml
+  buildkite_webhook_j.mli)
  (deps buildkite_webhook.atd)
  (action
-  (run atdgen -t %{deps})))
-
-(rule
- (targets buildkite_webhook_j.ml buildkite_webhook_j.mli)
- (deps buildkite_webhook.atd)
- (action
-  (run atdgen -j -j-std %{deps})))
+  (progn
+   (run %{bin:atdgen} -j -j-std %{deps})
+   (run %{bin:atdgen} -t %{deps}))))
 
 (rule
  (target status_notifications_gen.ml)
