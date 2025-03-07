@@ -41,7 +41,7 @@ let run ~ctx ~addr ~port =
             log#debug "slack event: %s" request.body;
             let%lwt res = Action.process_slack_event ctx request.headers request.body in
             ret res
-          | _, [ "bk_webhook" ] ->
+          | _, [ "bk_webhook" ] | _, [ "external"; "bk_webhook" ] ->
             log#debug "buildkite webhook: %s" request.body;
             let%lwt () = Action.process_buildkite_webhook ctx request.headers request.body in
             ret "ok"
