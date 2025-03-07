@@ -60,7 +60,7 @@ module Conn = struct
 
     type t = {
       pool : connection Lwt_pool.t;
-      mutable connections : connection list;
+      connections : connection list;
     }
 
     let create ~max_conn db_path =
