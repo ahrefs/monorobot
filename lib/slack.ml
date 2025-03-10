@@ -426,7 +426,8 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
         |> List.map (fun (job_name, job_log) ->
                let clean = job_log |> Text_cleanup.cleanup |> String.split_on_char '\r' |> String.concat "\n" in
                (* Buildkite has different "sections" on their builds logs. The commands we run come only after this line. *)
-               let content = Stre.after clean "~~~ Running commands\n\n" in
+               let content = Stre.after clean "~~~ Running commands\n" |> String.trim in
+               let content = if content <> "" then content else clean in
                { name = job_name; title = None; alt_txt = None; content })
       in
       Some
