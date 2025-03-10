@@ -318,7 +318,7 @@ module Webhook = struct
   let notify_fail (cfg : Config_t.config) (n : n) =
     let pipeline_name = pipeline_name n in
     let pipeline_config = get_pipeline_config cfg pipeline_name in
-    (* For now we don't notify for canceled builds. Can we get more value than troubles from it? *)
+    (* TODO: For now we don't notify for canceled builds. Can we get more value than troubles from it? *)
     let _notify_canceled_build =
       match pipeline_config with
       | None -> false
