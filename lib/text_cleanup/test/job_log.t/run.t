@@ -2,17 +2,13 @@
   "~~~ Preparing working directory
   % cd /home/user/mydir
   Pseudo-terminal will not be allocated because stdin is not a terminal.
-  
   # Host \"github.com\" already in list of known hosts at \"/home/user/.ssh/known_hosts\"
   % git clean -ffxdq
   % git fetch -v --prune -- origin 404671053ebacf0245dc5b60566eb85e19465860
   From github.com:Account/repo
-  
    * branch            404671053ebacf0245dc5b60566eb85e19465860 -> FETCH_HEAD
-  
   % git checkout -f 404671053ebacf0245dc5b60566eb85e19465860
   HEAD is now at 4046710 test change
-  
   # Cleaning again to catch any post-checkout changes
   % git clean -ffxdq
   # Checking to see if git commit information needs to be sent to Buildkite...
@@ -22,41 +18,23 @@
   % echo \"Test the rocket\"
   dune test
   exit 0
-  
   Test the rocket
-  
   Done: 60% (3/5, 2 left) (jobs: 0)
-  
   Done: 55% (5/9, 4 left) (jobs: 0)
-  
   Done: 66% (6/9, 3 left) (jobs: 1)
-  
   Done: 77% (7/9, 2 left) (jobs: 1)
-  
   Done: 90% (9/10, 1 left) (jobs: 1)
-  
   File \"tests/test.t\", line 1, characters 0-0:
-  
   /usr/bin/git --no-pager diff --no-index --color=always -u _build/.sandbox/b2994389d75f031a56c7ed865141cfe7/default/tests/test.t _build/.sandbox/b2994389d75f031a56c7ed865141cfe7/default/tests/test.t.corrected
-  
   diff --git a/_build/.sandbox/b2994389d75f031a56c7ed865141cfe7/default/tests/test.t b/_build/.sandbox/b2994389d75f031a56c7ed865141cfe7/default/tests/test.t.corrected
-  
   index 88404ca..a9e2880 100644
-  
   --- a/_build/.sandbox/b2994389d75f031a56c7ed865141cfe7/default/tests/test.t
-  
   +++ b/_build/.sandbox/b2994389d75f031a56c7ed865141cfe7/default/tests/test.t.corrected
-  
   @@ -1,2 +1,2 @@
-  
      % dune exec backend
-  
   -  aaabvaaa
-  
   +  aaaa
-  
   Done: 90% (9/10, 1 left) (jobs: 1)
-  
   ^^^ +++
   \240\159\154\168 Error: The command exited with status 1
   ^^^ +++
@@ -64,21 +42,12 @@
   "
   $ dune exec text_cleanup -- log2 | sed 's/\$/%/g' | sed 's/\\n/\n/g'
   "~~~ Preparing working directory
-  
   % cd /opt/homebrew/var/buildkite-agent/builds/Joses-MacBook-Pro-local-5/monorobot-tests/buildkite-tests
-  
   Pseudo-terminal will not be allocated because stdin is not a terminal.
-  
-  
   # Host \"github.com\" already in list of known hosts at \"/Users/ze/.ssh/known_hosts\"
-  
   % git clean -ffxdq
-  
   % git fetch -v --prune -- origin 47033fe29b3aeb78f118a84a7512e28cac504901
-  
   remote: Enumerating objects: 612, done.
-  
-  
   remote: Counting objects:   1% (1/81)
   remote: Counting objects:   2% (2/81)
   remote: Counting objects:   3% (3/81)
@@ -161,8 +130,6 @@
   remote: Counting objects:  98% (80/81)
   remote: Counting objects: 100% (81/81)
   remote: Counting objects: 100% (81/81), done.
-  
-  
   remote: Compressing objects:   3% (1/30)
   remote: Compressing objects:   6% (2/30)
   remote: Compressing objects:  10% (3/30)
@@ -194,8 +161,6 @@
   remote: Compressing objects:  96% (29/30)
   remote: Compressing objects: 100% (30/30)
   remote: Compressing objects: 100% (30/30), done.
-  
-  
   Receiving objects:   0% (1/612)
   Receiving objects:   1% (7/612)
   Receiving objects:   2% (13/612)
@@ -234,8 +199,6 @@
   Receiving objects:  35% (215/612)
   Receiving objects:  36% (221/612)
   remote: Total 612 (delta 54), reused 58 (delta 51), pack-reused 531 (from 2)
-  
-  
   Receiving objects:  37% (227/612)
   Receiving objects:  38% (233/612)
   Receiving objects:  39% (239/612)
@@ -301,8 +264,6 @@
   Receiving objects:  99% (606/612)
   Receiving objects: 100% (612/612)
   Receiving objects: 100% (612/612), 67.95 KiB | 809.00 KiB/s, done.
-  
-  
   Resolving deltas:   0% (0/236)
   Resolving deltas:   1% (3/236)
   Resolving deltas:   2% (5/236)
@@ -404,60 +365,101 @@
   Resolving deltas:  99% (234/236)
   Resolving deltas: 100% (236/236)
   Resolving deltas: 100% (236/236), completed with 7 local objects.
-  
-  
   From github.com:thatportugueseguy/buildkite-starter
-  
-  
    * branch            47033fe29b3aeb78f118a84a7512e28cac504901 -> FETCH_HEAD
-  
-  
   % git checkout -f 47033fe29b3aeb78f118a84a7512e28cac504901
-  
   Previous HEAD position was 8147cf8 update config
-  
-  
   HEAD is now at 47033fe fail 2 & notify
-  
-  
   # Cleaning again to catch any post-checkout changes
-  
   % git clean -ffxdq
-  
   # Checking to see if git commit information needs to be sent to Buildkite...
-  
   % buildkite-agent meta-data exists buildkite:git:commit
-  
   # Git commit information has already been sent to Buildkite
-  
   ~~~ Running commands
-  
   % echo \"Fail the rocket\"
-  
   sleep 30
-  
   exit 1
-  
-  
-  
   Fail the rocket
-  
-  
   ^^^ +++
-  
   \240\159\154\168 Error: The command exited with status 1
-  
   ^^^ +++
-  
   user command error: exit status 1
-  
   "
   $ dune exec text_cleanup -- log3 | sed 's/\$/%/g' | sed 's/\\n/\n/g'
   "
   Installing to existing venv 'something'
-  
-  
   [09:52:01 #] sudo aptitude install -y package1 package2
-  
   \\027
+  "
+  $ dune exec text_cleanup -- organizations_ahrefs_pipelines_pipeline2_builds_181734_jobs_01948e8b-5b5e-4e4a-9e0b-b8b64e381c90_logs --json | sed 's/\$/%/g' | sed 's/\\n/\n/g'
+  "~~~ Preparing working directory
+  % cd /home/emile/.buildkite-agent/builds/emile-tarides-1/monorobot-test-org/monorobot-test-pipeline
+  Pseudo-terminal will not be allocated because stdin is not a terminal.
+  # Host \"github.com\" already in list of known hosts at \"/home/emile/.ssh/known_hosts\"
+  % git clean -ffxdq
+  % git fetch -v --prune -- origin 404671053ebacf0245dc5b60566eb85e19465860
+  From github.com:EmileTrotignon/monorobot_test
+   * branch            404671053ebacf0245dc5b60566eb85e19465860 -> FETCH_HEAD
+  % git checkout -f 404671053ebacf0245dc5b60566eb85e19465860
+  HEAD is now at 4046710 test change
+  # Cleaning again to catch any post-checkout changes
+  % git clean -ffxdq
+  # Checking to see if git commit information needs to be sent to Buildkite...
+  % buildkite-agent meta-data exists buildkite:git:commit
+  # Git commit information has already been sent to Buildkite
+  ~~~ Running commands
+  % echo \"Test the rocket\"
+  dune test
+  exit 0
+  Test the rocket
+  File \"tests/test.t\", line 1, characters 0-0:
+  /usr/bin/git --no-pager diff --no-index --color=always -u _build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t _build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t.corrected
+  diff --git a/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t b/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t.corrected
+  index 88404ca..a9e2880 100644
+  --- a/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t
+  +++ b/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t.corrected
+  @@ -1,2 +1,2 @@
+     % dune exec backend
+  -  aaabvaaa
+  +  aaaa
+  ^^^ +++
+  \240\159\154\168 Error: The command exited with status 1
+  ^^^ +++
+  user command error: exit status 1
+  "
+  $ dune exec text_cleanup -- organizations_ahrefs_pipelines_pipeline2_builds_181734_jobs_01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8_logs --json | sed 's/\$/%/g' | sed 's/\\n/\n/g'
+  "~~~ Preparing working directory
+  % cd /home/emile/.buildkite-agent/builds/emile-tarides-1/monorobot-test-org/monorobot-test-pipeline
+  Pseudo-terminal will not be allocated because stdin is not a terminal.
+  # Host \"github.com\" already in list of known hosts at \"/home/emile/.ssh/known_hosts\"
+  % git clean -ffxdq
+  % git fetch -v --prune -- origin 404671053ebacf0245dc5b60566eb85e19465860
+  From github.com:EmileTrotignon/monorobot_test
+   * branch            404671053ebacf0245dc5b60566eb85e19465860 -> FETCH_HEAD
+  % git checkout -f 404671053ebacf0245dc5b60566eb85e19465860
+  HEAD is now at 4046710 test change
+  # Cleaning again to catch any post-checkout changes
+  % git clean -ffxdq
+  # Checking to see if git commit information needs to be sent to Buildkite...
+  % buildkite-agent meta-data exists buildkite:git:commit
+  # Git commit information has already been sent to Buildkite
+  ~~~ Running commands
+  % echo \"Test the rocket\"
+  dune test
+  exit 0
+  Test the rocket
+  File \"tests/test.t\", line 1, characters 0-0:
+  /usr/bin/git --no-pager diff --no-index --color=always -u _build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t _build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t.corrected
+  diff --git a/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t b/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t.corrected
+  index 88404ca..a9e2880 100644
+  --- a/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t
+  +++ b/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t.corrected
+  @@ -1,2 +1,2 @@
+     % dune exec backend
+  -  aaabvaaa
+  +  aaaa
+  ^^^ +++
+  \240\159\154\168 Error: The command exited with status 1
+  ^^^ +++
+  user command error: exit status 1
   "
