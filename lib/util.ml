@@ -327,12 +327,7 @@ module Webhook = struct
       | Some ({ failed_builds_channel = Some _channel; _ } : Config_t.pipeline) -> true
       | Some _ | None -> false
     in
-    let is_main_branch =
-      match cfg.main_branch_name with
-      | None -> false
-      | Some main_branch -> String.equal main_branch n.build.branch
-    in
-    n.build.state = Failed && has_failed_builds_channel && is_main_branch
+    n.build.state = Failed && has_failed_builds_channel
 
   let notify_success (repo_state : State_t.repo_state) (repo_key : string) (n : n) =
     n.build.state = Passed
