@@ -315,23 +315,26 @@ module Buildkite : Api.Buildkite = struct
     | exception exn -> Lwt.return_error (query_error_msg url (Exn.to_string exn))
 
   let request_token_auth ~name ?headers ?body ~ctx meth path read =
-    log#info "%s: starting request" name;
     let secrets = Context.get_secrets_exn ctx in
     match secrets.buildkite_access_token with
     | None -> Lwt.return @@ fmt_error "%s: failed to retrieve Buildkite access token" name
     | Some access_token ->
       let headers = bearer_token_header access_token :: Option.default [] headers in
       let url = sprintf "https://api.buildkite.com/v2/%s" path in
+      log#info "%s: request %s" name url;
       buildkite_api_request ?body ~headers meth url read
       |> Lwt_result.map_error (fun e -> sprintf "%s: failure : %s" name e)
 
   let get_job_log ~ctx n (job : Buildkite_t.job) =
     let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build n in
     let url = sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/log" org pipeline build_nr job.id in
-    request_token_auth ~name:"get buildkite job logs" ~ctx `GET url Buildkite_j.job_log_of_string
+    request_token_auth ~name:"get job logs" ~ctx `GET url Buildkite_j.job_log_of_string
 
   let get_build' ~ctx ~build_url ~build_nr map =
-    let* build = request_token_auth ~name:"get build details" ~ctx `GET build_url Buildkite_j.get_build_res_of_string in
+    let* build =
+      request_token_auth ~name:("get build details for #" ^ build_nr) ~ctx `GET build_url
+        Buildkite_j.get_build_res_of_string
+    in
     Builds_cache.set builds_cache build_nr build;
     Lwt.return_ok (map build)
 

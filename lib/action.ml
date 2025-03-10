@@ -581,11 +581,16 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
   let process_buildkite_webhook (ctx : Context.t) headers body =
     let open Util.Webhook in
     try%lwt
+      let n = Buildkite_webhook_j.webhook_build_payload_of_string body in
+      log#info "[buildkite_webhook] [%s] event %s: state=%s, branch=%s, commit=%s, pipeline=%s, build_url=%s"
+        n.pipeline.provider.settings.repository
+        (Buildkite_webhook_j.string_of_webhook_event n.event)
+        (Buildkite_j.string_of_build_state n.build.state)
+        n.build.branch (String.sub n.build.sha 0 8) (pipeline_name n) n.build.web_url;
       let secrets = Context.get_secrets_exn ctx in
       match validate_signature ?signing_key:secrets.buildkite_signing_secret ~headers body with
       | Error e -> action_error e
       | Ok () ->
-        let n = Buildkite_webhook_j.webhook_build_payload_of_string body in
         let repo_url = validate_repo_url secrets n in
         let%lwt cfg =
           match Context.find_repo_config ctx repo_url with
@@ -606,10 +611,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
               }
             in
             (match%lwt fetch_config ~ctx ~repo:fake_repo with
-            | Error e -> action_error @@ Printf.sprintf "failed to fetch config for %s: %s" repo_url e
-            | Ok () -> Lwt.return @@ Context.find_repo_config_exn ctx repo_url)
+            | Ok () -> Lwt.return @@ Context.find_repo_config_exn ctx repo_url
+            | Error e -> action_error @@ Printf.sprintf "failed to fetch config for %s: %s" repo_url e)
         in
         let should_notify =
+          match cfg.main_branch_name |> Option.map_default (String.equal n.build.branch) false with
+          | false -> false
+          | true ->
           match Util.Build.get_org_pipeline_build' n.build.web_url with
           | Error e ->
             log#error "failed to get org/pipeline/build_nr from build url %s: %s" n.build.web_url e;
@@ -617,12 +625,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           | Ok (org, pipeline, _build_nr) ->
             let repo_state = State.find_or_add_repo ctx.state repo_url in
             let repo_key = Util.Webhook.repo_key org pipeline in
-            let is_main_branch =
-              match cfg.main_branch_name with
-              | None -> false
-              | Some main_branch -> String.equal main_branch n.build.branch
-            in
-            is_main_branch && (notify_fail cfg n || notify_success repo_state repo_key n)
+            notify_fail cfg n || notify_success repo_state repo_key n
         in
         (match should_notify with
         | false -> Lwt.return_unit

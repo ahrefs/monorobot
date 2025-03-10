@@ -32,6 +32,14 @@ type build = {
   finished_at: timestamp nullable;
 }
 
+type pipeline_provider_settings = {
+  repository: string;
+}
+
+type pipeline_provider = {
+  settings: pipeline_provider_settings;
+}
+
 type pipeline = {
   id: string;
   web_url: string;
@@ -39,6 +47,7 @@ type pipeline = {
   description: string;
   repository: string;
   slug: string nullable;
+  provider: pipeline_provider;
 }
 
 type webhook_build_payload =  {
