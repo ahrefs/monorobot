@@ -114,6 +114,11 @@ module Build = struct
     | build_number -> int_of_string build_number
     | exception _ -> util_error "failed to get build number from url"
 
+  let get_build_url (n : Github_t.status_notification) =
+    match n.target_url with
+    | None -> Error "no build url. Is this a Buildkite notification?"
+    | Some build_url -> Ok build_url
+
   let get_org_pipeline_build' build_url =
     match Re2.find_submatches_exn buildkite_org_pipeline_build_re build_url with
     | exception _ -> util_error "failed to parse Buildkite build url: %s" build_url
@@ -121,9 +126,7 @@ module Build = struct
     | _ -> util_error "failed to get the build details from the notification. Is this a Buildkite notification?"
 
   let get_org_pipeline_build (n : Github_t.status_notification) =
-    match n.target_url with
-    | None -> Error "no build url. Is this a Buildkite notification?"
-    | Some build_url -> get_org_pipeline_build' build_url
+    Result.(join @@ map get_org_pipeline_build' (get_build_url n))
 
   let is_failed_build (n : Github_t.status_notification) =
     n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description)

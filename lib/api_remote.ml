@@ -328,31 +328,34 @@ module Buildkite : Api.Buildkite = struct
     let url = sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/log" org pipeline build_nr job.id in
     request_token_auth ~name:"get job logs" ~ctx `GET url Buildkite_j.job_log_of_string
 
-  let get_build' ~ctx ~build_url ~build_nr map =
-    let* build =
-      request_token_auth ~name:("get build details for #" ^ build_nr) ~ctx `GET build_url
-        Buildkite_j.get_build_res_of_string
-    in
-    Builds_cache.set builds_cache build_nr build;
-    Lwt.return_ok (map build)
+  let cache_key org pipeline build_nr = sprintf "%s/%s/%s" org pipeline build_nr
 
-  let get_build ?(cache : [ `Use | `Refresh ] = `Use) ~(ctx : Context.t) (n : Github_t.status_notification) =
-    let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build n in
+  let get_build ?(cache : [ `Use | `Refresh ] = `Use) ~(ctx : Context.t) build_url =
+    let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build' build_url in
     let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
-    match cache with
-    | `Use ->
-      (match Builds_cache.get builds_cache build_nr with
+    let build_key = cache_key org pipeline build_nr in
+    let* build =
+      let get () =
+        request_token_auth ~name:("get build details for #" ^ build_nr) ~ctx `GET build_url
+          Buildkite_j.get_build_res_of_string
+      in
+      match cache with
+      | `Refresh -> get ()
+      | `Use ->
+      match Builds_cache.get builds_cache build_key with
       | Some build -> Lwt.return_ok build
-      | None -> get_build' ~ctx ~build_url ~build_nr id)
-    | `Refresh -> get_build' ~ctx ~build_url ~build_nr id
+      | None -> get ()
+    in
+    Builds_cache.set builds_cache build_key build;
+    Lwt.return_ok build
 
   let get_build_branch ~(ctx : Context.t) (n : Github_t.status_notification) =
     let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build n in
     let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
     let map_branch { Buildkite_t.branch; _ } : Github_t.branch = { name = branch } in
-    match Builds_cache.get builds_cache build_nr with
+    match Builds_cache.get builds_cache (cache_key org pipeline build_nr) with
     | Some { Buildkite_t.branch; _ } -> Lwt.return_ok ({ name = branch } : Github_t.branch)
     | None ->
       log#info "Fetching branch details for build %s in pipeline %s" build_nr pipeline;
-      get_build' ~ctx ~build_url ~build_nr map_branch
+      get_build ~ctx build_url |> Lwt_result.map map_branch
 end

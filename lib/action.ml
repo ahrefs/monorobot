@@ -297,7 +297,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       (Buildkite_api.get_job_log ~ctx n job)
 
   let get_logs ~ctx (n : status_notification) =
-    let* build = Buildkite_api.get_build ~ctx n in
+    let* build_url = Lwt.return @@ Util.Build.get_build_url n in
+    let* build = Buildkite_api.get_build ~ctx build_url in
     let failed_jobs = Util.Build.filter_failed_jobs build.jobs in
     let%lwt logs_or_errors = Lwt_list.map_s (get_job_log_name_and_content ~ctx n) failed_jobs in
     Lwt.return_ok
@@ -646,9 +647,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                  ]
              | Failed ->
                let repo_state = State.find_or_add_repo ctx.state repo_url in
-               let get_build ~build_url =
-                 Buildkite_api.get_build' ~ctx ~build_url ~build_nr:(string_of_int n.build.number) id
-               in
+               let get_build ~build_url = Buildkite_api.get_build ~ctx build_url in
                (match%lwt new_failed_steps ~repo_state ~get_build n with
                | Error e -> action_error e
                | Ok failed_steps ->
