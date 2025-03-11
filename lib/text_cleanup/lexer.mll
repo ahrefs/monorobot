@@ -53,3 +53,17 @@ and cleanup_double_lf buf = parse
   { Buffer.add_string buf (Lexing.lexeme lexbuf);
     cleanup_double_lf buf lexbuf }
 | eof { () }
+
+and cleanup_emoji_choice buf = parse
+| "^^^ +++"
+    { cleanup_emoji_choice_state_2 buf lexbuf }
+| _
+  { Buffer.add_string buf (Lexing.lexeme lexbuf);
+    cleanup_emoji_choice buf lexbuf }
+| eof { () }
+
+and cleanup_emoji_choice_state_2 buf = parse
+| "^^^ +++" | eof { () }
+| _
+  { Buffer.add_string buf (Lexing.lexeme lexbuf);
+    cleanup_emoji_choice_state_2 buf lexbuf }

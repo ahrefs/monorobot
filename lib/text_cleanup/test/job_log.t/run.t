@@ -35,10 +35,7 @@
   -  aaabvaaa
   +  aaaa
   Done: 90% (9/10, 1 left) (jobs: 1)
-  ^^^ +++
   \240\159\154\168 Error: The command exited with status 1
-  ^^^ +++
-  user command error: exit status 1
   "
   $ dune exec text_cleanup -- log2 | sed 's/\$/%/g' | sed 's/\\n/\n/g'
   "~~~ Preparing working directory
@@ -380,10 +377,7 @@
   sleep 30
   exit 1
   Fail the rocket
-  ^^^ +++
   \240\159\154\168 Error: The command exited with status 1
-  ^^^ +++
-  user command error: exit status 1
   "
   $ dune exec text_cleanup -- log3 | sed 's/\$/%/g' | sed 's/\\n/\n/g'
   "
@@ -422,10 +416,7 @@
      % dune exec backend
   -  aaabvaaa
   +  aaaa
-  ^^^ +++
   \240\159\154\168 Error: The command exited with status 1
-  ^^^ +++
-  user command error: exit status 1
   "
   $ dune exec text_cleanup -- organizations_ahrefs_pipelines_pipeline2_builds_181734_jobs_01948e8b-5b5f-44e0-ae9b-0b6f33f48ac8_logs --json | sed 's/\$/%/g' | sed 's/\\n/\n/g'
   "~~~ Preparing working directory
@@ -458,8 +449,5 @@
      % dune exec backend
   -  aaabvaaa
   +  aaaa
-  ^^^ +++
   \240\159\154\168 Error: The command exited with status 1
-  ^^^ +++
-  user command error: exit status 1
   "
