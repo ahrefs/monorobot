@@ -2,15 +2,19 @@ open Devkit
 open Common
 open Printf
 
+exception Util_error of string
 let log = Log.from "util"
 
-let fmt_error ?exn fmt =
+let fmt_error_string ?exn handler fmt =
   ksprintf
     (fun s ->
       match exn with
-      | Some exn -> Error (s ^ " :  exn " ^ Exn.str exn)
-      | None -> Error s)
+      | Some exn -> handler (sprintf "%s : exn %s" s (Exn.str exn))
+      | None -> handler s)
     fmt
+
+let util_error ?exn fmt = fmt_error_string ?exn (fun s -> raise (Util_error s)) fmt
+let fmt_error ?exn fmt = fmt_error_string ?exn Result.error fmt
 
 let first_line s =
   match String.split_on_char '\n' s with
@@ -69,19 +73,19 @@ module Build = struct
 
   let git_ssh_to_https url =
     match Re2.find_submatches_exn git_ssh_re url with
-    | exception exn -> Exn.fail ~exn "failed to parse git ssh link %s" url
+    | exception exn -> util_error ~exn "failed to parse git ssh link %s" url
     | [| Some _; Some url; Some user; Some repo |] -> sprintf "https://%s/%s/%s" url user repo
-    | _ -> failwith "failed to get repo details from the ssh link."
+    | _ -> util_error "failed to get repo details from the ssh link."
 
   let git_ssh_to_contents_url url =
     match Re2.find_submatches_exn git_ssh_re url with
-    | exception exn -> Exn.fail ~exn "failed to parse git ssh link %s" url
+    | exception exn -> util_error ~exn "failed to parse git ssh link %s" url
     | [| Some _; Some "github.com"; Some user; Some repo |] ->
       sprintf "https://api.github.com/repos/%s/%s/contents/{+path}" user repo
     | [| Some _; Some url; Some user; Some repo |] ->
       (* GHE links *)
       sprintf "https://%s/api/v3/repos/%s/%s/contents/{+path}" url user repo
-    | _ -> failwith "failed to get repo details from the ssh link."
+    | _ -> util_error "failed to get repo details from the ssh link."
 
   let is_pipeline_step context = Re2.matches buildkite_is_step_re context
 
@@ -98,7 +102,7 @@ module Build = struct
   let parse_context_exn ~context =
     match parse_context ~context with
     | Some c -> c
-    | None -> failwith (sprintf "failed to get pipeline name from notification. Context: %s" context)
+    | None -> util_error "failed to get pipeline name from notification. Context: %s" context
 
   let buildkite_build_number_re =
     (* buildkite.com/<org_name>/<pipeline_name>/builds/<build_number> *)
@@ -108,13 +112,13 @@ module Build = struct
   let get_build_number_exn ~build_url =
     match Re2.find_first_exn ~sub:(`Index 1) buildkite_build_number_re build_url with
     | build_number -> int_of_string build_number
-    | exception _ -> failwith "failed to get build number from url"
+    | exception _ -> util_error "failed to get build number from url"
 
   let get_org_pipeline_build' build_url =
     match Re2.find_submatches_exn buildkite_org_pipeline_build_re build_url with
-    | exception _ -> failwith (sprintf "failed to parse Buildkite build url: %s" build_url)
+    | exception _ -> util_error "failed to parse Buildkite build url: %s" build_url
     | [| Some _; Some org; Some pipeline; Some build_nr |] -> Ok (org, pipeline, build_nr)
-    | _ -> failwith "failed to get the build details from the notification. Is this a Buildkite notification?"
+    | _ -> util_error "failed to get the build details from the notification. Is this a Buildkite notification?"
 
   let get_org_pipeline_build (n : Github_t.status_notification) =
     match n.target_url with
@@ -212,7 +216,7 @@ module Cache (T : Cache_t) = struct
     let expires_at = add_span (now ()) cache.ttl in
     match expires_at with
     | Some expires_at -> Hashtbl.replace cache.table key { value; expires_at }
-    | None -> Devkit.Exn.fail "Cache: Ptime overflow adding expiration"
+    | None -> util_error "Cache: Ptime overflow adding expiration"
 
   let purge cache =
     Hashtbl.filter_map_inplace
@@ -278,7 +282,7 @@ module Webhook = struct
     let repo_url = Build.git_ssh_to_https n.pipeline.repository in
     match List.exists (fun (r : Config_t.repo_config) -> String.equal r.url repo_url) secrets.repos with
     | true -> repo_url
-    | false -> failwith @@ Printf.sprintf "unsupported repository %s" repo_url
+    | false -> util_error "unsupported repository %s" repo_url
 
   let get_pipeline_config (cfg : Config_t.config) pipeline_name =
     match cfg.status_rules.allowed_pipelines with
@@ -307,7 +311,7 @@ module Webhook = struct
     let pipeline_name = pipeline_name n in
     match get_pipeline_config cfg pipeline_name with
     | Some ({ failed_builds_channel = Some channel; _ } : Config_t.pipeline) -> channel
-    | Some _ | None -> failwith (sprintf "no failed builds channel defined for pipeline %s" pipeline_name)
+    | Some _ | None -> util_error "no failed builds channel defined for pipeline %s" pipeline_name
 
   (** builds should be notified in the builds failed channel if:
      -  the build is failed OR the build is canceled and notify_canceled_builds is true

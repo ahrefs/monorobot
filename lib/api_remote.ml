@@ -70,9 +70,7 @@ module Github : Api.Github = struct
         |> Config_j.config_of_string
         |> fun res -> Lwt.return @@ Ok res
       with exn ->
-        let e = Exn.to_string exn in
-        Lwt.return
-        @@ fmt_error "error while reading config from GitHub response: %s\nfailed to get config from file %s" e url
+        Lwt.return @@ fmt_error ~exn "error reading config from GitHub response.\nfailed to get config from file %s" url
     end
     | encoding ->
       Lwt.return
