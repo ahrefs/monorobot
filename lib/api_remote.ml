@@ -334,22 +334,20 @@ module Buildkite : Api.Buildkite = struct
     let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build' build_url in
     let path = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
     let build_key = cache_key org pipeline build_nr in
-    let* build =
-      let get () =
+    let get () =
+      let* build =
         request_token_auth ~name:("get build details for #" ^ build_nr) ~ctx `GET path
           Buildkite_j.get_build_res_of_string
       in
-      match cache with
-      | `Refresh -> get ()
-      | `Use ->
-      match Builds_cache.get builds_cache build_key with
-      | Some build ->
-        log#info "Cache hit for build %s" build_key;
-        Lwt.return_ok build
-      | None -> get ()
+      Builds_cache.set builds_cache build_key build;
+      Lwt.return_ok build
     in
-    Builds_cache.set builds_cache build_key build;
-    Lwt.return_ok build
+    match cache with
+    | `Refresh -> get ()
+    | `Use ->
+    match Builds_cache.get builds_cache build_key with
+    | Some build -> Lwt.return_ok build
+    | None -> get ()
 
   let get_build_branch ~(ctx : Context.t) (n : Github_t.status_notification) =
     let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build n in
