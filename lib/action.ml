@@ -622,11 +622,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
          in
          let repo_state = State.find_or_add_repo ctx.state repo_url in
          let org, pipeline, _build_nr = Result.get_ok @@ Util.Build.get_org_pipeline_build' n.build.web_url in
-         let repo_key = Util.Webhook.repo_key org pipeline in
-         let should_notify =
-           cfg.main_branch_name |> Option.map_default (String.equal n.build.branch) false
-           && (notify_fail cfg n || notify_success repo_state repo_key n)
-         in
+         let repo_key = repo_key org pipeline in
+         let is_main_branch = cfg.main_branch_name |> Option.map_default (String.equal n.build.branch) false in
+         let should_notify = is_main_branch && (notify_fail cfg n || notify_success repo_state repo_key n) in
          (match should_notify with
          | false -> Lwt.return_unit
          | true ->

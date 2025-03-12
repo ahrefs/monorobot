@@ -338,12 +338,25 @@ module Webhook = struct
     in
     n.build.state = Failed && has_failed_builds_channel
 
+  (** successful builds should be notified if the build fixes the CI:
+      -  the build is successful
+      -  the previous build in the CI was failed
+      There shoudn't be two success notifications in a row. *)
   let notify_success (repo_state : State_t.repo_state) (repo_key : string) (n : n) =
-    n.build.state = Passed
-    && Option.map_default
-         (fun { State_t.steps; _ } -> not (Common.FailedStepSet.is_empty steps))
-         false
-         (Stringtbl.find_opt repo_state.failed_steps repo_key)
+    let has_failed_steps =
+      Option.map_default
+        (fun { State_t.steps; _ } -> not (Common.FailedStepSet.is_empty steps))
+        false
+        (Stringtbl.find_opt repo_state.failed_steps repo_key)
+    in
+    match has_failed_steps, n.build.state = Passed with
+    | true, true -> true
+    | false, true ->
+      (* we don't notify because this build doesn't fix the CI, but we need to update the last_build number *)
+      Stringtbl.replace repo_state.failed_steps repo_key
+        { steps = Common.FailedStepSet.empty; last_build = n.build.number };
+      false
+    | _ -> false
 
   let new_failed_steps ~(repo_state : State_t.repo_state) ~get_build (n : n) =
     let* org, pipeline, build_nr = Lwt.return @@ Build.get_org_pipeline_build' n.build.web_url in
