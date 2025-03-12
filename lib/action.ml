@@ -298,7 +298,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
 
   let get_logs ~ctx (n : status_notification) =
     let* build_url = Lwt.return @@ Util.Build.get_build_url n in
-    let* build = Buildkite_api.get_build ~ctx build_url in
+    let* build = Buildkite_api.get_build ~cache:`Refresh ~ctx build_url in
     let failed_jobs = Util.Build.filter_failed_jobs build.jobs in
     let%lwt logs_or_errors = Lwt_list.map_s (get_job_log_name_and_content ~ctx n) failed_jobs in
     Lwt.return_ok
@@ -346,7 +346,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       (try%lwt
          let%lwt channels = partition_status ctx n in
          let%lwt job_log =
-           match cfg.include_logs_in_notifs with
+           match cfg.include_logs_in_notifs && channels <> [] with
            | false -> Lwt.return []
            | true ->
              (match%lwt get_logs_if_failed ~ctx n with
@@ -643,7 +643,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                  ]
              | Failed ->
                (* repo state is updated upon fetching new failed steps *)
-               (match%lwt new_failed_steps ~repo_state ~get_build:(Buildkite_api.get_build ~ctx) n with
+               (match%lwt new_failed_steps ~repo_state ~get_build:(Buildkite_api.get_build ~cache:`Refresh ~ctx) n with
                | Error e -> action_error e
                | Ok failed_steps ->
                match FailedStepSet.is_empty failed_steps with
