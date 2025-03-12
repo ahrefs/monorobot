@@ -642,9 +642,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                      ~failed_steps:Common.FailedStepSet.empty n channel;
                  ]
              | Failed ->
-               let get_build ~build_url = Buildkite_api.get_build ~ctx build_url in
                (* repo state is updated upon fetching new failed steps *)
-               (match%lwt new_failed_steps ~repo_state ~get_build n with
+               (match%lwt new_failed_steps ~repo_state ~get_build:(Buildkite_api.get_build ~ctx) n with
                | Error e -> action_error e
                | Ok failed_steps ->
                match FailedStepSet.is_empty failed_steps with

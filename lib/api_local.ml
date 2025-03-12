@@ -238,13 +238,10 @@ module Buildkite : Api.Buildkite = struct
 
   [@@@warning "-27"]
   let get_build ?(cache : [ `Use | `Refresh ] option) ~ctx build_url =
-    match Re2.find_submatches_exn Util.Build.buildkite_org_pipeline_build_re build_url with
-    | exception _ -> failwith "Failed to parse Buildkite build url"
-    | [| Some _; Some org; Some pipeline; Some build_nr |] ->
-      let file = clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr) in
-      let url = Filename.concat buildkite_cache_dir file in
-      with_cache_file url Buildkite_j.get_build_res_of_string
-    | _ -> failwith "failed to get all build details from the notification. Is this a Buildkite notification?"
+    let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build' build_url in
+    let file = clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr) in
+    let url = Filename.concat buildkite_cache_dir file in
+    with_cache_file url Buildkite_j.get_build_res_of_string
 
   let get_build_branch ~ctx (n : Github_t.status_notification) =
     let* build_url = Lwt.return @@ Util.Build.get_build_url n in

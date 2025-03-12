@@ -349,9 +349,8 @@ module Webhook = struct
     let* org, pipeline, build_nr = Lwt.return @@ Build.get_org_pipeline_build' n.build.web_url in
     let repo_key = repo_key org pipeline in
     let get_failed_steps () =
-      log#info "Fetching failed steps for org=%s, pipeline=%s, build=%s" org pipeline build_nr;
-      let build_url = Printf.sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
-      let* (build : Buildkite_t.get_build_res) = get_build ~build_url in
+      log#info "Fetching failed steps for build %s/%s/%s" org pipeline build_nr;
+      let* (build : Buildkite_t.get_build_res) = get_build n.build.web_url in
       let to_failed_step (job : Buildkite_t.job) = { Buildkite_t.name = job.name; build_url = job.web_url } in
       Lwt.return_ok @@ (Build.filter_failed_jobs build.jobs |> List.map to_failed_step |> Common.FailedStepSet.of_list)
     in

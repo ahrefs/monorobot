@@ -332,18 +332,20 @@ module Buildkite : Api.Buildkite = struct
 
   let get_build ?(cache : [ `Use | `Refresh ] = `Use) ~(ctx : Context.t) build_url =
     let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build' build_url in
-    let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
+    let path = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
     let build_key = cache_key org pipeline build_nr in
     let* build =
       let get () =
-        request_token_auth ~name:("get build details for #" ^ build_nr) ~ctx `GET build_url
+        request_token_auth ~name:("get build details for #" ^ build_nr) ~ctx `GET path
           Buildkite_j.get_build_res_of_string
       in
       match cache with
       | `Refresh -> get ()
       | `Use ->
       match Builds_cache.get builds_cache build_key with
-      | Some build -> Lwt.return_ok build
+      | Some build ->
+        log#info "Cache hit for build %s" build_key;
+        Lwt.return_ok build
       | None -> get ()
     in
     Builds_cache.set builds_cache build_key build;
@@ -351,11 +353,8 @@ module Buildkite : Api.Buildkite = struct
 
   let get_build_branch ~(ctx : Context.t) (n : Github_t.status_notification) =
     let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build n in
-    let build_url = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
+    let* build_url = Lwt.return @@ Util.Build.get_build_url n in
     let map_branch { Buildkite_t.branch; _ } : Github_t.branch = { name = branch } in
-    match Builds_cache.get builds_cache (cache_key org pipeline build_nr) with
-    | Some { Buildkite_t.branch; _ } -> Lwt.return_ok ({ name = branch } : Github_t.branch)
-    | None ->
-      log#info "Fetching branch details for build %s in pipeline %s" build_nr pipeline;
-      get_build ~ctx build_url |> Lwt_result.map map_branch
+    log#info "Fetching branch details for %s" (cache_key org pipeline build_nr);
+    get_build ~cache:`Use ~ctx build_url |> Lwt_result.map map_branch
 end
