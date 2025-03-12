@@ -620,18 +620,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
              | Ok () -> Lwt.return @@ Context.find_repo_config_exn ctx repo_url
              | Error e -> action_error @@ Printf.sprintf "failed to fetch config for %s: %s" repo_url e)
          in
+         let repo_state = State.find_or_add_repo ctx.state repo_url in
+         let org, pipeline, _build_nr = Result.get_ok @@ Util.Build.get_org_pipeline_build' n.build.web_url in
+         let repo_key = Util.Webhook.repo_key org pipeline in
          let should_notify =
-           match cfg.main_branch_name |> Option.map_default (String.equal n.build.branch) false with
-           | false -> false
-           | true ->
-           match Util.Build.get_org_pipeline_build' n.build.web_url with
-           | Error e ->
-             log#error "failed to get org/pipeline/build_nr from build url %s: %s" n.build.web_url e;
-             false
-           | Ok (org, pipeline, _build_nr) ->
-             let repo_state = State.find_or_add_repo ctx.state repo_url in
-             let repo_key = Util.Webhook.repo_key org pipeline in
-             notify_fail cfg n || notify_success repo_state repo_key n
+           cfg.main_branch_name |> Option.map_default (String.equal n.build.branch) false
+           && (notify_fail cfg n || notify_success repo_state repo_key n)
          in
          (match should_notify with
          | false -> Lwt.return_unit
@@ -640,14 +634,16 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
            let%lwt notifications =
              match n.build.state with
              | Passed ->
+               Stringtbl.replace repo_state.failed_steps repo_key
+                 { steps = Common.FailedStepSet.empty; last_build = n.build.number };
                Lwt.return
                  [
                    Slack.generate_failed_build_notification ~is_fix_build_notification:true
                      ~failed_steps:Common.FailedStepSet.empty n channel;
                  ]
              | Failed ->
-               let repo_state = State.find_or_add_repo ctx.state repo_url in
                let get_build ~build_url = Buildkite_api.get_build ~ctx build_url in
+               (* repo state is updated upon fetching new failed steps *)
                (match%lwt new_failed_steps ~repo_state ~get_build n with
                | Error e -> action_error e
                | Ok failed_steps ->
