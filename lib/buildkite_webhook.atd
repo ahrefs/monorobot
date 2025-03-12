@@ -27,7 +27,6 @@ type build = {
   sha <json name="commit"> : string;
   branch: string;
   meta_data: build_metadata;
-  creator: build_creator;
   created_at: timestamp;
   finished_at: timestamp nullable;
 }
