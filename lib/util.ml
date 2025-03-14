@@ -122,11 +122,10 @@ module Build = struct
   let get_org_pipeline_build' build_url =
     match Re2.find_submatches_exn buildkite_org_pipeline_build_re build_url with
     | exception _ -> util_error "failed to parse Buildkite build url: %s" build_url
-    | [| Some _; Some org; Some pipeline; Some build_nr |] -> Ok (org, pipeline, build_nr)
+    | [| Some _; Some org; Some pipeline; Some build_nr |] -> org, pipeline, build_nr
     | _ -> util_error "failed to get the build details from the notification. Is this a Buildkite notification?"
 
-  let get_org_pipeline_build (n : Github_t.status_notification) =
-    Result.(join @@ map get_org_pipeline_build' (get_build_url n))
+  let get_org_pipeline_build (n : Github_t.status_notification) = Result.(map get_org_pipeline_build' (get_build_url n))
 
   let is_failed_build (n : Github_t.status_notification) =
     n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description)
@@ -246,7 +245,7 @@ module Cache (T : Cache_t) = struct
 end
 
 module Webhook = struct
-  type n = Buildkite_webhook_t.webhook_build_payload
+  type n = Buildkite_t.webhook_build_payload
 
   let parse_signature_header header =
     let timestamp, signature =
@@ -281,7 +280,7 @@ module Webhook = struct
     | Error e -> Error (sprintf "invalid signature header: %s" e)
     | Ok (timestamp, signature) -> is_valid_signature ~secret ~timestamp ~signature body
 
-  let validate_repo_url (secrets : Config_t.secrets) (n : Buildkite_webhook_t.webhook_build_payload) =
+  let validate_repo_url (secrets : Config_t.secrets) (n : Buildkite_t.webhook_build_payload) =
     let repo_url = Build.git_ssh_to_https n.pipeline.repository in
     match List.exists (fun (r : Config_t.repo_config) -> String.equal r.url repo_url) secrets.repos with
     | true -> repo_url
@@ -297,7 +296,7 @@ module Webhook = struct
 
   let repo_key org pipeline = Printf.sprintf "%s/%s" org pipeline
 
-  let extract_metadata_email (metadata : Buildkite_webhook_t.build_metadata option) =
+  let extract_metadata_email (metadata : Buildkite_t.build_metadata option) =
     match metadata with
     | Some { commit = Some commit_str; _ } ->
       let lines = String.split_on_char '\n' commit_str in
@@ -361,31 +360,41 @@ module Webhook = struct
       false
     | _ -> false
 
-  let new_failed_steps ~(repo_state : State_t.repo_state) ~get_build (n : n) =
-    let* org, pipeline, build_nr = Lwt.return @@ Build.get_org_pipeline_build' n.build.web_url in
+  let new_failed_steps ~(repo_state : State_t.repo_state) ~get_build ~db_update (n : n) =
+    let org, pipeline, build_nr = Build.get_org_pipeline_build' n.build.web_url in
     let repo_key = repo_key org pipeline in
     let get_failed_steps () =
       log#info "Fetching failed steps for build %s/%s/%s" org pipeline build_nr;
       let* (build : Buildkite_t.get_build_res) = get_build n.build.web_url in
       let to_failed_step (job : Buildkite_t.job) = { Buildkite_t.name = job.name; build_url = job.web_url } in
-      Lwt.return_ok @@ (Build.filter_failed_jobs build.jobs |> List.map to_failed_step |> Common.FailedStepSet.of_list)
+      Lwt.return_ok @@ (Build.filter_failed_jobs build.jobs |> List.map to_failed_step |> FailedStepSet.of_list)
     in
     match Stringtbl.find_opt repo_state.failed_steps repo_key with
     | Some state when n.build.number < state.last_build ->
+      let%lwt () = db_update ~repo_state ~has_state_update:false n "build number < last build number" in
+
       (* discard if current build is older than the last build that was notified *)
-      Lwt.return_ok Common.FailedStepSet.empty
+      Lwt.return_ok FailedStepSet.empty
     | None ->
       let* failed_steps = get_failed_steps () in
       Stringtbl.replace repo_state.failed_steps repo_key { steps = failed_steps; last_build = n.build.number };
+      let%lwt () = db_update ~repo_state ~has_state_update:true n "no previous repo state" in
       Lwt.return_ok failed_steps
     | Some state ->
       let* build_failed_steps = get_failed_steps () in
 
       (* return only the new failed steps. Keep all the failed steps in state, but keep the
          original failed steps urls for the ones that intersect, instead of the new ones. *)
-      let steps_intersect = Common.FailedStepSet.inter state.steps build_failed_steps in
-      let new_failed_steps = Common.FailedStepSet.diff build_failed_steps state.steps in
-      let updated_steps = Common.FailedStepSet.union steps_intersect new_failed_steps in
+      let steps_intersect = FailedStepSet.inter state.steps build_failed_steps in
+      let new_failed_steps = FailedStepSet.diff build_failed_steps state.steps in
+      let updated_steps = FailedStepSet.union steps_intersect new_failed_steps in
       Stringtbl.replace repo_state.failed_steps repo_key { steps = updated_steps; last_build = n.build.number };
+      let%lwt () =
+        let msg =
+          if FailedStepSet.is_empty new_failed_steps then "no new failed steps > NO NOTIFY"
+          else "with previous repo state"
+        in
+        db_update ~repo_state ~has_state_update:(not @@ FailedStepSet.is_empty new_failed_steps) n msg
+      in
       Lwt.return_ok new_failed_steps
 end

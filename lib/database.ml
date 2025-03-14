@@ -100,7 +100,7 @@ type connection = Conn.Pool.connection
 
 let pool : Conn.Pool.t option ref = ref None
 
-let with_db (f : connection -> 'a Lwt.t) : 'a db_use_result Lwt.t =
+let with_db f_name (f : connection -> 'a Lwt.t) : 'a db_use_result Lwt.t =
   match !available with
   | Not_available -> Lwt.return Db_unavailable
   | Available ->
@@ -109,103 +109,95 @@ let with_db (f : connection -> 'a Lwt.t) : 'a db_use_result Lwt.t =
     | x -> Lwt.return (Ok x)
     | exception e ->
       let exn_str = Printexc.to_string e in
-      log#error "%s" exn_str;
+      log#error "[%s] %s" f_name exn_str;
       Lwt.return (Error exn_str))
 
-module Status_notifications_table = struct
-  include Status_notifications_gen.Make (Conn)
+module Failed_builds = struct
+  module T = Failed_builds_webhook_gen.Make (Conn)
 
-  type n = Github_t.status_notification
+  type n = Buildkite_t.webhook_build_payload
 
-  let id' (n : n) = Int64.of_int n.id
+  let create ~(ctx : Context.t)
+    ({ build = { id; sha; meta_data; state; web_url; number; branch; created_at; _ }; pipeline; _ } : n) =
+    with_db "Failed_builds.create" (fun dbd ->
+        let org, pipeline_name, _build_nr = Util.Build.get_org_pipeline_build' web_url in
+        let repo_url = Util.Build.git_ssh_to_https pipeline.repository in
+        let repo_state = State.find_or_add_repo ctx.state repo_url in
+        let%lwt (build : Buildkite_t.get_build_res) =
+          (* TODO: review. Can we `Use cache here? *)
+          let%lwt b = Api_remote.Buildkite.get_build ~cache:`Refresh ~ctx web_url in
+          Lwt.return @@ Result.get_ok b
+        in
+        let jobs =
+          List.filter
+            (function
+              | Buildkite_t.Script _ | Buildkite_t.Trigger _ -> true
+              | _ -> false)
+            build.jobs
+        in
+        let build_payload = Buildkite_j.string_of_get_build_res { build with jobs } in
+        let commit_author = Util.Webhook.extract_metadata_email meta_data |> Option.default "" in
+        let commit_url = Printf.sprintf "%s/commit/%s" repo_url sha in
+        let notification_created_at = Common.Timestamp.wrap_with_fallback created_at |> Ptime.to_float_s in
+        let state_before_notification =
+          match Common.Stringtbl.find_opt repo_state.failed_steps (Util.Webhook.repo_key org pipeline_name) with
+          | Some state -> State_j.string_of_failed_steps state
+          | None -> ""
+        in
 
-  (* We need to have ~is_step_notification, ~is_canceled, and ~last_handled_in as arguments
-     to avoid circular dependencies with the Util module *)
-  let init (n : n) ~notification_text ~build_number ~is_step_notification ~is_canceled last_handled_in =
-    let { Github_t.commit; state; description; target_url; context; branches; updated_at; _ } = n in
-    let { Github_t.commit : Github_t.inner_commit; sha; html_url; _ } = commit in
-    let ({ Github_t.author; _ } : Github_t.inner_commit) = commit in
-    with_db (fun dbd ->
-        match target_url, description with
-        | None, _ | _, None ->
-          (* We don't support notifications without a build url or description *)
-          failwith
-            "failed to create status notification: missing build url and/or description in the status notification"
-        | Some build_url, Some description ->
-          let branch =
-            match branches with
-            | [] -> failwith "failed to create status notification: no branches found in the status notification"
-            | [ branch ] -> branch.name
-            | _ ->
-              failwith
-                "failed to create status notification: multiple branches are not supported in status notification"
-          in
-          let repository = n.repository.url in
-          let state_before_notification = "{}" in
-          let state_after_notification = "{}" in
-          let updated_at = Common.Timestamp.wrap_with_fallback updated_at |> Ptime.to_float_s in
-          let meta_created_at = updated_at in
-          let meta_updated_at = updated_at in
-          let notification_text =
-            (* remove the commit and repository fields from the notification json text without having to manually
-               create a new record and serialize it *)
-            Debug_db_j.(status_notification_of_string notification_text |> string_of_status_notification)
-          in
-          let n_state =
-            (* using Github_j.string_of_status state creates a string with quotes inside *)
-            match state with
-            | Pending -> "pending"
-            | Success -> "success"
-            | Error -> "error"
-            | Failure -> "failure"
-          in
-          insert ~id:(id' n) ~notification_text ~sha ~commit_author:author.email ~commit_url:html_url ~n_state
-            ~description ~target_url:(Option.get target_url) ~build_url ~build_number ~is_step_notification ~is_canceled
-            ~context ~repository ~branch ~last_handled_in ~updated_at ~state_before_notification
-            ~state_after_notification ~meta_created_at ~meta_updated_at ~matched_rule:"" ~has_state_update:false dbd)
+        (* These values should/will be updated using the update_state_after_notification function. *)
+        let state_after_notification = "" in
+        let has_state_update = false in
 
-  let last_handled_in (n : n) last_handled_in = with_db (update_last_handled_in ~id:(id' n) ~last_handled_in)
+        T.create ~id ~sha ~build_payload
+          ~pipeline_payload:(Buildkite_j.string_of_pipeline pipeline)
+          ~jobs:(Buildkite_j.string_of_jobs jobs) ~commit_author ~commit_url
+          ~build_state:(Buildkite_j.string_of_build_state state)
+          ~build_url:web_url ~build_number:(Int64.of_int number) ~is_canceled:(state = Canceled)
+          ~pipeline:(Util.Webhook.repo_key org pipeline_name)
+          ~repository:repo_url ~branch ~state_before_notification ~state_after_notification ~has_state_update
+          ~notification_created_at
+          ~created_at:(Ptime_clock.now () |> Ptime.to_float_s)
+          ~last_handled_in:"create" dbd)
 
-  let update_matched_rule (n : n) rule = with_db (update_matched_rule ~id:(id' n) ~rule)
-
-  let update_state (n : n) ~before ~after ~pipeline_name last_handled_in =
-    let string_state (pipeline_statuses : State_j.pipeline_statuses) =
-      match n.branches with
-      | [] ->
-        log#error "failed to find branch in status notification: %d" n.id;
-        "{}"
-      | _ :: _ :: _ ->
-        log#error "multiple branches found in status notification: %d" n.id;
-        "{}"
-      | [ { name = branch_name; _ } ] ->
-      match Common.StringMap.find_opt pipeline_name pipeline_statuses with
-      | None -> "{}"
-      | Some branch_statuses ->
-        let b_s = Common.StringMap.find_opt branch_name branch_statuses in
-        Option.map_default State_j.string_of_build_statuses "{}" b_s
+  let update_state_after_notification ~(repo_state : State_t.repo_state) ~has_state_update (n : n) last_handled_in =
+    let org, pipeline_name, _build_nr = Util.Build.get_org_pipeline_build' n.build.web_url in
+    let state_after_notification =
+      match Common.Stringtbl.find_opt repo_state.failed_steps (Util.Webhook.repo_key org pipeline_name) with
+      | Some state -> State_j.string_of_failed_steps state
+      | None -> "no state found to write"
     in
-    let before = string_state before in
-    let after = string_state after in
-    with_db (update_state ~id:(id' n) ~before ~after ~last_handled_in ~has_state_update:(before <> after))
+
+    with_db
+      (Printf.sprintf "Failed_builds.update_state_after_notification %s" last_handled_in)
+      (T.update_state_after_notification ~id:n.build.id ~has_state_update ~state_after_notification ~last_handled_in)
 end
 
 module Debug_db = struct
-  module Replay = Status_notifications_gen.Make (Conn)
+  module Replay = Failed_builds_webhook_gen.Make (Conn)
   open Replay.Fold
 
-  let run ~pipeline ~branch query v f = with_db (fun dbd -> query dbd ~_0:v ~pipeline ~branch f "")
+  let run ~(pipeline : string) ~(branch : string) query v f =
+    with_db "Debug_db.run" (fun dbd ->
+        let acc = "" in
+        match%lwt query dbd ~_0:v ~pipeline ~branch f acc with
+        | "" -> Lwt.return "No results, please check your query"
+        | x -> Lwt.return x)
 
   let get_by_sha = run get_by_sha
   let get_by_build_number n = run get_by_build_number (Int64.of_string n)
-  let get_by_range n = run get_by_range (Int64.of_string n)
-  let get_by_step_name = run get_by_step_name
+  let get_after n = run get_after (Int64.of_string n)
+  let get_from_to ~from ~to_ _ =
+    (* we need to reverse the order of the labeled arguments because of the way we use the run function
+       with the ~_0 arg from sqlgg. The from arg matches ~_0 and to_ matches ~_1 *)
+    run (get_from_to ~to_:(Int64.of_string to_)) (Int64.of_string from)
 end
 
 let init ?(max_conn = 10) db_path =
   let%lwt p = Conn.Pool.create ~max_conn db_path in
   pool := Some p;
   available := Available;
-  match%lwt with_db Status_notifications_table.ensure_status_notifications_table with
+  match%lwt with_db "Database.init" Failed_builds.T.ensure_failed_builds_webhook_table with
   | Ok _ -> Lwt.return_unit
   | Error e -> failwith e
   | Db_unavailable ->

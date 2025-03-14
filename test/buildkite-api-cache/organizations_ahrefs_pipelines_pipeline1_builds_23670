@@ -31,6 +31,9 @@
   "scheduled_at": "2024-06-02T08:54:42.867Z",
   "started_at": "2024-06-02T08:54:47.128Z",
   "finished_at": "2024-06-02T09:19:17.829Z",
+  "meta_data": {
+    "buildkite:git:commit": "commit 51d7c2d0fc8f182f8ffad40ef79471789e6f5578\nabbrev-commit 51d7c2d\nAuthor: Author Name <author@ahrefs.com>\n\n    Commit message"
+  },
   "pull_request": null,
   "rebuilt_from": null,
   "pipeline": {
