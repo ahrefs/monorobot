@@ -648,7 +648,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                | true -> Lwt.return []
                | false ->
                  let%lwt slack_user_id =
-                   let email = extract_metadata_email n.build.meta_data.commit |> Option.default "" in
+                   let email = extract_metadata_email n.build.meta_data |> Option.default "" in
                    match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
                    | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
                    | Error e ->

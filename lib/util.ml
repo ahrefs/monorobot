@@ -297,18 +297,21 @@ module Webhook = struct
 
   let repo_key org pipeline = Printf.sprintf "%s/%s" org pipeline
 
-  let extract_metadata_email commit_str =
-    let lines = String.split_on_char '\n' commit_str in
-    let author_line = List.find_opt (String.starts_with ~prefix:"Author:") lines in
-    match author_line with
-    | None -> None
-    | Some line ->
-      (* Find the position of < and > and extract the email address from within them *)
-      let email_start = String.index_opt line '<' in
-      let email_end = String.index_opt line '>' in
-      (match email_start, email_end with
-      | Some start, Some end_pos -> Some (String.sub line (start + 1) (end_pos - start - 1))
-      | _ -> None)
+  let extract_metadata_email (metadata : Buildkite_webhook_t.build_metadata option) =
+    match metadata with
+    | Some { commit = Some commit_str; _ } ->
+      let lines = String.split_on_char '\n' commit_str in
+      let author_line = List.find_opt (String.starts_with ~prefix:"Author:") lines in
+      (match author_line with
+      | None -> None
+      | Some line ->
+        (* Find the position of < and > and extract the email address from within them *)
+        let email_start = String.index_opt line '<' in
+        let email_end = String.index_opt line '>' in
+        (match email_start, email_end with
+        | Some start, Some end_pos -> Some (String.sub line (start + 1) (end_pos - start - 1))
+        | _ -> None))
+    | _ -> None
 
   let failed_builds_channel_exn cfg n =
     let pipeline_name = pipeline_name n in

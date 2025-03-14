@@ -11,7 +11,7 @@ type build_creator = {
   email: string;
 }
 type build_metadata = {
-  commit <json name="buildkite:git:commit"> : string;
+  ?commit <json name="buildkite:git:commit"> : string nullable;
 }
 
 type build = {
@@ -26,7 +26,7 @@ type build = {
   message: string;
   sha <json name="commit"> : string;
   branch: string;
-  meta_data: build_metadata;
+  ?meta_data: build_metadata nullable;
   created_at: timestamp;
   finished_at: timestamp nullable;
 }
