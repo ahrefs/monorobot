@@ -17,9 +17,6 @@ let try_process_notification body n =
   | Yojson.Json_error msg ->
     log#error "failed to parse file as valid JSON (%s): %s" msg body;
     Lwt.return_unit
-  | Atdgen_runtime.Oj_run.Error msg ->
-    log#error "Atdgen runtime parsing error (%s): %s" msg body;
-    Lwt.return_unit
   | Action_error msg ->
     log#error "action error %s" msg;
     Lwt.return_unit
