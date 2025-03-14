@@ -293,7 +293,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
 
   let get_job_log_name_and_content ~ctx n (job : Buildkite_t.job) =
     Lwt_result.map
-      (fun (job_log : Buildkite_t.job_log) -> job.name, job_log.content)
+      (fun (job_log : Buildkite_t.job_log) ->
+        let log_name =
+          let agent = Option.map_default (fun (agent : Buildkite_t.agent) -> agent.hostname) "unknown" job.agent in
+          Printf.sprintf "%s on %s.txt" job.name agent
+        in
+        log_name, job_log.content)
       (Buildkite_api.get_job_log ~ctx n job)
 
   let get_logs ~ctx (n : status_notification) =

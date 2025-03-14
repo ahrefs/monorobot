@@ -49,6 +49,10 @@ type job_log = {
   size: int
 }
 
+type agent = {
+  hostname: string;
+}
+
 type job =  {
   id : string;
   ?log_url: string option;
@@ -56,6 +60,7 @@ type job =  {
   type_ <json name="type"> : string;
   state : job_state;
   web_url : string;
+  ?agent : agent nullable;
 }
 
 type non_job = {
@@ -75,14 +80,6 @@ type get_build_res = {
   finished_at: string nullable;
   jobs: job_type list;
   branch: string;
-}
-
-type get_build_response = {
-  number: int;
-  branch: string;
-  jobs: job list;
-  url: string;
-  (* There are more fields, but we don't need/want them for now *)
 }
 
 (* Custom type for the steps state and not a Buildkite type. We have them here
