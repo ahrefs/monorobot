@@ -74,12 +74,12 @@ type job_type = [
   | Waiter <json name="waiter"> of non_job
 ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field"> <ocaml repr="classic">
 
+type jobs = job_type list
+
 type get_build_res = {
-  state: build_state;
+  inherit build_base;
   created_at: string;
-  finished_at: string nullable;
-  jobs: job_type list;
-  branch: string;
+  jobs: jobs;
 }
 
 (* Custom type for the steps state and not a Buildkite type. We have them here
@@ -87,4 +87,58 @@ type get_build_res = {
 type failed_step = {
   name: string;
   build_url: string;
+}
+
+(* for now we only subscribe to build.finished *)
+type webhook_event = [
+  | Build_finished <json name="build.finished">
+  | Other of string
+] <json open_enum> <ocaml repr="classic">
+
+type build_creator = {
+  email: string;
+}
+type build_metadata = {
+  ?commit <json name="buildkite:git:commit"> : string nullable;
+}
+
+type build_base = {
+  id: string;
+  api_url <json name="url"> : string;
+  web_url: string;
+  number: int;
+  state: build_state;
+  created_at: string;
+  cancel_reason: string nullable;
+  blocked: bool;
+  blocked_state: string nullable;
+  message: string;
+  sha <json name="commit"> : string;
+  branch: string;
+  ?meta_data: build_metadata nullable;
+  creator: build_creator;
+}
+
+type pipeline_provider_settings = {
+  repository: string;
+}
+
+type pipeline_provider = {
+  settings: pipeline_provider_settings;
+}
+
+type pipeline = {
+  id: string;
+  web_url: string;
+  name: string;
+  description: string;
+  repository: string;
+  slug: string nullable;
+  provider: pipeline_provider;
+}
+
+type webhook_build_payload =  {
+  event: webhook_event;
+  build: build_base;
+  pipeline: pipeline;
 }

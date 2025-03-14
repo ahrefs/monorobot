@@ -331,7 +331,7 @@ module Buildkite : Api.Buildkite = struct
   let cache_key org pipeline build_nr = sprintf "%s/%s/%s" org pipeline build_nr
 
   let get_build ?(cache : [ `Use | `Refresh ] = `Use) ~(ctx : Context.t) build_url =
-    let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build' build_url in
+    let org, pipeline, build_nr = Util.Build.get_org_pipeline_build' build_url in
     let path = sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr in
     let build_key = cache_key org pipeline build_nr in
     let get () =
