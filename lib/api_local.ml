@@ -238,7 +238,7 @@ module Buildkite : Api.Buildkite = struct
 
   [@@@warning "-27"]
   let get_build ?(cache : [ `Use | `Refresh ] option) ~ctx build_url =
-    let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build' build_url in
+    let org, pipeline, build_nr = Util.Build.get_org_pipeline_build' build_url in
     let file = clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr) in
     let url = Filename.concat buildkite_cache_dir file in
     with_cache_file url Buildkite_j.get_build_res_of_string
