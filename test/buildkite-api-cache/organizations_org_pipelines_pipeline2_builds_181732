@@ -251,7 +251,9 @@
       "parallel_group_index": null,
       "parallel_group_total": null,
       "matrix": null,
-      "agent": null,
+      "agent": {
+        "hostname": "buildkite-agent-1"
+      },
       "cluster_id": "92486727-7901-4472-b1b1-d07d0ea96a09",
       "cluster_url": "https://api.buildkite.com/v2/organizations/ahrefs/clusters/92486727-7901-4472-b1b1-d07d0ea96a09",
       "cluster_queue_id": "10570145-0a61-4de6-a8dd-553ee69978b7",
@@ -295,7 +297,9 @@
       "parallel_group_index": null,
       "parallel_group_total": null,
       "matrix": null,
-      "agent": null,
+      "agent": {
+        "hostname": "buildkite-agent-2"
+      },
       "cluster_id": "92486727-7901-4472-b1b1-d07d0ea96a09",
       "cluster_url": "https://api.buildkite.com/v2/organizations/ahrefs/clusters/92486727-7901-4472-b1b1-d07d0ea96a09",
       "cluster_queue_id": "10570145-0a61-4de6-a8dd-553ee69978b7",
