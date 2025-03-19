@@ -92,20 +92,8 @@
    (run %{bin:atdgen} -t %{deps}))))
 
 (rule
- (targets
-  buildkite_webhook_t.ml
-  buildkite_webhook_t.mli
-  buildkite_webhook_j.ml
-  buildkite_webhook_j.mli)
- (deps buildkite_webhook.atd)
- (action
-  (progn
-   (run %{bin:atdgen} -j -j-std %{deps})
-   (run %{bin:atdgen} -t %{deps}))))
-
-(rule
- (target status_notifications_gen.ml)
- (deps ../db/sql/status_notifications.sql)
+ (target failed_builds_webhook_gen.ml)
+ (deps ../db/sql/failed_builds_webhook.sql)
  (action
   (with-stdout-to
    %{target}

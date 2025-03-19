@@ -147,8 +147,8 @@ let check_slack =
 let arg_value ~doc ~docv typ names = Arg.value Arg.(opt (some typ) None & info names ~docv ~doc)
 
 let status_state_converter =
-  let parse state = try Ok (Github_j.status_state_of_string state) with Failure s -> Error (`Msg s) in
-  let print ppf p = Format.fprintf ppf "%s" (Github_j.string_of_status_state p) in
+  let parse state = try Ok (Buildkite_j.build_state_of_string state) with Failure s -> Error (`Msg s) in
+  let print ppf p = Format.fprintf ppf "%s" (Buildkite_j.string_of_build_state p) in
   Arg.conv (parse, print)
 
 let db_path =
@@ -158,12 +158,10 @@ let db_path =
 let pipeline = arg_value ~doc:"filter by pipeline name. required" ~docv:"PIPELINE_NAME" Arg.string [ "p"; "pipeline" ]
 let branch = arg_value ~doc:"filter by branch name. required" ~docv:"BRANCH_NAME" Arg.string [ "b"; "branch" ]
 let after = arg_value ~doc:"filter by build number" ~docv:"AFTER" Arg.int [ "after" ]
+let from = arg_value ~doc:"filter by build number" ~docv:"FROM" Arg.int [ "from" ]
+let to_ = arg_value ~doc:"filter by build number" ~docv:"TO" Arg.int [ "to" ]
 let state = arg_value ~doc:"filter by notification state" ~docv:"STATE" status_state_converter [ "state" ]
 let build_number = arg_value ~doc:"filter by build number" ~docv:"BUILD_NUMBER" Arg.int [ "n"; "build-number" ]
-let step_name =
-  arg_value
-    ~doc:"filter by step name. Needs to be in the same format as in the notification.context field"
-    ~docv:"STEP_NAME" Arg.string [ "step" ]
 let sha = arg_value ~doc:"filter by sha" ~docv:"SHA" Arg.string [ "sha" ]
 
 let only_with_changes =
@@ -184,9 +182,11 @@ let replay =
       $ after
       $ state
       $ build_number
-      $ step_name
-      $ sha)
+      $ sha
+      $ from
+      $ to_)
   in
+
   Cmd.v info term
 
 let debug_db =

@@ -238,7 +238,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         | None -> n.branches
         | Some build_url ->
           let status_switched (_ : branch) =
-            match Util.Build.get_org_pipeline_build' build_url with
+            match Util.Build.get_org_pipeline_build n with
             | Error e ->
               log#error "failed to get org/pipeline/build_nr from build url %s: %s" build_url e;
               false
@@ -592,20 +592,21 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
   let process_buildkite_webhook (ctx : Context.t) headers body =
     let open Util.Webhook in
     try_process_notification body
-      (let n = Buildkite_webhook_j.webhook_build_payload_of_string body in
+      (let n = Buildkite_j.webhook_build_payload_of_string body in
        log#info "[buildkite_webhook] [%s] event %s: state=%s, branch=%s, commit=%s, pipeline=%s, build_url=%s"
          n.pipeline.provider.settings.repository
-         (Buildkite_webhook_j.string_of_webhook_event n.event)
+         (Buildkite_j.string_of_webhook_event n.event)
          (Buildkite_j.string_of_build_state n.build.state)
          n.build.branch (String.sub n.build.sha 0 8) (pipeline_name n) n.build.web_url;
        let secrets = Context.get_secrets_exn ctx in
        match validate_signature ?signing_key:secrets.buildkite_signing_secret ~headers body with
        | Error e -> action_error e
        | Ok () ->
+         let%lwt (_ : int64 Database.db_use_result) = Database.Failed_builds.create ~ctx n in
          let repo_url = validate_repo_url secrets n in
          let%lwt cfg =
            match Context.find_repo_config ctx repo_url with
-           | Some config -> Lwt.return config
+           | Some cfg -> Lwt.return cfg
            | None ->
              (* Fetch the config from github.
                 Emulate a repository record with the necessary fields to fetch the config *)
@@ -626,19 +627,30 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
              | Error e -> action_error @@ Printf.sprintf "failed to fetch config for %s: %s" repo_url e)
          in
          let repo_state = State.find_or_add_repo ctx.state repo_url in
-         let org, pipeline, _build_nr = Result.get_ok @@ Util.Build.get_org_pipeline_build' n.build.web_url in
+         let org, pipeline, _build_nr = Util.Build.get_org_pipeline_build' n.build.web_url in
          let repo_key = repo_key org pipeline in
          let is_main_branch = cfg.main_branch_name |> Option.map_default (String.equal n.build.branch) false in
          let should_notify = is_main_branch && (notify_fail cfg n || notify_success repo_state repo_key n) in
          (match should_notify with
-         | false -> Lwt.return_unit
+         | false ->
+           let%lwt (_ : int64 Database.db_use_result) =
+             Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update:false n
+               "should notify > false"
+           in
+           Lwt.return_unit
          | true ->
            let channel = Common.Status_notification.inject_channel (failed_builds_channel_exn cfg n) in
            let%lwt notifications =
              match n.build.state with
              | Passed ->
+               (* If the build is successful, we can remove the failed steps from the repo state. *)
                Stringtbl.replace repo_state.failed_steps repo_key
                  { steps = Common.FailedStepSet.empty; last_build = n.build.number };
+
+               let%lwt (_ : int64 Database.db_use_result) =
+                 Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update:true n
+                   "should notify > true > build state = passed"
+               in
                Lwt.return
                  [
                    Slack.generate_failed_build_notification ~is_fix_build_notification:true
@@ -646,7 +658,17 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                  ]
              | Failed ->
                (* repo state is updated upon fetching new failed steps *)
-               (match%lwt new_failed_steps ~repo_state ~get_build:(Buildkite_api.get_build ~cache:`Refresh ~ctx) n with
+               (match%lwt
+                  new_failed_steps ~repo_state
+                    ~get_build:(Buildkite_api.get_build ~cache:`Refresh ~ctx)
+                    ~db_update:(fun ~repo_state ~has_state_update n msg ->
+                      let%lwt (_ : int64 Database.db_use_result) =
+                        Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update n
+                          (Printf.sprintf "should notify > true > build state = failed > %s" msg)
+                      in
+                      Lwt.return_unit)
+                    n
+                with
                | Error e -> action_error e
                | Ok failed_steps ->
                match FailedStepSet.is_empty failed_steps with
