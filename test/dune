@@ -1,6 +1,6 @@
 (executables
  (names test github_link_test longest_prefix_test)
- (libraries lib devkit devkit.core extlib lwt.unix yojson)
+ (libraries monorobotlib devkit devkit.core extlib lwt.unix yojson)
  (preprocess
   (pps lwt_ppx)))
 

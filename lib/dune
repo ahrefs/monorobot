@@ -1,5 +1,5 @@
 (library
- (name lib)
+ (name monorobotlib)
  (libraries
   atdgen-runtime
   base64

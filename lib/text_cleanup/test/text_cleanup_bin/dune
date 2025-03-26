@@ -2,4 +2,4 @@
  (name main)
  (public_name text_cleanup)
  (package monorobot)
- (libraries text_cleanup lib))
+ (libraries text_cleanup monorobotlib))
