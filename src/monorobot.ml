@@ -1,5 +1,5 @@
 open Devkit
-open Lib
+open Monorobotlib
 open Cmdliner
 
 let log = Log.from "monorobot"
