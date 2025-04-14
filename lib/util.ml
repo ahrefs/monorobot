@@ -360,6 +360,10 @@ module Webhook = struct
       false
     | _ -> false
 
+  let mention_user_on_failed_builds (cfg : Config_t.config) (n : n) =
+    get_pipeline_config cfg (pipeline_name n)
+    |> Option.map_default (fun (config : Config_t.pipeline) -> config.mention_user_on_failed_builds) true
+
   let new_failed_steps ~(repo_state : State_t.repo_state) ~get_build ~db_update (n : n) =
     let org, pipeline, build_nr = Build.get_org_pipeline_build' n.build.web_url in
     let repo_key = repo_key org pipeline in

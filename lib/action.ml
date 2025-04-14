@@ -675,12 +675,15 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                | true -> Lwt.return []
                | false ->
                  let%lwt slack_user_id =
-                   let email = extract_metadata_email n.build.meta_data |> Option.default "" in
-                   match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
-                   | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
-                   | Error e ->
-                     log#warn "couldn't match commit email %s to slack profile: %s" email e;
-                     Lwt.return_none
+                   match mention_user_on_failed_builds cfg n with
+                   | false -> Lwt.return_none
+                   | true ->
+                     let email = extract_metadata_email n.build.meta_data |> Option.default "" in
+                     (match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+                     | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
+                     | Error e ->
+                       log#warn "couldn't match commit email %s to slack profile: %s" email e;
+                       Lwt.return_none)
                  in
                  Lwt.return [ Slack.generate_failed_build_notification ?slack_user_id ~failed_steps n channel ])
              | _ -> assert false
