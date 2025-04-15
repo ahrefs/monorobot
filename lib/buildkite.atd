@@ -95,28 +95,20 @@ type webhook_event = [
   | Other of string
 ] <json open_enum> <ocaml repr="classic">
 
-type build_creator = {
-  email: string;
-}
 type build_metadata = {
   ?commit <json name="buildkite:git:commit"> : string nullable;
 }
 
 type build_base = {
   id: string;
-  api_url <json name="url"> : string;
   web_url: string;
   number: int;
   state: build_state;
   created_at: string;
-  cancel_reason: string nullable;
-  blocked: bool;
-  blocked_state: string nullable;
   message: string;
   sha <json name="commit"> : string;
   branch: string;
   ?meta_data: build_metadata nullable;
-  creator: build_creator;
 }
 
 type pipeline_provider_settings = {
