@@ -147,6 +147,10 @@ module Build = struct
     | Some allowed_pipelines ->
       List.find_opt (fun ({ name; _ } : Config_t.pipeline) -> name = n.context) allowed_pipelines
 
+  let dm_users_on_failures (cfg : Config_t.config) (n : Github_t.status_notification) =
+    get_pipeline_config cfg n
+    |> Option.map_default (fun (config : Config_t.pipeline) -> config.dm_users_on_failures) true
+
   let get_branch_builds (n : Github_t.status_notification) (repo_state : State_t.repo_state) =
     match n.branches, parse_context ~context:n.context with
     | [ branch ], Some { pipeline_name; _ } ->

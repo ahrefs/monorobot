@@ -172,9 +172,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     let is_main_branch = is_main_branch cfg n in
     let get_dm_id ~notify_dm =
       let email = n.commit.commit.author.email in
-      match notify_dm with
-      | false -> Lwt.return []
-      | true ->
+      match notify_dm, dm_users_on_failures cfg n with
+      | false, _ | _, false -> Lwt.return []
+      | _ ->
         (match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
         | Ok ({ user = { id; _ } } : Slack_t.lookup_user_res) ->
           (* Check if config holds Github to Slack email mapping for the commit author. The user id we get from slack

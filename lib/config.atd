@@ -10,6 +10,7 @@ type pipeline = {
   ?failed_builds_channel: channel_name nullable;
   ~notify_canceled_builds <ocaml default="true">: bool;
   ~mention_user_on_failed_builds <ocaml default="true">: bool;
+  ~dm_users_on_failures <ocaml default="true">: bool;
 } <json adapter.ocaml="Atd_adapters.Strings_to_pipelines_adapter">
 
 (* This type of rule is used for CI build notifications. *)
