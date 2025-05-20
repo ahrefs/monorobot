@@ -380,6 +380,30 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
       in
       [ sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ", " branches) ]
   in
+  let job_log_lines =
+    let lines =
+      job_log
+      |> List.map (fun (job_name, job_log) ->
+             (* Buildkite has different "sections" on their builds logs. The commands we run come only after this line. *)
+             let text = job_log |> Text_cleanup.cleanup |> String.split_on_char '\n' |> List.rev |> List.to_seq in
+             job_name, text)
+    in
+    fun ~n ->
+      lines
+      |> List.map (fun (job_name, lines) ->
+             let text = lines |> Seq.take n |> List.of_seq |> List.rev |> String.concat "\n" in
+             let after_cmd = Stre.after text "~~~ Running commands\n" |> String.trim in
+             let text = if after_cmd <> "" then after_cmd else text in
+             job_name, text)
+  in
+  let job_log_peek =
+    job_log_lines ~n:10
+    |> (function
+         | [] -> None
+         | (job_log, content) :: _ -> Some (job_log, content))
+    |> Option.map (fun (job_log, content) -> sprintf "*%s*\n```%s```" job_log content)
+    |> Stdlib.Option.to_list
+  in
   let summary =
     let state_info =
       match state with
@@ -412,7 +436,7 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
         | None -> default_summary
         | Some pipeline_url -> sprintf "<%s|[%s]>: %s for \"%s\"" pipeline_url context build_desc commit_message)
   in
-  let text = Some (String.concat "\n" @@ List.concat [ commit_info; branches_info ]) in
+  let text = Some (String.concat "\n" @@ List.concat [ commit_info; branches_info; job_log_peek ]) in
   let attachment = { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text } in
   let handler =
     match job_log with
@@ -422,24 +446,9 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
     | _ :: _ when Status_notification.is_user channel ->
       log#info "failed jobs logs are going to be sent";
       let files =
-        job_log
-        |> List.map (fun (job_name, job_log) ->
-               let clean =
-                 job_log
-                 |> Text_cleanup.cleanup
-                 |> String.split_on_char '\n'
-                 |> List.rev
-                 |> List.to_seq
-                 |> Seq.take 200
-                 |> List.of_seq
-                 |> List.rev
-                 |> String.concat "\n"
-               in
-               (* Buildkite has different "sections" on their builds logs. The commands we run come only after this line. *)
-               let content = Stre.after clean "~~~ Running commands\n" |> String.trim in
-               let content = if content <> "" then content else clean in
-               { name = job_name; title = None; alt_txt = None; content })
+        job_log_lines ~n:100 |> List.map (fun (name, content) -> { name; title = None; alt_txt = None; content })
       in
+
       Some
         (fun (send_file : file:file_req -> (unit, string) result Lwt.t) (res : Slack_t.post_message_res) ->
           let ({ ts; channel; _ } : post_message_res) = res in
