@@ -401,8 +401,8 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
     |> (function
          | [] -> None
          | (job_log, content) :: _ -> Some (job_log, content))
-    |> Option.map (fun (job_log, content) -> sprintf "*%s*\n```%s```" job_log content)
-    |> Stdlib.Option.to_list
+    |> Option.map (fun (job_log, content) ->
+           { title = Some job_log; value = sprintf "```%s```" content; short = false })
   in
   let summary =
     let state_info =
@@ -436,8 +436,16 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
         | None -> default_summary
         | Some pipeline_url -> sprintf "<%s|[%s]>: %s for \"%s\"" pipeline_url context build_desc commit_message)
   in
-  let text = Some (String.concat "\n" @@ List.concat [ commit_info; branches_info; job_log_peek ]) in
-  let attachment = { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text } in
+  let text = Some (String.concat "\n" @@ List.concat [ commit_info; branches_info ]) in
+  let attachment =
+    {
+      empty_attachments with
+      mrkdwn_in = Some [ "fields"; "text" ];
+      color = Some color_info;
+      text;
+      fields = Option.map (fun a -> [ a ]) job_log_peek;
+    }
+  in
   let handler =
     match job_log with
     | [] ->
