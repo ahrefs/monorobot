@@ -456,6 +456,8 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
 let generate_failed_build_notification ?slack_user_id ?(is_fix_build_notification = false) ~failed_steps
   (n : Util.Webhook.n) channel =
   let pipeline_name = Util.Webhook.pipeline_name n in
+  let repo_url = Util.Build.git_ssh_to_https n.pipeline.repository in
+  let commit_url = sprintf "%s/commit/%s" repo_url n.build.sha in
   let summary =
     let n_state =
       match n.build.state with
@@ -469,8 +471,6 @@ let generate_failed_build_notification ?slack_user_id ?(is_fix_build_notificatio
     match is_fix_build_notification with
     | true -> sprintf "<%s|[%s]>: %s for \"%s\"" n.pipeline.web_url pipeline_name build_desc commit_message
     | false ->
-      let repo_url = Util.Build.git_ssh_to_https n.pipeline.repository in
-      let commit_url = sprintf "%s/commit/%s" repo_url n.build.sha in
       let author_mention =
         match slack_user_id with
         | Some id -> sprintf " <@%s>" (Slack_user_id.project id)
@@ -481,7 +481,7 @@ let generate_failed_build_notification ?slack_user_id ?(is_fix_build_notificatio
   in
   let text =
     match is_fix_build_notification with
-    | true -> sprintf "*Commit*: `<%s|%s>`" n.build.web_url (git_short_sha_hash n.build.sha)
+    | true -> sprintf "*Commit*: `<%s|%s>`" commit_url (git_short_sha_hash n.build.sha)
     | false ->
       let slack_step_link (s : Buildkite_t.failed_step) =
         let slugify s =
