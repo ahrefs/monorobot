@@ -57,6 +57,7 @@ type job =  {
   id : string;
   ?log_url: string option;
   name : string;
+  ?step_key: string nullable;
   type_ <json name="type"> : string;
   state : job_state;
   web_url : string;
@@ -82,11 +83,17 @@ type get_build_res = {
   jobs: jobs;
 }
 
-(* Custom type for the steps state and not a Buildkite type. We have them here
+(* Custom types for the steps state and not a Buildkite type. We have them here
    to avoid circular dependencies with common.atd, common.ml and state.ml *)
+type timestamp = string wrap <ocaml module="Ptime" wrap="fun s -> match Ptime.of_rfc3339 s with | Ok (t, _, _) -> t | Error _ -> failwith \"Invalid timestamp\"" unwrap="Ptime.to_rfc3339">
+
 type failed_step = {
+  id: string;
   name: string;
   build_url: string;
+  author: string;
+  created_at: timestamp;
+  escalated_at: timestamp nullable;
 }
 
 (* for now we only subscribe to build.finished *)

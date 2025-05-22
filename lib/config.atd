@@ -8,8 +8,11 @@ type channel_name = string wrap <ocaml t="Common.Slack_channel.Name.t" wrap="Com
 type pipeline = {
   name: string;
   ?failed_builds_channel: channel_name nullable;
-  ~notify_canceled_builds <ocaml default="true">: bool;
+  ~notify_canceled_builds <ocaml default="false">: bool;
   ~mention_user_on_failed_builds <ocaml default="true">: bool;
+  ~escalate_notifications <ocaml default="false">: bool;
+  (* threshold in hours *)
+  ~escalate_notification_threshold <ocaml default="2">: int;
   ~dm_users_on_failures <ocaml default="true">: bool;
 } <json adapter.ocaml="Atd_adapters.Strings_to_pipelines_adapter">
 
