@@ -453,8 +453,8 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
     ~channel:(Status_notification.to_slack_channel channel)
     ()
 
-let generate_failed_build_notification ?(slack_ids = []) ?(is_fix_build_notification = false)
-  ~(cfg : Config_t.config) ~failed_steps (n : Util.Webhook.n) channel =
+let generate_failed_build_notification ?(slack_ids = []) ?(is_fix_build_notification = false) ~(cfg : Config_t.config)
+  ~failed_steps (n : Util.Webhook.n) channel =
   let pipeline_name = Util.Webhook.pipeline_name n in
   let repo_url = Util.Build.git_ssh_to_https n.pipeline.repository in
   let commit_url = sprintf "%s/commit/%s" repo_url n.build.sha in
@@ -464,11 +464,11 @@ let generate_failed_build_notification ?(slack_ids = []) ?(is_fix_build_notifica
       match Util.Webhook.get_escalation_threshold cfg n with
       | None -> false
       | Some escalation_threshold ->
-             FailedStepSet.exists
-               (fun step ->
-                 (* escalate steps that have been broken for longer than the threshold *)
-                 Util.Webhook.is_past_span step.created_at escalation_threshold)
-               failed_steps
+        FailedStepSet.exists
+          (fun step ->
+            (* escalate steps that have been broken for longer than the threshold *)
+            Util.Webhook.is_past_span step.created_at escalation_threshold)
+          failed_steps
     in
     let n_state =
       match is_escalation_notification, n.build.state with
