@@ -653,13 +653,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                in
                Lwt.return
                  [
-                   Slack.generate_failed_build_notification ~is_fix_build_notification:true
+                   Slack.generate_failed_build_notification ~cfg ~is_fix_build_notification:true
                      ~failed_steps:Common.FailedStepSet.empty n channel;
                  ]
              | Failed ->
                (* repo state is updated upon fetching new failed steps *)
                (match%lwt
-                  new_failed_steps ~repo_state
+                  new_failed_steps ~cfg ~repo_state
                     ~get_build:(Buildkite_api.get_build ~cache:`Refresh ~ctx)
                     ~db_update:(fun ~repo_state ~has_state_update n msg ->
                       let%lwt (_ : int64 Database.db_use_result) =
@@ -674,18 +674,27 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                match FailedStepSet.is_empty failed_steps with
                | true -> Lwt.return []
                | false ->
-                 let%lwt slack_user_id =
+                 let%lwt slack_ids =
                    match mention_user_on_failed_builds cfg n with
-                   | false -> Lwt.return_none
+                   | false -> Lwt.return []
                    | true ->
-                     let email = extract_metadata_email n.build.meta_data |> Option.default "" in
-                     (match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
-                     | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
-                     | Error e ->
-                       log#warn "couldn't match commit email %s to slack profile: %s" email e;
-                       Lwt.return_none)
+                     let to_slack_id email =
+                       match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+                       | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
+                       | Error e ->
+                         log#warn "couldn't match commit email %s to slack profile: %s" email e;
+                         Lwt.return_none
+                     in
+                     let author_emails =
+                       FailedStepSet.fold
+                         (fun (step : Buildkite_t.failed_step) acc ->
+                           if List.mem step.author acc then acc else step.author :: acc)
+                         failed_steps []
+                     in
+                     Lwt_list.map_s to_slack_id author_emails
                  in
-                 Lwt.return [ Slack.generate_failed_build_notification ?slack_user_id ~failed_steps n channel ])
+                 let slack_ids = List.filter_map Fun.id slack_ids in
+                 Lwt.return [ Slack.generate_failed_build_notification ~slack_ids ~cfg ~failed_steps n channel ])
              | _ -> assert false
            in
            let%lwt () = send_notifications ctx notifications in

@@ -368,13 +368,31 @@ module Webhook = struct
     get_pipeline_config cfg (pipeline_name n)
     |> Option.map_default (fun (config : Config_t.pipeline) -> config.mention_user_on_failed_builds) true
 
-  let new_failed_steps ~(repo_state : State_t.repo_state) ~get_build ~db_update (n : n) =
+  let get_escalation_threshold (cfg : Config_t.config) (n : n) =
+    match get_pipeline_config cfg (pipeline_name n) with
+    | Some ({ escalate_notifications = false; _ } : Config_t.pipeline) | None -> None
+    | Some { escalate_notifications = true; escalate_notification_threshold; _ } ->
+      Some (Ptime.Span.of_int_s (escalate_notification_threshold * 60 * 60))
+
+  let time_since t = Ptime.(Span.abs (diff (Ptime_clock.now ()) t))
+  let is_past_span time span = Ptime.Span.compare (time_since time) span > 0
+
+  let new_failed_steps ~(cfg : Config_t.config) ~(repo_state : State_t.repo_state) ~get_build ~db_update (n : n) =
     let org, pipeline, build_nr = Build.get_org_pipeline_build' n.build.web_url in
     let repo_key = repo_key org pipeline in
     let get_failed_steps () =
       log#info "Fetching failed steps for build %s/%s/%s" org pipeline build_nr;
       let* (build : Buildkite_t.get_build_res) = get_build n.build.web_url in
-      let to_failed_step (job : Buildkite_t.job) = { Buildkite_t.name = job.name; build_url = job.web_url } in
+      let to_failed_step (job : Buildkite_t.job) =
+        {
+          Buildkite_t.id = Option.default job.name job.step_key;
+          name = job.name;
+          build_url = job.web_url;
+          created_at = Timestamp.wrap_with_fallback n.build.created_at;
+          author = extract_metadata_email n.build.meta_data |> Option.default "";
+          escalated_at = None;
+        }
+      in
       Lwt.return_ok @@ (Build.filter_failed_jobs build.jobs |> List.map to_failed_step |> FailedStepSet.of_list)
     in
     match Stringtbl.find_opt repo_state.failed_steps repo_key with
@@ -391,12 +409,40 @@ module Webhook = struct
     | Some state ->
       let* build_failed_steps = get_failed_steps () in
 
-      (* return only the new failed steps. Keep all the failed steps in state, but keep the
-         original failed steps urls for the ones that intersect, instead of the new ones. *)
       let steps_intersect = FailedStepSet.inter state.steps build_failed_steps in
       let new_failed_steps = FailedStepSet.diff build_failed_steps state.steps in
-      let updated_steps = FailedStepSet.union steps_intersect new_failed_steps in
-      Stringtbl.replace repo_state.failed_steps repo_key { steps = updated_steps; last_build = n.build.number };
+
+      (* escalate steps that have been broken for longer than the threshold. Escalate again after every hour *)
+      let steps_to_escalate =
+        match get_escalation_threshold cfg n with
+        | None -> new_failed_steps
+        | Some escalation_threshold ->
+          FailedStepSet.filter
+            (fun step ->
+              match step.escalated_at with
+              | None ->
+                (* escalate steps that have been broken for longer than the threshold *)
+                is_past_span step.created_at escalation_threshold
+              | Some escalated_at ->
+                (* escalate again if the escalated_at time is more than 1 hour ago *)
+                let one_hour = Ptime.Span.of_int_s (60 * 60) in
+                is_past_span escalated_at one_hour)
+            state.steps
+      in
+      let updated_state =
+        (* keep all the failed steps in state, but keep the original failed steps urls for the ones that intersect,
+           instead of the new ones. *)
+        let failed_steps = FailedStepSet.union steps_intersect new_failed_steps in
+        (* mark the steps to escalate with the current time. *)
+        let escalated_steps =
+          FailedStepSet.map (fun step -> { step with escalated_at = Some (Ptime_clock.now ()) }) steps_to_escalate
+        in
+        (* merge the failed steps into the escalated ones. We need to use the `add` method because we don't have
+           any guarantees to get the intended elements when using `union` to merge sets with overlapping elements.
+           The goal is to keep the escalated steps (have the escalated_at property set) and discard the duplicates. *)
+        FailedStepSet.(fold add failed_steps escalated_steps)
+      in
+      Stringtbl.replace repo_state.failed_steps repo_key { steps = updated_state; last_build = n.build.number };
       let%lwt () =
         let msg =
           if FailedStepSet.is_empty new_failed_steps then "no new failed steps > NO NOTIFY"
@@ -404,5 +450,6 @@ module Webhook = struct
         in
         db_update ~repo_state ~has_state_update:(not @@ FailedStepSet.is_empty new_failed_steps) n msg
       in
-      Lwt.return_ok new_failed_steps
+      (* notify the steps that failed anew and the ones that have been escalated *)
+      Lwt.return_ok (FailedStepSet.union new_failed_steps steps_to_escalate)
 end

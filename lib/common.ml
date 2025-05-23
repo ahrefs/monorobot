@@ -84,7 +84,7 @@ end
 module StringSet = Set (String)
 module FailedStepSet = Set (struct
   type t = Buildkite_t.failed_step
-  let compare (t1 : t) (t2 : t) = String.compare t1.name t2.name
+  let compare (t1 : t) (t2 : t) = String.compare t1.id t2.id
 end)
 
 module Status_notification = struct
