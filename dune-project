@@ -71,7 +71,7 @@
    (and
     :with-dev-setup
     (= 0.26.2)))
-  (ocurl
-   (>= 0.9.2))
+  (curl
+   (>= 0.10.0))
   (sexplib0
    (>= v0.16.0))))
