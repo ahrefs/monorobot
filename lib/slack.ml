@@ -453,7 +453,7 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
     ~channel:(Status_notification.to_slack_channel channel)
     ()
 
-let generate_failed_build_notification ?(slack_ids : user_id option list = []) ?(is_fix_build_notification = false)
+let generate_failed_build_notification ?(slack_ids = []) ?(is_fix_build_notification = false)
   ~(cfg : Config_t.config) ~failed_steps (n : Util.Webhook.n) channel =
   let pipeline_name = Util.Webhook.pipeline_name n in
   let repo_url = Util.Build.git_ssh_to_https n.pipeline.repository in
@@ -461,15 +461,14 @@ let generate_failed_build_notification ?(slack_ids : user_id option list = []) ?
   let summary =
     (* check if this is an escalation notification. if it's mixed, paciencia *)
     let is_escalation_notification =
-      Util.Webhook.get_escalation_threshold cfg n
-      |> Option.map_default
-           (fun escalation_threshold ->
+      match Util.Webhook.get_escalation_threshold cfg n with
+      | None -> false
+      | Some escalation_threshold ->
              FailedStepSet.exists
                (fun step ->
                  (* escalate steps that have been broken for longer than the threshold *)
                  Util.Webhook.is_past_span step.created_at escalation_threshold)
-               failed_steps)
-           false
+               failed_steps
     in
     let n_state =
       match is_escalation_notification, n.build.state with
@@ -486,8 +485,7 @@ let generate_failed_build_notification ?(slack_ids : user_id option list = []) ?
     | true -> sprintf "<%s|[%s]>: %s for \"%s\"" n.pipeline.web_url pipeline_name build_desc commit_message
     | false ->
       let author_mention =
-        let ids = List.filter_map id slack_ids in
-        List.map (fun id -> sprintf " <@%s>" (Slack_user_id.project id)) ids |> String.concat ","
+        List.map (fun id -> sprintf " <@%s>" (Slack_user_id.project id)) slack_ids |> String.concat ","
       in
       sprintf "<%s|[%s]>: %s for \"<%s|%s>\"%s" n.pipeline.web_url pipeline_name build_desc commit_url commit_message
         author_mention

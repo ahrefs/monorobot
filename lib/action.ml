@@ -693,6 +693,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                      in
                      Lwt_list.map_s to_slack_id author_emails
                  in
+                 let slack_ids = List.filter_map Fun.id slack_ids in
                  Lwt.return [ Slack.generate_failed_build_notification ~slack_ids ~cfg ~failed_steps n channel ])
              | _ -> assert false
            in
