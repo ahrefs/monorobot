@@ -400,9 +400,7 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
     job_log_lines ~n:10
     |> (function
          | [] -> None
-         | (job_log, content) :: _ -> Some (job_log, content))
-    |> Option.map (fun (job_log, content) ->
-           { title = Some job_log; value = sprintf "```%s```" content; short = false })
+         | (job_log, content) :: _ -> Some ([{ title = Some job_log; value = sprintf "```%s```" content; short = false }]))
   in
   let summary =
     let state_info =
