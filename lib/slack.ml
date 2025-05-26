@@ -380,18 +380,12 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
       in
       [ sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ", " branches) ]
   in
-  let job_log_lines =
-    let lines =
+  let job_log_lines ~n =
       job_log
       |> List.map (fun (job_name, job_log) ->
-             (* Buildkite has different "sections" on their builds logs. The commands we run come only after this line. *)
-             let text = job_log |> Text_cleanup.cleanup |> String.split_on_char '\n' |> List.rev |> List.to_seq in
-             job_name, text)
-    in
-    fun ~n ->
-      lines
-      |> List.map (fun (job_name, lines) ->
+             let lines = job_log |> Text_cleanup.cleanup |> String.split_on_char '\n' |> List.rev |> List.to_seq in
              let text = lines |> Seq.take n |> List.of_seq |> List.rev |> String.concat "\n" in
+             (* Buildkite has different "sections" on their builds logs. The commands we run come only after this line. *)
              let after_cmd = Stre.after text "~~~ Running commands\n" |> String.trim in
              let text = if after_cmd <> "" then after_cmd else text in
              job_name, text)
