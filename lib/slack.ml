@@ -381,20 +381,19 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
       [ sprintf "*%s*: %s" (pluralize ~suf:"es" ~len:(List.length branches) "Branch") (String.concat ", " branches) ]
   in
   let job_log_lines ~n =
-      job_log
-      |> List.map (fun (job_name, job_log) ->
-             let lines = job_log |> Text_cleanup.cleanup |> String.split_on_char '\n' |> List.rev |> List.to_seq in
-             let text = lines |> Seq.take n |> List.of_seq |> List.rev |> String.concat "\n" in
-             (* Buildkite has different "sections" on their builds logs. The commands we run come only after this line. *)
-             let after_cmd = Stre.after text "~~~ Running commands\n" |> String.trim in
-             let text = if after_cmd <> "" then after_cmd else text in
-             job_name, text)
+    job_log
+    |> List.map (fun (job_name, job_log) ->
+           let lines = job_log |> Text_cleanup.cleanup |> String.split_on_char '\n' |> List.rev |> List.to_seq in
+           let text = lines |> Seq.take n |> List.of_seq |> List.rev |> String.concat "\n" in
+           (* Buildkite has different "sections" on their builds logs. The commands we run come only after this line. *)
+           let after_cmd = Stre.after text "~~~ Running commands\n" |> String.trim in
+           let text = if after_cmd <> "" then after_cmd else text in
+           job_name, text)
   in
-  let job_log_peek =
-    job_log_lines ~n:10
-    |> (function
-         | [] -> None
-         | (job_log, content) :: _ -> Some ([{ title = Some job_log; value = sprintf "```%s```" content; short = false }]))
+  let fields =
+    job_log_lines ~n:10 |> function
+    | [] -> None
+    | (job_log, content) :: _ -> Some [ { title = Some job_log; value = sprintf "```%s```" content; short = false } ]
   in
   let summary =
     let state_info =
@@ -430,13 +429,7 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
   in
   let text = Some (String.concat "\n" @@ List.concat [ commit_info; branches_info ]) in
   let attachment =
-    {
-      empty_attachments with
-      mrkdwn_in = Some [ "fields"; "text" ];
-      color = Some color_info;
-      text;
-      fields = Option.map (fun a -> [ a ]) job_log_peek;
-    }
+    { empty_attachments with mrkdwn_in = Some [ "fields"; "text" ]; color = Some color_info; text; fields }
   in
   let handler =
     match job_log with
