@@ -290,13 +290,13 @@ module Webhook = struct
     | true -> repo_url
     | false -> util_error "unsupported repository %s" repo_url
 
-  let get_pipeline_config (cfg : Config_t.config) pipeline_name =
+  let pipeline_name ({ pipeline = { name; slug; _ }; _ } : n) = sprintf "buildkite/%s" (Option.default name slug)
+
+  let get_pipeline_config (cfg : Config_t.config) (n : n) =
     match cfg.status_rules.allowed_pipelines with
     | None -> None
     | Some allowed_pipelines ->
-      List.find_opt (fun ({ name; _ } : Config_t.pipeline) -> String.equal name pipeline_name) allowed_pipelines
-
-  let pipeline_name ({ pipeline = { name; slug; _ }; _ } : n) = sprintf "buildkite/%s" (Option.default name slug)
+      List.find_opt (fun ({ name; _ } : Config_t.pipeline) -> String.equal name (pipeline_name n)) allowed_pipelines
 
   let repo_key org pipeline = Printf.sprintf "%s/%s" org pipeline
 
@@ -317,10 +317,9 @@ module Webhook = struct
     | _ -> None
 
   let failed_builds_channel_exn cfg n =
-    let pipeline_name = pipeline_name n in
-    match get_pipeline_config cfg pipeline_name with
+    match get_pipeline_config cfg n with
     | Some ({ failed_builds_channel = Some channel; _ } : Config_t.pipeline) -> channel
-    | Some _ | None -> util_error "no failed builds channel defined for pipeline %s" pipeline_name
+    | Some _ | None -> util_error "no failed builds channel defined for pipeline %s" (pipeline_name n)
 
   (** builds should be notified in the builds failed channel if:
      -  the build is failed OR the build is canceled and notify_canceled_builds is true
@@ -329,8 +328,7 @@ module Webhook = struct
      -  a failed_builds_channel is defined for the pipeline
   *)
   let notify_fail (cfg : Config_t.config) (n : n) =
-    let pipeline_name = pipeline_name n in
-    let pipeline_config = get_pipeline_config cfg pipeline_name in
+    let pipeline_config = get_pipeline_config cfg n in
     (* TODO: For now we don't notify for canceled builds. Can we get more value than troubles from it? *)
     let _notify_canceled_build =
       match pipeline_config with
@@ -365,11 +363,11 @@ module Webhook = struct
     | _ -> false
 
   let mention_user_on_failed_builds (cfg : Config_t.config) (n : n) =
-    get_pipeline_config cfg (pipeline_name n)
+    get_pipeline_config cfg n
     |> Option.map_default (fun (config : Config_t.pipeline) -> config.mention_user_on_failed_builds) true
 
   let get_escalation_threshold (cfg : Config_t.config) (n : n) =
-    match get_pipeline_config cfg (pipeline_name n) with
+    match get_pipeline_config cfg n with
     | Some ({ escalate_notifications = false; _ } : Config_t.pipeline) | None -> None
     | Some { escalate_notifications = true; escalate_notification_threshold; _ } ->
       Some (Ptime.Span.of_int_s (escalate_notification_threshold * 60 * 60))
