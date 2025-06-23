@@ -396,11 +396,6 @@ module Webhook = struct
       Lwt.return_ok @@ (Build.filter_failed_jobs build.jobs |> List.map to_failed_step |> FailedStepSet.of_list)
     in
     match Stringtbl.find_opt repo_state.failed_steps repo_key with
-    | Some state when n.build.number < state.last_build ->
-      let%lwt () = db_update ~repo_state ~has_state_update:false n "build number < last build number" in
-
-      (* discard if current build is older than the last build that was notified *)
-      Lwt.return_ok FailedStepSet.empty
     | None ->
       let* failed_steps = get_failed_steps () in
       Stringtbl.replace repo_state.failed_steps repo_key { steps = failed_steps; last_build = n.build.number };

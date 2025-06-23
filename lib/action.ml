@@ -630,7 +630,20 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
          let org, pipeline, _build_nr = Util.Build.get_org_pipeline_build' n.build.web_url in
          let repo_key = repo_key org pipeline in
          let is_main_branch = cfg.main_branch_name |> Option.map_default (String.equal n.build.branch) false in
-         let should_notify = is_main_branch && (notify_fail cfg n || notify_success repo_state repo_key n) in
+         let%lwt is_timely =
+           (* we don't want to consider builds notifications for builds that finish out of order *)
+           match Stringtbl.find_opt repo_state.failed_steps repo_key with
+           | Some state when n.build.number < state.last_build ->
+             let%lwt (_ : int64 Database.db_use_result) =
+               Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update:false n
+                 (Printf.sprintf "is_timely > false > build number < last build number")
+             in
+             Lwt.return false
+           | _ -> Lwt.return true
+         in
+         let should_notify =
+           is_main_branch && is_timely && (notify_fail cfg n || notify_success repo_state repo_key n)
+         in
          (match should_notify with
          | false ->
            let%lwt (_ : int64 Database.db_use_result) =
@@ -657,8 +670,8 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                      ~failed_steps:Common.FailedStepSet.empty n channel;
                  ]
              | Failed ->
-               (* repo state is updated upon fetching new failed steps *)
                (match%lwt
+                  (* repo state is updated upon fetching new failed steps *)
                   new_failed_steps ~cfg ~repo_state
                     ~get_build:(Buildkite_api.get_build ~cache:`Refresh ~ctx)
                     ~db_update:(fun ~repo_state ~has_state_update n msg ->
