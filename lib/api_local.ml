@@ -107,7 +107,9 @@ module Slack_simple : Api.Slack = struct
       (match msg.Slack_t.text with
       | None -> ""
       | Some s -> sprintf " with %S" s);
-    Lwt.return @@ Ok None
+    let channel = Slack_channel.Ident.inject (Slack_channel.Any.project msg.channel) in
+    let res = ({ Slack_t.channel; ts = Slack_timestamp.inject "mock_ts" } : Slack_t.post_message_res) in
+    Lwt.return_ok res
 
   let send_file ~ctx:_ ~(file : Slack.file_req) =
     let json = string_of_file_req file in
@@ -147,7 +149,7 @@ module Slack_json : Api.Slack = struct
     log#info "%s" json;
     let channel = Slack_channel.Ident.inject (Slack_channel.Any.project msg.channel) in
     let res = ({ Slack_t.channel; ts = Slack_timestamp.inject "mock_ts" } : Slack_t.post_message_res) in
-    Lwt.return_ok (Some res)
+    Lwt.return_ok res
 
   let send_file ~ctx:_ ~(file : Slack.file_req) =
     let json = string_of_file_req file in
@@ -190,7 +192,7 @@ module Slack : Api.Slack = struct
     Printf.printf "%s\n" json;
     let channel = Slack_channel.Ident.inject (Slack_channel.Any.project msg.channel) in
     let res = ({ Slack_t.channel; ts = Slack_timestamp.inject "mock_ts" } : Slack_t.post_message_res) in
-    Lwt.return @@ Ok (Some res)
+    Lwt.return @@ Ok res
 
   let send_file ~ctx:_ ~(file : Slack.file_req) =
     let json = string_of_file_req file in
