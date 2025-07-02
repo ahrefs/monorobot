@@ -656,19 +656,50 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
            let%lwt notifications =
              match n.build.state with
              | Passed ->
-               (* If the build is successful, we can remove the failed steps from the repo state. *)
-               Stringtbl.replace repo_state.failed_steps repo_key
-                 { steps = Common.FailedStepSet.empty; last_build = n.build.number };
+               (* get the current failed steps *)
+               (match Stringtbl.find_opt repo_state.failed_steps repo_key with
+               | None ->
+                 (* nothing to do, we shouldn't be here. We don't notify success if we don't have failed steps/state. *)
+                 log#error "trying to notify success for %s but no failed steps found" n.build.web_url;
+                 Lwt.return []
+               | Some (state : State_t.failed_steps) ->
+                 (* get the steps in the current build to compare against the failed steps. Sometimes builds on
+                    the same pipeline don't run the exact same steps. We need to confirm if all steps are fixed. *)
+                 (match%lwt Buildkite_api.get_build ~cache:`Refresh ~ctx n.build.web_url with
+                 | Error e ->
+                   log#error "failed to fetch build steps for %s. Error: %s" n.build.web_url e;
+                   (* If we get an error while fetching the build steps of a success notification, let's just assume
+                      that all the failed steps have been fixed and move on. It shouldn't happen often. *)
+                   Stringtbl.replace repo_state.failed_steps repo_key
+                     { steps = Common.FailedStepSet.empty; last_build = n.build.number };
+                   Lwt.return []
+                 | Ok (build : Buildkite_t.get_build_res) ->
+                   let build_steps = Util.Webhook.to_failed_step_set (Util.Build.filter_passed_jobs build.jobs) n in
+                   let state_failed_steps = FailedStepSet.diff state.steps build_steps in
+                   (match FailedStepSet.is_empty state_failed_steps with
+                   | true ->
+                     Stringtbl.replace repo_state.failed_steps repo_key
+                       { steps = FailedStepSet.empty; last_build = n.build.number };
 
-               let%lwt (_ : int64 Database.db_use_result) =
-                 Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update:true n
-                   "should notify > true > build state = passed"
-               in
-               Lwt.return
-                 [
-                   Slack.generate_failed_build_notification ~cfg ~is_fix_build_notification:true
-                     ~failed_steps:Common.FailedStepSet.empty n channel;
-                 ]
+                     let%lwt (_ : int64 Database.db_use_result) =
+                       Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update:true n
+                         "should notify > true > build state = passed"
+                     in
+                     Lwt.return
+                       [
+                         Slack.generate_failed_build_notification ~cfg ~is_fix_build_notification:true
+                           ~failed_steps:FailedStepSet.empty n channel;
+                       ]
+                   | false ->
+                     (* the build was successful, but we haven't fixed all the steps. Update state, but don't notify *)
+                     let%lwt (_ : int64 Database.db_use_result) =
+                       Database.Failed_builds.update_state_after_notification ~repo_state
+                         ~has_state_update:(FailedStepSet.equal state_failed_steps state.steps)
+                         n "should notify > false > build state = passed w/ failed steps"
+                     in
+                     Stringtbl.replace repo_state.failed_steps repo_key
+                       { steps = state_failed_steps; last_build = n.build.number };
+                     Lwt.return [])))
              | Failed ->
                (match%lwt
                   (* repo state is updated upon fetching new failed steps *)

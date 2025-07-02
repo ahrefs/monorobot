@@ -189,6 +189,13 @@ module Build = struct
         | Buildkite_t.Script ({ state = Failed; _ } as job) | Trigger ({ state = Failed; _ } as job) -> Some job
         | _ -> None)
       jobs
+
+  let filter_passed_jobs jobs =
+    List.filter_map
+      (function
+        | Buildkite_t.Script ({ state = Passed; _ } as job) | Trigger ({ state = Passed; _ } as job) -> Some job
+        | _ -> None)
+      jobs
 end
 
 module type Cache_t = sig
@@ -375,40 +382,54 @@ module Webhook = struct
   let time_since t = Ptime.(Span.abs (diff (Ptime_clock.now ()) t))
   let is_past_span time span = Ptime.Span.compare (time_since time) span > 0
 
+  type failed_passed_steps = {
+    failed_steps : FailedStepSet.t;
+    passed_steps : FailedStepSet.t;
+  }
+
+  let to_failed_step ~(n : n) (job : Buildkite_t.job) =
+    {
+      Buildkite_t.id = Option.default job.name job.step_key;
+      name = job.name;
+      build_url = job.web_url;
+      created_at = Timestamp.wrap_with_fallback n.build.created_at;
+      author = extract_metadata_email n.build.meta_data |> Option.default "";
+      escalated_at = None;
+    }
+
+  let to_failed_step_set jobs n = List.map (to_failed_step ~n) jobs |> FailedStepSet.of_list
+
   let new_failed_steps ~(cfg : Config_t.config) ~(repo_state : State_t.repo_state) ~get_build ~db_update (n : n) =
     let org, pipeline, build_nr = Build.get_org_pipeline_build' n.build.web_url in
     let repo_key = repo_key org pipeline in
-    let get_failed_steps () =
+    let partition_build_steps () =
       log#info "Fetching failed steps for build %s/%s/%s" org pipeline build_nr;
       let* (build : Buildkite_t.get_build_res) = get_build n.build.web_url in
-      let to_failed_step (job : Buildkite_t.job) =
+      Lwt.return_ok
         {
-          Buildkite_t.id = Option.default job.name job.step_key;
-          name = job.name;
-          build_url = job.web_url;
-          created_at = Timestamp.wrap_with_fallback n.build.created_at;
-          author = extract_metadata_email n.build.meta_data |> Option.default "";
-          escalated_at = None;
+          failed_steps = to_failed_step_set (Build.filter_failed_jobs build.jobs) n;
+          passed_steps = to_failed_step_set (Build.filter_passed_jobs build.jobs) n;
         }
-      in
-      Lwt.return_ok @@ (Build.filter_failed_jobs build.jobs |> List.map to_failed_step |> FailedStepSet.of_list)
     in
     match Stringtbl.find_opt repo_state.failed_steps repo_key with
     | None ->
-      let* failed_steps = get_failed_steps () in
+      let* { failed_steps; _ } = partition_build_steps () in
       Stringtbl.replace repo_state.failed_steps repo_key { steps = failed_steps; last_build = n.build.number };
       let%lwt () = db_update ~repo_state ~has_state_update:true n "no previous repo state" in
       Lwt.return_ok failed_steps
     | Some state ->
-      let* build_failed_steps = get_failed_steps () in
+      let* { failed_steps; passed_steps } = partition_build_steps () in
+      let new_failed_steps = FailedStepSet.diff failed_steps state.steps in
+      let nonfixed_steps = FailedStepSet.diff state.steps passed_steps in
 
-      let steps_intersect = FailedStepSet.inter state.steps build_failed_steps in
-      let new_failed_steps = FailedStepSet.diff build_failed_steps state.steps in
+      (* we use fold to keep the original failed steps and add the new failed steps.
+         Set.S.union method doesn't guarantee which overlapping elements get picked *)
+      let current_failed_steps = FailedStepSet.(fold add nonfixed_steps new_failed_steps) in
 
       (* escalate steps that have been broken for longer than the threshold. Escalate again after every hour *)
       let steps_to_escalate =
         match get_escalation_threshold cfg n with
-        | None -> new_failed_steps
+        | None -> FailedStepSet.empty
         | Some escalation_threshold ->
           FailedStepSet.filter
             (fun step ->
@@ -420,29 +441,24 @@ module Webhook = struct
                 (* escalate again if the escalated_at time is more than 1 hour ago *)
                 let one_hour = Ptime.Span.of_int_s (60 * 60) in
                 is_past_span escalated_at one_hour)
-            state.steps
+            nonfixed_steps
       in
       let updated_state =
-        (* keep all the failed steps in state, but keep the original failed steps urls for the ones that intersect,
-           instead of the new ones. *)
-        let failed_steps = FailedStepSet.union steps_intersect new_failed_steps in
-        (* mark the steps to escalate with the current time. *)
         let escalated_steps =
           FailedStepSet.map (fun step -> { step with escalated_at = Some (Ptime_clock.now ()) }) steps_to_escalate
         in
-        (* merge the failed steps into the escalated ones. We need to use the `add` method because we don't have
-           any guarantees to get the intended elements when using `union` to merge sets with overlapping elements.
-           The goal is to keep the escalated steps (have the escalated_at property set) and discard the duplicates. *)
-        FailedStepSet.(fold add failed_steps escalated_steps)
+        (* we use fold here to update the current_failed_steps that got escalated.
+           Similar issue with then union method, we want to keep the original failed steps *)
+        FailedStepSet.(fold add current_failed_steps escalated_steps)
       in
-      Stringtbl.replace repo_state.failed_steps repo_key { steps = updated_state; last_build = n.build.number };
       let%lwt () =
         let msg =
           if FailedStepSet.is_empty new_failed_steps then "no new failed steps > NO NOTIFY"
           else "with previous repo state"
         in
-        db_update ~repo_state ~has_state_update:(not @@ FailedStepSet.is_empty new_failed_steps) n msg
+        db_update ~repo_state ~has_state_update:(FailedStepSet.equal state.steps current_failed_steps) n msg
       in
+      Stringtbl.replace repo_state.failed_steps repo_key { steps = updated_state; last_build = n.build.number };
       (* notify the steps that failed anew and the ones that have been escalated *)
       Lwt.return_ok (FailedStepSet.union new_failed_steps steps_to_escalate)
 end
