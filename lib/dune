@@ -21,6 +21,7 @@
   sqlgg.sqlite3
   sqlgg.traits
   sqlite3
+  unix
   uri
   yojson
   text_cleanup)
