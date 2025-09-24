@@ -602,7 +602,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
        match validate_signature ?signing_key:secrets.buildkite_signing_secret ~headers body with
        | Error e -> action_error e
        | Ok () ->
-         let%lwt (_ : int64 Database.db_use_result) = Database.Failed_builds.create ~ctx n in
+         let%lwt () = Database.Failed_builds.create ~ctx n in
          let repo_url = validate_repo_url secrets n in
          let%lwt cfg =
            match Context.find_repo_config ctx repo_url with
@@ -634,7 +634,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
            (* we don't want to consider builds notifications for builds that finish out of order *)
            match Stringtbl.find_opt repo_state.failed_steps repo_key with
            | Some state when n.build.number < state.last_build ->
-             let%lwt (_ : int64 Database.db_use_result) =
+             let%lwt () =
                Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update:false n
                  (Printf.sprintf "is_timely > false > build number < last build number")
              in
@@ -646,7 +646,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
          in
          (match should_notify with
          | false ->
-           let%lwt (_ : int64 Database.db_use_result) =
+           let%lwt () =
              Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update:false n
                "should notify > false"
            in
@@ -681,7 +681,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                      Stringtbl.replace repo_state.failed_steps repo_key
                        { steps = FailedStepSet.empty; last_build = n.build.number };
 
-                     let%lwt (_ : int64 Database.db_use_result) =
+                     let%lwt () =
                        Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update:true n
                          "should notify > true > build state = passed"
                      in
@@ -692,7 +692,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                        ]
                    | false ->
                      (* the build was successful, but we haven't fixed all the steps. Update state, but don't notify *)
-                     let%lwt (_ : int64 Database.db_use_result) =
+                     let%lwt () =
                        Database.Failed_builds.update_state_after_notification ~repo_state
                          ~has_state_update:(FailedStepSet.equal state_failed_steps state.steps)
                          n "should notify > false > build state = passed w/ failed steps"
@@ -706,7 +706,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                   new_failed_steps ~cfg ~repo_state
                     ~get_build:(Buildkite_api.get_build ~cache:`Refresh ~ctx)
                     ~db_update:(fun ~repo_state ~has_state_update n msg ->
-                      let%lwt (_ : int64 Database.db_use_result) =
+                      let%lwt () =
                         Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update n
                           (Printf.sprintf "should notify > true > build state = failed > %s" msg)
                       in
