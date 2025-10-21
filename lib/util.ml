@@ -67,26 +67,6 @@ module Build = struct
     (* Gets the pipeline name from the buildkite context *)
     Re2.create_exn {|buildkite/([\w_-]+)|}
 
-  let git_ssh_re =
-    (* matches git ssh clone links *)
-    Re2.create_exn {|^git@([A-Za-z0-9.-]+):([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\.git$|}
-
-  let git_ssh_to_https url =
-    match Re2.find_submatches_exn git_ssh_re url with
-    | exception exn -> util_error ~exn "failed to parse git ssh link %s" url
-    | [| Some _; Some url; Some user; Some repo |] -> sprintf "https://%s/%s/%s" url user repo
-    | _ -> util_error "failed to get repo details from the ssh link."
-
-  let git_ssh_to_contents_url url =
-    match Re2.find_submatches_exn git_ssh_re url with
-    | exception exn -> util_error ~exn "failed to parse git ssh link %s" url
-    | [| Some _; Some "github.com"; Some user; Some repo |] ->
-      sprintf "https://api.github.com/repos/%s/%s/contents/{+path}" user repo
-    | [| Some _; Some url; Some user; Some repo |] ->
-      (* GHE links *)
-      sprintf "https://%s/api/v3/repos/%s/%s/contents/{+path}" url user repo
-    | _ -> util_error "failed to get repo details from the ssh link."
-
   let is_pipeline_step context = Re2.matches buildkite_is_step_re context
 
   (** For now we only care about buildkite pipelines and steps. Other CI systems are not supported yet. *)
@@ -258,6 +238,47 @@ end
 module Webhook = struct
   type n = Buildkite_t.webhook_build_payload
 
+  type repo_details = {
+    url : string;
+    user : string;
+    repo : string;
+  }
+
+  type repo =
+    | Github of repo_details
+    | GHE of repo_details
+
+  type failed_passed_steps = {
+    failed_steps : FailedStepSet.t;
+    passed_steps : FailedStepSet.t;
+  }
+
+  let git_ssh_re =
+    (* matches git ssh clone links *)
+    Re2.create_exn {|^git@([A-Za-z0-9.-]+):([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\.git$|}
+
+  let git_ssh_to_repo url =
+    match Re2.find_submatches_exn git_ssh_re url with
+    | exception exn -> util_error ~exn "failed to parse git ssh link %s" url
+    | [| Some _; Some "github.com"; Some user; Some repo |] -> Github { url = "github.com"; user; repo }
+    | [| Some _; Some url; Some user; Some repo |] ->
+      (* GHE links *)
+      GHE { url; user; repo }
+    | _ -> util_error "failed to get repo details from the ssh link."
+
+  let git_ssh_to_api_url ?(resource = "") url =
+    match git_ssh_to_repo url with
+    | Github { user; repo; _ } -> sprintf "https://api.github.com/repos/%s/%s%s" user repo resource
+    | GHE { url; user; repo } -> sprintf "https://%s/api/v3/repos/%s/%s%s" url user repo resource
+
+  let git_ssh_to_https url =
+    match git_ssh_to_repo url with
+    | Github { url; user; repo } | GHE { url; user; repo } -> sprintf "https://%s/%s/%s" url user repo
+
+  let git_ssh_to_contents_url ssh_url = git_ssh_to_api_url ~resource:"/contents/{+path}" ssh_url
+
+  let git_ssh_to_commits_url ssh_url = git_ssh_to_api_url ~resource:"/commits{/sha}" ssh_url
+
   let parse_signature_header header =
     let timestamp, signature =
       String.split_on_char ',' header
@@ -292,7 +313,7 @@ module Webhook = struct
     | Ok (timestamp, signature) -> is_valid_signature ~secret ~timestamp ~signature body
 
   let validate_repo_url (secrets : Config_t.secrets) (n : Buildkite_t.webhook_build_payload) =
-    let repo_url = Build.git_ssh_to_https n.pipeline.repository in
+    let repo_url = git_ssh_to_https n.pipeline.repository in
     match List.exists (fun (r : Config_t.repo_config) -> String.equal r.url repo_url) secrets.repos with
     | true -> repo_url
     | false -> util_error "unsupported repository %s" repo_url
@@ -382,33 +403,36 @@ module Webhook = struct
   let time_since t = Ptime.(Span.abs (diff (Ptime_clock.now ()) t))
   let is_past_span time span = Ptime.Span.compare (time_since time) span > 0
 
-  type failed_passed_steps = {
-    failed_steps : FailedStepSet.t;
-    passed_steps : FailedStepSet.t;
-  }
+  let get_commit_author ~get_commit (n : n) sha =
+    let repo_url = git_ssh_to_https n.pipeline.repository in
+    let commits_url = git_ssh_to_commits_url n.pipeline.repository in
+    let* (gh_commit : Github_t.api_commit) = get_commit ~commits_url ~repo_url ~sha in
+    Lwt.return_ok gh_commit.commit.author.email
 
-  let to_failed_step ~(n : n) (job : Buildkite_t.job) =
+  let to_failed_step ~(n : n) ~author (job : Buildkite_t.job) =
     {
       Buildkite_t.id = Option.default job.name job.step_key;
       name = job.name;
       build_url = job.web_url;
       created_at = Timestamp.wrap_with_fallback n.build.created_at;
-      author = extract_metadata_email n.build.meta_data |> Option.default "";
+      author;
       escalated_at = None;
     }
 
-  let to_failed_step_set jobs n = List.map (to_failed_step ~n) jobs |> FailedStepSet.of_list
+  let to_failed_step_set author jobs n = List.map (to_failed_step ~n ~author) jobs |> FailedStepSet.of_list
 
-  let new_failed_steps ~(cfg : Config_t.config) ~(repo_state : State_t.repo_state) ~get_build ~db_update (n : n) =
+  let new_failed_steps ~(cfg : Config_t.config) ~(repo_state : State_t.repo_state) ~get_build ~get_commit ~db_update
+    (n : n) =
     let org, pipeline, build_nr = Build.get_org_pipeline_build' n.build.web_url in
     let repo_key = repo_key org pipeline in
     let partition_build_steps () =
       log#info "Fetching failed steps for build %s/%s/%s" org pipeline build_nr;
       let* (build : Buildkite_t.get_build_res) = get_build n.build.web_url in
+      let* author = get_commit_author ~get_commit n build.sha in
       Lwt.return_ok
         {
-          failed_steps = to_failed_step_set (Build.filter_failed_jobs build.jobs) n;
-          passed_steps = to_failed_step_set (Build.filter_passed_jobs build.jobs) n;
+          failed_steps = to_failed_step_set author (Build.filter_failed_jobs build.jobs) n;
+          passed_steps = to_failed_step_set author (Build.filter_passed_jobs build.jobs) n;
         }
     in
     match Stringtbl.find_opt repo_state.failed_steps repo_key with

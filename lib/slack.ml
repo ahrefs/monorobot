@@ -458,7 +458,7 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
 let generate_failed_build_notification ?(slack_ids = []) ?(is_fix_build_notification = false) ~(cfg : Config_t.config)
   ~failed_steps (n : Util.Webhook.n) channel =
   let pipeline_name = Util.Webhook.pipeline_name n in
-  let repo_url = Util.Build.git_ssh_to_https n.pipeline.repository in
+  let repo_url = Util.Webhook.git_ssh_to_https n.pipeline.repository in
   let commit_url = sprintf "%s/commit/%s" repo_url n.build.sha in
   let summary =
     (* check if this is an escalation notification. if it's mixed, paciencia *)

@@ -37,6 +37,22 @@ NB: please save the cache file in the same format *)
   let get_api_commit ~ctx:_ ~repo ~sha =
     get_repo_member_cache ~repo ~kind:"commit" ~ref_:sha ~of_string:Github_j.api_commit_of_string
 
+  let get_api_commit_webhook ~ctx:_ ~commits_url ~repo_url ~sha =
+    (* creating a fake repository record to avoid making deep changes to get_repo_member_cache *)
+    let repo : Github_t.repository =
+      {
+        name = "";
+        full_name = "";
+        url = repo_url;
+        commits_url;
+        contents_url = "";
+        pulls_url = "";
+        issues_url = "";
+        compare_url = "";
+      }
+    in
+    get_repo_member_cache ~repo ~kind:"commit" ~ref_:sha ~of_string:Github_j.api_commit_of_string
+
   let get_pull_request ~ctx:_ ~(repo : Github_t.repository) ~number =
     get_repo_member_cache ~repo ~kind:"pull" ~ref_:(Int.to_string number) ~of_string:Github_j.pull_request_of_string
 

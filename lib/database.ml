@@ -136,7 +136,7 @@ module Failed_builds = struct
     handle_create
     @@ with_db op_name (fun dbd ->
            let org, pipeline_name, _build_nr = Util.Build.get_org_pipeline_build' web_url in
-           let repo_url = Util.Build.git_ssh_to_https pipeline.repository in
+           let repo_url = Util.Webhook.git_ssh_to_https pipeline.repository in
            let repo_state = State.find_or_add_repo ctx.state repo_url in
            let%lwt (build : Buildkite_t.get_build_res) =
              (* TODO: review. Can we `Use cache here? *)

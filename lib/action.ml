@@ -616,7 +616,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                  full_name = "";
                  url = repo_url;
                  commits_url = "";
-                 contents_url = Util.Build.git_ssh_to_contents_url n.pipeline.repository;
+                 contents_url = Util.Webhook.git_ssh_to_contents_url n.pipeline.repository;
                  pulls_url = "";
                  issues_url = "";
                  compare_url = "";
@@ -674,7 +674,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                      { steps = Common.FailedStepSet.empty; last_build = n.build.number };
                    Lwt.return []
                  | Ok (build : Buildkite_t.get_build_res) ->
-                   let build_steps = Util.Webhook.to_failed_step_set (Util.Build.filter_passed_jobs build.jobs) n in
+                   let build_steps = Util.Webhook.to_failed_step_set "" (Util.Build.filter_passed_jobs build.jobs) n in
                    let state_failed_steps = FailedStepSet.diff state.steps build_steps in
                    (match FailedStepSet.is_empty state_failed_steps with
                    | true ->
@@ -705,6 +705,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                   (* repo state is updated upon fetching new failed steps *)
                   new_failed_steps ~cfg ~repo_state
                     ~get_build:(Buildkite_api.get_build ~cache:`Refresh ~ctx)
+                    ~get_commit:(Github_api.get_api_commit_webhook ~ctx)
                     ~db_update:(fun ~repo_state ~has_state_update n msg ->
                       let%lwt () =
                         Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update n
