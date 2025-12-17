@@ -200,6 +200,7 @@ let default, info =
   Term.(ret (const (`Help (`Pager, None)))), Cmd.info "monorobot" ~doc ~version:Version.current
 
 let () =
+  Mirage_crypto_rng_unix.use_default ();
   let cmds = [ run; check_gh; check_slack; debug_db ] in
   let group = Cmd.group ~default info cmds in
   exit @@ Cmd.eval group

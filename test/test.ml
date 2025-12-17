@@ -37,7 +37,7 @@ let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_
     let%lwt n = Github.parse_exn headers event ~get_build_branch in
     let repo = Github.repo_of_notification n in
     (* overwrite repo url in secrets with that of notification for this test case *)
-    let secrets = { secrets with repos = [ { url = repo.url; gh_token = None; gh_hook_secret = None } ] } in
+    let secrets = { secrets with repos = [ { url = repo.url; auth = None; gh_hook_secret = None } ] } in
     ctx.secrets <- Some secrets;
     let (_ : State_t.repo_state) = State.find_or_add_repo ctx.state repo.url in
     let () =

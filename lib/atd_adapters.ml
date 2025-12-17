@@ -82,3 +82,21 @@ module Strings_to_pipelines_adapter : Atdgen_runtime.Json_adapter.S = struct
     | `Assoc [ ("name", `String s) ] -> `String s
     | _ -> x
 end
+
+(* This adapter is meant to avoid breaking changes in the config because the type for
+   [repo_config] was changed and [gh_token] was removed and [auth] was added. *)
+module GH_token_to_auth_adapter : Atdgen_runtime.Json_adapter.S = struct
+  let normalize (x : Yojson.Safe.t) =
+    match x with
+    | `Assoc ks ->
+      `Assoc
+        (List.map
+           (fun (k, v) ->
+             match k with
+             | "gh_token" -> "auth", `List [ `String "GH_token"; v ]
+             | _ -> k, v)
+           ks)
+    | _ -> x
+
+  let restore (x : Yojson.Safe.t) = x
+end

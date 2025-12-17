@@ -12,6 +12,7 @@
   extlib
   lwt
   lwt.unix
+  mirage-crypto-pk
   ocamldiff
   omd
   ptime
@@ -22,6 +23,7 @@
   sqlgg.traits
   sqlite3
   unix
+  x509
   uri
   yojson
   text_cleanup)

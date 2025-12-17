@@ -53,10 +53,10 @@ let gh_repo_of_secrets (secrets : Config_t.secrets) repo_url =
   | None -> None
   | Some repo -> Some repo
 
-let gh_token_of_secrets (secrets : Config_t.secrets) repo_url =
+let gh_auth_of_secrets (secrets : Config_t.secrets) repo_url =
   match gh_repo_of_secrets secrets repo_url with
-  | None -> None
-  | Some repo -> repo.gh_token
+  | None | Some { auth = None; _ } -> None
+  | Some { auth; _ } -> auth
 
 let gh_hook_secret_token_of_secrets (secrets : Config_t.secrets) repo_url =
   match gh_repo_of_secrets secrets repo_url with

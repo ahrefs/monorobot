@@ -3,6 +3,41 @@ open Devkit
 open Common
 open Util
 
+module Github_app = struct
+  let jwt_token ({ client_id; pem; _ } : Config_t.app_installation_cfg) =
+    let b64enc s = Base64.encode_string ~alphabet:Base64.uri_safe_alphabet ~pad:false s in
+    let now = Unix.gettimeofday () in
+    (* Issues 60 seconds in the past *)
+    let iat = int_of_float (now -. 60.0) in
+    (* Expires 1 minute from now *)
+    let exp = int_of_float (now +. 60.0) in
+    let header_json = {|{"typ":"JWT","alg":"RS256"}|} in
+    let payload_json = sprintf {|{"iat":%d,"exp":%d,"iss":"%s"}|} iat exp client_id in
+    let header_payload = sprintf "%s.%s" (b64enc header_json) (b64enc payload_json) in
+    let key =
+      match X509.Private_key.decode_pem pem with
+      | Ok (`RSA k) -> k
+      | Ok _ -> failwith "Expected RSA key for app installation auth"
+      | Error (`Message e) -> failwith @@ "Failed to parse app installation private key: " ^ e
+      | _ -> failwith "Failed to parse app installation private key"
+    in
+    let signature = Mirage_crypto_pk.Rsa.PKCS1.sign ~hash:`SHA256 ~key (`Message header_payload) |> b64enc in
+    sprintf "%s.%s" header_payload signature
+
+  let get_installation_token (app : Config_t.app_installation_cfg) =
+    let headers = [ "Accept: application/vnd.github.v3+json"; sprintf "Authorization: Bearer %s" (jwt_token app) ] in
+    let url = sprintf "https://api.github.com/app/installations/%s/access_tokens" app.installation_id in
+    let%lwt res =
+      http_request ~headers `POST url ~body:(`Raw ("application/json", ""))
+      |> Lwt_result.map_error (fun e -> sprintf "Error while authenticating with GitHub app: %s" e)
+    in
+    match res with
+    | Ok res ->
+      let { Github_t.token; _ } = Github_j.installation_token_response_of_string res in
+      Lwt.return token
+    | Error e -> failwith e
+end
+
 module Github : Api.Github = struct
   let commits_url ~(repo : Github_t.repository) ~sha =
     let _, url = ExtLib.String.replace ~sub:"{/sha}" ~by:("/" ^ sha) ~str:repo.commits_url in
@@ -29,7 +64,14 @@ module Github : Api.Github = struct
     Option.map_default (fun v -> sprintf "Authorization: token %s" v :: headers) headers token
 
   let prepare_request ~secrets ~repo_url url =
-    let token = Context.gh_token_of_secrets secrets repo_url in
+    let%lwt token =
+      match Context.gh_auth_of_secrets secrets repo_url with
+      | None -> Lwt.return_none
+      | Some (GH_token token) -> Lwt.return_some token
+      | Some (AppInstallation gh_app) ->
+        let%lwt token = Github_app.get_installation_token gh_app in
+        Lwt.return_some token
+    in
     let headers = build_headers ?token () in
     let url =
       match Context.gh_repo_of_secrets secrets repo_url with
@@ -40,15 +82,15 @@ module Github : Api.Github = struct
         let repo_config_url_scheme = repo_config.url |> Uri.of_string |> Uri.scheme in
         url |> Uri.of_string |> flip Uri.with_scheme repo_config_url_scheme |> Uri.to_string
     in
-    headers, url
+    Lwt.return (headers, url)
 
   let get_resource ~secrets ~repo_url url =
-    let headers, url = prepare_request ~secrets ~repo_url url in
+    let%lwt headers, url = prepare_request ~secrets ~repo_url url in
     http_request ~headers `GET url
     |> Lwt_result.map_error (fun e -> sprintf "error while querying remote: %s\nfailed to get resource from %s" e url)
 
   let post_resource ~secrets ~repo_url body url =
-    let headers, url = prepare_request ~secrets ~repo_url url in
+    let%lwt headers, url = prepare_request ~secrets ~repo_url url in
     http_request ~headers ~body:(`Raw ("application/json; charset=utf-8", body)) `POST url
     |> Lwt_result.map_error (sprintf "POST to %s failed : %s" url)
 

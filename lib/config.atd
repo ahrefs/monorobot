@@ -68,14 +68,22 @@ type webhook = {
   channel : any_channel; (* name of the Slack channel to post the message *)
 }
 
+type app_installation_cfg = {
+  installation_id: string;
+  client_id: string;
+  pem: string;
+}
+
+type repo_auth = [ GH_token of string | AppInstallation of app_installation_cfg ] <ocaml repr="classic">
+
 type repo_config = {
   (* Repository url. Fully qualified (include protocol), without trailing slash. e.g. https://github.com/ahrefs/monorobot *)
   url : string;
   (* GitHub personal access token, if repo access requires it *)
-  ?gh_token : string nullable;
+  ?auth : repo_auth nullable;
   (* GitHub webhook secret token to secure the webhook *)
   ?gh_hook_secret : string nullable;
-}
+} <json adapter.ocaml="Atd_adapters.GH_token_to_auth_adapter">
 
 (* This is the structure of the secrets file which stores sensitive information, and
    shouldn't be checked into version control.  *)

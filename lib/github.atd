@@ -312,3 +312,8 @@ type content_api_response = {
   encoding : string;
   content : string;
 }
+
+type installation_token_response = {
+  token: string;
+  expires_at: string;
+}

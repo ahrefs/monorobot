@@ -1,5 +1,14 @@
 (executable
- (libraries monorobotlib cmdliner devkit devkit.core extlib lwt.unix uri unix)
+ (libraries
+  monorobotlib
+  cmdliner
+  devkit
+  devkit.core
+  extlib
+  lwt.unix
+  mirage-crypto-rng.unix
+  uri
+  unix)
  (preprocess
   (pps lwt_ppx))
  (public_name monorobot))
