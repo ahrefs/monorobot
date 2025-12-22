@@ -74,4 +74,10 @@
   (curl
    (>= 0.10.0))
   (sexplib0
-   (>= v0.16.0))))
+   (>= v0.16.0))
+  (x509
+   (>= v1.0.6))
+  (mirage-crypto-rng
+   (>= v2.0.2))
+  (mirage-crypto-pk
+   (>= v2.0.2))))
