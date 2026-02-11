@@ -10,6 +10,7 @@ let empty_repo_state () : State_t.repo_state =
     pipeline_statuses = StringMap.empty;
     pipeline_commits = StringMap.empty;
     slack_threads = StringMap.empty;
+    pr_messages = StringMap.empty;
     failed_steps = Stringtbl.empty ();
   }
 
@@ -178,6 +179,27 @@ let add_thread_if_new { state } ~repo_url ~pr_url (msg : State_t.slack_thread) =
 let delete_thread { state } ~repo_url ~pr_url =
   let repo_state = find_or_add_repo' state repo_url in
   repo_state.slack_threads <- StringMap.remove pr_url repo_state.slack_threads
+
+let max_pr_messages = 100
+
+let add_pr_message { state } ~repo_url ~pr_url (msg : State_t.slack_pr_message) =
+  let repo_state = find_or_add_repo' state repo_url in
+  let update = function
+    | None -> Some [ msg ]
+    | Some msgs ->
+      let msgs = msg :: msgs in
+      if List.length msgs > max_pr_messages then Some (List.filteri (fun i _ -> i < max_pr_messages) msgs)
+      else Some msgs
+  in
+  repo_state.pr_messages <- StringMap.update pr_url update repo_state.pr_messages
+
+let get_pr_messages { state } ~repo_url ~pr_url =
+  let repo_state = find_or_add_repo' state repo_url in
+  Option.default [] (StringMap.find_opt pr_url repo_state.pr_messages)
+
+let clear_pr_messages { state } ~repo_url ~pr_url =
+  let repo_state = find_or_add_repo' state repo_url in
+  repo_state.pr_messages <- StringMap.remove pr_url repo_state.pr_messages
 
 let set_bot_user_id { state; _ } user_id = state.State_t.bot_user_id <- Some user_id
 let get_bot_user_id { state; _ } = state.State_t.bot_user_id

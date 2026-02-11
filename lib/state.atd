@@ -45,6 +45,20 @@ type slack_thread = {
 
 type slack_threads = slack_thread list map_as_object
 
+type comment_type = [
+| Review_comment <json name="review_comment">
+| Issue_comment <json name="issue_comment">
+] <ocaml repr="classic">
+
+type slack_pr_message = {
+  slack_ts: slack_timestamp;
+  github_comment_id: int;
+  comment_type: comment_type;
+  body: string;
+}
+
+type pr_messages = slack_pr_message list map_as_object
+
 type failed_steps = {
   steps: failed_step_set;
   last_build: int;
@@ -55,6 +69,7 @@ type repo_state = {
   ~pipeline_statuses <ocaml mutable default="Common.StringMap.empty">: pipeline_statuses;
   ~pipeline_commits <ocaml mutable default="Common.StringMap.empty">: pipeline_commits;
   ~slack_threads <ocaml mutable default="Common.StringMap.empty">: slack_threads;
+  ~pr_messages <ocaml mutable default="Common.StringMap.empty">: pr_messages;
   ~failed_steps <ocaml mutable default="Common.Stringtbl.empty ()">: failed_steps table_as_object;
 }
 
