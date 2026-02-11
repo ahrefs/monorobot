@@ -1,5 +1,5 @@
 (executables
- (names test github_link_test longest_prefix_test)
+ (names test github_link_test longest_prefix_test pr_comms_sync_test)
  (libraries monorobotlib devkit devkit.core extlib lwt.unix yojson)
  (preprocess
   (pps lwt_ppx)))
@@ -34,3 +34,8 @@
  (alias runtest)
  (action
   (run ./longest_prefix_test.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./pr_comms_sync_test.exe)))

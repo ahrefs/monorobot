@@ -1,0 +1,27 @@
+{
+  "token": "",
+  "team_id": "T0475L7BATY",
+  "api_app_id": "A047JBWSX26",
+  "event": {
+    "type": "message",
+    "channel": "C047QTRD1CH",
+    "user": "U046XN0M2R5",
+    "thread_ts": "1666772724.077999",
+    "ts": "1666772801.078001",
+    "text": "> this is a review comment\nI agree with this"
+  },
+  "type": "event_callback",
+  "event_id": "Ev04876SDGK2",
+  "event_time": 1666772801,
+  "authorizations": [
+    {
+      "enterprise_id": null,
+      "team_id": "T0475L7BATY",
+      "user_id": "U047X1F32SD",
+      "is_bot": true,
+      "is_enterprise_install": false
+    }
+  ],
+  "is_ext_shared_channel": false,
+  "event_context": "test"
+}

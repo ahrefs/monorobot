@@ -51,10 +51,17 @@ let convert_links text =
 (** Convert Slack bold *text* to GitHub bold **text**
     Be careful not to double-convert already-double-starred text *)
 let convert_bold text =
-  (* Match single asterisks that are not already doubled *)
-  Re2.replace_exn (Re2.create_exn "(?<![*])\\*(?![*])([^*]+)(?<![*])\\*(?![*])") text ~f:(fun match_ ->
-      let content = Re2.Match.get_exn ~sub:(`Index 1) match_ in
-      Printf.sprintf "**%s**" content)
+  (* Match single asterisks that are not already doubled.
+     Re2 doesn't support lookbehinds, so use a two-pass approach:
+     first protect existing **, then convert single *, then restore ** *)
+  let placeholder = "\x00DBLSTAR\x00" in
+  let text = Re2.replace_exn (Re2.create_exn {|\*\*|}) text ~f:(fun _ -> placeholder) in
+  let text =
+    Re2.replace_exn (Re2.create_exn {|\*([^*]+)\*|}) text ~f:(fun match_ ->
+        let content = Re2.Match.get_exn ~sub:(`Index 1) match_ in
+        Printf.sprintf "**%s**" content)
+  in
+  Re2.replace_exn (Re2.create_exn (Re2.escape placeholder)) text ~f:(fun _ -> "**")
 
 (** Full conversion from Slack mrkdwn to GitHub markdown.
     resolve_user: takes a Slack user ID string, returns optional GitHub login *)
