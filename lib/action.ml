@@ -600,6 +600,152 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       end
     end
 
+  (** Parse a PR URL like "https://github.com/owner/repo/pull/123" into (repo_url, number) *)
+  let parse_pr_url pr_url =
+    match String.split_on_char '/' pr_url with
+    | scheme :: "" :: host :: owner :: repo :: "pull" :: number_str :: _ ->
+      let repo_url = Printf.sprintf "%s//%s/%s/%s" scheme host owner repo in
+      (match int_of_string_opt number_str with
+      | Some number -> Some (repo_url, owner, repo, number)
+      | None -> None)
+    | _ -> None
+
+  (** Build a minimal Github_t.repository for API calls *)
+  let make_repo ~repo_url ~owner ~repo_name =
+    let api_base = Printf.sprintf "https://api.github.com/repos/%s/%s" owner repo_name in
+    Github_t.
+      {
+        name = repo_name;
+        full_name = Printf.sprintf "%s/%s" owner repo_name;
+        url = repo_url;
+        commits_url = api_base ^ "/commits{/sha}";
+        contents_url = api_base ^ "/contents/{+path}";
+        pulls_url = api_base ^ "/pulls{/number}";
+        issues_url = api_base ^ "/issues{/number}";
+        compare_url = api_base ^ "/compare/{/basehead}";
+      }
+
+  (** Normalize text for quote matching: lowercase, collapse whitespace *)
+  let normalize_for_matching text =
+    let text = String.lowercase_ascii text in
+    Re2.replace_exn (Re2.create_exn {|\s+|}) text ~f:(fun _ -> " ") |> String.trim
+
+  (** Match a quoted block against stored PR comment mappings *)
+  let match_quote_to_comment ~messages quoted_text =
+    let normalized_quote = normalize_for_matching quoted_text in
+    List.filter
+      (fun (msg : State_t.slack_pr_message) ->
+        let normalized_body = normalize_for_matching msg.body in
+        fst (ExtLib.String.replace ~str:normalized_body ~sub:normalized_quote ~by:"") = true)
+      messages
+
+  (** Format a comment body for posting to GitHub *)
+  let format_github_comment ~github_login_opt ~slack_display_name body =
+    let attribution =
+      match github_login_opt with
+      | Some login -> Printf.sprintf "**@%s** (via Slack):" login
+      | None -> Printf.sprintf "**%s** (via Slack):" slack_display_name
+    in
+    Printf.sprintf "%s\n\n%s" attribution body
+
+  let process_message_event (ctx : Context.t) (event : Slack_t.message_event) =
+    (* Filter: ignore non-threaded messages *)
+    match event.thread_ts with
+    | None -> Lwt.return "ignored: not a thread reply"
+    | Some thread_ts ->
+    (* Filter: ignore messages with subtypes (edits, joins, etc.) *)
+    match event.subtype with
+    | Some _ -> Lwt.return "ignored: message has subtype"
+    | None ->
+      (* Filter: ignore bot's own messages *)
+      let bot_user_id = State.get_bot_user_id ctx.state in
+      (match bot_user_id with
+      | Some bot_id when Slack_user_id.equal event.user bot_id -> Lwt.return "ignored: bot's own message"
+      | _ ->
+      (* Filter: check if thread belongs to a known PR *)
+      match State.find_pr_by_thread ctx.state ~channel_id:event.channel ~thread_ts with
+      | None -> Lwt.return "ignored: thread not associated with a PR"
+      | Some (repo_url, pr_url) ->
+      match parse_pr_url pr_url with
+      | None ->
+        log#error "failed to parse PR URL: %s" pr_url;
+        Lwt.return "error: failed to parse PR URL"
+      | Some (_repo_url, owner, repo_name, number) ->
+        let repo = make_repo ~repo_url ~owner ~repo_name in
+        let cfg = Context.find_repo_config_exn ctx repo_url in
+        (* Resolve Slack user to GitHub login *)
+        let github_login_opt = match_slack_id_to_github_login cfg event.user in
+        let slack_display_name = Slack_user_id.project event.user in
+        (* Convert Slack mrkdwn to GitHub markdown *)
+        let resolve_user slack_id_str = match_slack_id_to_github_login cfg (Slack_user_id.inject slack_id_str) in
+        let quoted_text, body_text = Slack_to_github.extract_blockquote event.text in
+        let body_md = Slack_to_github.to_github_markdown ~resolve_user body_text in
+        let formatted_body = format_github_comment ~github_login_opt ~slack_display_name body_md in
+        let messages = State.get_pr_messages ctx.state ~repo_url ~pr_url in
+        let send_slack_warning msg =
+          let thread_ts_val = thread_ts in
+          let channel_any = Slack_channel.to_any event.channel in
+          let warning_msg : Slack_t.post_message_req =
+            {
+              channel = channel_any;
+              thread_ts = Some thread_ts_val;
+              text = Some msg;
+              attachments = None;
+              blocks = None;
+              username = None;
+              unfurl_links = None;
+              unfurl_media = None;
+              reply_broadcast = false;
+            }
+          in
+          let%lwt _ = Slack_api.send_notification ~ctx ~msg:warning_msg in
+          Lwt.return_unit
+        in
+        (match quoted_text with
+        | "" ->
+          (* No quote: post as top-level issue comment *)
+          (match%lwt Github_api.post_issue_comment ~ctx ~repo ~number ~body:formatted_body with
+          | Ok () -> Lwt.return "ok: posted issue comment"
+          | Error e ->
+            log#error "failed to post issue comment: %s" e;
+            Lwt.return "error: failed to post issue comment")
+        | _ ->
+        (* Has quote: try to match against stored comments *)
+        match match_quote_to_comment ~messages quoted_text with
+        | [ matched ] ->
+          (* Single match *)
+          (match matched.comment_type with
+          | Review_comment ->
+            (match%lwt
+               Github_api.reply_to_review_comment ~ctx ~repo ~number ~comment_id:matched.github_comment_id
+                 ~body:formatted_body
+             with
+            | Ok () -> Lwt.return "ok: replied to review comment"
+            | Error e ->
+              log#error "failed to reply to review comment: %s" e;
+              Lwt.return "error: failed to reply to review comment")
+          | Issue_comment ->
+            (* GitHub doesn't support replying to issue comments, post as new comment *)
+            (match%lwt Github_api.post_issue_comment ~ctx ~repo ~number ~body:formatted_body with
+            | Ok () -> Lwt.return "ok: posted issue comment in reply"
+            | Error e ->
+              log#error "failed to post issue comment: %s" e;
+              Lwt.return "error: failed to post issue comment"))
+        | [] ->
+          (* No match: warn user *)
+          let%lwt () =
+            send_slack_warning
+              (Printf.sprintf "Couldn't match your quote to a specific comment. You can add it directly: %s" pr_url)
+          in
+          Lwt.return "warning: no matching comment found for quote"
+        | _ ->
+          (* Multiple matches: ambiguous *)
+          let%lwt () =
+            send_slack_warning
+              (Printf.sprintf "Your quote matched multiple comments. You can add your comment directly: %s" pr_url)
+          in
+          Lwt.return "warning: ambiguous quote match"))
+
   let process_slack_event (ctx : Context.t) headers body =
     let secrets = Context.get_secrets_exn ctx in
     match Slack_j.event_notification_of_string body with
@@ -610,7 +756,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Ok () ->
     match notification.event with
     | Link_shared event -> process_link_shared_event ctx event
-    | Message _event -> Lwt.return "ignored: message event not handled"
+    | Message event -> process_message_event ctx event
 
   let process_buildkite_webhook (ctx : Context.t) headers body =
     let open Util.Webhook in

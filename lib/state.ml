@@ -201,6 +201,29 @@ let clear_pr_messages { state } ~repo_url ~pr_url =
   let repo_state = find_or_add_repo' state repo_url in
   repo_state.pr_messages <- StringMap.remove pr_url repo_state.pr_messages
 
+let find_pr_by_thread { state } ~channel_id ~thread_ts =
+  let channel_any = Slack_channel.to_any channel_id in
+  Stringtbl.fold
+    (fun repo_url (repo_state : State_t.repo_state) acc ->
+      match acc with
+      | Some _ -> acc
+      | None ->
+        StringMap.fold
+          (fun pr_url threads acc ->
+            match acc with
+            | Some _ -> acc
+            | None ->
+            match
+              List.exists
+                (fun (t : State_t.slack_thread) ->
+                  Slack_channel.equal channel_any t.channel && compare thread_ts t.ts = 0)
+                threads
+            with
+            | true -> Some (repo_url, pr_url)
+            | false -> None)
+          repo_state.slack_threads None)
+    state.repos None
+
 let set_bot_user_id { state; _ } user_id = state.State_t.bot_user_id <- Some user_id
 let get_bot_user_id { state; _ } = state.State_t.bot_user_id
 
