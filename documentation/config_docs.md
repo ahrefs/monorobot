@@ -200,7 +200,9 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
       {
         "failed_builds_channel": "failed-builds",
         "name": "buildkite/monorobot-test",
-        "notify_canceled_builds": false
+        "notify_canceled_builds": false,
+        "pipeline_owner": "owner@example.com",
+        "mention_owner_on_failed_builds": true
       }
     ],
     "rules": [
@@ -236,6 +238,8 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
 | `mention_user_on_failed_builds` | wether monorobot will @mention the author of the commit on failed builds notifications | true
 | `escalate_notifications` | if failed steps haven't been fixed after a certain period of time, notify again on the next failed build and @mention the original author of the commit that broke that/those steps | false
 | `escalate_notifications_threshold` | period in hours after which monorobot should start escalating notifications | 2
+| `pipeline_owner` | email address of the pipeline owner. When set together with `mention_owner_on_failed_builds`, the owner will be @mentioned in failed build notifications | empty
+| `mention_owner_on_failed_builds` | whether monorobot will @mention the pipeline owner on failed build notifications. Requires `pipeline_owner` to be set. This is independent of `mention_user_on_failed_builds` — both the commit author and the pipeline owner can be mentioned simultaneously if both options are enabled | false
 
 ### Status Rules
 

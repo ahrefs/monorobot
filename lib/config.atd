@@ -14,6 +14,8 @@ type pipeline = {
   (* threshold in hours *)
   ~escalate_notification_threshold <ocaml default="2">: int;
   ~dm_users_on_failures <ocaml default="true">: bool;
+  ?pipeline_owner: string nullable;
+  ~mention_owner_on_failed_builds <ocaml default="false">: bool;
 } <json adapter.ocaml="Atd_adapters.Strings_to_pipelines_adapter">
 
 (* This type of rule is used for CI build notifications. *)

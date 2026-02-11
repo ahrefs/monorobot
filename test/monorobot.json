@@ -8,7 +8,9 @@
       },
       {
         "name": "buildkite/pipeline2",
-        "failed_builds_channel": "failed-builds"
+        "failed_builds_channel": "failed-builds",
+        "pipeline_owner": "owner@example.com",
+        "mention_owner_on_failed_builds": true
       },
       {
         "name": "buildkite/qa",
