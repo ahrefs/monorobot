@@ -672,23 +672,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         Lwt.return "error: failed to parse PR URL"
       | Some (_repo_url, owner, repo_name, number) ->
         let repo = make_repo ~repo_url ~owner ~repo_name in
-        let cfg = Context.find_repo_config_exn ctx repo_url in
-        (* Resolve Slack user to GitHub login *)
-        let github_login_opt = match_slack_id_to_github_login cfg event.user in
-        let slack_display_name = Slack_user_id.project event.user in
-        (* Convert Slack mrkdwn to GitHub markdown *)
-        let resolve_user slack_id_str = match_slack_id_to_github_login cfg (Slack_user_id.inject slack_id_str) in
-        let quoted_text, body_text = Slack_to_github.extract_blockquote event.text in
-        let body_md = Slack_to_github.to_github_markdown ~resolve_user body_text in
-        let formatted_body = format_github_comment ~github_login_opt ~slack_display_name body_md in
-        let messages = State.get_pr_messages ctx.state ~repo_url ~pr_url in
         let send_slack_warning msg =
-          let thread_ts_val = thread_ts in
           let channel_any = Slack_channel.to_any event.channel in
           let warning_msg : Slack_t.post_message_req =
             {
               channel = channel_any;
-              thread_ts = Some thread_ts_val;
+              thread_ts = Some thread_ts;
               text = Some msg;
               attachments = None;
               blocks = None;
@@ -701,50 +690,71 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           let%lwt _ = Slack_api.send_notification ~ctx ~msg:warning_msg in
           Lwt.return_unit
         in
-        (match quoted_text with
-        | "" ->
-          (* No quote: post as top-level issue comment *)
-          (match%lwt Github_api.post_issue_comment ~ctx ~repo ~number ~body:formatted_body with
-          | Ok () -> Lwt.return "ok: posted issue comment"
-          | Error e ->
-            log#error "failed to post issue comment: %s" e;
-            Lwt.return "error: failed to post issue comment")
-        | _ ->
-        (* Has quote: try to match against stored comments *)
-        match match_quote_to_comment ~messages quoted_text with
-        | [ matched ] ->
-          (* Single match *)
-          (match matched.comment_type with
-          | Review_comment ->
-            (match%lwt
-               Github_api.reply_to_review_comment ~ctx ~repo ~number ~comment_id:matched.github_comment_id
-                 ~body:formatted_body
-             with
-            | Ok () -> Lwt.return "ok: replied to review comment"
-            | Error e ->
-              log#error "failed to reply to review comment: %s" e;
-              Lwt.return "error: failed to reply to review comment")
-          | Issue_comment ->
-            (* GitHub doesn't support replying to issue comments, post as new comment *)
+        (* Check if PR is merged *)
+        (match%lwt Github_api.get_pull_request ~ctx ~repo ~number with
+        | Ok pr when pr.merged ->
+          let%lwt () =
+            send_slack_warning (Printf.sprintf "This PR has been merged. Please add your comment directly: %s" pr_url)
+          in
+          Lwt.return "warning: PR is merged"
+        | Error e ->
+          log#error "failed to fetch PR #%d: %s" number e;
+          Lwt.return "error: failed to check PR status"
+        | Ok _ ->
+          let cfg = Context.find_repo_config_exn ctx repo_url in
+          (* Resolve Slack user to GitHub login *)
+          let github_login_opt = match_slack_id_to_github_login cfg event.user in
+          let slack_display_name = Slack_user_id.project event.user in
+          (* Convert Slack mrkdwn to GitHub markdown *)
+          let resolve_user slack_id_str = match_slack_id_to_github_login cfg (Slack_user_id.inject slack_id_str) in
+          let quoted_text, body_text = Slack_to_github.extract_blockquote event.text in
+          let body_md = Slack_to_github.to_github_markdown ~resolve_user body_text in
+          let formatted_body = format_github_comment ~github_login_opt ~slack_display_name body_md in
+          let messages = State.get_pr_messages ctx.state ~repo_url ~pr_url in
+          (match quoted_text with
+          | "" ->
+            (* No quote: post as top-level issue comment *)
             (match%lwt Github_api.post_issue_comment ~ctx ~repo ~number ~body:formatted_body with
-            | Ok () -> Lwt.return "ok: posted issue comment in reply"
+            | Ok () -> Lwt.return "ok: posted issue comment"
             | Error e ->
               log#error "failed to post issue comment: %s" e;
-              Lwt.return "error: failed to post issue comment"))
-        | [] ->
-          (* No match: warn user *)
-          let%lwt () =
-            send_slack_warning
-              (Printf.sprintf "Couldn't match your quote to a specific comment. You can add it directly: %s" pr_url)
-          in
-          Lwt.return "warning: no matching comment found for quote"
-        | _ ->
-          (* Multiple matches: ambiguous *)
-          let%lwt () =
-            send_slack_warning
-              (Printf.sprintf "Your quote matched multiple comments. You can add your comment directly: %s" pr_url)
-          in
-          Lwt.return "warning: ambiguous quote match"))
+              Lwt.return "error: failed to post issue comment")
+          | _ ->
+          (* Has quote: try to match against stored comments *)
+          match match_quote_to_comment ~messages quoted_text with
+          | [ matched ] ->
+            (* Single match *)
+            (match matched.comment_type with
+            | Review_comment ->
+              (match%lwt
+                 Github_api.reply_to_review_comment ~ctx ~repo ~number ~comment_id:matched.github_comment_id
+                   ~body:formatted_body
+               with
+              | Ok () -> Lwt.return "ok: replied to review comment"
+              | Error e ->
+                log#error "failed to reply to review comment: %s" e;
+                Lwt.return "error: failed to reply to review comment")
+            | Issue_comment ->
+              (* GitHub doesn't support replying to issue comments, post as new comment *)
+              (match%lwt Github_api.post_issue_comment ~ctx ~repo ~number ~body:formatted_body with
+              | Ok () -> Lwt.return "ok: posted issue comment in reply"
+              | Error e ->
+                log#error "failed to post issue comment: %s" e;
+                Lwt.return "error: failed to post issue comment"))
+          | [] ->
+            (* No match: warn user *)
+            let%lwt () =
+              send_slack_warning
+                (Printf.sprintf "Couldn't match your quote to a specific comment. You can add it directly: %s" pr_url)
+            in
+            Lwt.return "warning: no matching comment found for quote"
+          | _ ->
+            (* Multiple matches: ambiguous *)
+            let%lwt () =
+              send_slack_warning
+                (Printf.sprintf "Your quote matched multiple comments. You can add your comment directly: %s" pr_url)
+            in
+            Lwt.return "warning: ambiguous quote match")))
 
   let process_slack_event (ctx : Context.t) headers body =
     let secrets = Context.get_secrets_exn ctx in

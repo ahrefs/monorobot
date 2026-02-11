@@ -105,7 +105,9 @@ let thread_state_handler ~ctx ~channel ~repo_url ~html_url action (response : Sl
   | `Add ->
     State.add_thread_if_new ctx.Context.state ~repo_url ~pr_url:html_url
       { cid = response.channel; channel; ts = response.ts }
-  | `Delete -> State.delete_thread ctx.state ~repo_url ~pr_url:html_url
+  | `Delete ->
+    State.delete_thread ctx.state ~repo_url ~pr_url:html_url;
+    State.clear_pr_messages ctx.state ~repo_url ~pr_url:html_url
   | `Noop -> ()
 
 let thread_state_action_of_pr_action : pr_action -> _ = function
