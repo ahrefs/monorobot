@@ -394,6 +394,13 @@ module Webhook = struct
     get_pipeline_config cfg n
     |> Option.map_default (fun (config : Config_t.pipeline) -> config.mention_user_on_failed_builds) true
 
+  let mention_owner_on_failed_builds (cfg : Config_t.config) (n : n) =
+    get_pipeline_config cfg n
+    |> Option.map_default (fun (config : Config_t.pipeline) -> config.mention_owner_on_failed_builds) false
+
+  let pipeline_owner (cfg : Config_t.config) (n : n) =
+    get_pipeline_config cfg n |> Option.map_default (fun (config : Config_t.pipeline) -> config.pipeline_owner) None
+
   let get_escalation_threshold (cfg : Config_t.config) (n : n) =
     match get_pipeline_config cfg n with
     | Some ({ escalate_notifications = false; _ } : Config_t.pipeline) | None -> None

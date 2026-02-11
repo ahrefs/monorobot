@@ -719,17 +719,17 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                match FailedStepSet.is_empty failed_steps with
                | true -> Lwt.return []
                | false ->
-                 let%lwt slack_ids =
+                 let to_slack_id email =
+                   match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+                   | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
+                   | Error e ->
+                     log#warn "couldn't match commit email %s to slack profile: %s" email e;
+                     Lwt.return_none
+                 in
+                 let%lwt user_slack_ids =
                    match mention_user_on_failed_builds cfg n with
                    | false -> Lwt.return []
                    | true ->
-                     let to_slack_id email =
-                       match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
-                       | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
-                       | Error e ->
-                         log#warn "couldn't match commit email %s to slack profile: %s" email e;
-                         Lwt.return_none
-                     in
                      let author_emails =
                        FailedStepSet.fold
                          (fun (step : Buildkite_t.failed_step) acc ->
@@ -738,7 +738,15 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                      in
                      Lwt_list.map_s to_slack_id author_emails
                  in
-                 let slack_ids = List.filter_map Fun.id slack_ids in
+                 let%lwt owner_slack_ids =
+                   match mention_owner_on_failed_builds cfg n, pipeline_owner cfg n with
+                   | true, Some owner_email ->
+                     let%lwt id = to_slack_id owner_email in
+                     Lwt.return [ id ]
+                   | _ -> Lwt.return []
+                 in
+                 let slack_ids = List.filter_map Fun.id (user_slack_ids @ owner_slack_ids) in
+                 let slack_ids = List.sort_uniq compare slack_ids in
                  Lwt.return [ Slack.generate_failed_build_notification ~slack_ids ~cfg ~failed_steps n channel ])
              | _ -> assert false
            in
