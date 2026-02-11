@@ -148,6 +148,18 @@ module Github : Api.Github = struct
       |> post_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url body
     in
     Lwt.return @@ Result.map ignore res
+
+  let post_issue_comment ~(ctx : Context.t) ~(repo : Github_t.repository) ~number ~body =
+    let url = sprintf "%s/comments" (issues_url ~repo ~number) in
+    let payload = sprintf {|{"body":%s}|} (Yojson.Basic.to_string (`String body)) in
+    let%lwt res = post_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url payload url in
+    Lwt.return @@ Result.map ignore res
+
+  let reply_to_review_comment ~(ctx : Context.t) ~(repo : Github_t.repository) ~number ~comment_id ~body =
+    let url = sprintf "%s/comments/%d/replies" (pulls_url ~repo ~number) comment_id in
+    let payload = sprintf {|{"body":%s}|} (Yojson.Basic.to_string (`String body)) in
+    let%lwt res = post_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url payload url in
+    Lwt.return @@ Result.map ignore res
 end
 
 module Slack : Api.Slack = struct

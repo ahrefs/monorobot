@@ -88,6 +88,7 @@ let process_slack_event ~(secrets : Config_t.secrets) path =
   | Link_shared event ->
     let%lwt _ctx = Action_local.process_link_shared_event ctx event in
     Lwt.return_unit
+  | Message _ -> Lwt.return_unit
 
 let () =
   let payloads = get_mock_payloads () in

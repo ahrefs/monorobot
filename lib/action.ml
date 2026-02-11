@@ -66,6 +66,28 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     let login = List.assoc_opt login cfg.user_mappings |> Option.default login in
     login |> canonicalize_email_username |> Stringtbl.find_opt username_to_slack_id_tbl
 
+  let match_slack_id_to_github_login cfg (slack_id : Slack_user_id.t) =
+    (* Find email_username from slack_id by reversing username_to_slack_id_tbl *)
+    let email_username =
+      Stringtbl.fold
+        (fun username id acc ->
+          match acc with
+          | Some _ -> acc
+          | None -> if Slack_user_id.equal id slack_id then Some username else None)
+        username_to_slack_id_tbl None
+    in
+    match email_username with
+    | None -> None
+    | Some username ->
+      (* Find github_login from user_mappings (github_login -> slack_name) *)
+      let github_login =
+        List.find_map
+          (fun (gh_login, slack_name) ->
+            if canonicalize_email_username slack_name = username then Some gh_login else None)
+          cfg.user_mappings
+      in
+      Some (Option.default username github_login)
+
   let partition_push (cfg : Config_t.config) n =
     let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in
@@ -588,6 +610,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Ok () ->
     match notification.event with
     | Link_shared event -> process_link_shared_event ctx event
+    | Message _event -> Lwt.return "ignored: message event not handled"
 
   let process_buildkite_webhook (ctx : Context.t) headers body =
     let open Util.Webhook in
