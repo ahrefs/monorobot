@@ -657,10 +657,25 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     match event.subtype with
     | Some _ -> Lwt.return "ignored: message has subtype"
     | None ->
+    (* Filter: require user and text fields (absent in some message subtypes) *)
+    match event.user, event.text with
+    | None, _ | _, None -> Lwt.return "ignored: missing user or text"
+    | Some user, Some text ->
       (* Filter: ignore bot's own messages *)
-      let bot_user_id = State.get_bot_user_id ctx.state in
+      let%lwt bot_user_id =
+        match State.get_bot_user_id ctx.state with
+        | Some id -> Lwt.return_some id
+        | None ->
+          (match%lwt Slack_api.send_auth_test ~ctx () with
+          | Ok { user_id; _ } ->
+            State.set_bot_user_id ctx.state user_id;
+            Lwt.return_some user_id
+          | Error msg ->
+            log#warn "failed to query slack auth.test : %s" msg;
+            Lwt.return_none)
+      in
       (match bot_user_id with
-      | Some bot_id when Slack_user_id.equal event.user bot_id -> Lwt.return "ignored: bot's own message"
+      | Some bot_id when Slack_user_id.equal user bot_id -> Lwt.return "ignored: bot's own message"
       | _ ->
       (* Filter: check if thread belongs to a known PR *)
       match State.find_pr_by_thread ctx.state ~channel_id:event.channel ~thread_ts with
@@ -703,11 +718,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         | Ok _ ->
           let cfg = Context.find_repo_config_exn ctx repo_url in
           (* Resolve Slack user to GitHub login *)
-          let github_login_opt = match_slack_id_to_github_login cfg event.user in
-          let slack_display_name = Slack_user_id.project event.user in
+          let github_login_opt = match_slack_id_to_github_login cfg user in
+          let slack_display_name = Slack_user_id.project user in
           (* Convert Slack mrkdwn to GitHub markdown *)
           let resolve_user slack_id_str = match_slack_id_to_github_login cfg (Slack_user_id.inject slack_id_str) in
-          let quoted_text, body_text = Slack_to_github.extract_blockquote event.text in
+          let quoted_text, body_text = Slack_to_github.extract_blockquote text in
           let body_md = Slack_to_github.to_github_markdown ~resolve_user body_text in
           let formatted_body = format_github_comment ~github_login_opt ~slack_display_name body_md in
           let messages = State.get_pr_messages ctx.state ~repo_url ~pr_url in

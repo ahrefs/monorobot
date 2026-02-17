@@ -110,10 +110,10 @@ type link_shared_event = {
 
 type message_event = {
   channel: channel_id;
-  user: user_id;
+  ?user: user_id option;
   ?thread_ts: timestamp option;
   ts: timestamp;
-  text: string;
+  ?text: string option;
   ?subtype: string option;
 }
 
