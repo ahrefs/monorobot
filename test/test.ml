@@ -100,7 +100,7 @@ let process_slack_event ~(secrets : Config_t.secrets) ~config path =
     (match event.thread_ts with
     | Some thread_ts ->
       State.add_thread_if_new ctx.state ~repo_url ~pr_url
-        { State_t.ts = thread_ts; channel = channel_any; cid = event.channel };
+        { State_t.ts = thread_ts; channel = channel_any; cid = event.channel; merged_at = None };
       (* Add a comment mapping for quote matching *)
       State.add_pr_message ctx.state ~repo_url ~pr_url
         {

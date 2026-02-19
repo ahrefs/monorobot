@@ -41,6 +41,7 @@ type slack_thread = {
   ts: slack_timestamp;
   channel: any_channel;
   cid: channel_id;
+  ?merged_at: timestamp option;
 }
 
 type slack_threads = slack_thread list map_as_object

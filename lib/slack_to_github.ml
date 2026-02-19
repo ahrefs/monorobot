@@ -1,3 +1,10 @@
+(** Decode Slack's HTML entities: &amp; &lt; &gt; *)
+let decode_slack_entities text =
+  text
+  |> Re2.replace_exn (Re2.create_exn {|&amp;|}) ~f:(fun _ -> "&")
+  |> Re2.replace_exn (Re2.create_exn {|&lt;|}) ~f:(fun _ -> "<")
+  |> Re2.replace_exn (Re2.create_exn {|&gt;|}) ~f:(fun _ -> ">")
+
 (** Extract blockquote lines and remaining body from a Slack message.
     Lines starting with ">" are blockquote lines. Returns (quoted_text, body_text).
     The ">" prefix and leading space are stripped from quoted lines. *)

@@ -180,6 +180,47 @@ let delete_thread { state } ~repo_url ~pr_url =
   let repo_state = find_or_add_repo' state repo_url in
   repo_state.slack_threads <- StringMap.remove pr_url repo_state.slack_threads
 
+let mark_threads_merged { state } ~repo_url ~pr_url =
+  let repo_state = find_or_add_repo' state repo_url in
+  let now = Ptime_clock.now () in
+  let update = function
+    | None -> None
+    | Some threads -> Some (List.map (fun (t : State_t.slack_thread) -> { t with merged_at = Some now }) threads)
+  in
+  repo_state.slack_threads <- StringMap.update pr_url update repo_state.slack_threads
+
+let one_month = Ptime.Span.of_int_s (30 * 24 * 60 * 60)
+
+let is_thread_expired { state } ~repo_url ~pr_url =
+  let repo_state = find_or_add_repo' state repo_url in
+  match StringMap.find_opt pr_url repo_state.slack_threads with
+  | None -> false
+  | Some threads ->
+    List.for_all
+      (fun (t : State_t.slack_thread) ->
+        match t.merged_at with
+        | None -> false
+        | Some merged_at ->
+          let now = Ptime_clock.now () in
+          Ptime.Span.compare (Ptime.diff now merged_at) one_month >= 0)
+      threads
+
+let gc_merged_threads { state } ~repo_url =
+  let repo_state = find_or_add_repo' state repo_url in
+  let now = Ptime_clock.now () in
+  let is_expired (threads : State_t.slack_thread list) =
+    List.for_all
+      (fun (t : State_t.slack_thread) ->
+        match t.merged_at with
+        | None -> false
+        | Some merged_at -> Ptime.Span.compare (Ptime.diff now merged_at) one_month >= 0)
+      threads
+  in
+  let expired, kept = StringMap.partition (fun _pr_url threads -> is_expired threads) repo_state.slack_threads in
+  StringMap.iter (fun pr_url _ -> log#info "gc: removing merged PR thread %s" pr_url) expired;
+  repo_state.slack_threads <- kept;
+  StringMap.iter (fun pr_url _ -> repo_state.pr_messages <- StringMap.remove pr_url repo_state.pr_messages) expired
+
 let max_pr_messages = 100
 
 let add_pr_message { state } ~repo_url ~pr_url (msg : State_t.slack_pr_message) =
@@ -202,7 +243,6 @@ let clear_pr_messages { state } ~repo_url ~pr_url =
   repo_state.pr_messages <- StringMap.remove pr_url repo_state.pr_messages
 
 let find_pr_by_thread { state } ~channel_id ~thread_ts =
-  let channel_any = Slack_channel.to_any channel_id in
   Stringtbl.fold
     (fun repo_url (repo_state : State_t.repo_state) acc ->
       match acc with
@@ -216,7 +256,8 @@ let find_pr_by_thread { state } ~channel_id ~thread_ts =
             match
               List.exists
                 (fun (t : State_t.slack_thread) ->
-                  Slack_channel.equal channel_any t.channel && compare thread_ts t.ts = 0)
+                  Slack_channel.equal (Slack_channel.to_any channel_id) (Slack_channel.to_any t.cid)
+                  && compare thread_ts t.ts = 0)
                 threads
             with
             | true -> Some (repo_url, pr_url)

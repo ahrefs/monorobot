@@ -951,6 +951,8 @@ result: ok: posted issue comment
 ===== file ../mock_slack_events/message.thread_reply_with_quote.json =====
 will reply to review comment 100 on PR #42: **U046XN0M2R5** (via Slack):
 
+> this is a review comment
+
 I agree with this
 result: ok: replied to review comment
 ===== file ../mock_slack_events/pr.multiple_involved.json =====

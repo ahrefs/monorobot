@@ -104,21 +104,19 @@ let thread_state_handler ~ctx ~channel ~repo_url ~html_url action (response : Sl
   match action with
   | `Add ->
     State.add_thread_if_new ctx.Context.state ~repo_url ~pr_url:html_url
-      { cid = response.channel; channel; ts = response.ts }
+      { cid = response.channel; channel; ts = response.ts; merged_at = None }
   | `Delete ->
-    State.delete_thread ctx.state ~repo_url ~pr_url:html_url;
-    State.clear_pr_messages ctx.state ~repo_url ~pr_url:html_url
+    State.mark_threads_merged ctx.state ~repo_url ~pr_url:html_url;
+    State.gc_merged_threads ctx.state ~repo_url
   | `Noop -> ()
 
 let thread_state_action_of_pr_action : pr_action -> _ = function
-  | Opened | Ready_for_review | Labeled
-  | Reopened (* thread state deleted when PR closed, so need to re-add on reopen *) ->
-    `Add
+  | Opened | Ready_for_review | Labeled | Reopened -> `Add
   | Closed -> `Delete
   | _ -> `Noop
 
 let thread_state_action_of_issue_action : issue_action -> _ = function
-  | Opened | Labeled | Reopened (* thread state deleted when PR closed, so need to re-add on reopen *) -> `Add
+  | Opened | Labeled | Reopened -> `Add
   | Closed -> `Delete
   | _ -> `Noop
 

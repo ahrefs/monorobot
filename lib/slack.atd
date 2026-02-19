@@ -82,7 +82,9 @@ type lookup_user_res = {
 }
 
 type profile = {
-  ?email: string nullable
+  ?email: string nullable;
+  ~display_name <ocaml default="\"\"">: string;
+  ~real_name <ocaml default="\"\"">: string;
 }
 
 type user = {

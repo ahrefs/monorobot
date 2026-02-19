@@ -136,7 +136,7 @@ let () =
 
   (* Add a thread *)
   State.add_thread_if_new state ~repo_url ~pr_url
-    { State_t.ts = thread_ts; channel = Slack_channel.to_any channel_id; cid = channel_id };
+    { State_t.ts = thread_ts; channel = Slack_channel.to_any channel_id; cid = channel_id; merged_at = None };
 
   (* Now should find it *)
   let result = State.find_pr_by_thread state ~channel_id ~thread_ts in
