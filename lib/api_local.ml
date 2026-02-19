@@ -64,6 +64,14 @@ NB: please save the cache file in the same format *)
       ~of_string:Github_j.compare_of_string
 
   let request_reviewers ~ctx:_ ~repo:_ ~number:_ ~reviewers:_ = Lwt.return @@ Error "undefined for local setup"
+
+  let post_issue_comment ~ctx:_ ~repo:_ ~number ~body =
+    Printf.printf "will post issue comment on #%d: %s\n" number body;
+    Lwt.return @@ Ok ()
+
+  let reply_to_review_comment ~ctx:_ ~repo:_ ~number ~comment_id ~body =
+    Printf.printf "will reply to review comment %d on PR #%d: %s\n" comment_id number body;
+    Lwt.return @@ Ok ()
 end
 
 (** The base implementation for local check payload debugging and mocking tests *)
@@ -192,7 +200,12 @@ module Slack : Api.Slack = struct
 
   let lookup_user ?cache:_ ~ctx:_ ~(cfg : Config_t.config) ~email () =
     let email = List.assoc_opt email cfg.user_mappings |> Option.default email in
-    let mock_user = { Slack_t.id = Slack_user_id.inject (sprintf "id[%s]" email); profile = { email = Some email } } in
+    let mock_user =
+      {
+        Slack_t.id = Slack_user_id.inject (sprintf "id[%s]" email);
+        profile = { email = Some email; display_name = ""; real_name = "" };
+      }
+    in
     let mock_response = { Slack_t.user = mock_user } in
     Lwt.return @@ Ok mock_response
 

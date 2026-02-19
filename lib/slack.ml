@@ -104,19 +104,19 @@ let thread_state_handler ~ctx ~channel ~repo_url ~html_url action (response : Sl
   match action with
   | `Add ->
     State.add_thread_if_new ctx.Context.state ~repo_url ~pr_url:html_url
-      { cid = response.channel; channel; ts = response.ts }
-  | `Delete -> State.delete_thread ctx.state ~repo_url ~pr_url:html_url
+      { cid = response.channel; channel; ts = response.ts; merged_at = None }
+  | `Delete ->
+    State.mark_threads_merged ctx.state ~repo_url ~pr_url:html_url;
+    State.gc_merged_threads ctx.state ~repo_url
   | `Noop -> ()
 
 let thread_state_action_of_pr_action : pr_action -> _ = function
-  | Opened | Ready_for_review | Labeled
-  | Reopened (* thread state deleted when PR closed, so need to re-add on reopen *) ->
-    `Add
+  | Opened | Ready_for_review | Labeled | Reopened -> `Add
   | Closed -> `Delete
   | _ -> `Noop
 
 let thread_state_action_of_issue_action : issue_action -> _ = function
-  | Opened | Labeled | Reopened (* thread state deleted when PR closed, so need to re-add on reopen *) -> `Add
+  | Opened | Labeled | Reopened -> `Add
   | Closed -> `Delete
   | _ -> `Noop
 
@@ -202,7 +202,12 @@ let generate_pr_review_comment_notification ~slack_match_func ~(ctx : Context.t)
     | Some a -> Some (sprintf "Commented in file <%s|%s>" comment.html_url a)
   in
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
-  make_message ~text:summary ?thread ~reply_broadcast:false (* send comments to thread only *)
+  let handler (response : Slack_t.post_message_res) =
+    State.add_pr_message ctx.state ~repo_url:repository.url ~pr_url:html_url
+      { slack_ts = response.ts; github_comment_id = comment.id; comment_type = Review_comment; body = comment.body };
+    Lwt.return_ok ()
+  in
+  make_message ~text:summary ?thread ~handler ~reply_broadcast:false (* send comments to thread only *)
     ?attachments:(format_attachments ~slack_match_func ~footer:file ~body:(Some comment.body))
     ~channel:(Slack_channel.to_any channel) ()
 
@@ -254,7 +259,12 @@ let generate_issue_comment_notification ~(ctx : Context.t) ~slack_match_func not
       action_str number (pp_link ~url:issue.html_url title)
   in
   let thread = State.get_thread ctx.state ~repo_url:repository.url ~pr_url:html_url channel in
-  make_message ~text:summary ?thread ~reply_broadcast:true
+  let handler (response : Slack_t.post_message_res) =
+    State.add_pr_message ctx.state ~repo_url:repository.url ~pr_url:html_url
+      { slack_ts = response.ts; github_comment_id = comment.id; comment_type = Issue_comment; body = comment.body };
+    Lwt.return_ok ()
+  in
+  make_message ~text:summary ?thread ~handler ~reply_broadcast:true
     ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:(Some comment.body))
     ~channel ()
 

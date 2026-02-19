@@ -82,7 +82,9 @@ type lookup_user_res = {
 }
 
 type profile = {
-  ?email: string nullable
+  ?email: string nullable;
+  ~display_name <ocaml default="\"\"">: string;
+  ~real_name <ocaml default="\"\"">: string;
 }
 
 type user = {
@@ -108,8 +110,18 @@ type link_shared_event = {
   links: link_shared_link list;
 }
 
+type message_event = {
+  channel: channel_id;
+  ?user: user_id option;
+  ?thread_ts: timestamp option;
+  ts: timestamp;
+  ?text: string option;
+  ?subtype: string option;
+}
+
 type event = [
 | Link_shared <json name="link_shared"> of link_shared_event
+| Message <json name="message"> of message_event
 ] <ocaml repr="classic"> <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 type event_callback_notification = {

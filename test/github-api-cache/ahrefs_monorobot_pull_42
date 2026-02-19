@@ -1,0 +1,15 @@
+{
+  "user": {
+    "login": "testuser",
+    "id": 12345,
+    "url": "https://api.github.com/users/testuser",
+    "html_url": "https://github.com/testuser",
+    "avatar_url": "https://avatars.githubusercontent.com/u/12345?v=4"
+  },
+  "number": 42,
+  "title": "Test PR for comms sync",
+  "html_url": "https://github.com/ahrefs/monorobot/pull/42",
+  "labels": [],
+  "state": "open",
+  "requested_reviewers": []
+}
