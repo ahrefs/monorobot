@@ -44,40 +44,39 @@ module Build = struct
     pipeline_name : string;
   }
 
-  let buildkite_is_failed_re = Re2.create_exn {|^Build #\d+ failed|}
-  let buildkite_is_failing_re = Re2.create_exn {|^Build #(\d+) is failing|}
-  let buildkite_is_canceled_re = Re2.create_exn {|^Build #\d+ canceled by .+|}
-  let buildkite_is_success_re = Re2.create_exn {|^Build #\d+ passed|}
+  let buildkite_is_failed_re = Re.Perl.compile_pat {|^Build #\d+ failed|}
+  let buildkite_is_failing_re = Re.Perl.compile_pat {|^Build #(\d+) is failing|}
+  let buildkite_is_canceled_re = Re.Perl.compile_pat {|^Build #\d+ canceled by .+|}
+  let buildkite_is_success_re = Re.Perl.compile_pat {|^Build #\d+ passed|}
 
   let buildkite_org_pipeline_build_re =
     (* buildkite.com/<org_name>/<pipeline_name>/builds/<build_number> *)
-    Re2.create_exn {|buildkite.com/([\w_-]+)/([\w_-]+)/builds/(\d+)|}
+    Re.Perl.compile_pat {|buildkite.com/([\w_-]+)/([\w_-]+)/builds/(\d+)|}
 
   let buildkite_api_org_pipeline_build_job_re =
     (* https://api.buildkite.com/v2/organizations/<org_name>/pipelines/<pipeline_name>/builds/<build_number>/jobs/<job_number>/log *)
-    Re2.create_exn
+    Re.Perl.compile_pat
       {|https://api.buildkite.com/v2/organizations/([\w_-]+)/pipelines/([\w_-]+)/builds/(\d+)/jobs/([\d\w_-]+)/log|}
 
   let buildkite_is_step_re =
     (* Checks if a pipeline or build step, by looking into the buildkite context
        buildkite/<pipeline_name>/<step_name>(/<substep_name>?) *)
-    Re2.create_exn {|buildkite/[\w_-]+/([\w_-]+(/[\w_-]+)*)|}
+    Re.Perl.compile_pat {|buildkite/[\w_-]+/([\w_-]+(/[\w_-]+)*)|}
 
   let buildkite_pipeline_name_re =
     (* Gets the pipeline name from the buildkite context *)
-    Re2.create_exn {|buildkite/([\w_-]+)|}
+    Re.Perl.compile_pat {|buildkite/([\w_-]+)|}
 
-  let is_pipeline_step context = Re2.matches buildkite_is_step_re context
+  let is_pipeline_step context = Re.execp buildkite_is_step_re context
 
   (** For now we only care about buildkite pipelines and steps. Other CI systems are not supported yet. *)
   let parse_context ~context =
     match Stre.starts_with context "buildkite/" with
     | false -> None
     | true ->
-    try
-      let pipeline_name = Re2.find_first_exn ~sub:(`Index 1) buildkite_pipeline_name_re context in
-      Some { is_pipeline_step = is_pipeline_step context; pipeline_name }
-    with _ -> None
+    match Re.exec_opt buildkite_pipeline_name_re context with
+    | None -> None
+    | Some g -> Some { is_pipeline_step = is_pipeline_step context; pipeline_name = Re.Group.get g 1 }
 
   let parse_context_exn ~context =
     match parse_context ~context with
@@ -86,13 +85,13 @@ module Build = struct
 
   let buildkite_build_number_re =
     (* buildkite.com/<org_name>/<pipeline_name>/builds/<build_number> *)
-    Re2.create_exn {|buildkite.com/[\w_-]+/[\w_-]+/builds/(\d+)|}
+    Re.Perl.compile_pat {|buildkite.com/[\w_-]+/[\w_-]+/builds/(\d+)|}
 
   (** For now we only care about buildkite pipelines and steps. Other CI systems are not supported yet. *)
   let get_build_number_exn ~build_url =
-    match Re2.find_first_exn ~sub:(`Index 1) buildkite_build_number_re build_url with
-    | build_number -> int_of_string build_number
-    | exception _ -> util_error "failed to get build number from url"
+    match Re.exec_opt buildkite_build_number_re build_url with
+    | Some g -> int_of_string (Re.Group.get g 1)
+    | None -> util_error "failed to get build number from url"
 
   let get_build_url (n : Github_t.status_notification) =
     match n.target_url with
@@ -100,21 +99,23 @@ module Build = struct
     | Some build_url -> Ok build_url
 
   let get_org_pipeline_build' build_url =
-    match Re2.find_submatches_exn buildkite_org_pipeline_build_re build_url with
-    | exception _ -> util_error "failed to parse Buildkite build url: %s" build_url
-    | [| Some _; Some org; Some pipeline; Some build_nr |] -> org, pipeline, build_nr
+    match Re.exec_opt buildkite_org_pipeline_build_re build_url with
+    | None -> util_error "failed to parse Buildkite build url: %s" build_url
+    | Some g ->
+    match Re.Group.get_opt g 1, Re.Group.get_opt g 2, Re.Group.get_opt g 3 with
+    | Some org, Some pipeline, Some build_nr -> org, pipeline, build_nr
     | _ -> util_error "failed to get the build details from the notification. Is this a Buildkite notification?"
 
   let get_org_pipeline_build (n : Github_t.status_notification) = Result.(map get_org_pipeline_build' (get_build_url n))
 
   let is_failed_build (n : Github_t.status_notification) =
-    n.state = Failure && Re2.matches buildkite_is_failed_re (Option.default "" n.description)
+    n.state = Failure && Re.execp buildkite_is_failed_re (Option.default "" n.description)
 
   let is_failing_build (n : Github_t.status_notification) =
-    n.state = Failure && Re2.matches buildkite_is_failing_re (Option.default "" n.description)
+    n.state = Failure && Re.execp buildkite_is_failing_re (Option.default "" n.description)
 
   let is_canceled_build (n : Github_t.status_notification) =
-    n.state = Failure && Re2.matches buildkite_is_canceled_re (Option.default "" n.description)
+    n.state = Failure && Re.execp buildkite_is_canceled_re (Option.default "" n.description)
 
   let is_main_branch (cfg : Config_t.config) (n : Github_t.status_notification) =
     match cfg.main_branch_name with
@@ -255,15 +256,15 @@ module Webhook = struct
 
   let git_ssh_re =
     (* matches git ssh clone links *)
-    Re2.create_exn {|^git@([A-Za-z0-9.-]+):([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\.git$|}
+    Re.Perl.compile_pat {|^git@([A-Za-z0-9.-]+):([A-Za-z0-9._-]+)\/([A-Za-z0-9._-]+)\.git$|}
 
   let git_ssh_to_repo url =
-    match Re2.find_submatches_exn git_ssh_re url with
-    | exception exn -> util_error ~exn "failed to parse git ssh link %s" url
-    | [| Some _; Some "github.com"; Some user; Some repo |] -> Github { url = "github.com"; user; repo }
-    | [| Some _; Some url; Some user; Some repo |] ->
-      (* GHE links *)
-      GHE { url; user; repo }
+    match Re.exec_opt git_ssh_re url with
+    | None -> util_error "failed to parse git ssh link %s" url
+    | Some g ->
+    match Re.Group.get_opt g 1, Re.Group.get_opt g 2, Re.Group.get_opt g 3 with
+    | Some host, Some user, Some repo when host = "github.com" -> Github { url = "github.com"; user; repo }
+    | Some url, Some user, Some repo -> GHE { url; user; repo }
     | _ -> util_error "failed to get repo details from the ssh link."
 
   let git_ssh_to_api_url ?(resource = "") url =

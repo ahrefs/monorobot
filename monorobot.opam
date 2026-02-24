@@ -27,7 +27,7 @@ depends: [
   "ocamldiff" {>= "1.2"}
   "sqlite3" {>= "5.1.0"}
   "sqlgg" {>= "20231201"}
-  "re2" {>= "0.16.0"}
+  "re"
   "uri"
   "omd" {< "2"}
   "yojson"

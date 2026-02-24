@@ -31,13 +31,13 @@ let try_process_notification body n =
     Lwt.return_unit
 
 module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api : Api.Buildkite) = struct
-  let canonical_regex = Re2.create_exn {|\.|\-|\+.*|@.*|}
+  let canonical_regex = Re.Perl.compile_pat {|\.|\-|\+.*|@.*|}
   (* Match email domain, everything after '+', as well as dots and hyphens *)
 
   let username_to_slack_id_tbl = Stringtbl.empty ()
 
   let canonicalize_email_username email =
-    email |> Re2.rewrite_exn ~template:"" canonical_regex |> String.lowercase_ascii
+    email |> Re.replace_string ~all:true canonical_regex ~by:"" |> String.lowercase_ascii
 
   let refresh_username_to_slack_id_tbl ~ctx =
     log#info "updating github to slack username mapping";
