@@ -1,11 +1,11 @@
-.PHONY: all build clean start default fmt test
+.PHONY: all build clean start default fmt test dev
+
+default: build
 
 ARGS ?=
-.PHONY: dev
 dev:
 	watchexec -i _build -i _opam -w lib -w src -e ml,mli -r -c "dune build && dune exec monorobot -- $(ARGS)"
 
-default: build
 
 start:
 	dune exec -- ./src/monorobot.exe
