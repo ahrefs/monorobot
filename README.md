@@ -27,6 +27,20 @@ Run the `_build/default/src/monorobot.exe` binary. The following commands are su
 - `check_gh <GH_PAYLOAD>`: read a Github notification from a file and display the actions that will be taken (used for testing)
 - `check_slack <SLACK_PAYLOAD>`: read a Slack notification from a file and send it to a channel (used for testing)
 
+### Development server
+
+For local development, use the dev server which rebuilds and restarts on file changes:
+
+```sh
+make dev
+```
+
+Pass arguments to the monorobot binary via `ARGS`. E.g.:
+
+```sh
+make dev ARGS="run -p 3000 --state=state.json"
+```
+
 ## Getting Started
 
 1. Commit a **repository configuration** file to the root of your target repository.
