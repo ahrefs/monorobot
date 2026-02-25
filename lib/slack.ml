@@ -75,18 +75,18 @@ let make_message ?username ?text ?attachments ?blocks ?thread ?handler ?(reply_b
     },
     handler )
 
-let github_handle_regex = Re2.create_exn {|\B@([[:alnum:]][[:alnum:]-]{1,38})\b|}
 (* Match GH handles in messages - a GitHub handle has at most 39 chars and no underscore *)
+let github_handle_regex = Re.Perl.compile_pat {|\B@([a-zA-Z0-9][a-zA-Z0-9-]{1,38})\b|}
 
 let add_slack_mentions_to_body slack_match_func body =
-  let replace_match m =
-    let gh_handle = Re2.Match.get_exn ~sub:(`Index 0) m in
-    let gh_handle_without_at = Re2.Match.get_exn ~sub:(`Index 1) m in
+  let replace_match g =
+    let gh_handle = Re.Group.get g 0 in
+    let gh_handle_without_at = Re.Group.get g 1 in
     match slack_match_func gh_handle_without_at with
     | None -> gh_handle
     | Some user_id -> sprintf "<@%s>" (Slack_user_id.project user_id)
   in
-  Re2.replace_exn github_handle_regex body ~f:replace_match
+  Re.replace ~all:true github_handle_regex ~f:replace_match body
 
 let format_attachments ~slack_match_func ~footer ~body =
   let format_mention_in_markdown (md : unfurl) =
@@ -264,16 +264,16 @@ let git_short_sha_hash hash = String.sub hash 0 8
 let pp_commit_common url id message author =
   let title = escape_mrkdwn @@ first_line message in
   (* check if the title contains a PR number and enrich with the PR link if so *)
-  match Re2.matches Github.pr_commit_msg_re title with
+  match Re.execp Github.pr_commit_msg_re title with
   | false -> sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title author
   | true ->
-    let f m =
-      let pr_num = Re2.Match.get_exn ~sub:(`Index 1) m in
+    let f g =
+      let pr_num = Re.Group.get g 1 in
       match Github.gh_link_of_string url with
       | Some ((r, _) : repository * Github.gh_resource) -> sprintf "(<%s/pull/%s|#%s>)" r.url pr_num pr_num
       | None -> sprintf "(#%s)" pr_num
     in
-    let title' = Re2.replace_exn Github.pr_commit_msg_re title ~f in
+    let title' = Re.replace ~all:true Github.pr_commit_msg_re ~f title in
     sprintf "`<%s|%s>` %s - %s" url (git_short_sha_hash id) title' author
 
 let pp_commit ({ url; id; message; author; _ } : commit) = pp_commit_common url id message (escape_mrkdwn @@ author.name)
@@ -335,7 +335,7 @@ let generate_push_notification notification channel =
     in
     make_message ~username ~channel ~text:(String.concat "\n" lines) ()
 
-let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
+let buildkite_description_re = Re.Perl.compile_pat {|^Build #(\d+)(.*)|}
 
 let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Config_t.config) (n : status_notification)
   channel =
@@ -353,13 +353,14 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
     | Some _ when not is_buildkite -> desc
     | Some target_url ->
     (* Specific to buildkite *)
-    match Re2.find_submatches_exn buildkite_description_re desc with
-    | [| Some _; Some build_nr; Some rest |] ->
+    match Re.exec_opt buildkite_description_re desc with
+    | None -> desc
+    | Some g ->
+    match Re.Group.get_opt g 1, Re.Group.get_opt g 2 with
+    | Some build_nr, Some rest ->
       (* We use a zero-with space \u{200B} to prevent slack from interpreting #XXXXXX as a color *)
       sprintf "Build <%s|#\u{200B}%s>%s" target_url build_nr rest
-    | _ | (exception _) ->
-      (* we either match on the first case or get an exception *)
-      desc
+    | _ -> desc
   in
   let author_mention =
     (* If the author's email is not associated with a github account the author will be missing.

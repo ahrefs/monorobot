@@ -21,7 +21,7 @@ module Status = struct
         | Target_url -> notification.target_url
       in
       let rec match_condition = function
-        | Match { field; re } -> value_of_field field |> Option.map (Re2.matches re) |> Option.default false
+        | Match { field; re } -> value_of_field field |> Option.map (Common.Regex.matches re) |> Option.default false
         | All_of conditions -> List.for_all match_condition conditions
         | One_of conditions -> List.exists match_condition conditions
         | Not condition -> not @@ match_condition condition

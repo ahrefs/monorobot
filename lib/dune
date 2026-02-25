@@ -17,7 +17,7 @@
   omd
   ptime
   ptime.clock
-  re2
+  re
   sexplib0
   sqlgg.sqlite3
   sqlgg.traits

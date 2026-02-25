@@ -166,9 +166,11 @@ module Stringtbl = struct
   let unwrap = to_list
 end
 
-module Re2 = struct
-  include Re2
+module Regex = struct
+  type t = string * Re.re
 
-  let wrap s = create_exn s
-  let unwrap = Re2.to_string
+  let wrap s = s, Re.Perl.compile_pat s
+  let unwrap (s, _) = s
+
+  let matches (_, re) s = Re.execp re s
 end
