@@ -315,7 +315,7 @@ let generate_push_notification notification channel =
         num_commits < show_descriptive_title_min_commits
         && (not forced)
         && (not created)
-        && List.for_all (fun commit -> String.equal commit.author.email pusher.email) commits
+        && List.for_all (fun commit -> commit.author.email = pusher.email) commits
       then commits_preview_lines
       else begin
         let compare =

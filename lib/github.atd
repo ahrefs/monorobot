@@ -2,7 +2,7 @@ type basic_json <ocaml module="Yojson.Basic" t="t"> = abstract
 
 type git_user = {
   name: string;
-  email: string;
+  ?email: string nullable;
   ?username: string option;
 }
 
@@ -149,6 +149,12 @@ type pr_action = [
   | Reopened <json name="reopened">
   | Synchronize <json name="synchronize">
   | Converted_to_draft <json name="converted_to_draft">
+  | Auto_merge_enabled <json name="auto_merge_enabled">
+  | Auto_merge_disabled <json name="auto_merge_disabled">
+  | Enqueued <json name="enqueued">
+  | Dequeued <json name="dequeued">
+  | Milestoned <json name="milestoned">
+  | Demilestoned <json name="demilestoned">
 ] <ocaml repr="classic">
 
 type pr_review_action = [
