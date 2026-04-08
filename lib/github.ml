@@ -34,7 +34,8 @@ let event_of_filename filename =
   | [ kind; _; "json" ] -> Some kind
   | _ -> None
 
-let merge_commit_re = Re2.create_exn {|^Merge(?: remote-tracking)? branch '(?:origin/)?(.+)'(?: of [^ ]+)?( into .+)?$|}
+let merge_commit_re =
+  Re.Perl.compile_pat {|^Merge(?: remote-tracking)? branch '(?:origin/)?(.+)'(?: of [^ ]+)?( into .+)?$|}
 
 let is_merge_commit_to_ignore ~(cfg : Config_t.config) ~branch commit =
   match cfg.main_branch_name with
@@ -51,13 +52,15 @@ let is_merge_commit_to_ignore ~(cfg : Config_t.config) ~branch commit =
     *)
     let title = Util.first_line commit.message in
     begin
-      match Re2.find_submatches_exn merge_commit_re title with
-      | [| Some _; Some incoming_branch; receiving_branch |] ->
+      match Re.exec_opt merge_commit_re title with
+      | None -> false
+      | Some g ->
+      match Re.Group.(get_opt g 1, get_opt g 2) with
+      | Some incoming_branch, receiving_branch ->
         let receiving_branch = Option.map (fun s -> Stre.drop_prefix s " into ") receiving_branch in
         (* Should this raise when prefix isn't present? *)
         String.equal branch incoming_branch || Option.map_default (not $ String.equal branch) false receiving_branch
       | _ -> false
-      | exception Re2.Exceptions.Regex_match_failed _ -> false
     end
   | Some _ | None -> false
 
@@ -183,11 +186,11 @@ type gh_resource =
 
 type gh_link = repository * gh_resource
 
-let pr_commit_msg_re = Re2.create_exn {|\(#(\d+)\)|}
-let commit_sha_re = Re2.create_exn {|[a-f0-9]{4,40}|}
+let pr_commit_msg_re = Re.Perl.compile_pat {|\(#(\d+)\)|}
+let commit_sha_re = Re.Perl.compile_pat {|[a-f0-9]{4,40}|}
 let comparer_re = {|([a-zA-Z0-9/:\-_.~\^]+)|}
-let compare_basehead_re = Re2.create_exn (sprintf {|%s([.]{3})%s|} comparer_re comparer_re)
-let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
+let compare_basehead_re = Re.Perl.compile_pat (sprintf {|%s([.]{3})%s|} comparer_re comparer_re)
+let gh_org_team_re = Re.Perl.compile_pat {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported
     GitHub link type, generating repository endpoints if necessary *)
@@ -238,14 +241,17 @@ let gh_link_of_string url_str =
           Some (repo, Issue (int_of_string n))
         | [ owner; name; "commit"; commit_hash ] | [ owner; name; "pull"; _; "commits"; commit_hash ] ->
           let repo = make_repo ~prefix ~owner ~name in
-          if Re2.matches commit_sha_re commit_hash then Some (repo, Commit commit_hash) else None
+          if Re.execp commit_sha_re commit_hash then Some (repo, Commit commit_hash) else None
         | owner :: name :: "compare" :: base_head | owner :: name :: "pull" :: _ :: "files" :: base_head ->
           let base_head = String.concat "/" base_head in
           let repo = make_repo ~prefix ~owner ~name in
           begin
-            match Re2.find_submatches_exn compare_basehead_re base_head with
-            | [| _; Some base; _; Some merge |] -> Some (repo, Compare (base, merge))
-            | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
+            match Re.exec_opt compare_basehead_re base_head with
+            | None -> None
+            | Some g ->
+            match Re.Group.(get_opt g 1, get_opt g 3) with
+            | Some base, Some merge -> Some (repo, Compare (base, merge))
+            | _ -> None
           end
         | [] -> None
         | next :: path -> extract_link_type ~prefix:(next :: prefix) path
@@ -256,10 +262,12 @@ let gh_link_of_string url_str =
 let get_project_owners (pr : pull_request) ({ rules } : Config_t.project_owners) =
   Rule.Project_owners.match_rules pr.labels rules
   |> List.partition_map (fun reviewer ->
-         try
-           let team = Re2.find_first_exn ~sub:(`Index 1) gh_org_team_re reviewer in
-           Right team
-         with Re2.Exceptions.Regex_match_failed _ -> Left reviewer)
+         match Re.exec_opt gh_org_team_re reviewer with
+         | None -> Left reviewer
+         | Some g ->
+         match Re.Group.get_opt g 1 with
+         | Some team -> Right team
+         | None -> Left reviewer)
   |> fun (reviewers, team_reviewers) ->
   let already_requested_or_author = pr.user.login :: List.map (fun r -> r.login) pr.requested_reviewers in
   let already_requested_team = List.map (fun r -> r.slug) pr.requested_teams in

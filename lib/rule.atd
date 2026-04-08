@@ -1,6 +1,6 @@
 type channel_name = string wrap <ocaml t="Common.Slack_channel.Name.t" wrap="Common.Slack_channel.Name.inject" unwrap="Common.Slack_channel.Name.project">
 
-type regex = string wrap <ocaml module="Common.Re2">
+type regex = string wrap <ocaml module="Common.Regex">
 
 (* Text fields from the GitHub payload that can be used in a condition *)
 type comparable_field = [

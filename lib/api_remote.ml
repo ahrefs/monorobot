@@ -107,7 +107,7 @@ module Github : Api.Github = struct
     | "base64" -> begin
       try
         response.content
-        |> Re2.rewrite_exn (Re2.create_exn "\n") ~template:""
+        |> Re.replace_string ~all:true (Re.Perl.compile_pat "\n") ~by:""
         |> decode_string_pad
         |> Config_j.config_of_string
         |> fun res -> Lwt.return @@ Ok res
