@@ -218,13 +218,13 @@ module Slack : Api.Slack = struct
     log#info "sending to %s" (Slack_channel.Any.project msg.channel);
     let build_error e = sprintf "%s\nfailed to send Slack notification" e in
     let secrets = Context.get_secrets_exn ctx in
-    let headers, url, webhook_mode =
+    let headers, url =
       match Context.hook_of_channel ctx msg.channel with
-      | Some url -> [], Some url, true
+      | Some url -> [], Some url
       | None ->
       match secrets.slack_access_token with
-      | Some access_token -> [ bearer_token_header access_token ], Some "https://slack.com/api/chat.postMessage", false
-      | None -> [], None, false
+      | Some access_token -> [ bearer_token_header access_token ], Some "https://slack.com/api/chat.postMessage"
+      | None -> [], None
     in
     match url with
     | None ->
@@ -236,18 +236,10 @@ module Slack : Api.Slack = struct
       let data = Slack_j.string_of_post_message_req msg in
       let body = `Raw ("application/json", data) in
       log#info "data: %s" data;
-      if webhook_mode then begin
-        let* _res =
-          http_request ~body ~headers `POST url |> Lwt_result.map_error (fun e -> build_error (query_error_msg url e))
-        in
-        Lwt.return @@ Ok None
-      end
-      else begin
-        let* res =
-          slack_api_request ~body ~headers `POST url Slack_j.read_post_message_res |> Lwt_result.map_error build_error
-        in
-        Lwt.return @@ Ok (Some res)
-      end
+      let* res =
+        slack_api_request ~body ~headers `POST url Slack_j.read_post_message_res |> Lwt_result.map_error build_error
+      in
+      Lwt.return @@ Ok res
 
   let send_chat_unfurl ~(ctx : Context.t) ~channel ~ts ~unfurls () =
     let req = Slack_j.{ channel; ts; unfurls } in
