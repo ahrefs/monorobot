@@ -44,6 +44,25 @@ module Build = struct
     pipeline_name : string;
   }
 
+  type line_range = {
+    first_line : int;
+    last_line : int;
+  }
+
+  type buildkite_fragment = {
+    job_id : string;
+    lines : line_range option;
+  }
+
+  type buildkite_link = {
+    original_url : string;
+    org : string;
+    pipeline : string;
+    build_nr : string;
+    build_url : string;
+    fragment : buildkite_fragment option;
+  }
+
   let buildkite_is_failed_re = Re2.create_exn {|^Build #\d+ failed|}
   let buildkite_is_failing_re = Re2.create_exn {|^Build #(\d+) is failing|}
   let buildkite_is_canceled_re = Re2.create_exn {|^Build #\d+ canceled by .+|}
@@ -66,6 +85,59 @@ module Build = struct
   let buildkite_pipeline_name_re =
     (* Gets the pipeline name from the buildkite context *)
     Re2.create_exn {|buildkite/([\w_-]+)|}
+
+  let buildkite_line_re = Re2.create_exn {|^L([0-9]+)(?:-L([0-9]+))?$|}
+
+  let buildkite_build_url ?(scheme = "https") ~org ~pipeline ~build_nr () =
+    sprintf "%s://buildkite.com/%s/%s/builds/%s" scheme org pipeline build_nr
+
+  let parse_buildkite_lines s =
+    match Re2.find_submatches_exn buildkite_line_re s with
+    | [| Some _; Some first_line; last_line |] ->
+      let first_line = int_of_string first_line in
+      let last_line = Option.map_default int_of_string first_line last_line in
+      if first_line > 0 && last_line >= first_line then Some { first_line; last_line } else None
+    | _ | (exception _) -> None
+
+  let parse_buildkite_fragment fragment =
+    match fragment |> Web.urldecode |> String.split_on_char '/' with
+    | [ job_id ] when job_id <> "" -> Some { job_id; lines = None }
+    | [ job_id; lines ] when job_id <> "" ->
+      Option.map (fun lines -> { job_id; lines = Some lines }) (parse_buildkite_lines lines)
+    | _ -> None
+
+  let buildkite_link_of_string url_str =
+    let url = Uri.of_string url_str in
+    match Uri.host url, Uri.path url with
+    | Some "buildkite.com", path when String.starts_with ~prefix:"/" path ->
+      let path =
+        Stre.drop_prefix path "/" |> flip Stre.drop_suffix "/" |> flip Stre.nsplitc '/' |> List.map Web.urldecode
+      in
+      (match path with
+      | [ org; pipeline; "builds"; build_nr ] -> begin
+        match int_of_string build_nr with
+        | exception _ -> None
+        | build_num when build_num <= 0 -> None
+        | _ ->
+          let fragment =
+            match Uri.fragment url with
+            | None -> Some None
+            | Some fragment -> Option.map (fun fragment -> Some fragment) (parse_buildkite_fragment fragment)
+          in
+          Option.map
+            (fun fragment ->
+              {
+                original_url = url_str;
+                org;
+                pipeline;
+                build_nr;
+                build_url = buildkite_build_url ?scheme:(Uri.scheme url) ~org ~pipeline ~build_nr ();
+                fragment;
+              })
+            fragment
+      end
+      | _ -> None)
+    | _ -> None
 
   let is_pipeline_step context = Re2.matches buildkite_is_step_re context
 

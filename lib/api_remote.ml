@@ -372,10 +372,14 @@ module Buildkite : Api.Buildkite = struct
       buildkite_api_request ?body ~headers meth url read
       |> Lwt_result.map_error (fun e -> sprintf "%s: failure : %s" name e)
 
-  let get_job_log ~ctx n (job : Buildkite_t.job) =
-    let* org, pipeline, build_nr = Lwt.return @@ Util.Build.get_org_pipeline_build n in
-    let url = sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/log" org pipeline build_nr job.id in
+  let get_job_log_by_id ~ctx ~build_url ~job_id =
+    let org, pipeline, build_nr = Util.Build.get_org_pipeline_build' build_url in
+    let url = sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/log" org pipeline build_nr job_id in
     request_token_auth ~name:"get job logs" ~ctx `GET url Buildkite_j.job_log_of_string
+
+  let get_job_log ~ctx n (job : Buildkite_t.job) =
+    let* build_url = Lwt.return @@ Util.Build.get_build_url n in
+    get_job_log_by_id ~ctx ~build_url ~job_id:job.id
 
   let cache_key org pipeline build_nr = sprintf "%s/%s/%s" org pipeline build_nr
 

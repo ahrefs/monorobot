@@ -519,6 +519,16 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         Lwt.return_none
     in
     let process link =
+      let fetch_buildkite_job_log (buildkite_link : Util.Build.buildkite_link) =
+        match buildkite_link.fragment with
+        | Some ({ job_id; lines = Some _ } : Util.Build.buildkite_fragment) ->
+          (match%lwt Buildkite_api.get_job_log_by_id ~ctx ~build_url:buildkite_link.build_url ~job_id with
+          | Ok job_log -> Lwt.return_some job_log
+          | Error msg ->
+            log#warn "failed to fetch job log from buildkite for %s: %s" link msg;
+            Lwt.return_none)
+        | _ -> Lwt.return_none
+      in
       let with_gh_result_populate_slack (type a) ~(api_result : (a, string) Result.t) ~populate ~repo =
         match api_result with
         | Error msg ->
@@ -527,7 +537,17 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         | Ok item -> Lwt.return_some @@ (link, populate repo item)
       in
       match Github.gh_link_of_string link with
-      | None -> Lwt.return_none
+      | None ->
+        (match Util.Build.buildkite_link_of_string link with
+        | None -> Lwt.return_none
+        | Some buildkite_link ->
+          (match%lwt Buildkite_api.get_build ~ctx buildkite_link.build_url with
+          | Error msg ->
+            log#warn "failed to fetch info from buildkite for %s: %s" link msg;
+            Lwt.return_none
+          | Ok build ->
+            let%lwt job_log = fetch_buildkite_job_log buildkite_link in
+            Lwt.return_some (link, Slack_message.populate_buildkite_build ?job_log buildkite_link build)))
       | Some (repo, gh_resource) ->
       match gh_resource with
       | Pull_request number ->

@@ -45,6 +45,10 @@ end
 module type Buildkite = sig
   val get_job_log :
     ctx:Context.t -> Github_t.status_notification -> Buildkite_t.job -> (Buildkite_t.job_log, string) result Lwt.t
+
+  val get_job_log_by_id :
+    ctx:Context.t -> build_url:string -> job_id:string -> (Buildkite_t.job_log, string) result Lwt.t
+
   val get_build_branch : ctx:Context.t -> Github_t.status_notification -> (Github_t.branch, string) Result.t Lwt.t
 
   val get_build :

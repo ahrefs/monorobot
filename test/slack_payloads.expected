@@ -847,6 +847,69 @@ will notify #default
 }
 ===== file ../mock_payloads/status.success_test_main_branch.json =====
 ===== file ../mock_payloads/status.success_test_non_main_branch.json =====
+===== file ../mock_slack_events/buildkite.build_only.json =====
+will unfurl in #C047QTRD1CH
+{
+  "channel": "C047QTRD1CH",
+  "ts": "1666757700.000001",
+  "unfurls": {
+    "https://buildkite.com/org/pipeline2/builds/181734": {
+      "fallback": "[buildkite/pipeline2] Build #181734 failed: c1 message",
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "title": "buildkite/pipeline2 #181734 failed",
+      "title_link": "https://buildkite.com/org/pipeline2/builds/181734",
+      "text": "*Message*: c1 message\n*Branch*: `develop`\n*Commit*: `51d7c2d0`",
+      "footer": "<https://buildkite.com/org/pipeline2|buildkite/pipeline2>"
+    }
+  }
+}
+===== file ../mock_slack_events/buildkite.job_lines.json =====
+will unfurl in #C047QTRD1CH
+{
+  "channel": "C047QTRD1CH",
+  "ts": "1666757700.000002",
+  "unfurls": {
+    "https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90/L17-L21": {
+      "fallback": "[buildkite/pipeline2] Build #181734 failed: c1 message",
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "title": "buildkite/pipeline2 #181734 failed",
+      "title_link": "https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90/L17-L21",
+      "text": "*Message*: c1 message\n*Branch*: `develop`\n*Commit*: `51d7c2d0`\n*Step*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|Test> (failed)",
+      "fields": [
+        {
+          "title": "Log lines 17-21",
+          "value": "```$ echo \"Test the rocket\"\ndune test\nexit 0\nTest the rocket\nFile \"tests/test.t\", line 1, characters 0-0:```"
+        }
+      ],
+      "footer": "<https://buildkite.com/org/pipeline2|buildkite/pipeline2>"
+    }
+  }
+}
+===== file ../mock_slack_events/buildkite.job_lines_cap.json =====
+will unfurl in #C047QTRD1CH
+{
+  "channel": "C047QTRD1CH",
+  "ts": "1666757700.000003",
+  "unfurls": {
+    "https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90/L1-L60": {
+      "fallback": "[buildkite/pipeline2] Build #181734 failed: c1 message",
+      "mrkdwn_in": [ "fields", "text" ],
+      "color": "danger",
+      "title": "buildkite/pipeline2 #181734 failed",
+      "title_link": "https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90/L1-L60",
+      "text": "*Message*: c1 message\n*Branch*: `develop`\n*Commit*: `51d7c2d0`\n*Step*: <https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90|Test> (failed)",
+      "fields": [
+        {
+          "title": "Log lines 1-60",
+          "value": "```~~~ Preparing working directory\n$ cd /home/emile/.buildkite-agent/builds/emile-tarides-1/monorobot-test-org/monorobot-test-pipeline\nPseudo-terminal will not be allocated because stdin is not a terminal.\n# Host \"github.com\" already in list of known hosts at \"/home/emile/.ssh/known_hosts\"\n$ git clean -ffxdq\n$ git fetch -v --prune -- origin 404671053ebacf0245dc5b60566eb85e19465860\nFrom github.com:EmileTrotignon/monorobot_test\n * branch            404671053ebacf0245dc5b60566eb85e19465860 -> FETCH_HEAD\n$ git checkout -f 404671053ebacf0245dc5b60566eb85e19465860\nHEAD is now at 4046710 test change\n# Cleaning again to catch any post-checkout changes\n$ git clean -ffxdq\n# Checking to see if git commit information needs to be sent to Buildkite...\n$ buildkite-agent meta-data exists buildkite:git:commit\n# Git commit information has already been sent to Buildkite\n~~~ Running commands\n$ echo \"Test the rocket\"\ndune test\nexit 0\nTest the rocket\nFile \"tests/test.t\", line 1, characters 0-0:\n/usr/bin/git --no-pager diff --no-index --color=always -u _build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t _build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t.corrected\ndiff --git a/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t b/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t.corrected\nindex 88404ca..a9e2880 100644\n--- a/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t\n+++ b/_build/.sandbox/ca5ef14ba31cbcd6e129c4c5b8cdc872/default/tests/test.t.corrected\n@@ -1,2 +1,2 @@\n   $ dune exec backend\n-  aaabvaaa\n+  aaaa\n🚨 Error: The command exited with status 1\n```\n_truncated to first 50 requested lines_"
+        }
+      ],
+      "footer": "<https://buildkite.com/org/pipeline2|buildkite/pipeline2>"
+    }
+  }
+}
 ===== file ../mock_slack_events/commits.one_file_modified.json =====
 will unfurl in #C047QTRD1CH
 {
