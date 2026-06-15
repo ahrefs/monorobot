@@ -74,20 +74,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     let filter_by_branch = Rule.Prefix.filter_by_branch ~branch ~main_branch in
     n.commits
     |> List.filter (fun c ->
-           let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
-           if skip then log#info "main branch merge, ignoring %s: %s" c.id (Util.first_line c.message);
-           not skip)
+      let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
+      if skip then log#info "main branch merge, ignoring %s: %s" c.id (Util.first_line c.message);
+      not skip)
     |> List.concat_map (fun commit ->
-           let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
-           let matched_channel_names =
-             Github.modified_files_of_commit commit
-             |> List.filter_map (Rule.Prefix.match_rules ~rules)
-             |> List.sort_uniq Slack_channel.compare
-           in
-           let channel_names =
-             if matched_channel_names = [] && commit.distinct then default else matched_channel_names
-           in
-           List.map (fun n -> Slack_channel.to_any n, commit) channel_names)
+      let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
+      let matched_channel_names =
+        Github.modified_files_of_commit commit
+        |> List.filter_map (Rule.Prefix.match_rules ~rules)
+        |> List.sort_uniq Slack_channel.compare
+      in
+      let channel_names = if matched_channel_names = [] && commit.distinct then default else matched_channel_names in
+      List.map (fun n -> Slack_channel.to_any n, commit) channel_names)
     |> ChannelMap.of_list_multi
     |> ChannelMap.map (fun commits -> { n with commits })
     |> ChannelMap.to_list
@@ -175,34 +173,36 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       match notify_dm, dm_users_on_failures cfg n with
       | false, _ | _, false -> Lwt.return []
       | _ ->
-        (match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
-        | Ok ({ user = { id; _ } } : Slack_t.lookup_user_res) ->
-          (* Check if config holds Github to Slack email mapping for the commit author. The user id we get from slack
+      match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+      | Ok ({ user = { id; _ } } : Slack_t.lookup_user_res) ->
+        (* Check if config holds Github to Slack email mapping for the commit author. The user id we get from slack
              is not an email, so we need to see if we can map the commit author email to a slack user's email. *)
-          let author = List.assoc_opt email cfg.user_mappings |> Option.default email in
-          let dm_after_failed_build =
-            List.assoc_opt author cfg.notifications_configs.dm_after_failed_build
-            |> (* dm_after_failed_build is opt in *)
-            Option.default false
-          in
-          let dm_after_failing_build =
-            List.assoc_opt author cfg.notifications_configs.dm_for_failing_build
-            |> (* dm_for_failing_build is opt out *)
-            Option.default true
-          in
-          let is_failing_build = is_failing_build n in
-          let is_failed_build = is_failed_build n in
-          (match (dm_after_failing_build && is_failing_build) || (dm_after_failed_build && is_failed_build) with
-          | true ->
-            (* if we send a dm for a failing build and we want another dm after the build is finished, we don't
+        let author = List.assoc_opt email cfg.user_mappings |> Option.default email in
+        let dm_after_failed_build =
+          List.assoc_opt author cfg.notifications_configs.dm_after_failed_build
+          |>
+          (* dm_after_failed_build is opt in *)
+          Option.default false
+        in
+        let dm_after_failing_build =
+          List.assoc_opt author cfg.notifications_configs.dm_for_failing_build
+          |>
+          (* dm_for_failing_build is opt out *)
+          Option.default true
+        in
+        let is_failing_build = is_failing_build n in
+        let is_failed_build = is_failed_build n in
+        (match (dm_after_failing_build && is_failing_build) || (dm_after_failed_build && is_failed_build) with
+        | true ->
+          (* if we send a dm for a failing build and we want another dm after the build is finished, we don't
                set the pipeline commit immediately. Otherwise, we wouldn't be able to notify later *)
-            if (is_failing_build && not dm_after_failed_build) || is_failed_build then
-              State.set_repo_pipeline_commit ctx.state n;
-            Lwt.return [ Status_notification.User id ]
-          | false -> Lwt.return [])
-        | Error e ->
-          log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
-          Lwt.return [])
+          if (is_failing_build && not dm_after_failed_build) || is_failed_build then
+            State.set_repo_pipeline_commit ctx.state n;
+          Lwt.return [ Status_notification.User id ]
+        | false -> Lwt.return [])
+      | Error e ->
+        log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
+        Lwt.return []
     in
     let get_channel_ids ~notify_channels ~branches =
       match notify_channels, branches with
@@ -214,11 +214,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         Lwt.return
           (Option.map_default (fun c -> [ Status_notification.inject_channel c ]) [] cfg.prefix_rules.default_channel)
       | true ->
-        (match%lwt Github_api.get_api_commit ~ctx ~repo ~sha:n.commit.sha with
-        | Error e -> action_error e
-        | Ok commit ->
-          let chans = partition_commit cfg commit.files in
-          Lwt.return (List.map Status_notification.inject_channel chans))
+      match%lwt Github_api.get_api_commit ~ctx ~repo ~sha:n.commit.sha with
+      | Error e -> action_error e
+      | Ok commit ->
+        let chans = partition_commit cfg commit.files in
+        Lwt.return (List.map Status_notification.inject_channel chans)
     in
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
       let%lwt direct_message = get_dm_id ~notify_dm in
@@ -259,18 +259,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     match n.comment.commit_id with
     | None -> action_error "unable to find commit id for this commit comment event"
     | Some sha ->
-      (match%lwt Github_api.get_api_commit ~ctx ~repo:n.repository ~sha with
-      | Error e -> action_error e
-      | Ok commit ->
-        let rules = cfg.prefix_rules.rules in
-        (match n.comment.path with
-        | None -> Lwt.return (partition_commit cfg commit.files, commit)
-        | Some filename ->
-        match Rule.Prefix.match_rules filename ~rules with
-        | None ->
-          let default = Option.map_default (fun c -> [ Slack_channel.to_any c ]) [] cfg.prefix_rules.default_channel in
-          Lwt.return (default, commit)
-        | Some chan -> Lwt.return ([ Slack_channel.to_any chan ], commit)))
+    match%lwt Github_api.get_api_commit ~ctx ~repo:n.repository ~sha with
+    | Error e -> action_error e
+    | Ok commit ->
+      let rules = cfg.prefix_rules.rules in
+      (match n.comment.path with
+      | None -> Lwt.return (partition_commit cfg commit.files, commit)
+      | Some filename ->
+      match Rule.Prefix.match_rules filename ~rules with
+      | None ->
+        let default = Option.map_default (fun c -> [ Slack_channel.to_any c ]) [] cfg.prefix_rules.default_channel in
+        Lwt.return (default, commit)
+      | Some chan -> Lwt.return ([ Slack_channel.to_any chan ], commit))
 
   let ignore_notifications_from_user cfg req =
     let sender_login =
@@ -348,43 +348,43 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       let notifs = List.map (generate_commit_comment_notification ~slack_match_func api_commit n) channels in
       Lwt.return notifs
     | Status n ->
-      (try%lwt
-         let%lwt channels = partition_status ctx n in
-         let%lwt job_log =
-           match cfg.include_logs_in_notifs && channels <> [] with
-           | false -> Lwt.return []
-           | true ->
-             (match%lwt get_logs_if_failed ~ctx n with
-             | Error e ->
-               log#warn "couldn't fetch logs for build: %s" e;
-               Lwt.return []
-             | Ok job_log -> Lwt.return job_log)
-         in
-         let notifs =
-           List.map
-             (fun channel ->
-               let req, handler = generate_status_notification ~job_log ~cfg n channel in
-               req, Option.map (fun handler -> handler (Slack_api.send_file ~ctx)) handler)
-             channels
-         in
-         (* We only care about maintaining status for notifications of allowed pipelines in the main branch *)
-         let%lwt () =
-           match Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n with
-           | false -> Lwt.return_unit
-           | true -> State.set_repo_pipeline_status ctx.state n
-         in
-         Lwt.return notifs
-       with exn ->
-         log#error "failed to process status notification %d for %s: %s" n.id (Option.default n.context n.target_url)
-           (Printexc.to_string exn);
-         (* Backup, in case something went wrong while processing the notification.
+    try%lwt
+      let%lwt channels = partition_status ctx n in
+      let%lwt job_log =
+        match cfg.include_logs_in_notifs && channels <> [] with
+        | false -> Lwt.return []
+        | true ->
+        match%lwt get_logs_if_failed ~ctx n with
+        | Error e ->
+          log#warn "couldn't fetch logs for build: %s" e;
+          Lwt.return []
+        | Ok job_log -> Lwt.return job_log
+      in
+      let notifs =
+        List.map
+          (fun channel ->
+            let req, handler = generate_status_notification ~job_log ~cfg n channel in
+            req, Option.map (fun handler -> handler (Slack_api.send_file ~ctx)) handler)
+          channels
+      in
+      (* We only care about maintaining status for notifications of allowed pipelines in the main branch *)
+      let%lwt () =
+        match Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n with
+        | false -> Lwt.return_unit
+        | true -> State.set_repo_pipeline_status ctx.state n
+      in
+      Lwt.return notifs
+    with exn ->
+      log#error "failed to process status notification %d for %s: %s" n.id (Option.default n.context n.target_url)
+        (Printexc.to_string exn);
+      (* Backup, in case something went wrong while processing the notification.
             We need to update the pipeline status, otherwise we will get into a bad state *)
-         let%lwt () =
-           match Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n with
-           | true -> State.set_repo_pipeline_status ctx.state n
-           | false -> Lwt.return_unit
-         in
-         Lwt.return [])
+      let%lwt () =
+        match Util.Build.is_main_branch cfg n && Context.is_pipeline_allowed ctx n with
+        | true -> State.set_repo_pipeline_status ctx.state n
+        | false -> Lwt.return_unit
+      in
+      Lwt.return []
   let send_notifications (ctx : Context.t) notifications =
     let notify (msg, handler) =
       match%lwt Slack_api.send_notification ~ctx ~msg with
@@ -392,10 +392,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         (match handler with
         | None -> Lwt.return_unit
         | Some handler ->
-          (match%lwt handler res with
-          | Result.Error e -> handler_error e
-          | Ok () -> Lwt.return_unit
-          | exception exn -> handler_error (Printexc.to_string exn)))
+        match%lwt handler res with
+        | Result.Error e -> handler_error e
+        | Ok () -> Lwt.return_unit
+        | exception exn -> handler_error (Printexc.to_string exn))
       | Ok None -> Lwt.return_unit
       | Error e -> action_error e
     in
@@ -455,11 +455,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     in
     match req with
     | Github.Pull_request
-        { action; pull_request = { draft = false; state = Open; _ } as pull_request; repository; number; _ } -> begin
-      match action with
+        { action; pull_request = { draft = false; state = Open; _ } as pull_request; repository; number; _ } ->
+      begin match action with
       | Ready_for_review | Labeled -> project_owners pull_request repository number
       | _ -> Lwt.return_unit
-    end
+      end
     | _ -> Lwt.return_unit
 
   let repo_is_supported secrets (repo : Github_t.repository) =
@@ -485,17 +485,17 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
          (match repo_is_supported secrets repo with
          | false -> action_error @@ Printf.sprintf "unsupported repository %s" repo.url
          | true ->
-           (match%lwt refresh_repo_config ctx payload with
-           | Error e -> action_error e
-           | Ok () ->
-             let%lwt notifications = generate_notifications ctx payload in
-             let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx repo payload ] in
-             (match ctx.state_filepath with
-             | None -> Lwt.return_unit
-             | Some path ->
-             match State.save ctx.state path with
-             | Ok () -> Lwt.return_unit
-             | Error e -> action_error e))))
+         match%lwt refresh_repo_config ctx payload with
+         | Error e -> action_error e
+         | Ok () ->
+           let%lwt notifications = generate_notifications ctx payload in
+           let%lwt () = Lwt.join [ send_notifications ctx notifications; do_github_tasks ctx repo payload ] in
+           (match ctx.state_filepath with
+           | None -> Lwt.return_unit
+           | Some path ->
+           match State.save ctx.state path with
+           | Ok () -> Lwt.return_unit
+           | Error e -> action_error e)))
 
   let process_link_shared_event (ctx : Context.t) (event : Slack_t.link_shared_event) =
     let fetch_bot_user_id () =
@@ -569,13 +569,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         List.map process links |> Lwt.all |> Lwt.map (List.filter_map id) |> Lwt.map StringMap.of_list
       in
       if StringMap.is_empty unfurls then Lwt.return "ignored: no links to unfurl"
-      else begin
-        match%lwt Slack_api.send_chat_unfurl ~ctx ~channel:event.channel ~ts:event.message_ts ~unfurls () with
+      else
+        begin match%lwt Slack_api.send_chat_unfurl ~ctx ~channel:event.channel ~ts:event.message_ts ~unfurls () with
         | Ok () -> Lwt.return "ok"
         | Error e ->
           log#error "%s" e;
           Lwt.return "ignored: failed to unfurl links"
-      end
+        end
     end
 
   let process_slack_event (ctx : Context.t) headers body =
@@ -663,43 +663,43 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                  log#error "trying to notify success for %s but no failed steps found" n.build.web_url;
                  Lwt.return []
                | Some (state : State_t.failed_steps) ->
-                 (* get the steps in the current build to compare against the failed steps. Sometimes builds on
+               (* get the steps in the current build to compare against the failed steps. Sometimes builds on
                     the same pipeline don't run the exact same steps. We need to confirm if all steps are fixed. *)
-                 (match%lwt Buildkite_api.get_build ~cache:`Refresh ~ctx n.build.web_url with
-                 | Error e ->
-                   log#error "failed to fetch build steps for %s. Error: %s" n.build.web_url e;
-                   (* If we get an error while fetching the build steps of a success notification, let's just assume
+               match%lwt Buildkite_api.get_build ~cache:`Refresh ~ctx n.build.web_url with
+               | Error e ->
+                 log#error "failed to fetch build steps for %s. Error: %s" n.build.web_url e;
+                 (* If we get an error while fetching the build steps of a success notification, let's just assume
                       that all the failed steps have been fixed and move on. It shouldn't happen often. *)
+                 Stringtbl.replace repo_state.failed_steps repo_key
+                   { steps = Common.FailedStepSet.empty; last_build = n.build.number };
+                 Lwt.return []
+               | Ok (build : Buildkite_t.get_build_res) ->
+                 let build_steps = Util.Webhook.to_failed_step_set "" (Util.Build.filter_passed_jobs build.jobs) n in
+                 let state_failed_steps = FailedStepSet.diff state.steps build_steps in
+                 (match FailedStepSet.is_empty state_failed_steps with
+                 | true ->
                    Stringtbl.replace repo_state.failed_steps repo_key
-                     { steps = Common.FailedStepSet.empty; last_build = n.build.number };
-                   Lwt.return []
-                 | Ok (build : Buildkite_t.get_build_res) ->
-                   let build_steps = Util.Webhook.to_failed_step_set "" (Util.Build.filter_passed_jobs build.jobs) n in
-                   let state_failed_steps = FailedStepSet.diff state.steps build_steps in
-                   (match FailedStepSet.is_empty state_failed_steps with
-                   | true ->
-                     Stringtbl.replace repo_state.failed_steps repo_key
-                       { steps = FailedStepSet.empty; last_build = n.build.number };
+                     { steps = FailedStepSet.empty; last_build = n.build.number };
 
-                     let%lwt () =
-                       Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update:true n
-                         "should notify > true > build state = passed"
-                     in
-                     Lwt.return
-                       [
-                         Slack.generate_failed_build_notification ~cfg ~is_fix_build_notification:true
-                           ~failed_steps:FailedStepSet.empty n channel;
-                       ]
-                   | false ->
-                     (* the build was successful, but we haven't fixed all the steps. Update state, but don't notify *)
-                     let%lwt () =
-                       Database.Failed_builds.update_state_after_notification ~repo_state
-                         ~has_state_update:(FailedStepSet.equal state_failed_steps state.steps)
-                         n "should notify > false > build state = passed w/ failed steps"
-                     in
-                     Stringtbl.replace repo_state.failed_steps repo_key
-                       { steps = state_failed_steps; last_build = n.build.number };
-                     Lwt.return [])))
+                   let%lwt () =
+                     Database.Failed_builds.update_state_after_notification ~repo_state ~has_state_update:true n
+                       "should notify > true > build state = passed"
+                   in
+                   Lwt.return
+                     [
+                       Slack.generate_failed_build_notification ~cfg ~is_fix_build_notification:true
+                         ~failed_steps:FailedStepSet.empty n channel;
+                     ]
+                 | false ->
+                   (* the build was successful, but we haven't fixed all the steps. Update state, but don't notify *)
+                   let%lwt () =
+                     Database.Failed_builds.update_state_after_notification ~repo_state
+                       ~has_state_update:(FailedStepSet.equal state_failed_steps state.steps)
+                       n "should notify > false > build state = passed w/ failed steps"
+                   in
+                   Stringtbl.replace repo_state.failed_steps repo_key
+                     { steps = state_failed_steps; last_build = n.build.number };
+                   Lwt.return []))
              | Failed ->
                (match%lwt
                   (* repo state is updated upon fetching new failed steps *)

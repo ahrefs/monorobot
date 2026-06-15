@@ -22,9 +22,9 @@ let get_mock_payloads () =
   get_sorted_files_from mock_payload_dir
   |> List.filter_map (fun fn -> Github.event_of_filename fn |> Option.map (fun kind -> kind, fn))
   |> List.map (fun (kind, fn) ->
-         let payload_path = Filename.concat mock_payload_dir fn in
-         let state_path = Filename.concat mock_state_dir fn in
-         if Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None)
+    let payload_path = Filename.concat mock_payload_dir fn in
+    let state_path = Filename.concat mock_state_dir fn in
+    if Sys.file_exists state_path then kind, payload_path, Some state_path else kind, payload_path, None)
 
 let get_mock_slack_events () =
   List.map (Filename.concat mock_slack_event_dir) (get_sorted_files_from mock_slack_event_dir)

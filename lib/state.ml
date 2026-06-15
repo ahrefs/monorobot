@@ -77,27 +77,27 @@ let set_repo_pipeline_status { state } (n : Github_t.status_notification) =
 
     let clean_builds =
       update_builds_in_branches ~f:(fun builds_map ->
-          let threshold = Util.Build.stale_build_threshold in
-          let is_past_threshold (build_status : State_t.build_status) threshold =
-            let open Ptime in
-            let now = Ptime_clock.now () in
-            match add_span build_status.created_at threshold with
-            | Some t_plus_threshold -> is_earlier ~than:now t_plus_threshold
-            | None -> false
-          in
-          IntMap.remove build_number builds_map
-          |> IntMap.filter (fun build_number' build_status ->
-                 match build_status.State_t.status <> Github_t.Pending, build_number' < build_number with
-                 | true, true ->
-                   (* remove all finished older builds *)
-                   false
-                 | false, true when is_past_threshold build_status threshold ->
-                   (* remove older builds that ran for longer than the threshold,
+        let threshold = Util.Build.stale_build_threshold in
+        let is_past_threshold (build_status : State_t.build_status) threshold =
+          let open Ptime in
+          let now = Ptime_clock.now () in
+          match add_span build_status.created_at threshold with
+          | Some t_plus_threshold -> is_earlier ~than:now t_plus_threshold
+          | None -> false
+        in
+        IntMap.remove build_number builds_map
+        |> IntMap.filter (fun build_number' build_status ->
+          match build_status.State_t.status <> Github_t.Pending, build_number' < build_number with
+          | true, true ->
+            (* remove all finished older builds *)
+            false
+          | false, true when is_past_threshold build_status threshold ->
+            (* remove older builds that ran for longer than the threshold,
                       or for which we might not have received a final notification *)
-                   false
-                 | _ ->
-                   (* keep all other builds *)
-                   true))
+            false
+          | _ ->
+            (* keep all other builds *)
+            true))
     in
 
     let repo_state = find_or_add_repo' state n.repository.url in

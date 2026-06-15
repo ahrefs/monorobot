@@ -100,12 +100,12 @@ module Github : Api.Github = struct
     let* res =
       get_resource ~secrets ~repo_url:repo.url url
       |> Lwt_result.map_error (fun e ->
-             sprintf "error while querying remote: %s\nfailed to get config from file %s" e url)
+        sprintf "error while querying remote: %s\nfailed to get config from file %s" e url)
     in
     let response = Github_j.content_api_response_of_string res in
     match response.encoding with
-    | "base64" -> begin
-      try
+    | "base64" ->
+      begin try
         response.content
         |> Re2.rewrite_exn (Re2.create_exn "\n") ~template:""
         |> decode_string_pad
@@ -113,7 +113,7 @@ module Github : Api.Github = struct
         |> fun res -> Lwt.return @@ Ok res
       with exn ->
         Lwt.return @@ fmt_error ~exn "error reading config from GitHub response.\nfailed to get config from file %s" url
-    end
+      end
     | encoding ->
       Lwt.return
       @@ fmt_error "unexpected encoding '%s' in Github response\nfailed to get config from file %s" encoding url

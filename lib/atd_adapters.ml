@@ -19,20 +19,20 @@ module List_or_default_field = struct
 
     let normalize x =
       match x with
-      | `Assoc fields -> begin
-        match List.assoc field_name fields with
+      | `Assoc fields ->
+        begin match List.assoc field_name fields with
         | `String s when String.equal s default_alias -> `Assoc (assoc_replace fields field_name default_value)
         | _ | (exception Not_found) -> x
-      end
+        end
       | malformed -> malformed
 
     let restore x =
       match x with
-      | `Assoc fields -> begin
-        match List.assoc field_name fields with
+      | `Assoc fields ->
+        begin match List.assoc field_name fields with
         | value when Yojson.Safe.equal value default_value -> `Assoc (assoc_replace fields field_name (`String "any"))
         | _ | (exception Not_found) -> x
-      end
+        end
       | malformed -> malformed
   end
 end
@@ -49,16 +49,16 @@ end)
 module Slack_response_adapter : Atdgen_runtime.Json_adapter.S = struct
   let normalize (x : Yojson.Safe.t) =
     match x with
-    | `Assoc fields -> begin
-      match List.assoc "ok" fields with
+    | `Assoc fields ->
+      begin match List.assoc "ok" fields with
       | `Bool true -> `List [ `String "Ok"; x ]
-      | `Bool false -> begin
-        match List.assoc "error" fields with
+      | `Bool false ->
+        begin match List.assoc "error" fields with
         | `String msg -> `List [ `String "Error"; `String msg ]
         | _ -> x
-      end
+        end
       | _ | (exception Not_found) -> x
-    end
+      end
     | _ -> x
 
   let restore (x : Yojson.Safe.t) =

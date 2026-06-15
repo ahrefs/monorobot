@@ -48,8 +48,8 @@ let replay_action db_path pipeline branch only_with_changes after state build_nu
            let header =
              sprintf
                "==============================================================\n\
-                [%s/%Ld] branch=%s, commit=%s, state=%s, canceled=%b, db_id=%s" pipeline build_number branch
-               (print_commit_hash sha) build_state is_canceled id
+                [%s/%Ld] branch=%s, commit=%s, state=%s, canceled=%b, db_id=%s"
+               pipeline build_number branch (print_commit_hash sha) build_state is_canceled id
            in
            let build_state' =
              match Buildkite_j.build_state_of_string build_state with

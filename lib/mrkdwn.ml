@@ -121,10 +121,10 @@ let rec mrkdwn_of_md md =
       nl_if_needed_above b;
       l
       |> List.iteri (fun i li ->
-             add_spaces list_indent;
-             Printf.bprintf b "%d. " (i + 1);
-             loop ~is_in_list:true (list_indent + 4) li;
-             nl_if_needed_above b);
+        add_spaces list_indent;
+        Printf.bprintf b "%d. " (i + 1);
+        loop ~is_in_list:true (list_indent + 4) li;
+        nl_if_needed_above b);
       if list_indent = 0 then nl b;
       loop list_indent tl
     | Ulp l ->
@@ -198,16 +198,15 @@ let rec mrkdwn_of_md md =
   (* print the document *)
   loop 0 md;
   (* print any references *)
-  begin
-    match !references with
-    | None -> ()
-    | Some r ->
-      let print_ref (name, (url, title)) =
-        if String.equal title "" then Printf.bprintf b "[%s]: %s \n" name url
-        else Printf.bprintf b "[%s]: %s \"%s\"\n" name url title
-      in
-      nl b;
-      List.iter print_ref r#get_all
+  begin match !references with
+  | None -> ()
+  | Some r ->
+    let print_ref (name, (url, title)) =
+      if String.equal title "" then Printf.bprintf b "[%s]: %s \n" name url
+      else Printf.bprintf b "[%s]: %s \"%s\"\n" name url title
+    in
+    nl b;
+    List.iter print_ref r#get_all
   end;
   Buffer.contents b
 
