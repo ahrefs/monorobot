@@ -52,7 +52,10 @@
   (lwt
    (and
     (>= 5.7.0)
-    (< 6.0.0)))
+    (<
+     6.0.0
+     ; Devkit isn't compatible with Lwt 6.0.0 yet
+     )))
   (lwt_ppx
    (and
     (>= 2.0.0)
