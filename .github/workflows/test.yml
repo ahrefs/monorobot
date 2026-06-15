@@ -12,7 +12,7 @@ jobs:
         os:
           - ubuntu-22.04
         ocaml-compiler:
-          - 4.14
+          - 5.4.1
 
     runs-on: ${{ matrix.os }}
 
@@ -27,7 +27,7 @@ jobs:
           dune-cache: true
           allow-prerelease-opam: true
 
-      - run: opam install . ocamlformat.0.26.2
+      - run: opam install . ocamlformat.0.29.0
 
       - name: compile
         run: opam exec -- make
