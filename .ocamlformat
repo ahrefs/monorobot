@@ -1,6 +1,6 @@
-version=0.26.2
+version=0.29.0
 profile=default
-ocaml-version=4.14.0
+ocaml-version=5.4.1
 
 break-cases=toplevel # deprecated
 break-infix-before-func=false
@@ -16,4 +16,5 @@ module-item-spacing=preserve # deprecated
 nested-match=align # deprecated
 parens-ite=true
 parens-tuple=multi-line-only
+parse-docstrings=false
 type-decl=sparse

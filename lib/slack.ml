@@ -130,7 +130,7 @@ let generate_pull_request_notification ~slack_match_func ~(ctx : Context.t) noti
       ( "opened",
         body
         |> Option.map (fun body' ->
-               Option.map_default (fun labels' -> sprintf "%s\n%s" body' labels') body' labels_banner) )
+          Option.map_default (fun labels' -> sprintf "%s\n%s" body' labels') body' labels_banner) )
     | Closed -> (if merged then "merged" else "closed"), None
     | Reopened -> "reopened", None
     | Labeled -> "labeled", show_labels labels
@@ -383,12 +383,12 @@ let generate_status_notification ~(job_log : (string * string) list) ~(cfg : Con
   let job_log_lines ~n =
     job_log
     |> List.map (fun (job_name, job_log) ->
-           let lines = job_log |> Text_cleanup.cleanup |> String.split_on_char '\n' |> List.rev |> List.to_seq in
-           let text = lines |> Seq.take n |> List.of_seq |> List.rev |> String.concat "\n" in
-           (* Buildkite has different "sections" on their builds logs. The commands we run come only after this line. *)
-           let after_cmd = Stre.after text "~~~ Running commands\n" |> String.trim in
-           let text = if after_cmd <> "" then after_cmd else text in
-           job_name, text)
+      let lines = job_log |> Text_cleanup.cleanup |> String.split_on_char '\n' |> List.rev |> List.to_seq in
+      let text = lines |> Seq.take n |> List.of_seq |> List.rev |> String.concat "\n" in
+      (* Buildkite has different "sections" on their builds logs. The commands we run come only after this line. *)
+      let after_cmd = Stre.after text "~~~ Running commands\n" |> String.trim in
+      let text = if after_cmd <> "" then after_cmd else text in
+      job_name, text)
   in
   let fields =
     job_log_lines ~n:10 |> function

@@ -31,7 +31,7 @@
   "Notification bot to handle webhook events from monorepos and post notifications to Slack.")
  (depends
   (ocaml
-   (>= 4.14.0))
+   (>= 5.4.1))
   (atd
    (>= 2.14.0))
   (atdgen
@@ -50,9 +50,16 @@
   (extlib
    (>= 1.7.8))
   (lwt
-   (>= 5.7.0))
+   (and
+    (>= 5.7.0)
+    (<
+     6.0.0
+     ; Devkit isn't compatible with Lwt 6.0.0 yet
+     )))
   (lwt_ppx
-   (>= 2.0.0))
+   (and
+    (>= 2.0.0)
+    (< 6.0.0)))
   (ptime
    (>= 1.2.0))
   (ocamldiff
@@ -70,7 +77,7 @@
   (ocamlformat
    (and
     :with-dev-setup
-    (= 0.26.2)))
+    (= 0.29.0)))
   (curl
    (>= 0.10.0))
   (sexplib0
