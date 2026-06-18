@@ -61,13 +61,14 @@ make dev ARGS="run -p 3000 --state=state.json"
 
 ### Link Unfurling
 
-You can configure Monorobot to [unfurl GitHub links](https://api.slack.com/reference/messaging/link-unfurling) in Slack messages. Currently, commit, pull request, and issue links are supported.
+You can configure Monorobot to [unfurl links](https://api.slack.com/reference/messaging/link-unfurling) in Slack messages. Currently, GitHub commit, pull request, issue, and compare links are supported, as well as Buildkite build links.
 
 Note: The `slack_access_token` must be configured in your secrets file for link unfurling. See previous section for details.
+Buildkite link unfurling also requires `buildkite_access_token` to fetch build and log details.
 
 1. Give your app `links:read` and `links:write` [permissions](https://api.slack.com/apps).
 1. Configure your app to [support the Events API](https://api.slack.com/events-api#prepare). During the [url verification handshake](https://api.slack.com/events-api#the-events-api__subscribing-to-event-types__events-api-request-urls__request-url-configuration--verification__url-verification-handshake), you should tell Slack to direct event notifications to `<server_domain>/slack/events`. Ensure the server is running before triggering the handshake.
-1. [Register the GitHub domains](https://api.slack.com/reference/messaging/link-unfurling#configuring_domains) you want to support.
+1. [Register the domains](https://api.slack.com/reference/messaging/link-unfurling#configuring_domains) you want to support, for example `github.com` and `buildkite.com`.
 
 ### Slack mentions
 

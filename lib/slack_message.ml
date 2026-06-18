@@ -220,3 +220,126 @@ let populate_compare repository (compare : compare) =
     let text = sprintf "%s%s" (String.concat "" commits_unfurl_text) file_stats in
     let fallback = String.concat "" commits_unfurl_fallback in
     { base with text = Some text; fallback = Some fallback }
+
+let buildkite_unfurl_line_cap = 50
+
+let color_of_buildkite_state (state : Buildkite_t.build_state) =
+  match state with
+  | Buildkite_t.Passed -> "good"
+  | Buildkite_t.Failed | Buildkite_t.Failing | Buildkite_t.Canceled | Buildkite_t.Canceling -> "danger"
+  | _ -> Colors.gray
+
+let string_of_buildkite_state : Buildkite_t.build_state -> string = function
+  | Blocked -> "blocked"
+  | Canceled -> "canceled"
+  | Canceling -> "canceling"
+  | Failed -> "failed"
+  | Failing -> "failing"
+  | Finished -> "finished"
+  | Not_run -> "not_run"
+  | Passed -> "passed"
+  | Running -> "running"
+  | Scheduled -> "scheduled"
+  | Skipped -> "skipped"
+  | Other state -> state
+
+let string_of_buildkite_job_state : Buildkite_t.job_state -> string = function
+  | Pending -> "pending"
+  | Waiting -> "waiting"
+  | Waiting_failed -> "waiting_failed"
+  | Blocked -> "blocked"
+  | Blocked_failed -> "blocked_failed"
+  | Unblocked -> "unblocked"
+  | Unblocked_failed -> "unblocked_failed"
+  | Limiting -> "limiting"
+  | Limited -> "limited"
+  | Scheduled -> "scheduled"
+  | Assigned -> "assigned"
+  | Accepted -> "accepted"
+  | Running -> "running"
+  | Finished -> "finished"
+  | Canceling -> "canceling"
+  | Canceled -> "canceled"
+  | Expired -> "expired"
+  | Timing_out -> "timing_out"
+  | Timed_out -> "timed_out"
+  | Skipped -> "skipped"
+  | Broken -> "broken"
+  | Passed -> "passed"
+  | Failed -> "failed"
+  | Other state -> state
+
+let find_buildkite_job jobs job_id =
+  List.find_map
+    (function
+      | Buildkite_t.Script ({ id; _ } as job) | Buildkite_t.Trigger ({ id; _ } as job) when String.equal id job_id ->
+        Some job
+      | _ -> None)
+    jobs
+
+let buildkite_log_field (lines : Util.Build.line_range) (job_log : Buildkite_t.job_log) =
+  let requested_len = lines.last_line - lines.first_line + 1 in
+  let truncated = requested_len > buildkite_unfurl_line_cap in
+  let last_line =
+    if truncated then lines.first_line + buildkite_unfurl_line_cap - 1 else lines.last_line
+  in
+  let selected_lines =
+    job_log.content |> Text_cleanup.cleanup |> String.split_on_char '\n'
+    |> List.mapi (fun idx line -> idx + 1, line)
+    |> List.filter_map (fun (line_nr, line) ->
+           if line_nr >= lines.first_line && line_nr <= last_line then Some line else None)
+  in
+  let title =
+    if lines.first_line = lines.last_line then sprintf "Log line %d" lines.first_line
+    else sprintf "Log lines %d-%d" lines.first_line lines.last_line
+  in
+  let value =
+    match selected_lines with
+    | [] -> "_No log lines found for requested range._"
+    | lines ->
+      sprintf "```%s```%s" (String.concat "\n" lines)
+        (if truncated then sprintf "\n_truncated to first %d requested lines_" buildkite_unfurl_line_cap else "")
+  in
+  { title = Some title; value; short = false }
+
+let populate_buildkite_build ?job_log (link : Util.Build.buildkite_link) (build : Buildkite_t.get_build_res) =
+  let state = string_of_buildkite_state build.state in
+  let pipeline_url = sprintf "https://buildkite.com/%s/%s" link.org link.pipeline in
+  let title = sprintf "buildkite/%s #%d %s" link.pipeline build.number state in
+  let job_lines =
+    match link.fragment with
+    | None -> []
+    | Some { job_id; _ } ->
+      (match find_buildkite_job build.jobs job_id with
+      | Some job ->
+        [
+          sprintf "*Step*: <%s|%s> (%s)" job.web_url (escape_mrkdwn job.name)
+            (string_of_buildkite_job_state job.state);
+        ]
+      | None -> [ sprintf "*Step*: `%s`" (escape_mrkdwn job_id) ])
+  in
+  let text =
+    [
+      [ sprintf "*Message*: %s" (escape_mrkdwn (Util.first_line build.message)) ];
+      [ sprintf "*Branch*: `%s`" (escape_mrkdwn build.branch) ];
+      [ sprintf "*Commit*: `%s`" (Slack.git_short_sha_hash build.sha) ];
+      job_lines;
+    ]
+    |> List.concat |> String.concat "\n"
+  in
+  let fields =
+    match link.fragment, job_log with
+    | Some { lines = Some lines; _ }, Some job_log -> Some [ buildkite_log_field lines job_log ]
+    | _ -> None
+  in
+  {
+    empty_attachment with
+    fallback = Some (sprintf "[buildkite/%s] Build #%d %s: %s" link.pipeline build.number state (Util.first_line build.message));
+    mrkdwn_in = Some [ "fields"; "text" ];
+    color = Some (color_of_buildkite_state build.state);
+    title = Some title;
+    title_link = Some link.original_url;
+    text = Some text;
+    fields;
+    footer = Some (sprintf "<%s|buildkite/%s>" pipeline_url (escape_mrkdwn link.pipeline));
+  }

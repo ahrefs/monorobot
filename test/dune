@@ -1,5 +1,5 @@
 (executables
- (names test github_link_test longest_prefix_test)
+ (names test github_link_test buildkite_link_test longest_prefix_test)
  (libraries monorobotlib devkit devkit.core extlib lwt.unix yojson)
  (preprocess
   (pps lwt_ppx)))
@@ -29,6 +29,11 @@
  (alias runtest)
  (action
   (run ./github_link_test.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./buildkite_link_test.exe)))
 
 (rule
  (alias runtest)

@@ -1,0 +1,35 @@
+{
+  "token": "",
+  "team_id": "T0475L7BATY",
+  "api_app_id": "A047JBWSX26",
+  "event": {
+    "type": "link_shared",
+    "user": "U046XN0M2R5",
+    "channel": "C047QTRD1CH",
+    "message_ts": "1666757700.000002",
+    "links": [
+      {
+        "url": "https://buildkite.com/org/pipeline2/builds/181734#01948e8b-5b5e-4e4a-9e0b-b8b64e381c90/L17-L21",
+        "domain": "buildkite.com"
+      }
+    ],
+    "source": "conversations_history",
+    "unfurl_id": "C047QTRD1CH.1666757700.000002.buildkite",
+    "is_bot_user_member": false,
+    "event_ts": "1666757701.000002"
+  },
+  "type": "event_callback",
+  "event_id": "EvBUILD0002",
+  "event_time": 1666757701,
+  "authorizations": [
+    {
+      "enterprise_id": null,
+      "team_id": "T0475L7BATY",
+      "user_id": "U047X1F32SD",
+      "is_bot": true,
+      "is_enterprise_install": false
+    }
+  ],
+  "is_ext_shared_channel": false,
+  "event_context": "buildkite-job-lines"
+}

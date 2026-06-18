@@ -237,27 +237,58 @@ module Slack : Api.Slack = struct
 end
 
 module Buildkite : Api.Buildkite = struct
-  let get_job_log ~ctx:_ (_ : Github_t.status_notification) (job : Buildkite_t.job) =
+  let build_cache_file build_url =
+    let org, pipeline, build_nr = Util.Build.get_org_pipeline_build' build_url in
+    clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr)
+
+  let get_build_cache build_url =
+    let url = Filename.concat buildkite_cache_dir (build_cache_file build_url) in
+    with_cache_file url Buildkite_j.get_build_res_of_string
+
+  let job_log_cache_file ~org ~pipeline ~build_nr ~job_id =
+    clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/logs" org pipeline build_nr job_id)
+
+  let get_job_log_cache ~org ~pipeline ~build_nr ~job_id =
+    let url = Filename.concat buildkite_cache_dir (job_log_cache_file ~org ~pipeline ~build_nr ~job_id) in
+    with_cache_file url Buildkite_j.job_log_of_string
+
+  let get_job_log_by_id ~ctx:_ ~build_url ~job_id =
+    let org, pipeline, build_nr = Util.Build.get_org_pipeline_build' build_url in
+    let file = Filename.concat buildkite_cache_dir (job_log_cache_file ~org ~pipeline ~build_nr ~job_id) in
+    if Sys.file_exists file then get_job_log_cache ~org ~pipeline ~build_nr ~job_id
+    else
+      let* build = get_build_cache build_url in
+      match
+        List.find_map
+          (function
+            | Buildkite_t.Script ({ id; log_url; _ } : Buildkite_t.job)
+            | Trigger ({ id; log_url; _ } : Buildkite_t.job)
+              when String.equal id job_id -> log_url
+            | _ -> None)
+          build.jobs
+      with
+      | None -> Lwt.return_error (sprintf "Unable to get job log, job %s has no log_url field" job_id)
+      | Some log_url ->
+        (match Re2.find_submatches_exn Util.Build.buildkite_api_org_pipeline_build_job_re log_url with
+        | exception exn -> Exn.fail ~exn "failed to parse buildkite build url %s" log_url
+        | [| Some _; Some org; Some pipeline; Some build_nr; Some job_id |] ->
+          get_job_log_cache ~org ~pipeline ~build_nr ~job_id
+        | _ -> failwith "failed to get all job log details from the job.")
+
+  let get_job_log ~ctx (_n : Github_t.status_notification) (job : Buildkite_t.job) =
     match job.log_url with
     | None -> Lwt.return_error "Unable to get job log, job has no log_url field"
     | Some log_url ->
     match Re2.find_submatches_exn Util.Build.buildkite_api_org_pipeline_build_job_re log_url with
     | exception exn -> Exn.fail ~exn "failed to parse buildkite build url %s" log_url
     | [| Some _; Some org; Some pipeline; Some build_nr; Some job_nbr |] ->
-      let file =
-        clean_forward_slashes
-          (sprintf "organizations/%s/pipelines/%s/builds/%s/jobs/%s/logs" org pipeline build_nr job_nbr)
-      in
-      let url = Filename.concat buildkite_cache_dir file in
-      with_cache_file url Buildkite_j.job_log_of_string
+      let build_url = Util.Build.buildkite_build_url ~org ~pipeline ~build_nr () in
+      get_job_log_by_id ~ctx ~build_url ~job_id:job_nbr
     | _ -> failwith "failed to get all job log details from the job."
 
   [@@@warning "-27"]
   let get_build ?(cache : [ `Use | `Refresh ] option) ~ctx build_url =
-    let org, pipeline, build_nr = Util.Build.get_org_pipeline_build' build_url in
-    let file = clean_forward_slashes (sprintf "organizations/%s/pipelines/%s/builds/%s" org pipeline build_nr) in
-    let url = Filename.concat buildkite_cache_dir file in
-    with_cache_file url Buildkite_j.get_build_res_of_string
+    get_build_cache build_url
 
   let get_build_branch ~ctx (n : Github_t.status_notification) =
     let* build_url = Lwt.return @@ Util.Build.get_build_url n in
