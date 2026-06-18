@@ -183,6 +183,133 @@ module Slack : Api.Slack = struct
     let body = `Raw ("application/json; charset=utf-8", data) in
     request_token_auth ~name:"join channel" ~ctx `POST ~body "conversations.join" Slack_j.read_ok_res
 
+  let bool_field_val v name = Option.map (fun b -> name, string_of_bool b) v
+
+  let www_form_of_user_info_req ({ user; include_locale } : Slack_t.user_info_req) =
+    Web.make_url_args
+    @@ List.filter_map id
+         [ Some ("user", Slack_user_id.project user); bool_field_val include_locale "include_locale" ]
+
+  let get_user ~(ctx : Context.t) ~(req : Slack_t.user_info_req) =
+    let data = www_form_of_user_info_req req in
+    let api_path = sprintf "users.info?%s" data in
+    request_token_auth ~name:(sprintf "users.info (%s)" (Slack_user_id.project req.user)) ~ctx `GET api_path
+      Slack_j.read_user_info_res
+
+  let www_form_of_conversations_info_req
+      ({ channel; include_locale; include_num_members } : Slack_t.conversations_info_req) =
+    Web.make_url_args
+    @@ List.filter_map id
+         [
+           Some ("channel", Slack_channel.Ident.project channel);
+           bool_field_val include_locale "include_locale";
+           bool_field_val include_num_members "include_num_members";
+         ]
+
+  let get_conversations_info ~(ctx : Context.t) ~(req : Slack_t.conversations_info_req) =
+    let data = www_form_of_conversations_info_req req in
+    let api_path = sprintf "conversations.info?%s" data in
+    request_token_auth
+      ~name:(sprintf "conversations.info (%s)" (Slack_channel.Ident.project req.channel))
+      ~ctx `GET api_path Slack_j.read_conversations_info_res
+
+  let user_display_cache = Hashtbl.create 50
+  let destination_display_cache = Hashtbl.create 50
+
+  let non_empty_string s =
+    let s = String.trim s in
+    if String.equal s "" then None else Some s
+
+  let optional_non_empty_string = function
+    | None -> None
+    | Some s -> non_empty_string s
+
+  let user_display_name ({ id; name; profile; real_name } : Slack_t.user) =
+    let ({ display_name; email; real_name = profile_real_name } : Slack_t.profile) = profile in
+    List.find_map optional_non_empty_string [ display_name; profile_real_name; real_name; name; email ]
+    |> Option.default (Slack_user_id.project id)
+
+  let cache_user_display (user : Slack_t.user) =
+    Hashtbl.replace user_display_cache (Slack_user_id.project user.id) (user_display_name user)
+
+  let cache_lookup_user_display ({ user } : Slack_t.lookup_user_res) = cache_user_display user
+
+  let resolve_user_display_name ~ctx user_id =
+    let raw = Slack_user_id.project user_id in
+    match Hashtbl.find_opt user_display_cache raw with
+    | Some display_name -> Lwt.return display_name
+    | None -> begin
+      let req = ({ user = user_id; include_locale = None } : Slack_t.user_info_req) in
+      match%lwt get_user ~ctx ~req with
+      | Ok ({ user } : Slack_t.user_info_res) ->
+        let display_name = user_display_name user in
+        Hashtbl.replace user_display_cache raw display_name;
+        Lwt.return display_name
+      | Error e ->
+        log#warn "couldn't resolve Slack user %s for log output: %s" raw e;
+        Hashtbl.replace user_display_cache raw raw;
+        Lwt.return raw
+    end
+
+  let channel_display_name name =
+    match String.starts_with name ~prefix:"#" with
+    | true -> name
+    | false -> "#" ^ name
+
+  let conversation_display_name ~ctx ({ id; is_im; name; user; _ } : Slack_t.conversation) =
+    match is_im, user with
+    | true, Some user_id ->
+      let%lwt display_name = resolve_user_display_name ~ctx user_id in
+      Lwt.return (sprintf "DM with %s" display_name)
+    | _ ->
+      Lwt.return
+        (match optional_non_empty_string name with
+        | Some name -> channel_display_name name
+        | None -> Slack_channel.Ident.project id)
+
+  let resolve_conversation_display_name ~ctx channel =
+    let raw = Slack_channel.Ident.project channel in
+    let req =
+      ({ channel; include_locale = None; include_num_members = None } : Slack_t.conversations_info_req)
+    in
+    match%lwt get_conversations_info ~ctx ~req with
+    | Ok ({ channel = conversation } : Slack_t.conversations_info_res) -> conversation_display_name ~ctx conversation
+    | Error e ->
+      log#warn "couldn't resolve Slack channel %s for log output: %s" raw e;
+      Lwt.return raw
+
+  let slack_destination_kind raw =
+    if String.equal raw "" then `Other
+    else
+      match raw.[0] with
+      | 'U' | 'W' -> `User (Slack_user_id.inject raw)
+      | 'C' | 'G' | 'D' -> `Conversation (Slack_channel.Ident.inject raw)
+      | _ -> `Other
+
+  let format_resolved_destination ~raw display_name =
+    match String.equal raw display_name with
+    | true -> raw
+    | false -> sprintf "%s (%s)" display_name raw
+
+  let resolve_destination_display_name ~ctx ~(secrets : Config_t.secrets) channel =
+    let raw = Slack_channel.Any.project channel in
+    match Hashtbl.find_opt destination_display_cache raw with
+    | Some display_name -> Lwt.return display_name
+    | None ->
+      let%lwt display_name =
+        match secrets.slack_access_token with
+        | None -> Lwt.return raw
+        | Some _ -> begin
+          match slack_destination_kind raw with
+          | `User user_id -> resolve_user_display_name ~ctx user_id
+          | `Conversation channel -> resolve_conversation_display_name ~ctx channel
+          | `Other -> Lwt.return raw
+        end
+      in
+      let display_name = format_resolved_destination ~raw display_name in
+      Hashtbl.replace destination_display_cache raw display_name;
+      Lwt.return display_name
+
   let lookup_user_cache = Hashtbl.create 50
 
   let lookup_user' ~(ctx : Context.t) ~(cfg : Config_t.config) ~email () =
@@ -194,6 +321,7 @@ module Slack : Api.Slack = struct
         (sprintf "users.lookupByEmail?%s" url_args)
         Slack_j.read_lookup_user_res
     in
+    cache_lookup_user_display user;
     Hashtbl.replace lookup_user_cache email user;
     Lwt.return_ok user
 
@@ -203,21 +331,31 @@ module Slack : Api.Slack = struct
     | `Refresh -> lookup_user' ~ctx ~cfg ~email ()
     | `Use ->
     match Hashtbl.find_opt lookup_user_cache email with
-    | Some user -> Lwt.return_ok user
+    | Some user ->
+      cache_lookup_user_display user;
+      Lwt.return_ok user
     | None -> lookup_user' ~ctx ~cfg ~email ()
 
   let list_users ?cursor ?limit ~(ctx : Context.t) () =
     let cursor_option = Option.map (fun c -> "cursor", c) cursor in
     let limit_option = Option.map (fun l -> "limit", Int.to_string l) limit in
     let url_args = Web.make_url_args @@ List.filter_map id [ cursor_option; limit_option ] in
-    request_token_auth ~name:"list users" ~ctx `GET (sprintf "users.list?%s" url_args) Slack_j.read_list_users_res
+    match%lwt
+      request_token_auth ~name:"list users" ~ctx `GET (sprintf "users.list?%s" url_args)
+        Slack_j.read_list_users_res
+    with
+    | Ok ({ members } as res : Slack_t.list_users_res) ->
+      List.iter cache_user_display members;
+      Lwt.return_ok res
+    | Error e -> Lwt.return_error e
 
   (** [send_notification ctx msg] notifies [msg.channel] with the payload [msg];
       uses web API with access token if available, or with webhook otherwise *)
   let send_notification ~(ctx : Context.t) ~(msg : Slack_t.post_message_req) =
-    log#info "sending to %s" (Slack_channel.Any.project msg.channel);
     let build_error e = sprintf "%s\nfailed to send Slack notification" e in
     let secrets = Context.get_secrets_exn ctx in
+    let%lwt destination = resolve_destination_display_name ~ctx ~secrets msg.channel in
+    log#info "sending to %s" destination;
     let headers, url, webhook_mode =
       match Context.hook_of_channel ctx msg.channel with
       | Some url -> [], Some url, true
