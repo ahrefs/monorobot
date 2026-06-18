@@ -39,6 +39,7 @@
     ]
   },
   "ignored_users": ["ignored_user"],
+  "known_bot_pushers": ["github-merge-queue[bot]"],
   "prefix_rules": {
     "default_channel": "default",
     "filter_main_branch": true,

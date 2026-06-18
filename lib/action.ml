@@ -329,7 +329,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | false ->
     match req with
     | Github.Push n ->
-      partition_push cfg n |> List.map (fun (channel, n) -> generate_push_notification n channel) |> Lwt.return
+      partition_push cfg n
+      |> List.map (fun (channel, n) -> generate_push_notification ~known_bot_pushers:cfg.known_bot_pushers n channel)
+      |> Lwt.return
     | Pull_request n ->
       partition_pr cfg ctx n |> List.map (generate_pull_request_notification ~ctx ~slack_match_func n) |> Lwt.return
     | PR_review n ->
