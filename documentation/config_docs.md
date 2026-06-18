@@ -18,6 +18,9 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
     "ignored_users": [
         "ignored_user"
     ],
+    "known_bot_pushers": [
+        "github-merge-queue[bot]"
+    ],
     "user_mappings": {
         "git.user@gitemail.com": "user1@slackemail.com",
         "gh-handle": "user2@slackemail.com"
@@ -54,6 +57,7 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 | `status_rules` | status rules config object | all status notifications are ignored |
 | `project_owners` | project owners config object | no project owners are defined |
 | `ignored_users` | list of users to be ignored on all notifications | no user is ignored |
+| `known_bot_pushers` | bot pusher logins (e.g. `github-merge-queue[bot]`) whose single-author pushes skip the redundant "pushed by" line; multi-author pushes still get it | none |
 | `user_mappings` | list of mappings from git email and/or GitHub handle to Slack email | no mapping defined
 | `notifications_configs` | list of configs for certain types of notifications | dm_for_failing_build defaults to true and dm_after_failed_build to false
 | `include_logs_in_notifs` | when a build is failing, send error logs with the notification | true |

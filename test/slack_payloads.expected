@@ -518,6 +518,22 @@ will notify #default
   "text": "`<https://github.com/org/repo/commit/2f929e604610c6b1c6830439c0bbe927cb553eb5|2f239e60>` Very important changes on very important files (<https://github.com/org/repo/pull/16|#16>) - User Name",
   "unfurl_links": false
 }
+===== file ../mock_payloads/push.merge_queue.json =====
+will notify #default
+{
+  "channel": "default",
+  "username": "repo:main",
+  "text": "`<https://github.com/org/repo/commit/a1b2c3d4e5f60718293a4b5c6d7e8f9001122334|a1b2c3d4>` Update readme (<https://github.com/org/repo/pull/16|#16>) - User Name\n`<https://github.com/org/repo/commit/b2c3d4e5f60718293a4b5c6d7e8f900112233445|b2c3d4e5>` Add TESTING.md (<https://github.com/org/repo/pull/17|#17>) - User Name",
+  "unfurl_links": false
+}
+===== file ../mock_payloads/push.merge_queue_multi_author.json =====
+will notify #default
+{
+  "channel": "default",
+  "username": "repo:main",
+  "text": "<https://github.com/org/repo/compare/7fbe59ab63e6...2f239e604610|2 commits> pushed by github-merge-queue[bot]\n`<https://github.com/org/repo/commit/a1b2c3d4e5f60718293a4b5c6d7e8f9001122334|a1b2c3d4>` Update readme (<https://github.com/org/repo/pull/16|#16>) - User Name\n`<https://github.com/org/repo/commit/c3d4e5f6071829394b5c6d7e8f90011223344556|c3d4e5f6>` Add TESTING.md (<https://github.com/org/repo/pull/17|#17>) - Second User",
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/push.two_commits_longest_match.json =====
 will notify #all-push-events
 {

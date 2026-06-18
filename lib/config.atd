@@ -56,6 +56,7 @@ type config = {
   ~status_rules <ocaml default="{allowed_pipelines = Some []; rules = []}"> : status_rules;
   ~project_owners <ocaml default="{rules = []}"> : project_owners;
   ~ignored_users <ocaml default="[]">: string list; (* list of ignored users *)
+  ~known_bot_pushers <ocaml default="[]">: string list; (* sender logins (e.g. "github-merge-queue[bot]") whose single-author pushes are treated as analogous to a self-push, suppressing the redundant "pushed by <bot>" line; batched pushes folding multiple authors' commits still get the line *)
   ?main_branch_name : string nullable; (* the name of the main branch; used to filter out notifications about merges of main branch into other branches *)
   ~user_mappings <ocaml default="[]">: (string * string) list <json repr="object">; (* list of github to slack profile mappings *)
   ~notifications_configs <ocaml default="{dm_after_failed_build = []; dm_for_failing_build = []}"> : notifications_configs;

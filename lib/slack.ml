@@ -298,7 +298,7 @@ let pp_list_with_previews ~pp_item list =
   end
   else List.map pp_item list
 
-let generate_push_notification notification channel =
+let generate_push_notification ~known_bot_pushers notification channel =
   let { sender; pusher; created; deleted; forced; compare; commits; repository; _ } = notification in
   let show_descriptive_title_min_commits = 4 in
   let branch_name = Github.commits_branch_of_ref notification.ref in
@@ -310,12 +310,19 @@ let generate_push_notification notification channel =
   | false ->
     let commits_preview_lines = pp_list_with_previews ~pp_item:pp_commit commits in
     let num_commits = List.length commits in
+    (* A bot pusher (e.g. the merge queue) is never a commit author, so compare against the push's own author instead. *)
+    let reference_author_email =
+      match commits with
+      | hd :: _ when List.exists (String.equal sender.login) known_bot_pushers -> hd.author.email
+      | _ -> pusher.email
+    in
+    let all_commits_by_reference_author = List.for_all (fun c -> c.author.email = reference_author_email) commits in
     let lines =
       if
         num_commits < show_descriptive_title_min_commits
         && (not forced)
         && (not created)
-        && List.for_all (fun commit -> commit.author.email = pusher.email) commits
+        && all_commits_by_reference_author
       then commits_preview_lines
       else begin
         let compare =
