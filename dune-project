@@ -11,8 +11,6 @@
 
 (name monorobot)
 
-(using menhir 2.0)
-
 (license "MIT")
 
 (version "0.1")
