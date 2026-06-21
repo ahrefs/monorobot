@@ -73,7 +73,7 @@ let process_gh_payload ~(secrets : Config_t.secrets) ~config (kind, path, state_
     log#error ~exn "failed to read file %s" path;
     Lwt.return_unit
 
-let process_slack_event ~(secrets : Config_t.secrets) path =
+let process_slack_event ~(secrets : Config_t.secrets) ~config path =
   let ctx = Context.make () in
   ctx.secrets <- Some secrets;
   State.set_bot_user_id ctx.state (Common.Slack_user_id.inject "bot_user");
@@ -87,6 +87,33 @@ let process_slack_event ~(secrets : Config_t.secrets) path =
   match notification.event with
   | Link_shared event ->
     let%lwt _ctx = Action_local.process_link_shared_event ctx event in
+    Lwt.return_unit
+  | Message event ->
+    (* Set up state for message event testing *)
+    let repo_url = "https://github.com/ahrefs/monorobot" in
+    let pr_url = "https://github.com/ahrefs/monorobot/pull/42" in
+    let channel_any = Common.Slack_channel.to_any event.Slack_t.channel in
+    let secrets = { secrets with repos = [ { url = repo_url; auth = None; gh_hook_secret = None } ] } in
+    ctx.secrets <- Some secrets;
+    Context.set_repo_config ctx repo_url config;
+    (* Add a thread mapping so the message event can find the PR *)
+    (match event.thread_ts with
+    | Some thread_ts ->
+      State.add_thread_if_new ctx.state ~repo_url ~pr_url
+        { State_t.ts = thread_ts; channel = channel_any; cid = event.channel; merged_at = None };
+      (* Add a comment mapping for quote matching *)
+      State.add_pr_message ctx.state ~repo_url ~pr_url
+        {
+          State_t.slack_ts = Common.Slack_timestamp.inject "1666772725.078000";
+          github_comment_id = 100;
+          comment_type = Review_comment;
+          body = "this is a review comment";
+        }
+    | None -> ());
+    let headers = [] in
+    let body = Std.input_file path in
+    let%lwt result = Action_local.process_slack_event ctx headers body in
+    Printf.printf "result: %s\n" result;
     Lwt.return_unit
 
 let () =
@@ -115,7 +142,7 @@ let () =
     | Ok ctx ->
       let%lwt () = Action_local.refresh_username_to_slack_id_tbl ~ctx in
       let%lwt () = Lwt_list.iter_s (process_gh_payload ~secrets:(Option.get ctx.secrets) ~config) payloads in
-      let%lwt () = Lwt_list.iter_s (process_slack_event ~secrets:(Option.get ctx.secrets)) slack_events in
+      let%lwt () = Lwt_list.iter_s (process_slack_event ~secrets:(Option.get ctx.secrets) ~config) slack_events in
       Lwt.return_unit
     | Error e ->
       log#error "failed to read secrets:";
