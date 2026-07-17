@@ -741,11 +741,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                      Lwt_list.map_s to_slack_id author_emails
                  in
                  let%lwt owner_slack_ids =
-                   match mention_owner_on_failed_builds cfg n, pipeline_owner cfg n with
-                   | true, Some owner_email ->
-                     let%lwt id = to_slack_id owner_email in
-                     Lwt.return [ id ]
-                   | _ -> Lwt.return []
+                   match mention_owner_on_failed_builds cfg n with
+                   | true -> Lwt_list.map_s to_slack_id (pipeline_owners cfg n)
+                   | false -> Lwt.return []
                  in
                  let slack_ids = List.filter_map Fun.id (user_slack_ids @ owner_slack_ids) in
                  let slack_ids = List.sort_uniq compare slack_ids in

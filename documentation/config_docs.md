@@ -205,7 +205,7 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
         "failed_builds_channel": "failed-builds",
         "name": "buildkite/monorobot-test",
         "notify_canceled_builds": false,
-        "pipeline_owner": "owner@example.com",
+        "pipeline_owners": ["owner1@example.com", "owner2@example.com"],
         "mention_owner_on_failed_builds": true
       }
     ],
@@ -227,6 +227,8 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
 }
 ```
 
+> **Note:** the singular `"pipeline_owner": "x@y.com"` field is **deprecated** in favour of `pipeline_owners`, but still accepted. If both are set on the same pipeline, they are merged.
+
 | value | description | default |
 |-|-|-|
 | `rules` | a list of **status rules** to determine whether to *allow* or *ignore* a payload for further processing | required field |
@@ -241,9 +243,10 @@ Internally, the bot keeps track of the status of the last allowed payload, for a
 | `notify_canceled_builds` | canceled builds with new failed steps will be notified like failed builds unless `notify_canceled_builds` is set to false. | false
 | `mention_user_on_failed_builds` | wether monorobot will @mention the author of the commit on failed builds notifications | true
 | `escalate_notifications` | if failed steps haven't been fixed after a certain period of time, notify again on the next failed build and @mention the original author of the commit that broke that/those steps | false
-| `escalate_notifications_threshold` | period in hours after which monorobot should start escalating notifications | 2
-| `pipeline_owner` | email address of the pipeline owner. When set together with `mention_owner_on_failed_builds`, the owner will be @mentioned in failed build notifications | empty
-| `mention_owner_on_failed_builds` | whether monorobot will @mention the pipeline owner on failed build notifications. Requires `pipeline_owner` to be set. This is independent of `mention_user_on_failed_builds` — both the commit author and the pipeline owner can be mentioned simultaneously if both options are enabled | false
+| `escalate_notification_threshold` | period in hours after which monorobot should start escalating notifications | 2
+| `pipeline_owners` | a list of email addresses of the pipeline owners. When set together with `mention_owner_on_failed_builds`, the owners will be @mentioned in failed build notifications. | empty
+| `pipeline_owner` | **deprecated** — use `pipeline_owners` instead. A single email address of a pipeline owner. If both `pipeline_owner` and `pipeline_owners` are set on the same pipeline, they are merged. | empty
+| `mention_owner_on_failed_builds` | whether monorobot will @mention the pipeline owners on failed build notifications. Requires `pipeline_owners` (or the deprecated `pipeline_owner`) to be non-empty. This is independent of `mention_user_on_failed_builds` — both the commit author and the pipeline owners can be mentioned simultaneously if both options are enabled | false
 
 ### Status Rules
 
