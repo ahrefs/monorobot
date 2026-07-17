@@ -398,8 +398,15 @@ module Webhook = struct
     get_pipeline_config cfg n
     |> Option.map_default (fun (config : Config_t.pipeline) -> config.mention_owner_on_failed_builds) false
 
-  let pipeline_owner (cfg : Config_t.config) (n : n) =
-    get_pipeline_config cfg n |> Option.map_default (fun (config : Config_t.pipeline) -> config.pipeline_owner) None
+  (* merge the deprecated singular [pipeline_owner] with [pipeline_owners] *)
+  let merged_pipeline_owners (config : Config_t.pipeline) =
+    let owners = config.pipeline_owners in
+    match config.pipeline_owner with
+    | Some owner when not (List.mem owner owners) -> owner :: owners
+    | Some _ | None -> owners
+
+  let pipeline_owners (cfg : Config_t.config) (n : n) =
+    get_pipeline_config cfg n |> Option.map_default merged_pipeline_owners []
 
   let get_escalation_threshold (cfg : Config_t.config) (n : n) =
     match get_pipeline_config cfg n with
