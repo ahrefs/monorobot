@@ -42,27 +42,9 @@ let pp_github_user (user : github_user) = gh_name_of_string user.login
 let pp_github_team (team : github_team) = gh_name_of_string team.slug
 let pretext_slack_mention = Option.map (sprintf "<@%s>")
 
-let max_unfurl_text_length = 1000
-
-let truncate_unfurl_text text =
-  if String.length text <= max_unfurl_text_length then text
-  else begin
-    let is_whitespace = function
-      | ' ' | '\n' | '\t' | '\r' -> true
-      | _ -> false
-    in
-    let rec whitespace_cut i =
-      if i <= 0 then None else if is_whitespace text.[i] then Some i else whitespace_cut (i - 1)
-    in
-    (* if there is no whitespace to cut at, make sure we don't cut in the middle of a multi-byte character *)
-    let rec utf8_cut i = if i > 0 && Char.code text.[i] land 0xC0 = 0x80 then utf8_cut (i - 1) else i in
-    let cut = Option.default (utf8_cut max_unfurl_text_length) (whitespace_cut max_unfurl_text_length) in
-    String.trim (String.sub text 0 cut) ^ " [...]"
-  end
-
 let unfurl_text_of_body = function
   | None | Some "" -> None
-  | Some body -> Some (truncate_unfurl_text (Mrkdwn.mrkdwn_of_markdown body))
+  | Some body -> Some (Mrkdwn.mrkdwn_of_markdown body)
 
 let populate_pull_request repository (pull_request : pull_request) =
   let ({
