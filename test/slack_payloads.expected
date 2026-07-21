@@ -954,6 +954,7 @@ will unfurl in #C047QTRD1CH
       "author_icon": "https://avatars.githubusercontent.com/u/974142?v=4",
       "title": "#124 Update the CI to a recent ocaml",
       "title_link": "https://github.com/ahrefs/monorobot/issues/124",
+      "text": "Currently running ocaml 4.09, could move to ocaml 4.14.\n\nMight also be possible to enable some kind of caching.",
       "fields": [],
       "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
@@ -974,6 +975,7 @@ will unfurl in #C047QTRD1CH
       "author_icon": "https://avatars.githubusercontent.com/u/7478035?v=4",
       "title": "#107 Track status state per build step instead of per pipeline",
       "title_link": "https://github.com/ahrefs/monorobot/pull/107",
+      "text": "*Description of the task*\n\nBecause two builds on the same pipeline + branch don't necessarily always run the same build steps, the current state tracking is insufficient for handling those cases. Instead of tracking build state per pipeline, we should track it per build step.\n\n*Some details regarding Buildkite notification behavior:*\n\n- There are two types to consider -- notifications for overall builds (\"Build #123 failed\") vs those for individual steps within a larger build (\"step XYZ of build #123 failed\").\n- The only way to differentiate b/w them is to look at the `context` field, which is either `buildkite/pipeline-name` for the former or `buildkite/pipeline-name/build-step` for the latter. \n- The final notification of the overall build is always sent after the final notification for any of the build steps.\n\n*The implementation:*\n\nFor each status notification that passes the rule check (which should only be overall build notifications), we:\n\n1. Retrieve all status notifications [...]",
       "fields": [
         { "title": "Reviewers", "value": "@ygrek, @Khady", "short": true }
       ],
