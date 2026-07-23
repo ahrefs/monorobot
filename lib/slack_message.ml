@@ -42,6 +42,10 @@ let pp_github_user (user : github_user) = gh_name_of_string user.login
 let pp_github_team (team : github_team) = gh_name_of_string team.slug
 let pretext_slack_mention = Option.map (sprintf "<@%s>")
 
+let unfurl_text_of_body = function
+  | None | Some "" -> None
+  | Some body -> Some (Mrkdwn.mrkdwn_of_markdown body)
+
 let populate_pull_request repository (pull_request : pull_request) =
   let ({
          title;
@@ -56,6 +60,7 @@ let populate_pull_request repository (pull_request : pull_request) =
          state;
          draft;
          merged;
+         body;
          _;
        }
         : pull_request) =
@@ -85,11 +90,12 @@ let populate_pull_request repository (pull_request : pull_request) =
     mrkdwn_in = Some [ "text" ];
     title = Some (get_title ());
     title_link = Some html_url;
+    text = unfurl_text_of_body body;
     fallback = Some (sprintf "[%s] %s" repository.full_name title);
   }
 
 let populate_issue repository (issue : issue) =
-  let ({ title; number; html_url; user; assignees; comments; labels; state; _ } : issue) = issue in
+  let ({ title; number; html_url; user; assignees; comments; labels; state; body; _ } : issue) = issue in
   let fields =
     [
       "Assignees", List.map pp_github_user assignees;
@@ -110,6 +116,7 @@ let populate_issue repository (issue : issue) =
     mrkdwn_in = Some [ "text" ];
     title = Some (get_title ());
     title_link = Some html_url;
+    text = unfurl_text_of_body body;
     fallback = Some (sprintf "[%s] %s" repository.full_name title);
   }
 
