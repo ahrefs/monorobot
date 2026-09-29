@@ -75,7 +75,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
 
   (** [resolve_target ctx cfg target] turns a rule target into a Slack destination. Users are
       looked up by email, so that they can be direct messaged; unknown users are dropped. *)
-  let resolve_target ~ctx ~cfg (target : Rule_t.target) =
+  let resolve_target ~ctx ~cfg (target : Rule.Target.t) =
     match target with
     | Channel c -> Lwt.return_some (Status_notification.inject_channel c)
     | User email -> lookup_slack_id ~ctx ~cfg email |> Lwt.map (Option.map (fun id -> Status_notification.User id))
@@ -83,18 +83,19 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
   let resolve_targets ~ctx ~cfg targets =
     Lwt_list.filter_map_s (resolve_target ~ctx ~cfg) targets |> Lwt.map (List.map Status_notification.to_slack_channel)
 
-  let default_channel_target default_channel = Option.map_default (fun c -> [ Rule_t.Channel c ]) [] default_channel
+  let default_channel_target default_channel =
+    Option.map_default (fun c -> [ Rule.Target.Channel c ]) [] default_channel
 
   (** [prefix_targets cfg filenames] returns the targets of the prefix rules matched by [filenames],
       falling back to the default channel when none match. *)
   let prefix_targets (cfg : Config_t.config) filenames =
     let rules = cfg.prefix_rules.rules in
-    match filenames |> List.filter_map (Rule.Prefix.match_rules ~rules) |> List.sort_uniq Rule.Target.compare with
+    match filenames |> List.concat_map (Rule.Prefix.match_rules ~rules) |> List.sort_uniq Rule.Target.compare with
     | [] -> default_channel_target cfg.prefix_rules.default_channel
     | targets -> targets
 
   module TargetMap = Map (struct
-    type t = Rule_t.target
+    type t = Rule.Target.t
     let compare = Rule.Target.compare
   end)
 
@@ -113,7 +114,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
       let matched_targets =
         Github.modified_files_of_commit commit
-        |> List.filter_map (Rule.Prefix.match_rules ~rules)
+        |> List.concat_map (Rule.Prefix.match_rules ~rules)
         |> List.sort_uniq Rule.Target.compare
       in
       let targets = if matched_targets = [] && commit.distinct then default else matched_targets in

@@ -68,6 +68,7 @@
       },
       {
         "match": ["TESTING.md"],
+        "channel": ["testing", "docs"],
         "dm": "testing-owner@example.com"
       },
       {
@@ -92,7 +93,7 @@
       },
       {
         "match": ["a1"],
-        "dm": "a1-owner@example.com"
+        "dm": ["a1-owner@example.com", "a1-lead@example.com"]
       },
       {
         "ignore": ["backend", "a1", "a3"],

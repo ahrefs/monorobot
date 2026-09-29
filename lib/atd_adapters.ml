@@ -43,34 +43,40 @@ module Branch_filters_adapter = List_or_default_field.Make (struct
   let default_value = `List []
 end)
 
-(* Prefix and label rules declare where to route notifications with either a
-   [channel] or a [dm] field. This adapter folds whichever is present into the
-   [target] variant field, so that existing configs keep working unchanged. *)
-module Target_adapter : Atdgen_runtime.Json_adapter.S = struct
+(* Prefix and label rules route notifications with a [channel] and/or a [dm] field.
+   Each takes a single string or a list of strings, so that existing configs with
+   a single channel keep working unchanged. A rule must have at least one of them. *)
+module Destinations_adapter : Atdgen_runtime.Json_adapter.S = struct
   let keys = [ "channel"; "dm" ]
 
   let normalize (x : Yojson.Safe.t) =
     match x with
     | `Assoc fields ->
-      begin match List.partition (fun (k, _) -> List.mem k keys) fields with
-      | [], _ -> x
-      | target, rest -> `Assoc (("target", `Assoc target) :: rest)
-      end
+      if not (List.exists (fun k -> List.mem_assoc k fields) keys) then
+        failwith "a rule must have a \"channel\" or a \"dm\" field";
+      `Assoc
+        (List.map
+           (function
+             | k, (`String _ as v) when List.mem k keys -> k, `List [ v ]
+             | field -> field)
+           fields)
     | _ -> x
 
   let restore (x : Yojson.Safe.t) =
     match x with
     | `Assoc fields ->
-      begin match List.assoc "target" fields with
-      | `Assoc [ target ] -> `Assoc (target :: List.remove_assoc "target" fields)
-      | _ | (exception Not_found) -> x
-      end
+      `Assoc
+        (List.map
+           (function
+             | k, `List [ v ] when List.mem k keys -> k, v
+             | field -> field)
+           fields)
     | _ -> x
 end
 
 module Prefix_rule_adapter : Atdgen_runtime.Json_adapter.S = struct
-  let normalize x = Target_adapter.normalize (Branch_filters_adapter.normalize x)
-  let restore x = Branch_filters_adapter.restore (Target_adapter.restore x)
+  let normalize x = Destinations_adapter.normalize (Branch_filters_adapter.normalize x)
+  let restore x = Branch_filters_adapter.restore (Destinations_adapter.restore x)
 end
 
 (** Error detection in Slack API response. The web API communicates errors using
