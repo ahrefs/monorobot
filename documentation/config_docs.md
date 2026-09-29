@@ -118,14 +118,14 @@ The reason for these two separate Slack email matching schemes is that in the ca
 
 A **label rule** specifies whether or not a Slack channel (or user, via direct message) should be notified, based on the labels present in the given payload. For each rule, `ignore` is a blacklist of labels that should not notify the rule's target, and `match` is a whitelist of labels that should. If a label exists in both lists, the `ignore` list takes precedence. If an empty `ignore` list is provided, nothing is ignored. If an empty `match` list is provided, everything is matched. Both are optional; if neither are provided, the rule will always generate a notification for its target.
 
-Each rule must have at least one of `channel` or `dm`, and may have both. Each takes a single value or a list, and all of them are notified when the rule matches. Direct messages require `slack_access_token` to be configured in the secrets file, and the app must have the `users:read.email` scope to look up the user by email. Rules with a `dm` that can't be matched to a Slack profile are skipped.
+Each rule must have a non-empty `channel` or `dm`, and may have both. Each takes a single value or a list, and all of them are notified when the rule matches. Direct messages require `slack_access_token` to be configured in the secrets file, and the app must have the `users:read.email` scope to look up the user by email. A `dm` email that can't be matched to a Slack profile is skipped with a warning in the logs, and the default channel is not used in its place. A user reachable through several emails, for example via `user_mappings`, is only messaged once.
 
 | value | description | default |
 |-|-|-|
 | `match` | if notifications have any label in this list, they should be routed to the channel | all labels matched |
 | `ignore` | if notifications have any label in this list, they shouldn't be routed to the channel (even if they have any `match` labels) | fall back on `match` field behavior |
-| `channel` | channel, or list of channels, to notify if the rule is matched | at least one of `channel` or `dm` is required |
-| `dm` | Slack email, or list of Slack emails, of users to direct message if the rule is matched | at least one of `channel` or `dm` is required |
+| `channel` | channel, or list of channels, to notify if the rule is matched | a non-empty `channel` or `dm` is required |
+| `dm` | Slack email, or list of Slack emails, of users to direct message if the rule is matched | a non-empty `channel` or `dm` is required |
 
 ## Prefix Options
 
@@ -177,8 +177,8 @@ To ignore a globally declared filter for a single rule, declare one locally with
 | `match` | if commit files have any prefix in this list, they should be routed to the channel | all prefixes matched |
 | `ignore` | if commit files have any prefix in this list, they shouldn't be routed to the channel (even if they have any `match` prefixes) | fall back on `match` field behavior |
 | `branch_filters` | consider commits only if pushed ref branch is in this list; set to "any" to ignore `filter_main_branch` for this rule | fall back on `filter_main_branch` field behavior (see above) |
-| `channel` | channel, or list of channels, to notify if the rule is matched | at least one of `channel` or `dm` is required |
-| `dm` | Slack email, or list of Slack emails, of users to direct message if the rule is matched | at least one of `channel` or `dm` is required |
+| `channel` | channel, or list of channels, to notify if the rule is matched | a non-empty `channel` or `dm` is required |
+| `dm` | Slack email, or list of Slack emails, of users to direct message if the rule is matched | a non-empty `channel` or `dm` is required |
 
 ## Status Options
 

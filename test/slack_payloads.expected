@@ -184,9 +184,9 @@ will notify #backend
   "unfurl_links": false,
   "reply_broadcast": true
 }
-will notify #id[a1-lead@example.com]
+will notify #id[a1-owner@example.com]
 {
-  "channel": "id[a1-lead@example.com]",
+  "channel": "id[a1-owner@example.com]",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
   "attachments": [
     {
@@ -199,9 +199,9 @@ will notify #id[a1-lead@example.com]
   "unfurl_links": false,
   "reply_broadcast": true
 }
-will notify #id[a1-owner@example.com]
+will notify #id[slack_mail@example.com]
 {
-  "channel": "id[a1-owner@example.com]",
+  "channel": "id[slack_mail@example.com]",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
   "attachments": [
     {
@@ -316,16 +316,16 @@ will notify #a1-bot
   "unfurl_links": false,
   "reply_broadcast": true
 }
-will notify #id[a1-lead@example.com]
+will notify #id[a1-owner@example.com]
 {
-  "channel": "id[a1-lead@example.com]",
+  "channel": "id[a1-owner@example.com]",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by *xinyuluo*",
   "unfurl_links": false,
   "reply_broadcast": true
 }
-will notify #id[a1-owner@example.com]
+will notify #id[slack_mail@example.com]
 {
-  "channel": "id[a1-owner@example.com]",
+  "channel": "id[slack_mail@example.com]",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by *xinyuluo*",
   "unfurl_links": false,
   "reply_broadcast": true
@@ -370,9 +370,9 @@ will notify #backend
   ],
   "unfurl_links": false
 }
-will notify #id[a1-lead@example.com]
+will notify #id[a1-owner@example.com]
 {
-  "channel": "id[a1-lead@example.com]",
+  "channel": "id[a1-owner@example.com]",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
   "attachments": [
     {
@@ -384,9 +384,9 @@ will notify #id[a1-lead@example.com]
   ],
   "unfurl_links": false
 }
-will notify #id[a1-owner@example.com]
+will notify #id[slack_mail@example.com]
 {
-  "channel": "id[a1-owner@example.com]",
+  "channel": "id[slack_mail@example.com]",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
   "attachments": [
     {
@@ -534,9 +534,9 @@ will notify #backend
   ],
   "unfurl_links": false
 }
-will notify #id[a1-lead@example.com]
+will notify #id[a1-owner@example.com]
 {
-  "channel": "id[a1-lead@example.com]",
+  "channel": "id[a1-owner@example.com]",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
   "attachments": [
     {
@@ -549,9 +549,9 @@ will notify #id[a1-lead@example.com]
   ],
   "unfurl_links": false
 }
-will notify #id[a1-owner@example.com]
+will notify #id[slack_mail@example.com]
 {
-  "channel": "id[a1-owner@example.com]",
+  "channel": "id[slack_mail@example.com]",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
   "attachments": [
     {
@@ -619,16 +619,16 @@ will notify #docs
   "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false
 }
-will notify #testing
+will notify #id[slack_mail@example.com]
 {
-  "channel": "testing",
+  "channel": "id[slack_mail@example.com]",
   "username": "monorepo:develop",
   "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false
 }
-will notify #id[testing-owner@example.com]
+will notify #testing
 {
-  "channel": "id[testing-owner@example.com]",
+  "channel": "testing",
   "username": "monorepo:develop",
   "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false
@@ -672,6 +672,13 @@ will notify #docs
   "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false
 }
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
+  "username": "monorepo:develop",
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "unfurl_links": false
+}
 will notify #longest-a1
 {
   "channel": "longest-a1",
@@ -682,13 +689,6 @@ will notify #longest-a1
 will notify #testing
 {
   "channel": "testing",
-  "username": "monorepo:develop",
-  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
-  "unfurl_links": false
-}
-will notify #id[testing-owner@example.com]
-{
-  "channel": "id[testing-owner@example.com]",
   "username": "monorepo:develop",
   "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false

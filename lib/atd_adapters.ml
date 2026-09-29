@@ -52,8 +52,12 @@ module Destinations_adapter : Atdgen_runtime.Json_adapter.S = struct
   let normalize (x : Yojson.Safe.t) =
     match x with
     | `Assoc fields ->
-      if not (List.exists (fun k -> List.mem_assoc k fields) keys) then
-        failwith "a rule must have a \"channel\" or a \"dm\" field";
+      let is_destination = function
+        | k, (`String _ | `List (_ :: _)) -> List.mem k keys
+        | _ -> false
+      in
+      if not (List.exists is_destination fields) then
+        failwith "a rule must have a non-empty \"channel\" or \"dm\" field";
       `Assoc
         (List.map
            (function

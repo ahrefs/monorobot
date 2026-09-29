@@ -13,10 +13,15 @@ let () =
     targets {|{ "channel": "a", "dm": ["x@example.com", "y@example.com"] }|}
     = [ "#a"; "@x@example.com"; "@y@example.com" ]);
   (* a rule must have somewhere to send notifications *)
-  assert (
-    match targets {|{ "match": ["backend"] }|} with
+  let rejected s =
+    match targets s with
     | _ -> false
-    | exception Failure _ -> true);
+    | exception Failure _ -> true
+  in
+  assert (rejected {|{ "match": ["backend"] }|});
+  assert (rejected {|{ "channel": [] }|});
+  assert (rejected {|{ "channel": [], "dm": [] }|});
+  assert (targets {|{ "channel": [], "dm": "x@example.com" }|} = [ "@x@example.com" ]);
   (* single values are written back as strings, and branch filters are still handled *)
   let rule = Rule_j.prefix_rule_of_string {|{ "channel": "a", "dm": ["x", "y"], "branch_filters": "any" }|} in
   assert (
