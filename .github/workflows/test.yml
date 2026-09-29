@@ -24,7 +24,6 @@ jobs:
         uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
-          dune-cache: true
           allow-prerelease-opam: true
 
       # the runner image's apt index can reference package versions the mirror no longer serves
