@@ -12,20 +12,22 @@ jobs:
         os:
           - ubuntu-latest
         ocaml-compiler:
-          - 5.4
+          - 5.5
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
-          dune-cache: true
           allow-prerelease-opam: true
+
+      # the runner image's apt index can reference package versions the mirror no longer serves
+      - run: sudo apt-get update
 
       - run: opam install . ocamlformat.0.29.0
 
