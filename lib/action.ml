@@ -86,10 +86,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
   (** [resolve ctx cfg targets] resolves [targets] to Slack destinations. Different targets can resolve to
       the same destination, e.g. two emails of one Slack user, so the result is deduplicated. *)
   let resolve ~ctx ~cfg targets =
-    Lwt_list.filter_map_s (resolve_target ~ctx ~cfg) targets |> Lwt.map Status_notification.dedup
+    let%lwt notifications = Lwt_list.filter_map_s (resolve_target ~ctx ~cfg) targets in
+    Lwt.return (Status_notification.dedup notifications)
 
   let resolve_targets ~ctx ~cfg targets =
-    resolve ~ctx ~cfg targets |> Lwt.map (List.map Status_notification.to_slack_channel)
+    let%lwt notifications = resolve ~ctx ~cfg targets in
+    Lwt.return (List.map Status_notification.to_slack_channel notifications)
 
   let default_channel_target default_channel =
     Option.map_default (fun c -> [ Rule.Target.Channel c ]) [] default_channel
