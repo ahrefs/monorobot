@@ -12,13 +12,13 @@ jobs:
         os:
           - ubuntu-latest
         ocaml-compiler:
-          - 5.4
+          - 5.5
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         uses: ocaml/setup-ocaml@v3
