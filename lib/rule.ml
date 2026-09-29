@@ -36,7 +36,12 @@ module Status = struct
 end
 
 module Target = struct
-  let compare (a : target) (b : target) = Stdlib.compare a b
+  let compare (a : target) (b : target) =
+    match a, b with
+    | Channel a, Channel b -> Slack_channel.compare a b
+    | User a, User b -> String.compare a b
+    | Channel _, User _ -> -1
+    | User _, Channel _ -> 1
 
   let to_string = function
     | Channel c -> "#" ^ Slack_channel.Name.project c

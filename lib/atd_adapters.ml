@@ -51,7 +51,7 @@ module Target_adapter : Atdgen_runtime.Json_adapter.S = struct
 
   let normalize (x : Yojson.Safe.t) =
     match x with
-    | `Assoc fields when not (List.mem_assoc "target" fields) ->
+    | `Assoc fields ->
       begin match List.partition (fun (k, _) -> List.mem k keys) fields with
       | [], _ -> x
       | target, rest -> `Assoc (("target", `Assoc target) :: rest)
