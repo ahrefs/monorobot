@@ -68,7 +68,7 @@
       },
       {
         "match": ["TESTING.md"],
-        "user": "testing-owner@example.com"
+        "dm": "testing-owner@example.com"
       },
       {
         "channel": "all-push-events"
@@ -92,7 +92,7 @@
       },
       {
         "match": ["a1"],
-        "user": "a1-owner@example.com"
+        "dm": "a1-owner@example.com"
       },
       {
         "ignore": ["backend", "a1", "a3"],

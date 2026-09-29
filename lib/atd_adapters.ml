@@ -44,10 +44,10 @@ module Branch_filters_adapter = List_or_default_field.Make (struct
 end)
 
 (* Prefix and label rules declare where to route notifications with either a
-   [channel] or a [user] field. This adapter folds whichever is present into the
+   [channel] or a [dm] field. This adapter folds whichever is present into the
    [target] variant field, so that existing configs keep working unchanged. *)
 module Target_adapter : Atdgen_runtime.Json_adapter.S = struct
-  let keys = [ "channel"; "user" ]
+  let keys = [ "channel"; "dm" ]
 
   let normalize (x : Yojson.Safe.t) =
     match x with

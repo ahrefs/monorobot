@@ -52,10 +52,10 @@ type status_rule = {
 
 (* Where a matching rule routes notifications: either a channel, or a direct
    message to the user with the given Slack email. In the config, this is
-   written as a [channel] or [user] field directly on the rule. *)
+   written as a [channel] or [dm] field directly on the rule. *)
 type target = [
 | Channel <json name="channel"> of channel_name
-| User <json name="user"> of string
+| User <json name="dm"> of string
 ] <ocaml repr="classic"> <json adapter.ocaml="Atdgen_runtime.Json_adapter.One_field">
 
 (* A filename matches a prefix rule with the channel name if it isn't in the ignore
