@@ -78,10 +78,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
   let resolve_target ~ctx ~cfg (target : Rule.Target.t) =
     match target with
     | Channel c -> Lwt.return_some (Status_notification.inject_channel c)
-    | User email -> lookup_slack_id ~ctx ~cfg email |> Lwt.map (Option.map (fun id -> Status_notification.User id))
+    | User email ->
+    match%lwt lookup_slack_id ~ctx ~cfg email with
+    | None -> Lwt.return_none
+    | Some id -> Lwt.return_some (Status_notification.User id)
 
   let resolve_targets ~ctx ~cfg targets =
-    Lwt_list.filter_map_s (resolve_target ~ctx ~cfg) targets |> Lwt.map (List.map Status_notification.to_slack_channel)
+    Lwt_list.filter_map_s
+      (fun target ->
+        match%lwt resolve_target ~ctx ~cfg target with
+        | None -> Lwt.return_none
+        | Some notification -> Lwt.return_some (Status_notification.to_slack_channel notification))
+      targets
 
   let default_channel_target default_channel =
     Option.map_default (fun c -> [ Rule.Target.Channel c ]) [] default_channel
