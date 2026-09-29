@@ -50,6 +50,14 @@ type status_rule = {
   ~notify_dm <ocaml default="false">: bool;
 }
 
+(* Where a matching rule routes notifications: either a channel, or a direct
+   message to the user with the given Slack email. In the config, this is
+   written as a [channel] or [user] field directly on the rule. *)
+type target = [
+| Channel <json name="channel"> of channel_name
+| User <json name="user"> of string
+] <ocaml repr="classic"> <json adapter.ocaml="Atdgen_runtime.Json_adapter.One_field">
+
 (* A filename matches a prefix rule with the channel name if it isn't in the ignore
    list and it is in the allow list. If multiple prefix rules match for a given
    file, the one to match with the longest prefix is used. Both [allow] and
@@ -73,8 +81,8 @@ type prefix_rule = {
   ?allow <json name="match"> : string list nullable;
   ?ignore : string list nullable;
   ?branch_filters : string list nullable;
-  channel_name <json name="channel"> : channel_name;
-} <json adapter.ocaml="Atd_adapters.Branch_filters_adapter">
+  target : target;
+} <json adapter.ocaml="Atd_adapters.Prefix_rule_adapter">
 
 (* A payload matches a label rule with a channel name if absent from the ignore list
    and present in the allow list. Both [allow] and [ignore] are optional. If [allow]
@@ -82,8 +90,8 @@ type prefix_rule = {
 type label_rule = {
   ?allow <json name="match"> : string list nullable;
   ?ignore : string list nullable;
-  channel_name <json name="channel"> : channel_name;
-}
+  target : target;
+} <json adapter.ocaml="Atd_adapters.Target_adapter">
 
 (* Requests reviews from [owners] if a PR is labeled with [label]. Owner format:
    - users: "username"

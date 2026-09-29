@@ -67,6 +67,10 @@
         "branch_filters": ["master"]
       },
       {
+        "match": ["TESTING.md"],
+        "user": "testing-owner@example.com"
+      },
+      {
         "channel": "all-push-events"
       }
     ]
@@ -85,6 +89,10 @@
       {
         "match": ["a3"],
         "channel": "a3"
+      },
+      {
+        "match": ["a1"],
+        "user": "a1-owner@example.com"
       },
       {
         "ignore": ["backend", "a1", "a3"],

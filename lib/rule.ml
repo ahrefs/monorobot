@@ -35,6 +35,14 @@ module Status = struct
     List.find_map match_rule (List.append rules default_rules)
 end
 
+module Target = struct
+  let compare (a : target) (b : target) = Stdlib.compare a b
+
+  let to_string = function
+    | Channel c -> "#" ^ Slack_channel.Name.project c
+    | User u -> "@" ^ u
+end
+
 module Prefix = struct
   (** Filters prefix rules based on branch filtering config and current commit.
       Prioritizes local filters over main branch one. Only allows distinct commits
@@ -48,7 +56,7 @@ module Prefix = struct
     | Some main_branch -> String.equal main_branch branch
     | None -> distinct
 
-  (** [match_rules f rs] returns the channel name of a rule in [rs] that matches
+  (** [match_rules f rs] returns the target of a rule in [rs] that matches
       file name [f] with the longest prefix, if one exists. A rule [r] matches
       [f] with prefix length [l], if [f] has no prefix in [r.ignore] and [l] is
       the length of the longest prefix of [f] in [r.allow]. An undefined or empty
@@ -71,10 +79,7 @@ module Prefix = struct
       | Some allow_list ->
         allow_list |> List.filter_map (fun p -> if is_prefix p then Some (rule, String.length p) else None) |> max_elt
     in
-    rules
-    |> List.filter_map match_rule
-    |> max_elt
-    |> Option.map (fun (res : prefix_rule * int) -> (fst res).channel_name)
+    rules |> List.filter_map match_rule |> max_elt |> Option.map (fun (res : prefix_rule * int) -> (fst res).target)
 
   let print_prefix_routing rules =
     let show_match l = String.concat " or " @@ List.map (fun s -> s ^ "*") l in
@@ -88,11 +93,11 @@ module Prefix = struct
       | Some l, Some [] -> Printf.printf "  %s" (show_match l)
       | Some l, Some i -> Printf.printf "  %s and not %s" (show_match l) (show_match i)
       end;
-      Printf.printf " -> #%s\n%!" (Slack_channel.Name.project rule.channel_name))
+      Printf.printf " -> %s\n%!" (Target.to_string rule.target))
 end
 
 module Label = struct
-  (** [match_rules l rs] returns the channel names of the rules in [rs] that
+  (** [match_rules l rs] returns the targets of the rules in [rs] that
       allow label [l], if one exists. A rule [r] matches label [l], if [l] is
       not a member of [r.ignore] and is a member of [r.allow]. The label name
       comparison is case insensitive. An undefined allow list is considered a
@@ -105,10 +110,10 @@ module Label = struct
       | Some ignore_list when List.exists label_name_equal ignore_list -> None
       | _ ->
       match rule.allow with
-      | None | Some [] -> Some rule.channel_name
-      | Some allow_list -> if List.exists label_name_equal allow_list then Some rule.channel_name else None
+      | None | Some [] -> Some rule.target
+      | Some allow_list -> if List.exists label_name_equal allow_list then Some rule.target else None
     in
-    rules |> List.filter_map match_rule |> List.sort_uniq Slack_channel.compare
+    rules |> List.filter_map match_rule |> List.sort_uniq Target.compare
 
   let print_label_routing rules =
     let show_match l = String.concat " or " l in
@@ -122,7 +127,7 @@ module Label = struct
       | Some l, Some [] -> Printf.printf "  %s" (show_match l)
       | Some l, Some i -> Printf.printf "  %s and not %s" (show_match l) (show_match i)
       end;
-      Printf.printf " -> #%s\n%!" (Slack_channel.Name.project rule.channel_name))
+      Printf.printf " -> %s\n%!" (Target.to_string rule.target))
 end
 
 module Project_owners = struct

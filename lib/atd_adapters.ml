@@ -43,6 +43,36 @@ module Branch_filters_adapter = List_or_default_field.Make (struct
   let default_value = `List []
 end)
 
+(* Prefix and label rules declare where to route notifications with either a
+   [channel] or a [user] field. This adapter folds whichever is present into the
+   [target] variant field, so that existing configs keep working unchanged. *)
+module Target_adapter : Atdgen_runtime.Json_adapter.S = struct
+  let keys = [ "channel"; "user" ]
+
+  let normalize (x : Yojson.Safe.t) =
+    match x with
+    | `Assoc fields when not (List.mem_assoc "target" fields) ->
+      begin match List.partition (fun (k, _) -> List.mem k keys) fields with
+      | [], _ -> x
+      | target, rest -> `Assoc (("target", `Assoc target) :: rest)
+      end
+    | _ -> x
+
+  let restore (x : Yojson.Safe.t) =
+    match x with
+    | `Assoc fields ->
+      begin match List.assoc "target" fields with
+      | `Assoc [ target ] -> `Assoc (target :: List.remove_assoc "target" fields)
+      | _ | (exception Not_found) -> x
+      end
+    | _ -> x
+end
+
+module Prefix_rule_adapter : Atdgen_runtime.Json_adapter.S = struct
+  let normalize x = Target_adapter.normalize (Branch_filters_adapter.normalize x)
+  let restore x = Branch_filters_adapter.restore (Target_adapter.restore x)
+end
+
 (** Error detection in Slack API response. The web API communicates errors using
     an [error] field rather than status codes. Note, on the other hand, that
     webhooks do use status codes to communicate errors. *)
