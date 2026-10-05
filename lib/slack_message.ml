@@ -122,7 +122,7 @@ let populate_issue repository (issue : issue) =
 
 let populate_comment repository ~subject ~color (comment : api_comment) =
   let footer =
-    let author = sprintf "<%s|%s>" comment.user.html_url (escape_mrkdwn comment.user.login) in
+    let author = Slack.pp_link ~url:comment.user.html_url comment.user.login in
     match comment.path with
     | None -> sprintf "%s · %s" author (simple_footer repository)
     | Some path -> sprintf "%s · %s · %s" author (simple_footer repository) (escape_mrkdwn path)
