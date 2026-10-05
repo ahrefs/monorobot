@@ -135,6 +135,11 @@ module Github : Api.Github = struct
     let%lwt res = commits_url ~repo ~sha |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
     Lwt.return @@ Result.map Github_j.api_commit_of_string res
 
+  let get_api_commit_summary ~(ctx : Context.t) ~(repo : Github_t.repository) ~sha =
+    let url = Uri.add_query_param' (Uri.of_string (commits_url ~repo ~sha)) ("per_page", "1") |> Uri.to_string in
+    let%lwt res = get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url url in
+    Lwt.return @@ Result.map Github_j.api_commit_of_string res
+
   let get_api_commit_webhook ~(ctx : Context.t) ~commits_url ~repo_url ~sha =
     let _, commits_url = ExtLib.String.replace ~sub:"{/sha}" ~by:("/" ^ sha) ~str:commits_url in
     let%lwt res = get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url commits_url in

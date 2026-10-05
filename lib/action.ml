@@ -571,9 +571,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           ~populate:Slack_message.populate_pull_request_comment ~fallback:(fun api_result ->
           with_gh_result_populate_slack ~api_result ~populate:Slack_message.populate_pull_request ~repo)
       | Comment_on_commit (sha, id) ->
-        with_comment_or_parent ~repo ~parent:(Github_api.get_api_commit ~ctx ~repo ~sha)
+        (* the comment card only needs the commit message, don't download the full list of changed files *)
+        with_comment_or_parent ~repo ~parent:(Github_api.get_api_commit_summary ~ctx ~repo ~sha)
           ~comment:(Github_api.get_commit_comment ~ctx ~repo ~id) ~populate:Slack_message.populate_commit_comment
-          ~fallback:(fun api_result ->
+          ~fallback:(fun _ ->
+          let%lwt api_result = Github_api.get_api_commit ~ctx ~repo ~sha in
           with_gh_result_populate_slack ~api_result ~populate:Slack_message.populate_commit ~repo)
     in
     log#info "slack link shared: channel=%s, user=%s, message_ts=%s, links=[%s]"
