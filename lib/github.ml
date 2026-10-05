@@ -235,10 +235,14 @@ let gh_link_of_string url_str =
         | [ owner; name; "issues"; n ] ->
           let repo = make_repo ~prefix ~owner ~name in
           Some (repo, Issue (int_of_string n))
+        | [ owner; name; "pull"; n; ("files" | "changes" | "commits" | "checks") ] ->
+          let repo = make_repo ~prefix ~owner ~name in
+          Some (repo, Pull_request (int_of_string n))
         | [ owner; name; "commit"; commit_hash ] | [ owner; name; "pull"; _; "commits"; commit_hash ] ->
           let repo = make_repo ~prefix ~owner ~name in
           if Re2.matches commit_sha_re commit_hash then Some (repo, Commit commit_hash) else None
-        | owner :: name :: "compare" :: base_head | owner :: name :: "pull" :: _ :: "files" :: base_head ->
+        | owner :: name :: "compare" :: base_head | owner :: name :: "pull" :: _ :: ("files" | "changes") :: base_head
+          ->
           let base_head = String.concat "/" base_head in
           let repo = make_repo ~prefix ~owner ~name in
           begin match Re2.find_submatches_exn compare_basehead_re base_head with

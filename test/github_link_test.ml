@@ -25,6 +25,13 @@ let pr_cases prefix repo =
     sprintf "https://%s/ahrefs/monorepo/pull/2" prefix, Some (repo, Pull_request 2);
     sprintf "https://%s/ahrefs/monorepo/pull/100/" prefix, Some (repo, Pull_request 100);
     sprintf "https://%s/ahrefs/monorepo/pull/100?arg1=123" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/100#issuecomment-123" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/100/files" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/100/files#r4166785667" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/100/changes" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/100/changes#r4166785667" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/100/commits" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/100/checks" prefix, Some (repo, Pull_request 100);
     sprintf "https://%s/ahrefs/monorepo/pull/abc" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/pull/" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/pull" prefix, None;
@@ -36,6 +43,7 @@ let issue_cases prefix repo =
     sprintf "https://%s/ahrefs/monorepo/issues/2" prefix, Some (repo, Issue 2);
     sprintf "https://%s/ahrefs/monorepo/issues/100/" prefix, Some (repo, Issue 100);
     sprintf "https://%s/ahrefs/monorepo/issues/100?arg1=123" prefix, Some (repo, Issue 100);
+    sprintf "https://%s/ahrefs/monorepo/issues/100#issuecomment-123" prefix, Some (repo, Issue 100);
     sprintf "https://%s/ahrefs/monorepo/issues/abc" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/issues/" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/issues" prefix, None;
@@ -50,6 +58,10 @@ let commit_cases prefix repo =
     ( sprintf "https://%s/ahrefs/monorepo/commit/0d09a6cb71481fe77cad7c7729d400ab40fd292e?arg1=123" prefix,
       Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
     ( sprintf "https://%s/ahrefs/monorepo/pull/2938/commits/0d09a6cb71481fe77cad7c7729d400ab40fd292e?arg1=123" prefix,
+      Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
+    ( sprintf "https://%s/ahrefs/monorepo/commit/0d09a6cb71481fe77cad7c7729d400ab40fd292e#diff-abc" prefix,
+      Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
+    ( sprintf "https://%s/ahrefs/monorepo/pull/2938/commits/0d09a6cb71481fe77cad7c7729d400ab40fd292e#r123" prefix,
       Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
     sprintf "https://%s/ahrefs/monorepo/commit/" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/commit" prefix, None;
@@ -85,6 +97,10 @@ let compare_cases prefix repo =
       Some (repo, Compare ("sewen/123ab~3", "master")) );
     ( sprintf
         "https://%s/ahrefs/monorepo/pull/523/files/6260c936f9f6959c272aecb430a8a263915412c9...81f5a6c7af12d4b5af113d5372d1abd3743f65cb/"
+        prefix,
+      Some (repo, Compare ("6260c936f9f6959c272aecb430a8a263915412c9", "81f5a6c7af12d4b5af113d5372d1abd3743f65cb")) );
+    ( sprintf
+        "https://%s/ahrefs/monorepo/pull/523/changes/6260c936f9f6959c272aecb430a8a263915412c9...81f5a6c7af12d4b5af113d5372d1abd3743f65cb"
         prefix,
       Some (repo, Compare ("6260c936f9f6959c272aecb430a8a263915412c9", "81f5a6c7af12d4b5af113d5372d1abd3743f65cb")) );
     sprintf "https://%s/ahrefs/monorepo/compare/" prefix ^ "abc%5E%5E%5E...ax~2", Some (repo, Compare ("abc^^^", "ax~2"));
