@@ -247,6 +247,12 @@ let gh_link_of_string url_str =
         compare_url = sprintf "%s/compare{/basehead}" api_base;
       }
     in
+    let compare_link ~repo base_head =
+      let base_head = String.concat "/" base_head in
+      match Re2.find_submatches_exn compare_basehead_re base_head with
+      | [| _; Some base; _; Some merge |] -> Some (repo, Compare (base, merge))
+      | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
+    in
     let rec extract_link_type ~prefix path =
       try
         match path with
@@ -281,13 +287,13 @@ let gh_link_of_string url_str =
             | Some (`Review_comment id) -> Some (repo, Review_comment_on_pull_request (int_of_string n, id))
             | Some (`Issue_comment _ | `Commit_comment _) | None -> Some (repo, Commit commit_hash)
             end
-        | owner :: name :: "compare" :: base_head | owner :: name :: "pull" :: _ :: ("files" | "changes") :: base_head
-          ->
-          let base_head = String.concat "/" base_head in
+        | owner :: name :: "compare" :: base_head -> compare_link ~repo:(make_repo ~prefix ~owner ~name) base_head
+        | owner :: name :: "pull" :: n :: ("files" | "changes") :: base_head ->
           let repo = make_repo ~prefix ~owner ~name in
-          begin match Re2.find_submatches_exn compare_basehead_re base_head with
-          | [| _; Some base; _; Some merge |] -> Some (repo, Compare (base, merge))
-          | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
+          begin match int_of_string_opt n, comment_of_fragment () with
+          | Some n, Some (`Issue_comment id) -> Some (repo, Comment_on_pull_request (n, id))
+          | Some n, Some (`Review_comment id) -> Some (repo, Review_comment_on_pull_request (n, id))
+          | _ -> compare_link ~repo base_head
           end
         | [] -> None
         | next :: path -> extract_link_type ~prefix:(next :: prefix) path

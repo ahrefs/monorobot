@@ -122,6 +122,19 @@ let compare_cases prefix repo =
         "https://%s/ahrefs/monorepo/pull/523/changes/6260c936f9f6959c272aecb430a8a263915412c9...81f5a6c7af12d4b5af113d5372d1abd3743f65cb"
         prefix,
       Some (repo, Compare ("6260c936f9f6959c272aecb430a8a263915412c9", "81f5a6c7af12d4b5af113d5372d1abd3743f65cb")) );
+    ( sprintf
+        "https://%s/ahrefs/monorepo/pull/523/files/6260c936f9f6959c272aecb430a8a263915412c9...81f5a6c7af12d4b5af113d5372d1abd3743f65cb#diff-abc"
+        prefix,
+      Some (repo, Compare ("6260c936f9f6959c272aecb430a8a263915412c9", "81f5a6c7af12d4b5af113d5372d1abd3743f65cb")) );
+    ( sprintf
+        "https://%s/ahrefs/monorepo/pull/523/files/6260c936f9f6959c272aecb430a8a263915412c9...81f5a6c7af12d4b5af113d5372d1abd3743f65cb#r123"
+        prefix,
+      Some (repo, Review_comment_on_pull_request (523, 123)) );
+    ( sprintf "https://%s/ahrefs/monorepo/pull/523/changes/6260c936f9f6959c272aecb430a8a263915412c9#r123" prefix,
+      Some (repo, Review_comment_on_pull_request (523, 123)) );
+    ( sprintf "https://%s/ahrefs/monorepo/pull/523/changes/6260c936f9f6959c272aecb430a8a263915412c9#issuecomment-123"
+        prefix,
+      Some (repo, Comment_on_pull_request (523, 123)) );
     sprintf "https://%s/ahrefs/monorepo/compare/" prefix ^ "abc%5E%5E%5E...ax~2", Some (repo, Compare ("abc^^^", "ax~2"));
     sprintf "https://%s/ahrefs/monorepo/compare" prefix, None;
   ]
