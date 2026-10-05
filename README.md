@@ -61,7 +61,7 @@ make dev ARGS="run -p 3000 --state=state.json"
 
 ### Link Unfurling
 
-You can configure Monorobot to [unfurl GitHub links](https://api.slack.com/reference/messaging/link-unfurling) in Slack messages. Currently, commit, compare, pull request, issue, and pull request/issue comment links are supported.
+You can configure Monorobot to [unfurl GitHub links](https://api.slack.com/reference/messaging/link-unfurling) in Slack messages. Currently, commit, compare, pull request, issue, and comment links (on pull requests, issues and commits) are supported.
 
 Note: The `slack_access_token` must be configured in your secrets file for link unfurling. See previous section for details.
 
