@@ -287,7 +287,11 @@ let gh_link_of_string url_str =
           begin match int_of_string_opt n, comment_of_fragment () with
           | Some n, Some (`Issue_comment id) -> Some (repo, Comment_on_pull_request (n, id))
           | Some n, Some (`Review_comment id) -> Some (repo, Review_comment_on_pull_request (n, id))
-          | _ -> compare_link ~repo base_head
+          | _ ->
+          (* /pull/N/files/<sha> and /pull/N/changes/<sha> show a single commit of the PR *)
+          match compare_link ~repo base_head, base_head with
+          | None, [ sha ] when Re2.matches commit_sha_re sha -> Some (repo, Commit sha)
+          | link, _ -> link
           end
         | [] -> None
         | next :: path -> extract_link_type ~prefix:(next :: prefix) path

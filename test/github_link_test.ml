@@ -132,6 +132,10 @@ let compare_cases prefix repo =
         "https://%s/ahrefs/monorepo/pull/523/files/6260c936f9f6959c272aecb430a8a263915412c9...81f5a6c7af12d4b5af113d5372d1abd3743f65cb#r123"
         prefix,
       Some (repo, Review_comment_on_pull_request (523, 123)) );
+    ( sprintf "https://%s/ahrefs/monorepo/pull/523/changes/6260c936f9f6959c272aecb430a8a263915412c9" prefix,
+      Some (repo, Commit "6260c936f9f6959c272aecb430a8a263915412c9") );
+    ( sprintf "https://%s/ahrefs/monorepo/pull/523/files/6260c936f9f6959c272aecb430a8a263915412c9" prefix,
+      Some (repo, Commit "6260c936f9f6959c272aecb430a8a263915412c9") );
     ( sprintf "https://%s/ahrefs/monorepo/pull/523/changes/6260c936f9f6959c272aecb430a8a263915412c9#r123" prefix,
       Some (repo, Review_comment_on_pull_request (523, 123)) );
     ( sprintf "https://%s/ahrefs/monorepo/pull/523/changes/6260c936f9f6959c272aecb430a8a263915412c9#issuecomment-123"
