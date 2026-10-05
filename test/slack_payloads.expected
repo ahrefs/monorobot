@@ -955,7 +955,6 @@ will unfurl in #C047QTRD1CH
       "title": "Comment on #124 Update the CI to a recent ocaml",
       "title_link": "https://github.com/ahrefs/monorobot/issues/124#issuecomment-1659423486",
       "text": "Done in https://github.com/ahrefs/monorobot/commit/09677833bf2fb72a61d31c39aab512c7d2393e6b",
-      "fields": [],
       "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
@@ -997,7 +996,6 @@ will unfurl in #C047QTRD1CH
       "title": "Comment on #107 Track status state per build step instead of per pipeline",
       "title_link": "https://github.com/ahrefs/monorobot/pull/107#issuecomment-2008604035",
       "text": "I wonder what would be the implication of this one now that we have direct messages",
-      "fields": [],
       "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
@@ -1041,8 +1039,7 @@ will unfurl in #C047QTRD1CH
       "title": "Comment on #1 Feat/add json parsing",
       "title_link": "https://github.com/ahrefs/monorobot/pull/1#discussion_r301894321",
       "text": "you don't need an else case",
-      "fields": [ { "title": "File", "value": "Server.ml", "short": true } ],
-      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
+      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot> · Server.ml"
     }
   }
 }
