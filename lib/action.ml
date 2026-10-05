@@ -520,8 +520,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         Lwt.return_none
     in
     let both_results a b =
-      let%lwt a, b = Lwt.both a b in
-      Lwt.return (Result.bind a (fun a -> Result.map (fun b -> a, b) b))
+      let%lwt (a : (_, string) result), (b : (_, string) result) = Lwt.both a b in
+      match a with
+      | Error e -> Lwt.return_error e
+      | Ok a ->
+      match b with
+      | Error e -> Lwt.return_error e
+      | Ok b -> Lwt.return_ok (a, b)
     in
     let process link =
       let with_gh_result_populate_slack (type a) ~(api_result : (a, string) Result.t) ~populate ~repo =
