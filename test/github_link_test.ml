@@ -25,11 +25,21 @@ let pr_cases prefix repo =
     sprintf "https://%s/ahrefs/monorepo/pull/2" prefix, Some (repo, Pull_request 2);
     sprintf "https://%s/ahrefs/monorepo/pull/100/" prefix, Some (repo, Pull_request 100);
     sprintf "https://%s/ahrefs/monorepo/pull/100?arg1=123" prefix, Some (repo, Pull_request 100);
-    sprintf "https://%s/ahrefs/monorepo/pull/100#issuecomment-123" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/100#top" prefix, Some (repo, Pull_request 100);
+    ( sprintf "https://%s/ahrefs/monorepo/pull/100#issuecomment-123" prefix,
+      Some (repo, Comment_on_pull_request (100, 123)) );
+    ( sprintf "https://%s/ahrefs/monorepo/pull/100#discussion_r123" prefix,
+      Some (repo, Review_comment_on_pull_request (100, 123)) );
+    ( sprintf "https://%s/ahrefs/monorepo/pull/100?arg1=123#discussion_r123" prefix,
+      Some (repo, Review_comment_on_pull_request (100, 123)) );
+    sprintf "https://%s/ahrefs/monorepo/pull/100#discussion_rabc" prefix, Some (repo, Pull_request 100);
     sprintf "https://%s/ahrefs/monorepo/pull/100/files" prefix, Some (repo, Pull_request 100);
-    sprintf "https://%s/ahrefs/monorepo/pull/100/files#r4166785667" prefix, Some (repo, Pull_request 100);
+    sprintf "https://%s/ahrefs/monorepo/pull/100/files#diff-abc" prefix, Some (repo, Pull_request 100);
+    ( sprintf "https://%s/ahrefs/monorepo/pull/100/files#r4166785667" prefix,
+      Some (repo, Review_comment_on_pull_request (100, 4166785667)) );
     sprintf "https://%s/ahrefs/monorepo/pull/100/changes" prefix, Some (repo, Pull_request 100);
-    sprintf "https://%s/ahrefs/monorepo/pull/100/changes#r4166785667" prefix, Some (repo, Pull_request 100);
+    ( sprintf "https://%s/ahrefs/monorepo/pull/100/changes#r4166785667" prefix,
+      Some (repo, Review_comment_on_pull_request (100, 4166785667)) );
     sprintf "https://%s/ahrefs/monorepo/pull/100/commits" prefix, Some (repo, Pull_request 100);
     sprintf "https://%s/ahrefs/monorepo/pull/100/checks" prefix, Some (repo, Pull_request 100);
     sprintf "https://%s/ahrefs/monorepo/pull/abc" prefix, None;
@@ -43,7 +53,8 @@ let issue_cases prefix repo =
     sprintf "https://%s/ahrefs/monorepo/issues/2" prefix, Some (repo, Issue 2);
     sprintf "https://%s/ahrefs/monorepo/issues/100/" prefix, Some (repo, Issue 100);
     sprintf "https://%s/ahrefs/monorepo/issues/100?arg1=123" prefix, Some (repo, Issue 100);
-    sprintf "https://%s/ahrefs/monorepo/issues/100#issuecomment-123" prefix, Some (repo, Issue 100);
+    sprintf "https://%s/ahrefs/monorepo/issues/100#issuecomment-123" prefix, Some (repo, Comment_on_issue (100, 123));
+    sprintf "https://%s/ahrefs/monorepo/issues/100#r123" prefix, Some (repo, Issue 100);
     sprintf "https://%s/ahrefs/monorepo/issues/abc" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/issues/" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/issues" prefix, None;
@@ -139,6 +150,9 @@ let gh_link_output = function
     sprintf "matched: %s \nfor repo:\n %s\n" matched_re
       (repo |> Github_j.string_of_repository |> Yojson.Basic.from_string |> Yojson.Basic.pretty_to_string)
   | Some (_, Compare (base, merge)) -> sprintf "matched: for base %s|for merge %s\n" base merge
+  | Some (_, Comment_on_issue (n, id)) -> sprintf "matched: issue %d comment %d\n" n id
+  | Some (_, Comment_on_pull_request (n, id)) -> sprintf "matched: pr %d comment %d\n" n id
+  | Some (_, Review_comment_on_pull_request (n, id)) -> sprintf "matched: pr %d review comment %d\n" n id
   | None -> "{None}"
 
 let () =

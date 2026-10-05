@@ -519,6 +519,10 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         log#warn "failed to query slack auth.test : %s" msg;
         Lwt.return_none
     in
+    let both_results a b =
+      let%lwt a, b = Lwt.both a b in
+      Lwt.return (Result.bind a (fun a -> Result.map (fun b -> a, b) b))
+    in
     let process link =
       let with_gh_result_populate_slack (type a) ~(api_result : (a, string) Result.t) ~populate ~repo =
         match api_result with
@@ -543,6 +547,23 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       | Compare basehead ->
         let%lwt result = Github_api.get_compare ~ctx ~repo ~basehead in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_compare ~repo
+      | Comment_on_issue (number, id) ->
+        let%lwt result =
+          both_results (Github_api.get_issue ~ctx ~repo ~number) (Github_api.get_issue_comment ~ctx ~repo ~id)
+        in
+        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_issue_comment ~repo
+      | Comment_on_pull_request (number, id) ->
+        let%lwt result =
+          both_results (Github_api.get_pull_request ~ctx ~repo ~number) (Github_api.get_issue_comment ~ctx ~repo ~id)
+        in
+        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_pull_request_comment ~repo
+      | Review_comment_on_pull_request (number, id) ->
+        let%lwt result =
+          both_results
+            (Github_api.get_pull_request ~ctx ~repo ~number)
+            (Github_api.get_pull_request_review_comment ~ctx ~repo ~id)
+        in
+        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_pull_request_comment ~repo
     in
     log#info "slack link shared: channel=%s, user=%s, message_ts=%s, links=[%s]"
       (Slack_channel.Ident.project event.channel)

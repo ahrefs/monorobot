@@ -225,6 +225,13 @@ type comment = {
   ?commit_id: string nullable;
 }
 
+type api_comment = {
+  user: github_user;
+  body: string;
+  html_url: string;
+  ?path: string nullable;
+}
+
 type issue_comment_notification = {
   action: comment_action;
   issue: issue;

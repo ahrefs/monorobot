@@ -179,6 +179,9 @@ type gh_resource =
   | Issue of int
   | Commit of commit_hash
   | Compare of basehead
+  | Comment_on_issue of int * int  (** issue number, comment id *)
+  | Comment_on_pull_request of int * int  (** PR number, conversation comment id *)
+  | Review_comment_on_pull_request of int * int  (** PR number, review comment id *)
 
 type gh_link = repository * gh_resource
 
@@ -187,12 +190,27 @@ let commit_sha_re = Re2.create_exn {|[a-f0-9]{4,40}|}
 let comparer_re = {|([a-zA-Z0-9/:\-_.~\^]+)|}
 let compare_basehead_re = Re2.create_exn (sprintf {|%s([.]{3})%s|} comparer_re comparer_re)
 let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
+let issue_comment_fragment_re = Re2.create_exn {|^issuecomment-(\d+)$|}
+let review_comment_fragment_re = Re2.create_exn {|^(?:discussion_)?r(\d+)$|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported
     GitHub link type, generating repository endpoints if necessary *)
 let gh_link_of_string url_str =
   let url = Uri.of_string url_str in
   let path = Uri.path url in
+  let comment_of_fragment () =
+    let find re =
+      match Uri.fragment url with
+      | None -> None
+      | Some fragment ->
+      try Some (int_of_string (Re2.find_first_exn ~sub:(`Index 1) re fragment))
+      with Re2.Exceptions.Regex_match_failed _ -> None
+    in
+    match find issue_comment_fragment_re, find review_comment_fragment_re with
+    | Some id, _ -> Some (`Issue_comment id)
+    | None, Some id -> Some (`Review_comment id)
+    | None, None -> None
+  in
   let gh_com_html_base owner name = sprintf "https://github.com/%s/%s" owner name in
   let gh_com_api_base owner name = sprintf "https://api.github.com/repos/%s/%s" owner name in
   let custom_html_base ?(scheme = "https") base owner name = sprintf "%s://%s/%s/%s" scheme base owner name in
@@ -229,15 +247,21 @@ let gh_link_of_string url_str =
     let rec extract_link_type ~prefix path =
       try
         match path with
-        | [ owner; name; "pull"; n ] ->
+        | [ owner; name; "pull"; n ] | [ owner; name; "pull"; n; ("files" | "changes" | "commits" | "checks") ] ->
           let repo = make_repo ~prefix ~owner ~name in
-          Some (repo, Pull_request (int_of_string n))
+          let n = int_of_string n in
+          begin match comment_of_fragment () with
+          | Some (`Issue_comment id) -> Some (repo, Comment_on_pull_request (n, id))
+          | Some (`Review_comment id) -> Some (repo, Review_comment_on_pull_request (n, id))
+          | None -> Some (repo, Pull_request n)
+          end
         | [ owner; name; "issues"; n ] ->
           let repo = make_repo ~prefix ~owner ~name in
-          Some (repo, Issue (int_of_string n))
-        | [ owner; name; "pull"; n; ("files" | "changes" | "commits" | "checks") ] ->
-          let repo = make_repo ~prefix ~owner ~name in
-          Some (repo, Pull_request (int_of_string n))
+          let n = int_of_string n in
+          begin match comment_of_fragment () with
+          | Some (`Issue_comment id) -> Some (repo, Comment_on_issue (n, id))
+          | Some (`Review_comment _) | None -> Some (repo, Issue n)
+          end
         | [ owner; name; "commit"; commit_hash ] | [ owner; name; "pull"; _; "commits"; commit_hash ] ->
           let repo = make_repo ~prefix ~owner ~name in
           if Re2.matches commit_sha_re commit_hash then Some (repo, Commit commit_hash) else None

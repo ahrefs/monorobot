@@ -120,6 +120,34 @@ let populate_issue repository (issue : issue) =
     fallback = Some (sprintf "[%s] %s" repository.full_name title);
   }
 
+let populate_comment repository ~number ~title ~color (comment : api_comment) =
+  let fields =
+    match comment.path with
+    | None -> []
+    | Some path -> [ { title = Some "File"; value = path; short = true } ]
+  in
+  {
+    (base_attachment repository) with
+    author_name = Some comment.user.login;
+    author_link = Some comment.user.html_url;
+    author_icon = Some comment.user.avatar_url;
+    color = Some color;
+    fields = Some fields;
+    mrkdwn_in = Some [ "text" ];
+    title = Some (sprintf "Comment on #%d %s" number (Mrkdwn.escape_mrkdwn title));
+    title_link = Some comment.html_url;
+    text = unfurl_text_of_body (Some comment.body);
+    fallback = Some (sprintf "[%s] Comment on #%d %s" repository.full_name number title);
+  }
+
+let populate_pull_request_comment repository ((pull_request : pull_request), comment) =
+  let { number; title; draft; merged; state; _ } = pull_request in
+  populate_comment repository ~number ~title ~color:(color_of_state ~draft ~merged state) comment
+
+let populate_issue_comment repository ((issue : issue), comment) =
+  let { number; title; state; _ } = issue in
+  populate_comment repository ~number ~title ~color:(color_of_state state) comment
+
 (* use some date library :see_no_evil: *)
 let month = function
   | 1 -> "Jan"
