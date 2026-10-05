@@ -527,6 +527,18 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           Lwt.return_none
         | Ok item -> Lwt.return_some @@ (link, populate repo item)
       in
+      (* unfurl the parent (PR, issue, commit) when the comment itself cannot be fetched *)
+      let with_comment_or_parent ~parent ~comment ~populate ~fallback ~repo =
+        let%lwt (parent : (_, string) result), (comment : (_, string) result) = Lwt.both parent comment in
+        match comment with
+        | Error msg ->
+          log#warn "failed to fetch comment from github for %s, unfurling parent instead: %s" link msg;
+          fallback parent
+        | Ok comment ->
+          with_gh_result_populate_slack ~api_result:parent
+            ~populate:(fun repo parent -> populate repo (parent, comment))
+            ~repo
+      in
       match Github.gh_link_of_string link with
       | None -> Lwt.return_none
       | Some (repo, gh_resource) ->
@@ -544,27 +556,25 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         let%lwt result = Github_api.get_compare ~ctx ~repo ~basehead in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_compare ~repo
       | Comment_on_issue (number, id) ->
-        let%lwt result =
-          Lwt_result.both (Github_api.get_issue ~ctx ~repo ~number) (Github_api.get_issue_comment ~ctx ~repo ~id)
-        in
-        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_issue_comment ~repo
+        with_comment_or_parent ~repo ~parent:(Github_api.get_issue ~ctx ~repo ~number)
+          ~comment:(Github_api.get_issue_comment ~ctx ~repo ~id) ~populate:Slack_message.populate_issue_comment
+          ~fallback:(fun api_result ->
+          with_gh_result_populate_slack ~api_result ~populate:Slack_message.populate_issue ~repo)
       | Comment_on_pull_request (number, id) ->
-        let%lwt result =
-          Lwt_result.both (Github_api.get_pull_request ~ctx ~repo ~number) (Github_api.get_issue_comment ~ctx ~repo ~id)
-        in
-        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_pull_request_comment ~repo
+        with_comment_or_parent ~repo ~parent:(Github_api.get_pull_request ~ctx ~repo ~number)
+          ~comment:(Github_api.get_issue_comment ~ctx ~repo ~id) ~populate:Slack_message.populate_pull_request_comment
+          ~fallback:(fun api_result ->
+          with_gh_result_populate_slack ~api_result ~populate:Slack_message.populate_pull_request ~repo)
       | Review_comment_on_pull_request (number, id) ->
-        let%lwt result =
-          Lwt_result.both
-            (Github_api.get_pull_request ~ctx ~repo ~number)
-            (Github_api.get_pull_request_review_comment ~ctx ~repo ~id)
-        in
-        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_pull_request_comment ~repo
+        with_comment_or_parent ~repo ~parent:(Github_api.get_pull_request ~ctx ~repo ~number)
+          ~comment:(Github_api.get_pull_request_review_comment ~ctx ~repo ~id)
+          ~populate:Slack_message.populate_pull_request_comment ~fallback:(fun api_result ->
+          with_gh_result_populate_slack ~api_result ~populate:Slack_message.populate_pull_request ~repo)
       | Comment_on_commit (sha, id) ->
-        let%lwt result =
-          Lwt_result.both (Github_api.get_api_commit ~ctx ~repo ~sha) (Github_api.get_commit_comment ~ctx ~repo ~id)
-        in
-        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_commit_comment ~repo
+        with_comment_or_parent ~repo ~parent:(Github_api.get_api_commit ~ctx ~repo ~sha)
+          ~comment:(Github_api.get_commit_comment ~ctx ~repo ~id) ~populate:Slack_message.populate_commit_comment
+          ~fallback:(fun api_result ->
+          with_gh_result_populate_slack ~api_result ~populate:Slack_message.populate_commit ~repo)
     in
     log#info "slack link shared: channel=%s, user=%s, message_ts=%s, links=[%s]"
       (Slack_channel.Ident.project event.channel)
