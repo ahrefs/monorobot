@@ -72,7 +72,15 @@ let commit_cases prefix repo =
       Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
     ( sprintf "https://%s/ahrefs/monorepo/commit/0d09a6cb71481fe77cad7c7729d400ab40fd292e#diff-abc" prefix,
       Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
+    ( sprintf "https://%s/ahrefs/monorepo/commit/0d09a6cb71481fe77cad7c7729d400ab40fd292e#r123" prefix,
+      Some (repo, Comment_on_commit ("0d09a6cb71481fe77cad7c7729d400ab40fd292e", 123)) );
+    ( sprintf "https://%s/ahrefs/monorepo/commit/0d09a6cb71481fe77cad7c7729d400ab40fd292e#commitcomment-123" prefix,
+      Some (repo, Comment_on_commit ("0d09a6cb71481fe77cad7c7729d400ab40fd292e", 123)) );
+    ( sprintf "https://%s/ahrefs/monorepo/commit/0d09a6cb71481fe77cad7c7729d400ab40fd292e#issuecomment-123" prefix,
+      Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
     ( sprintf "https://%s/ahrefs/monorepo/pull/2938/commits/0d09a6cb71481fe77cad7c7729d400ab40fd292e#r123" prefix,
+      Some (repo, Review_comment_on_pull_request (2938, 123)) );
+    ( sprintf "https://%s/ahrefs/monorepo/pull/2938/commits/0d09a6cb71481fe77cad7c7729d400ab40fd292e#diff-abc" prefix,
       Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
     sprintf "https://%s/ahrefs/monorepo/commit/" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/commit" prefix, None;
@@ -153,6 +161,7 @@ let gh_link_output = function
   | Some (_, Comment_on_issue (n, id)) -> sprintf "matched: issue %d comment %d\n" n id
   | Some (_, Comment_on_pull_request (n, id)) -> sprintf "matched: pr %d comment %d\n" n id
   | Some (_, Review_comment_on_pull_request (n, id)) -> sprintf "matched: pr %d review comment %d\n" n id
+  | Some (_, Comment_on_commit (sha, id)) -> sprintf "matched: commit %s comment %d\n" sha id
   | None -> "{None}"
 
 let () =

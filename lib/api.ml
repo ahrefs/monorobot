@@ -14,6 +14,8 @@ module type Github = sig
   val get_pull_request_review_comment :
     ctx:Context.t -> repo:repository -> id:int -> (api_comment, string) Result.t Lwt.t
 
+  val get_commit_comment : ctx:Context.t -> repo:repository -> id:int -> (api_comment, string) Result.t Lwt.t
+
   val get_compare : ctx:Context.t -> repo:repository -> basehead:Github.basehead -> (compare, string) Result.t Lwt.t
 
   val request_reviewers :

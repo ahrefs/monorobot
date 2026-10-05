@@ -65,6 +65,10 @@ NB: please save the cache file in the same format *)
   let get_pull_request_review_comment ~ctx:_ ~(repo : Github_t.repository) ~id =
     get_repo_member_cache ~repo ~kind:"pull_comment" ~ref_:(Int.to_string id) ~of_string:Github_j.api_comment_of_string
 
+  let get_commit_comment ~ctx:_ ~(repo : Github_t.repository) ~id =
+    get_repo_member_cache ~repo ~kind:"commit_comment" ~ref_:(Int.to_string id)
+      ~of_string:Github_j.api_comment_of_string
+
   let get_compare ~ctx:_ ~(repo : Github_t.repository) ~basehead:(base, merge) =
     get_repo_member_cache ~repo ~kind:"compare" ~ref_:(sprintf "%s...%s" base merge)
       ~of_string:Github_j.compare_of_string

@@ -569,6 +569,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
             (Github_api.get_pull_request_review_comment ~ctx ~repo ~id)
         in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_pull_request_comment ~repo
+      | Comment_on_commit (sha, id) ->
+        let%lwt result =
+          both_results (Github_api.get_api_commit ~ctx ~repo ~sha) (Github_api.get_commit_comment ~ctx ~repo ~id)
+        in
+        with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_commit_comment ~repo
     in
     log#info "slack link shared: channel=%s, user=%s, message_ts=%s, links=[%s]"
       (Slack_channel.Ident.project event.channel)

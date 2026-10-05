@@ -63,6 +63,11 @@ module Github : Api.Github = struct
     let _, url = ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/comments/%d" id) ~str:repo.pulls_url in
     url
 
+  let commit_comment_url ~(repo : Github_t.repository) ~id =
+    (* repository has no comments_url template, derive it from commits_url *)
+    let _, url = ExtLib.String.replace ~sub:"/commits{/sha}" ~by:(sprintf "/comments/%d" id) ~str:repo.commits_url in
+    url
+
   let compare_url ~(repo : Github_t.repository) ~basehead:(base, merge) =
     let _, url = ExtLib.String.replace ~sub:"{/basehead}" ~by:(sprintf "/%s...%s" base merge) ~str:repo.compare_url in
     url
@@ -153,6 +158,12 @@ module Github : Api.Github = struct
     let%lwt res =
       pull_request_review_comment_url ~repo ~id
       |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
+    in
+    Lwt.return @@ Result.map Github_j.api_comment_of_string res
+
+  let get_commit_comment ~(ctx : Context.t) ~(repo : Github_t.repository) ~id =
+    let%lwt res =
+      commit_comment_url ~repo ~id |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
     in
     Lwt.return @@ Result.map Github_j.api_comment_of_string res
 

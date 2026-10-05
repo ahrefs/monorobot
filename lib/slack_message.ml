@@ -120,7 +120,7 @@ let populate_issue repository (issue : issue) =
     fallback = Some (sprintf "[%s] %s" repository.full_name title);
   }
 
-let populate_comment repository ~number ~title ~color (comment : api_comment) =
+let populate_comment repository ~subject ~color (comment : api_comment) =
   let footer =
     match comment.path with
     | None -> simple_footer repository
@@ -134,19 +134,26 @@ let populate_comment repository ~number ~title ~color (comment : api_comment) =
     author_icon = Some comment.user.avatar_url;
     color = Some color;
     mrkdwn_in = Some [ "text" ];
-    title = Some (sprintf "Comment on #%d %s" number (Mrkdwn.escape_mrkdwn title));
+    title = Some (sprintf "Comment on %s" (Mrkdwn.escape_mrkdwn subject));
     title_link = Some comment.html_url;
     text = unfurl_text_of_body (Some comment.body);
-    fallback = Some (sprintf "[%s] Comment on #%d %s" repository.full_name number title);
+    fallback = Some (sprintf "[%s] Comment on %s" repository.full_name subject);
   }
 
 let populate_pull_request_comment repository ((pull_request : pull_request), comment) =
   let { number; title; draft; merged; state; _ } = pull_request in
-  populate_comment repository ~number ~title ~color:(color_of_state ~draft ~merged state) comment
+  populate_comment repository ~subject:(sprintf "#%d %s" number title) ~color:(color_of_state ~draft ~merged state)
+    comment
 
 let populate_issue_comment repository ((issue : issue), comment) =
   let { number; title; state; _ } = issue in
-  populate_comment repository ~number ~title ~color:(color_of_state state) comment
+  populate_comment repository ~subject:(sprintf "#%d %s" number title) ~color:(color_of_state state) comment
+
+let populate_commit_comment repository ((api_commit : api_commit), comment) =
+  let subject =
+    sprintf "commit %s %s" (Slack.git_short_sha_hash api_commit.sha) (Util.first_line api_commit.commit.message)
+  in
+  populate_comment repository ~subject ~color:Colors.gray comment
 
 (* use some date library :see_no_evil: *)
 let month = function
