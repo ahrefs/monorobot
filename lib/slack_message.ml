@@ -120,22 +120,22 @@ let populate_issue repository (issue : issue) =
     fallback = Some (sprintf "[%s] %s" repository.full_name title);
   }
 
-let populate_comment ?(kind = "Comment") repository ~subject ~color (comment : api_comment) =
+let populate_comment ?(verb = "commented on") repository ~subject ~color (comment : api_comment) =
   let footer =
-    let author = Slack.pp_link ~url:comment.user.html_url comment.user.login in
     match comment.path with
-    | None -> sprintf "%s · %s" author (simple_footer repository)
-    | Some path -> sprintf "%s · %s · %s" author (simple_footer repository) (escape_mrkdwn path)
+    | None -> simple_footer repository
+    | Some path -> sprintf "%s · %s" (simple_footer repository) (escape_mrkdwn path)
   in
+  let title = sprintf "%s %s %s" comment.user.login verb subject in
   {
     (base_attachment repository) with
     footer = Some footer;
     color = Some color;
     mrkdwn_in = Some [ "text" ];
-    title = Some (sprintf "%s on %s" kind (Mrkdwn.escape_mrkdwn subject));
+    title = Some (Mrkdwn.escape_mrkdwn title);
     title_link = Some comment.html_url;
     text = unfurl_text_of_body (Some comment.body);
-    fallback = Some (sprintf "[%s] %s on %s" repository.full_name kind subject);
+    fallback = Some (sprintf "[%s] %s" repository.full_name title);
   }
 
 let populate_pull_request_comment repository ((pull_request : pull_request), comment) =
@@ -148,22 +148,16 @@ let populate_issue_comment repository ((issue : issue), comment) =
   populate_comment repository ~subject:(sprintf "#%d %s" number title) ~color:(color_of_state state) comment
 
 let populate_pull_request_review repository ((pull_request : pull_request), (review : api_review)) =
-  let state, color =
+  let verb, color =
     match String.lowercase_ascii review.state with
-    | "approved" -> "Approved", Colors.green
-    | "changes_requested" -> "Changes requested", Colors.red
-    | "dismissed" -> "Dismissed", Colors.gray
-    | _ -> "Commented", Colors.gray
+    | "approved" -> "approved", Colors.green
+    | "changes_requested" -> "requested changes on", Colors.red
+    | _ -> "reviewed", Colors.gray
   in
-  let body =
-    match review.body with
-    | None | Some "" -> sprintf "**%s**" state
-    | Some body -> sprintf "**%s**\n\n%s" state body
-  in
-  populate_comment ~kind:"Review" repository
+  populate_comment ~verb repository
     ~subject:(sprintf "#%d %s" pull_request.number pull_request.title)
     ~color
-    { user = review.user; body; html_url = review.html_url; path = None }
+    { user = review.user; body = Option.default "" review.body; html_url = review.html_url; path = None }
 
 let populate_commit_comment repository ((api_commit : api_commit), comment) =
   let subject =

@@ -870,13 +870,13 @@ will unfurl in #C047QTRD1CH
   "ts": "1666772724.077999",
   "unfurls": {
     "https://github.com/ahrefs/monorobot/commit/5c37c90eb4513e5a349c5c9feeeb683c9eea6c13#r39463337": {
-      "fallback": "[ahrefs/monorobot] Comment on commit 5c37c90e filter list of PR actions that can become a notification",
+      "fallback": "[ahrefs/monorobot] Khady commented on commit 5c37c90e filter list of PR actions that can become a notification",
       "mrkdwn_in": [ "text" ],
       "color": "#f6f8fa",
-      "title": "Comment on commit 5c37c90e filter list of PR actions that can become a notification",
+      "title": "Khady commented on commit 5c37c90e filter list of PR actions that can become a notification",
       "title_link": "https://github.com/ahrefs/monorobot/commit/5c37c90eb4513e5a349c5c9feeeb683c9eea6c13#r39463337",
       "text": "because I am using polymorphic variants here, the compiler is able to see that this function will return only one of ``Opened | `Closed | `Reopened`. Because of this in slack.ml I don't have to match on all the possible actions, I can limit myself to those 3.",
-      "footer": "<https://github.com/Khady|Khady> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot> · src/action.ml"
+      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot> · src/action.ml"
     }
   }
 }
@@ -963,13 +963,13 @@ will unfurl in #C047QTRD1CH
   "ts": "1666772724.077999",
   "unfurls": {
     "https://github.com/ahrefs/monorobot/issues/124#issuecomment-1659423486": {
-      "fallback": "[ahrefs/monorobot] Comment on #124 Update the CI to a recent ocaml",
+      "fallback": "[ahrefs/monorobot] koonwen commented on #124 Update the CI to a recent ocaml",
       "mrkdwn_in": [ "text" ],
       "color": "#28a745",
-      "title": "Comment on #124 Update the CI to a recent ocaml",
+      "title": "koonwen commented on #124 Update the CI to a recent ocaml",
       "title_link": "https://github.com/ahrefs/monorobot/issues/124#issuecomment-1659423486",
       "text": "Done in https://github.com/ahrefs/monorobot/commit/09677833bf2fb72a61d31c39aab512c7d2393e6b",
-      "footer": "<https://github.com/koonwen|koonwen> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
+      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
 }
@@ -1001,13 +1001,13 @@ will unfurl in #C047QTRD1CH
   "ts": "1666772724.077999",
   "unfurls": {
     "https://github.com/ahrefs/monorobot/pull/107#issuecomment-2008604035": {
-      "fallback": "[ahrefs/monorobot] Comment on #107 Track status state per build step instead of per pipeline",
+      "fallback": "[ahrefs/monorobot] Khady commented on #107 Track status state per build step instead of per pipeline",
       "mrkdwn_in": [ "text" ],
       "color": "#28a745",
-      "title": "Comment on #107 Track status state per build step instead of per pipeline",
+      "title": "Khady commented on #107 Track status state per build step instead of per pipeline",
       "title_link": "https://github.com/ahrefs/monorobot/pull/107#issuecomment-2008604035",
       "text": "I wonder what would be the implication of this one now that we have direct messages",
-      "footer": "<https://github.com/Khady|Khady> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
+      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
 }
@@ -1064,13 +1064,13 @@ will unfurl in #C047QTRD1CH
   "ts": "1666772724.077999",
   "unfurls": {
     "https://github.com/ahrefs/monorobot/pull/156#pullrequestreview-2226801090": {
-      "fallback": "[ahrefs/monorobot] Review on #156 handle multi-step states",
+      "fallback": "[ahrefs/monorobot] Khady approved #156 handle multi-step states",
       "mrkdwn_in": [ "text" ],
       "color": "#28a745",
-      "title": "Review on #156 handle multi-step states",
+      "title": "Khady approved #156 handle multi-step states",
       "title_link": "https://github.com/ahrefs/monorobot/pull/156#pullrequestreview-2226801090",
-      "text": "*Approved*\n\nI didn't test but I think that it looks fine. Thanks",
-      "footer": "<https://github.com/Khady|Khady> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
+      "text": "I didn't test but I think that it looks fine. Thanks",
+      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
 }
@@ -1081,13 +1081,13 @@ will unfurl in #C047QTRD1CH
   "ts": "1666772724.077999",
   "unfurls": {
     "https://github.com/ahrefs/monorobot/pull/1/changes#r301894321": {
-      "fallback": "[ahrefs/monorobot] Comment on #1 Feat/add json parsing",
+      "fallback": "[ahrefs/monorobot] Khady commented on #1 Feat/add json parsing",
       "mrkdwn_in": [ "text" ],
       "color": "#d73a49",
-      "title": "Comment on #1 Feat/add json parsing",
+      "title": "Khady commented on #1 Feat/add json parsing",
       "title_link": "https://github.com/ahrefs/monorobot/pull/1#discussion_r301894321",
       "text": "you don't need an else case",
-      "footer": "<https://github.com/Khady|Khady> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot> · Server.ml"
+      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot> · Server.ml"
     }
   }
 }
@@ -1098,13 +1098,12 @@ will unfurl in #C047QTRD1CH
   "ts": "1666772724.077999",
   "unfurls": {
     "https://github.com/ahrefs/monorobot/pull/160#pullrequestreview-2335386629": {
-      "fallback": "[ahrefs/monorobot] Review on #160 DM only when user breaks a step",
+      "fallback": "[ahrefs/monorobot] thatportugueseguy reviewed #160 DM only when user breaks a step",
       "mrkdwn_in": [ "text" ],
       "color": "#f6f8fa",
-      "title": "Review on #160 DM only when user breaks a step",
+      "title": "thatportugueseguy reviewed #160 DM only when user breaks a step",
       "title_link": "https://github.com/ahrefs/monorobot/pull/160#pullrequestreview-2335386629",
-      "text": "*Commented*",
-      "footer": "<https://github.com/thatportugueseguy|thatportugueseguy> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
+      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
 }
