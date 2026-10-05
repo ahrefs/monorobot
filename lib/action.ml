@@ -519,15 +519,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         log#warn "failed to query slack auth.test : %s" msg;
         Lwt.return_none
     in
-    let both_results a b =
-      let%lwt (a : (_, string) result), (b : (_, string) result) = Lwt.both a b in
-      match a with
-      | Error e -> Lwt.return_error e
-      | Ok a ->
-      match b with
-      | Error e -> Lwt.return_error e
-      | Ok b -> Lwt.return_ok (a, b)
-    in
     let process link =
       let with_gh_result_populate_slack (type a) ~(api_result : (a, string) Result.t) ~populate ~repo =
         match api_result with
@@ -554,24 +545,24 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_compare ~repo
       | Comment_on_issue (number, id) ->
         let%lwt result =
-          both_results (Github_api.get_issue ~ctx ~repo ~number) (Github_api.get_issue_comment ~ctx ~repo ~id)
+          Lwt_result.both (Github_api.get_issue ~ctx ~repo ~number) (Github_api.get_issue_comment ~ctx ~repo ~id)
         in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_issue_comment ~repo
       | Comment_on_pull_request (number, id) ->
         let%lwt result =
-          both_results (Github_api.get_pull_request ~ctx ~repo ~number) (Github_api.get_issue_comment ~ctx ~repo ~id)
+          Lwt_result.both (Github_api.get_pull_request ~ctx ~repo ~number) (Github_api.get_issue_comment ~ctx ~repo ~id)
         in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_pull_request_comment ~repo
       | Review_comment_on_pull_request (number, id) ->
         let%lwt result =
-          both_results
+          Lwt_result.both
             (Github_api.get_pull_request ~ctx ~repo ~number)
             (Github_api.get_pull_request_review_comment ~ctx ~repo ~id)
         in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_pull_request_comment ~repo
       | Comment_on_commit (sha, id) ->
         let%lwt result =
-          both_results (Github_api.get_api_commit ~ctx ~repo ~sha) (Github_api.get_commit_comment ~ctx ~repo ~id)
+          Lwt_result.both (Github_api.get_api_commit ~ctx ~repo ~sha) (Github_api.get_commit_comment ~ctx ~repo ~id)
         in
         with_gh_result_populate_slack ~api_result:result ~populate:Slack_message.populate_commit_comment ~repo
     in
