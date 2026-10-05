@@ -191,9 +191,7 @@ let commit_sha_re = Re2.create_exn {|[a-f0-9]{4,40}|}
 let comparer_re = {|([a-zA-Z0-9/:\-_.~\^]+)|}
 let compare_basehead_re = Re2.create_exn (sprintf {|%s([.]{3})%s|} comparer_re comparer_re)
 let gh_org_team_re = Re2.create_exn {|[a-zA-Z0-9\-]+/([a-zA-Z0-9\-]+)|}
-let issue_comment_fragment_re = Re2.create_exn {|^issuecomment-(\d+)$|}
-let review_comment_fragment_re = Re2.create_exn {|^(?:discussion_)?r(\d+)$|}
-let commit_comment_fragment_re = Re2.create_exn {|^commitcomment-(\d+)$|}
+let comment_fragment_re = Re2.create_exn {|^(issuecomment-|discussion_r|r|commitcomment-)(\d+)$|}
 
 (** [gh_link_of_string s] parses a URL string [s] to try to match a supported
     GitHub link type, generating repository endpoints if necessary *)
@@ -201,18 +199,14 @@ let gh_link_of_string url_str =
   let url = Uri.of_string url_str in
   let path = Uri.path url in
   let comment_of_fragment () =
-    let find re =
-      match Uri.fragment url with
-      | None -> None
-      | Some fragment ->
-      try Some (int_of_string (Re2.find_first_exn ~sub:(`Index 1) re fragment))
-      with Re2.Exceptions.Regex_match_failed _ -> None
-    in
-    match find issue_comment_fragment_re, find review_comment_fragment_re, find commit_comment_fragment_re with
-    | Some id, _, _ -> Some (`Issue_comment id)
-    | None, Some id, _ -> Some (`Review_comment id)
-    | None, None, Some id -> Some (`Commit_comment id)
-    | None, None, None -> None
+    match Uri.fragment url with
+    | None -> None
+    | Some fragment ->
+    match Re2.find_submatches_exn comment_fragment_re fragment with
+    | [| _; Some "issuecomment-"; Some id |] -> Some (`Issue_comment (int_of_string id))
+    | [| _; Some ("discussion_r" | "r"); Some id |] -> Some (`Review_comment (int_of_string id))
+    | [| _; Some "commitcomment-"; Some id |] -> Some (`Commit_comment (int_of_string id))
+    | _ | (exception Re2.Exceptions.Regex_match_failed _) -> None
   in
   let gh_com_html_base owner name = sprintf "https://github.com/%s/%s" owner name in
   let gh_com_api_base owner name = sprintf "https://api.github.com/repos/%s/%s" owner name in

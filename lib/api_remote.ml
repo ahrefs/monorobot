@@ -55,17 +55,9 @@ module Github : Api.Github = struct
     let _, url = ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.issues_url in
     url
 
-  let issue_comment_url ~(repo : Github_t.repository) ~id =
-    let _, url = ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/comments/%d" id) ~str:repo.issues_url in
-    url
-
-  let pull_request_review_comment_url ~(repo : Github_t.repository) ~id =
-    let _, url = ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/comments/%d" id) ~str:repo.pulls_url in
-    url
-
-  let commit_comment_url ~(repo : Github_t.repository) ~id =
-    (* repository has no comments_url template, derive it from commits_url *)
-    let _, url = ExtLib.String.replace ~sub:"/commits{/sha}" ~by:(sprintf "/comments/%d" id) ~str:repo.commits_url in
+  (** [comment_url ~sub ~template ~id] replaces [sub] in [template] with [/comments/<id>] *)
+  let comment_url ~sub ~template ~id =
+    let _, url = ExtLib.String.replace ~sub ~by:(sprintf "/comments/%d" id) ~str:template in
     url
 
   let compare_url ~(repo : Github_t.repository) ~basehead:(base, merge) =
@@ -153,24 +145,19 @@ module Github : Api.Github = struct
     let%lwt res = issues_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
     Lwt.return @@ Result.map Github_j.issue_of_string res
 
-  let get_issue_comment ~(ctx : Context.t) ~(repo : Github_t.repository) ~id =
-    let%lwt res =
-      issue_comment_url ~repo ~id |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
-    in
+  let get_comment ~(ctx : Context.t) ~(repo : Github_t.repository) url =
+    let%lwt res = get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url url in
     Lwt.return @@ Result.map Github_j.api_comment_of_string res
 
-  let get_pull_request_review_comment ~(ctx : Context.t) ~(repo : Github_t.repository) ~id =
-    let%lwt res =
-      pull_request_review_comment_url ~repo ~id
-      |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
-    in
-    Lwt.return @@ Result.map Github_j.api_comment_of_string res
+  let get_issue_comment ~ctx ~(repo : Github_t.repository) ~id =
+    get_comment ~ctx ~repo (comment_url ~sub:"{/number}" ~template:repo.issues_url ~id)
 
-  let get_commit_comment ~(ctx : Context.t) ~(repo : Github_t.repository) ~id =
-    let%lwt res =
-      commit_comment_url ~repo ~id |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
-    in
-    Lwt.return @@ Result.map Github_j.api_comment_of_string res
+  let get_pull_request_review_comment ~ctx ~(repo : Github_t.repository) ~id =
+    get_comment ~ctx ~repo (comment_url ~sub:"{/number}" ~template:repo.pulls_url ~id)
+
+  let get_commit_comment ~ctx ~(repo : Github_t.repository) ~id =
+    (* repository has no comments_url template, derive it from commits_url *)
+    get_comment ~ctx ~repo (comment_url ~sub:"/commits{/sha}" ~template:repo.commits_url ~id)
 
   let get_compare ~(ctx : Context.t) ~(repo : Github_t.repository) ~basehead =
     let%lwt res =
