@@ -82,6 +82,8 @@ let commit_cases prefix repo =
       Some (repo, Review_comment_on_pull_request (2938, 123)) );
     ( sprintf "https://%s/ahrefs/monorepo/pull/2938/commits/0d09a6cb71481fe77cad7c7729d400ab40fd292e#diff-abc" prefix,
       Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
+    ( sprintf "https://%s/ahrefs/monorepo/pull/abc/commits/0d09a6cb71481fe77cad7c7729d400ab40fd292e#r123" prefix,
+      Some (repo, Commit "0d09a6cb71481fe77cad7c7729d400ab40fd292e") );
     sprintf "https://%s/ahrefs/monorepo/commit/" prefix, None;
     sprintf "https://%s/ahrefs/monorepo/commit" prefix, None;
   ]

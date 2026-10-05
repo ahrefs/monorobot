@@ -283,9 +283,9 @@ let gh_link_of_string url_str =
           let repo = make_repo ~prefix ~owner ~name in
           if not (Re2.matches commit_sha_re commit_hash) then None
           else
-            begin match comment_of_fragment () with
-            | Some (`Review_comment id) -> Some (repo, Review_comment_on_pull_request (int_of_string n, id))
-            | Some (`Issue_comment _ | `Commit_comment _) | None -> Some (repo, Commit commit_hash)
+            begin match int_of_string_opt n, comment_of_fragment () with
+            | Some n, Some (`Review_comment id) -> Some (repo, Review_comment_on_pull_request (n, id))
+            | _ -> Some (repo, Commit commit_hash)
             end
         | owner :: name :: "compare" :: base_head -> compare_link ~repo:(make_repo ~prefix ~owner ~name) base_head
         | owner :: name :: "pull" :: n :: ("files" | "changes") :: base_head ->
