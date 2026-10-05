@@ -873,13 +873,10 @@ will unfurl in #C047QTRD1CH
       "fallback": "[ahrefs/monorobot] Comment on commit 5c37c90e filter list of PR actions that can become a notification",
       "mrkdwn_in": [ "text" ],
       "color": "#f6f8fa",
-      "author_name": "Khady",
-      "author_link": "https://github.com/Khady",
-      "author_icon": "https://avatars.githubusercontent.com/u/974142?v=4",
       "title": "Comment on commit 5c37c90e filter list of PR actions that can become a notification",
       "title_link": "https://github.com/ahrefs/monorobot/commit/5c37c90eb4513e5a349c5c9feeeb683c9eea6c13#r39463337",
       "text": "because I am using polymorphic variants here, the compiler is able to see that this function will return only one of ``Opened | `Closed | `Reopened`. Because of this in slack.ml I don't have to match on all the possible actions, I can limit myself to those 3.",
-      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot> · src/action.ml"
+      "footer": "<https://github.com/Khady|Khady> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot> · src/action.ml"
     }
   }
 }
@@ -969,13 +966,10 @@ will unfurl in #C047QTRD1CH
       "fallback": "[ahrefs/monorobot] Comment on #124 Update the CI to a recent ocaml",
       "mrkdwn_in": [ "text" ],
       "color": "#28a745",
-      "author_name": "koonwen",
-      "author_link": "https://github.com/koonwen",
-      "author_icon": "https://avatars.githubusercontent.com/u/70124708?u=287384a7133b39da0f38ec20cf119e5042aeffa0&v=4",
       "title": "Comment on #124 Update the CI to a recent ocaml",
       "title_link": "https://github.com/ahrefs/monorobot/issues/124#issuecomment-1659423486",
       "text": "Done in https://github.com/ahrefs/monorobot/commit/09677833bf2fb72a61d31c39aab512c7d2393e6b",
-      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
+      "footer": "<https://github.com/koonwen|koonwen> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
 }
@@ -1010,13 +1004,10 @@ will unfurl in #C047QTRD1CH
       "fallback": "[ahrefs/monorobot] Comment on #107 Track status state per build step instead of per pipeline",
       "mrkdwn_in": [ "text" ],
       "color": "#28a745",
-      "author_name": "Khady",
-      "author_link": "https://github.com/Khady",
-      "author_icon": "https://avatars.githubusercontent.com/u/974142?u=31d3c83ba9256690c328595bb410ce5ae0d1ea44&v=4",
       "title": "Comment on #107 Track status state per build step instead of per pipeline",
       "title_link": "https://github.com/ahrefs/monorobot/pull/107#issuecomment-2008604035",
       "text": "I wonder what would be the implication of this one now that we have direct messages",
-      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
+      "footer": "<https://github.com/Khady|Khady> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
 }
@@ -1053,13 +1044,10 @@ will unfurl in #C047QTRD1CH
       "fallback": "[ahrefs/monorobot] Comment on #1 Feat/add json parsing",
       "mrkdwn_in": [ "text" ],
       "color": "#d73a49",
-      "author_name": "Khady",
-      "author_link": "https://github.com/Khady",
-      "author_icon": "https://avatars.githubusercontent.com/u/974142?v=4",
       "title": "Comment on #1 Feat/add json parsing",
       "title_link": "https://github.com/ahrefs/monorobot/pull/1#discussion_r301894321",
       "text": "you don't need an else case",
-      "footer": "<https://github.com/ahrefs/monorobot|ahrefs/monorobot> · Server.ml"
+      "footer": "<https://github.com/Khady|Khady> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot> · Server.ml"
     }
   }
 }

@@ -122,16 +122,14 @@ let populate_issue repository (issue : issue) =
 
 let populate_comment repository ~subject ~color (comment : api_comment) =
   let footer =
+    let author = sprintf "<%s|%s>" comment.user.html_url (escape_mrkdwn comment.user.login) in
     match comment.path with
-    | None -> simple_footer repository
-    | Some path -> sprintf "%s · %s" (simple_footer repository) (escape_mrkdwn path)
+    | None -> sprintf "%s · %s" author (simple_footer repository)
+    | Some path -> sprintf "%s · %s · %s" author (simple_footer repository) (escape_mrkdwn path)
   in
   {
     (base_attachment repository) with
     footer = Some footer;
-    author_name = Some comment.user.login;
-    author_link = Some comment.user.html_url;
-    author_icon = Some comment.user.avatar_url;
     color = Some color;
     mrkdwn_in = Some [ "text" ];
     title = Some (sprintf "Comment on %s" (Mrkdwn.escape_mrkdwn subject));
