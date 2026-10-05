@@ -570,6 +570,11 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
           ~comment:(Github_api.get_pull_request_review_comment ~ctx ~repo ~id)
           ~populate:Slack_message.populate_pull_request_comment ~fallback:(fun api_result ->
           with_gh_result_populate_slack ~api_result ~populate:Slack_message.populate_pull_request ~repo)
+      | Review_on_pull_request (number, id) ->
+        with_comment_or_parent ~repo ~parent:(Github_api.get_pull_request ~ctx ~repo ~number)
+          ~comment:(Github_api.get_pull_request_review ~ctx ~repo ~number ~id)
+          ~populate:Slack_message.populate_pull_request_review ~fallback:(fun api_result ->
+          with_gh_result_populate_slack ~api_result ~populate:Slack_message.populate_pull_request ~repo)
       | Comment_on_commit (sha, id) ->
         (* the comment card only needs the commit message, don't download the full list of changed files *)
         with_comment_or_parent ~repo ~parent:(Github_api.get_api_commit_summary ~ctx ~repo ~sha)

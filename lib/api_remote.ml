@@ -159,6 +159,13 @@ module Github : Api.Github = struct
   let get_pull_request_review_comment ~ctx ~repo ~id = get_comment ~ctx ~repo (sprintf "/pulls/comments/%d" id)
   let get_commit_comment ~ctx ~repo ~id = get_comment ~ctx ~repo (sprintf "/comments/%d" id)
 
+  let get_pull_request_review ~(ctx : Context.t) ~(repo : Github_t.repository) ~number ~id =
+    let%lwt res =
+      sprintf "%s/reviews/%d" (pulls_url ~repo ~number) id
+      |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
+    in
+    Lwt.return @@ Result.map Github_j.api_review_of_string res
+
   let get_compare ~(ctx : Context.t) ~(repo : Github_t.repository) ~basehead =
     let%lwt res =
       compare_url ~repo ~basehead |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url

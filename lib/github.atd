@@ -232,6 +232,13 @@ type api_comment = {
   ?path: string nullable;
 }
 
+type api_review = {
+  user: github_user;
+  ?body: string nullable;
+  html_url: string;
+  state: string;
+}
+
 type issue_comment_notification = {
   action: comment_action;
   issue: issue;

@@ -1057,6 +1057,23 @@ will unfurl in #C047QTRD1CH
     }
   }
 }
+===== file ../mock_slack_events/pr.review.json =====
+will unfurl in #C047QTRD1CH
+{
+  "channel": "C047QTRD1CH",
+  "ts": "1666772724.077999",
+  "unfurls": {
+    "https://github.com/ahrefs/monorobot/pull/156#pullrequestreview-2226801090": {
+      "fallback": "[ahrefs/monorobot] Review on #156 handle multi-step states",
+      "mrkdwn_in": [ "text" ],
+      "color": "#28a745",
+      "title": "Review on #156 handle multi-step states",
+      "title_link": "https://github.com/ahrefs/monorobot/pull/156#pullrequestreview-2226801090",
+      "text": "*Approved*\n\nI didn't test but I think that it looks fine. Thanks",
+      "footer": "<https://github.com/Khady|Khady> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
+    }
+  }
+}
 ===== file ../mock_slack_events/pr.review_comment.json =====
 will unfurl in #C047QTRD1CH
 {
@@ -1071,6 +1088,23 @@ will unfurl in #C047QTRD1CH
       "title_link": "https://github.com/ahrefs/monorobot/pull/1#discussion_r301894321",
       "text": "you don't need an else case",
       "footer": "<https://github.com/Khady|Khady> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot> · Server.ml"
+    }
+  }
+}
+===== file ../mock_slack_events/pr.review_empty_body.json =====
+will unfurl in #C047QTRD1CH
+{
+  "channel": "C047QTRD1CH",
+  "ts": "1666772724.077999",
+  "unfurls": {
+    "https://github.com/ahrefs/monorobot/pull/160#pullrequestreview-2335386629": {
+      "fallback": "[ahrefs/monorobot] Review on #160 DM only when user breaks a step",
+      "mrkdwn_in": [ "text" ],
+      "color": "#f6f8fa",
+      "title": "Review on #160 DM only when user breaks a step",
+      "title_link": "https://github.com/ahrefs/monorobot/pull/160#pullrequestreview-2335386629",
+      "text": "*Commented*",
+      "footer": "<https://github.com/thatportugueseguy|thatportugueseguy> · <https://github.com/ahrefs/monorobot|ahrefs/monorobot>"
     }
   }
 }
