@@ -45,6 +45,8 @@ module Conn = struct
 
   let execute db sql (set_params : statement -> result IO.future) = Lwt.wrap3 execute db sql (unsafe_wrap set_params)
 
+  let execute_unprepared db sql = Lwt.wrap2 execute_unprepared db sql
+
   module Pool : sig
     type connection = Sqlite3.db
 
