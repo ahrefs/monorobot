@@ -43,6 +43,46 @@ module Branch_filters_adapter = List_or_default_field.Make (struct
   let default_value = `List []
 end)
 
+(* Prefix and label rules route notifications with a [channel] and/or a [dm] field.
+   Each takes a single string or a list of strings, so that existing configs with
+   a single channel keep working unchanged. A rule must have at least one of them. *)
+module Destinations_adapter : Atdgen_runtime.Json_adapter.S = struct
+  let keys = [ "channel"; "dm" ]
+
+  let normalize (x : Yojson.Safe.t) =
+    match x with
+    | `Assoc fields ->
+      let is_destination = function
+        | k, (`String _ | `List (_ :: _)) -> List.mem k keys
+        | _ -> false
+      in
+      if not (List.exists is_destination fields) then
+        failwith "a rule must have a non-empty \"channel\" or \"dm\" field";
+      `Assoc
+        (List.map
+           (function
+             | k, (`String _ as v) when List.mem k keys -> k, `List [ v ]
+             | field -> field)
+           fields)
+    | _ -> x
+
+  let restore (x : Yojson.Safe.t) =
+    match x with
+    | `Assoc fields ->
+      `Assoc
+        (List.map
+           (function
+             | k, `List [ v ] when List.mem k keys -> k, v
+             | field -> field)
+           fields)
+    | _ -> x
+end
+
+module Prefix_rule_adapter : Atdgen_runtime.Json_adapter.S = struct
+  let normalize x = Destinations_adapter.normalize (Branch_filters_adapter.normalize x)
+  let restore x = Branch_filters_adapter.restore (Destinations_adapter.restore x)
+end
+
 (** Error detection in Slack API response. The web API communicates errors using
     an [error] field rather than status codes. Note, on the other hand, that
     webhooks do use status codes to communicate errors. *)

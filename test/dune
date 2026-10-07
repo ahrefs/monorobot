@@ -1,5 +1,5 @@
 (executables
- (names test github_link_test longest_prefix_test pipeline_owners_test)
+ (names test github_link_test longest_prefix_test pipeline_owners_test rule_destinations_test)
  (libraries monorobotlib devkit devkit.core extlib lwt.unix yojson)
  (preprocess
   (pps lwt_ppx)))
@@ -39,3 +39,8 @@
  (alias runtest)
  (action
   (run ./pipeline_owners_test.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./rule_destinations_test.exe)))

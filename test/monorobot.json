@@ -67,6 +67,11 @@
         "branch_filters": ["master"]
       },
       {
+        "match": ["TESTING.md"],
+        "channel": ["testing", "docs"],
+        "dm": ["mail@example.org", "slack_mail@example.com"]
+      },
+      {
         "channel": "all-push-events"
       }
     ]
@@ -85,6 +90,10 @@
       {
         "match": ["a3"],
         "channel": "a3"
+      },
+      {
+        "match": ["a1"],
+        "dm": ["a1-owner@example.com", "mail@example.org", "slack_mail@example.com"]
       },
       {
         "ignore": ["backend", "a1", "a3"],

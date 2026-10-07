@@ -66,38 +66,92 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     let login = List.assoc_opt login cfg.user_mappings |> Option.default login in
     login |> canonicalize_email_username |> Stringtbl.find_opt username_to_slack_id_tbl
 
-  let partition_push (cfg : Config_t.config) n =
-    let default = Stdlib.Option.to_list cfg.prefix_rules.default_channel in
+  let lookup_slack_id ~ctx ~cfg email =
+    match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
+    | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
+    | Error e ->
+      log#warn "couldn't match email %s to slack profile: %s" email e;
+      Lwt.return_none
+
+  (** [resolve_target ctx cfg target] turns a rule target into a Slack destination. Users are
+      looked up by email, so that they can be direct messaged; unknown users are dropped. *)
+  let resolve_target ~ctx ~cfg (target : Rule.Target.t) =
+    match target with
+    | Channel c -> Lwt.return_some (Status_notification.inject_channel c)
+    | User email ->
+    match%lwt lookup_slack_id ~ctx ~cfg email with
+    | None -> Lwt.return_none
+    | Some id -> Lwt.return_some (Status_notification.User id)
+
+  (** [resolve ctx cfg targets] resolves [targets] to Slack destinations. Different targets can resolve to
+      the same destination, e.g. two emails of one Slack user, so the result is deduplicated. *)
+  let resolve ~ctx ~cfg targets =
+    let%lwt notifications = Lwt_list.filter_map_s (resolve_target ~ctx ~cfg) targets in
+    Lwt.return (Status_notification.dedup notifications)
+
+  let resolve_targets ~ctx ~cfg targets =
+    let%lwt notifications = resolve ~ctx ~cfg targets in
+    Lwt.return (List.map Status_notification.to_slack_channel notifications)
+
+  let default_channel_target default_channel =
+    Option.map_default (fun c -> [ Rule.Target.Channel c ]) [] default_channel
+
+  let matched_prefix_targets ~rules filenames =
+    filenames |> List.concat_map (Rule.Prefix.match_rules ~rules) |> List.sort_uniq Rule.Target.compare
+
+  (** [prefix_targets cfg filenames] returns the targets of the prefix rules matched by [filenames],
+      falling back to the default channel when none match. *)
+  let prefix_targets (cfg : Config_t.config) filenames =
+    match matched_prefix_targets ~rules:cfg.prefix_rules.rules filenames with
+    | [] -> default_channel_target cfg.prefix_rules.default_channel
+    | targets -> targets
+
+  let partition_push ~ctx (cfg : Config_t.config) n =
+    let default = default_channel_target cfg.prefix_rules.default_channel in
     let rules = cfg.prefix_rules.rules in
     let branch = Github.commits_branch_of_ref n.ref in
     let main_branch = if cfg.prefix_rules.filter_main_branch then cfg.main_branch_name else None in
     let filter_by_branch = Rule.Prefix.filter_by_branch ~branch ~main_branch in
-    n.commits
-    |> List.filter (fun c ->
-      let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
-      if skip then log#info "main branch merge, ignoring %s: %s" c.id (Util.first_line c.message);
-      not skip)
-    |> List.concat_map (fun commit ->
-      let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
-      let matched_channel_names =
-        Github.modified_files_of_commit commit
-        |> List.filter_map (Rule.Prefix.match_rules ~rules)
-        |> List.sort_uniq Slack_channel.compare
-      in
-      let channel_names = if matched_channel_names = [] && commit.distinct then default else matched_channel_names in
-      List.map (fun n -> Slack_channel.to_any n, commit) channel_names)
+    let commit_targets =
+      n.commits
+      |> List.filter (fun c ->
+        let skip = Github.is_merge_commit_to_ignore ~cfg ~branch c in
+        if skip then log#info "main branch merge, ignoring %s: %s" c.id (Util.first_line c.message);
+        not skip)
+      |> List.concat_map (fun commit ->
+        let rules = List.filter (filter_by_branch ~distinct:commit.distinct) rules in
+        let matched_targets = matched_prefix_targets ~rules (Github.modified_files_of_commit commit) in
+        let targets = if matched_targets = [] && commit.distinct then default else matched_targets in
+        List.map (fun t -> t, commit) targets)
+    in
+    (* resolve each distinct target once, then group commits by resolved destination, since different
+       targets can resolve to the same one *)
+    let%lwt resolved =
+      commit_targets
+      |> List.map fst
+      |> List.sort_uniq Rule.Target.compare
+      |> Lwt_list.filter_map_s (fun target ->
+        resolve_target ~ctx ~cfg target |> Lwt.map (Option.map (fun destination -> target, destination)))
+    in
+    let destination_of target =
+      List.find_map
+        (fun (t, destination) -> if Rule.Target.compare t target = 0 then Some destination else None)
+        resolved
+    in
+    commit_targets
+    |> List.filter_map (fun (target, commit) ->
+      destination_of target |> Option.map (fun d -> Status_notification.to_slack_channel d, commit))
     |> ChannelMap.of_list_multi
-    |> ChannelMap.map (fun commits -> { n with commits })
+    |> ChannelMap.map (fun commits ->
+      { n with commits = dedup_by (fun (a : commit) b -> String.equal a.id b.id) commits })
     |> ChannelMap.to_list
+    |> Lwt.return
 
   let partition_label (cfg : Config_t.config) (labels : label list) =
     let rules = cfg.label_rules.rules in
-    let channel_names =
-      labels |> List.concat_map (Rule.Label.match_rules ~rules) |> List.sort_uniq Slack_channel.compare
-    in
-    match channel_names with
-    | [] -> Option.map_default (fun c -> [ Slack_channel.to_any c ]) [] cfg.label_rules.default_channel
-    | channel_names -> List.map Slack_channel.to_any channel_names
+    match labels |> List.concat_map (Rule.Label.match_rules ~rules) |> List.sort_uniq Rule.Target.compare with
+    | [] -> default_channel_target cfg.label_rules.default_channel
+    | targets -> targets
 
   let partition_pr cfg (ctx : Context.t) (n : pr_notification) =
     match n.action with
@@ -151,17 +205,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | Submitted, _, _ -> partition_label cfg n.pull_request.labels
     | _ -> []
 
-  let partition_commit (cfg : Config_t.config) files =
-    let rules = cfg.prefix_rules.rules in
-    let matched_channel_names =
-      List.map (fun f -> f.filename) files
-      |> List.filter_map (Rule.Prefix.match_rules ~rules)
-      |> List.sort_uniq Slack_channel.compare
-    in
-    match matched_channel_names with
-    | [] -> Option.map_default (fun c -> [ Slack_channel.to_any c ]) [] cfg.prefix_rules.default_channel
-    | matched_channel_names -> List.map Slack_channel.to_any matched_channel_names
-
   let partition_status (ctx : Context.t) (n : status_notification) =
     let open Util.Build in
     let repo = n.repository in
@@ -173,8 +216,9 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       match notify_dm, dm_users_on_failures cfg n with
       | false, _ | _, false -> Lwt.return []
       | _ ->
-      match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
-      | Ok ({ user = { id; _ } } : Slack_t.lookup_user_res) ->
+      match%lwt lookup_slack_id ~ctx ~cfg email with
+      | None -> Lwt.return []
+      | Some id ->
         (* Check if config holds Github to Slack email mapping for the commit author. The user id we get from slack
              is not an email, so we need to see if we can map the commit author email to a slack user's email. *)
         let author = List.assoc_opt email cfg.user_mappings |> Option.default email in
@@ -200,9 +244,6 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
             State.set_repo_pipeline_commit ctx.state n;
           Lwt.return [ Status_notification.User id ]
         | false -> Lwt.return [])
-      | Error e ->
-        log#warn "couldn't match commit email %s to slack profile: %s" n.commit.commit.author.email e;
-        Lwt.return []
     in
     let get_channel_ids ~notify_channels ~branches =
       match notify_channels, branches with
@@ -210,20 +251,17 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       | _ ->
       (* non-main branch build notifications go to default channel to reduce spam in topic channels *)
       match is_main_branch with
-      | false ->
-        Lwt.return
-          (Option.map_default (fun c -> [ Status_notification.inject_channel c ]) [] cfg.prefix_rules.default_channel)
+      | false -> resolve ~ctx ~cfg (default_channel_target cfg.prefix_rules.default_channel)
       | true ->
       match%lwt Github_api.get_api_commit ~ctx ~repo ~sha:n.commit.sha with
       | Error e -> action_error e
-      | Ok commit ->
-        let chans = partition_commit cfg commit.files in
-        Lwt.return (List.map Status_notification.inject_channel chans)
+      | Ok commit -> resolve ~ctx ~cfg (prefix_targets cfg (List.map (fun f -> f.filename) commit.files))
     in
     let action_on_match (branches : branch list) ~notify_channels ~notify_dm =
       let%lwt direct_message = get_dm_id ~notify_dm in
       let%lwt chans = get_channel_ids ~notify_channels ~branches in
-      Lwt.return (chans @ direct_message)
+      (* a prefix rule may target the commit author, who may also be DMed for the failing build *)
+      Lwt.return (Status_notification.dedup (chans @ direct_message))
     in
     let rules = cfg.status_rules.rules in
     match Context.is_pipeline_allowed ctx n with
@@ -262,15 +300,12 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     match%lwt Github_api.get_api_commit ~ctx ~repo:n.repository ~sha with
     | Error e -> action_error e
     | Ok commit ->
-      let rules = cfg.prefix_rules.rules in
-      (match n.comment.path with
-      | None -> Lwt.return (partition_commit cfg commit.files, commit)
-      | Some filename ->
-      match Rule.Prefix.match_rules filename ~rules with
-      | None ->
-        let default = Option.map_default (fun c -> [ Slack_channel.to_any c ]) [] cfg.prefix_rules.default_channel in
-        Lwt.return (default, commit)
-      | Some chan -> Lwt.return ([ Slack_channel.to_any chan ], commit))
+      let filenames =
+        match n.comment.path with
+        | None -> List.map (fun f -> f.filename) commit.files
+        | Some filename -> [ filename ]
+      in
+      Lwt.return (prefix_targets cfg filenames, commit)
 
   let ignore_notifications_from_user cfg req =
     let sender_login =
@@ -323,31 +358,30 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     let repo = Github.repo_of_notification req in
     let cfg = Context.find_repo_config_exn ctx repo.url in
     let slack_match_func = match_github_login_to_slack_id cfg in
+    let notify targets generate =
+      let%lwt channels = resolve_targets ~ctx ~cfg targets in
+      Lwt.return (List.map generate channels)
+    in
     match ignore_notifications_from_user cfg req with
     | true -> Lwt.return []
     | false ->
     match req with
     | Github.Push n ->
-      partition_push cfg n
-      |> List.map (fun (channel, n) -> generate_push_notification ~known_bot_pushers:cfg.known_bot_pushers n channel)
-      |> Lwt.return
-    | Pull_request n ->
-      partition_pr cfg ctx n |> List.map (generate_pull_request_notification ~ctx ~slack_match_func n) |> Lwt.return
-    | PR_review n ->
-      partition_pr_review cfg n |> List.map (generate_pr_review_notification ~ctx ~slack_match_func n) |> Lwt.return
+      let%lwt partitions = partition_push ~ctx cfg n in
+      Lwt.return
+        (List.map
+           (fun (channel, n) -> generate_push_notification ~known_bot_pushers:cfg.known_bot_pushers n channel)
+           partitions)
+    | Pull_request n -> notify (partition_pr cfg ctx n) (generate_pull_request_notification ~ctx ~slack_match_func n)
+    | PR_review n -> notify (partition_pr_review cfg n) (generate_pr_review_notification ~ctx ~slack_match_func n)
     | PR_review_comment n ->
-      partition_pr_review_comment cfg n
-      |> List.map (generate_pr_review_comment_notification ~ctx ~slack_match_func n)
-      |> Lwt.return
-    | Issue n -> partition_issue cfg n |> List.map (generate_issue_notification ~ctx ~slack_match_func n) |> Lwt.return
+      notify (partition_pr_review_comment cfg n) (generate_pr_review_comment_notification ~ctx ~slack_match_func n)
+    | Issue n -> notify (partition_issue cfg n) (generate_issue_notification ~ctx ~slack_match_func n)
     | Issue_comment n ->
-      partition_issue_comment cfg n
-      |> List.map (generate_issue_comment_notification ~ctx ~slack_match_func n)
-      |> Lwt.return
+      notify (partition_issue_comment cfg n) (generate_issue_comment_notification ~ctx ~slack_match_func n)
     | Commit_comment n ->
-      let%lwt channels, api_commit = partition_commit_comment ctx n in
-      let notifs = List.map (generate_commit_comment_notification ~slack_match_func api_commit n) channels in
-      Lwt.return notifs
+      let%lwt targets, api_commit = partition_commit_comment ctx n in
+      notify targets (generate_commit_comment_notification ~slack_match_func api_commit n)
     | Status n ->
     try%lwt
       let%lwt channels = partition_status ctx n in
@@ -400,7 +434,14 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
       | Ok None -> Lwt.return_unit
       | Error e -> action_error e
     in
-    Lwt_list.iter_s notify notifications
+    (* one destination failing, e.g. a user who can't be messaged, must not prevent notifying the others *)
+    Lwt_list.iter_s
+      (fun (((msg : Slack_t.post_message_req), _) as notification) ->
+        try%lwt notify notification
+        with Action_error e | Success_handler_error e ->
+          log#error "failed to notify %s: %s" (Slack_channel.Any.project msg.channel) e;
+          Lwt.return_unit)
+      notifications
 
   let fetch_config ~ctx ~repo =
     match%lwt Github_api.get_config ~ctx ~repo with
@@ -720,13 +761,7 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
                match FailedStepSet.is_empty failed_steps with
                | true -> Lwt.return []
                | false ->
-                 let to_slack_id email =
-                   match%lwt Slack_api.lookup_user ~ctx ~cfg ~email () with
-                   | Ok (res : Slack_t.lookup_user_res) -> Lwt.return_some res.user.id
-                   | Error e ->
-                     log#warn "couldn't match commit email %s to slack profile: %s" email e;
-                     Lwt.return_none
-                 in
+                 let to_slack_id = lookup_slack_id ~ctx ~cfg in
                  let%lwt user_slack_ids =
                    match mention_user_on_failed_builds cfg n with
                    | false -> Lwt.return []

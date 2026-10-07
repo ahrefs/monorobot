@@ -73,8 +73,10 @@ type prefix_rule = {
   ?allow <json name="match"> : string list nullable;
   ?ignore : string list nullable;
   ?branch_filters : string list nullable;
-  channel_name <json name="channel"> : channel_name;
-} <json adapter.ocaml="Atd_adapters.Branch_filters_adapter">
+  (* channels to notify, and Slack emails of users to direct message; at least one is required *)
+  ~channels <json name="channel"> : channel_name list;
+  ~dms <json name="dm"> : string list;
+} <json adapter.ocaml="Atd_adapters.Prefix_rule_adapter">
 
 (* A payload matches a label rule with a channel name if absent from the ignore list
    and present in the allow list. Both [allow] and [ignore] are optional. If [allow]
@@ -82,8 +84,10 @@ type prefix_rule = {
 type label_rule = {
   ?allow <json name="match"> : string list nullable;
   ?ignore : string list nullable;
-  channel_name <json name="channel"> : channel_name;
-}
+  (* channels to notify, and Slack emails of users to direct message; at least one is required *)
+  ~channels <json name="channel"> : channel_name list;
+  ~dms <json name="dm"> : string list;
+} <json adapter.ocaml="Atd_adapters.Destinations_adapter">
 
 (* Requests reviews from [owners] if a PR is labeled with [label]. Owner format:
    - users: "username"

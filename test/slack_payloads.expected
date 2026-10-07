@@ -184,6 +184,36 @@ will notify #backend
   "unfurl_links": false,
   "reply_broadcast": true
 }
+will notify #id[a1-owner@example.com]
+{
+  "channel": "id[a1-owner@example.com]",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "comment example"
+    }
+  ],
+  "unfurl_links": false,
+  "reply_broadcast": true
+}
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* <https://github.com/xinyuluo/monorepo/pull/4#issuecomment-633344303|commented> on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "comment example"
+    }
+  ],
+  "unfurl_links": false,
+  "reply_broadcast": true
+}
 ===== file ../mock_payloads/issue_comment.created_with_mention.json =====
 will notify #default
 {
@@ -286,6 +316,20 @@ will notify #a1-bot
   "unfurl_links": false,
   "reply_broadcast": true
 }
+will notify #id[a1-owner@example.com]
+{
+  "channel": "id[a1-owner@example.com]",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by *xinyuluo*",
+  "unfurl_links": false,
+  "reply_broadcast": true
+}
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #8 <https://github.com/xinyuluo/monorepo/pull/8|Update README.md> closed by *xinyuluo*",
+  "unfurl_links": false,
+  "reply_broadcast": true
+}
 ===== file ../mock_payloads/pull_request.closed_no_labels.json =====
 will notify #default
 {
@@ -315,6 +359,34 @@ will notify #backend
 {
   "channel": "backend",
   "thread_ts": "1728399554.444444",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "*Labels*: _a1_, _backend_"
+    }
+  ],
+  "unfurl_links": false
+}
+will notify #id[a1-owner@example.com]
+{
+  "channel": "id[a1-owner@example.com]",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "*Labels*: _a1_, _backend_"
+    }
+  ],
+  "unfurl_links": false
+}
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
   "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> Pull request #4 <https://github.com/xinyuluo/monorepo/pull/4|README update> labeled by *xinyuluo*",
   "attachments": [
     {
@@ -462,6 +534,36 @@ will notify #backend
   ],
   "unfurl_links": false
 }
+will notify #id[a1-owner@example.com]
+{
+  "channel": "id[a1-owner@example.com]",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "PR review comment example",
+      "footer": "Commented in file <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
+    }
+  ],
+  "unfurl_links": false
+}
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
+  "text": "<https://github.com/xinyuluo/monorepo|[xinyuluo/monorepo]> *xinyuluo* commented on #4 <https://github.com/xinyuluo/monorepo/pull/4|README update>",
+  "attachments": [
+    {
+      "fallback": null,
+      "mrkdwn_in": [ "text" ],
+      "color": "#ccc",
+      "text": "PR review comment example",
+      "footer": "Commented in file <https://github.com/xinyuluo/monorepo/pull/4#discussion_r0|README.md>"
+    }
+  ],
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/pull_request_review_comment.deleted.json =====
 ===== file ../mock_payloads/pull_request_review_comment.edited.json =====
 ===== file ../mock_payloads/push.branch_filter_default.json =====
@@ -507,7 +609,28 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "username": "monorepo:develop",
-  "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|12 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme (<https://github.com/thatportugueseguy/monorepo/pull/230|#230>) - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/75170cc6e1b1aa0c603a13b9480ee1e7d1c9b0d7|75170cc6>` Update readme 2 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/82e3497b0fb250ef1a19daa0996ae0ad51641bea|82e3497b>` Update readme 3 - jose nogueira\n+5 more...\n\n`<https://github.com/thatportugueseguy/monorepo/commit/d6a17bfc44f7e752e02176ba87ec5a97f5b3316b|d6a17bfc>` Update readme 9 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/003927e6c73068f440c28da69386798ece9cb6dc|003927e6>` Update readme 10 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/5de643873ff93dc9163c4c63d3fb7c2ee1bb33b4|5de64387>` Update readme 11 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "text": "<https://github.com/thatportugueseguy/monorepo/compare/fb245e2a6d52...e2173f38ae43|11 commits> pushed by thatportugueseguy\n`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme (<https://github.com/thatportugueseguy/monorepo/pull/230|#230>) - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/75170cc6e1b1aa0c603a13b9480ee1e7d1c9b0d7|75170cc6>` Update readme 2 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/82e3497b0fb250ef1a19daa0996ae0ad51641bea|82e3497b>` Update readme 3 - jose nogueira\n+4 more...\n\n`<https://github.com/thatportugueseguy/monorepo/commit/bba51d381d0bfd56f795cf4f76c2eb66d15744ed|bba51d38>` Update readme 8 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/d6a17bfc44f7e752e02176ba87ec5a97f5b3316b|d6a17bfc>` Update readme 9 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/003927e6c73068f440c28da69386798ece9cb6dc|003927e6>` Update readme 10 - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/5de643873ff93dc9163c4c63d3fb7c2ee1bb33b4|5de64387>` Update readme 11 - jose nogueira",
+  "unfurl_links": false
+}
+will notify #docs
+{
+  "channel": "docs",
+  "username": "monorepo:develop",
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "unfurl_links": false
+}
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
+  "username": "monorepo:develop",
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "unfurl_links": false
+}
+will notify #testing
+{
+  "channel": "testing",
+  "username": "monorepo:develop",
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false
 }
 ===== file ../mock_payloads/push.merge.json =====
@@ -539,12 +662,33 @@ will notify #all-push-events
 {
   "channel": "all-push-events",
   "username": "monorepo:develop",
-  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira\n`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/80452f696a8988e7234063d47720a62e902f2afc|80452f69>` Update readme - jose nogueira",
+  "unfurl_links": false
+}
+will notify #docs
+{
+  "channel": "docs",
+  "username": "monorepo:develop",
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "unfurl_links": false
+}
+will notify #id[slack_mail@example.com]
+{
+  "channel": "id[slack_mail@example.com]",
+  "username": "monorepo:develop",
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false
 }
 will notify #longest-a1
 {
   "channel": "longest-a1",
+  "username": "monorepo:develop",
+  "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
+  "unfurl_links": false
+}
+will notify #testing
+{
+  "channel": "testing",
   "username": "monorepo:develop",
   "text": "`<https://github.com/thatportugueseguy/monorepo/commit/e2173f38ae43865433a182c1fc1b5442d9763b54|e2173f38>` Add TESTING.md - jose nogueira",
   "unfurl_links": false

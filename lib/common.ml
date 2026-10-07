@@ -87,6 +87,9 @@ module FailedStepSet = Set (struct
   let compare (t1 : t) (t2 : t) = String.compare t1.id t2.id
 end)
 
+(** [dedup_by eq l] removes later duplicates from [l], keeping the order of the first occurrences *)
+let dedup_by eq l = List.fold_left (fun acc x -> if List.exists (eq x) acc then acc else x :: acc) [] l |> List.rev
+
 module Status_notification = struct
   type t =
     | Channel of Slack_channel.Any.t
@@ -104,6 +107,7 @@ module Status_notification = struct
 
   let compare a b = Slack_channel.compare (to_slack_channel a) (to_slack_channel b)
   let equal a b = compare a b = 0
+  let dedup = dedup_by equal
 end
 
 module Map (S : Map.OrderedType) = struct
