@@ -120,6 +120,51 @@ let populate_issue repository (issue : issue) =
     fallback = Some (sprintf "[%s] %s" repository.full_name title);
   }
 
+let populate_comment ?(verb = "commented on") repository ~subject ~color (comment : api_comment) =
+  let footer =
+    match comment.path with
+    | None -> simple_footer repository
+    | Some path -> sprintf "%s · %s" (simple_footer repository) (escape_mrkdwn path)
+  in
+  let title = sprintf "%s %s %s" comment.user.login verb subject in
+  {
+    (base_attachment repository) with
+    footer = Some footer;
+    color = Some color;
+    mrkdwn_in = Some [ "text" ];
+    title = Some (Mrkdwn.escape_mrkdwn title);
+    title_link = Some comment.html_url;
+    text = unfurl_text_of_body (Some comment.body);
+    fallback = Some (sprintf "[%s] %s" repository.full_name title);
+  }
+
+let populate_pull_request_comment repository ((pull_request : pull_request), comment) =
+  let { number; title; draft; merged; state; _ } = pull_request in
+  populate_comment repository ~subject:(sprintf "#%d %s" number title) ~color:(color_of_state ~draft ~merged state)
+    comment
+
+let populate_issue_comment repository ((issue : issue), comment) =
+  let { number; title; state; _ } = issue in
+  populate_comment repository ~subject:(sprintf "#%d %s" number title) ~color:(color_of_state state) comment
+
+let populate_pull_request_review repository ((pull_request : pull_request), (review : api_review)) =
+  let verb, color =
+    match String.lowercase_ascii review.state with
+    | "approved" -> "approved", Colors.green
+    | "changes_requested" -> "requested changes on", Colors.red
+    | _ -> "reviewed", Colors.gray
+  in
+  populate_comment ~verb repository
+    ~subject:(sprintf "#%d %s" pull_request.number pull_request.title)
+    ~color
+    { user = review.user; body = Option.default "" review.body; html_url = review.html_url; path = None }
+
+let populate_commit_comment repository ((api_commit : api_commit), comment) =
+  let subject =
+    sprintf "commit %s %s" (Slack.git_short_sha_hash api_commit.sha) (Util.first_line api_commit.commit.message)
+  in
+  populate_comment repository ~subject ~color:Colors.gray comment
+
 (* use some date library :see_no_evil: *)
 let month = function
   | 1 -> "Jan"

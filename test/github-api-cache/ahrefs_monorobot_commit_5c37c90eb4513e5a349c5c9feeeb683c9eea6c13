@@ -1,0 +1,58 @@
+{
+  "sha": "5c37c90eb4513e5a349c5c9feeeb683c9eea6c13",
+  "commit": {
+    "author": {
+      "name": "Louis Roch\u00e9",
+      "email": "louis.roche@ahrefs.com",
+      "date": "2020-05-26T09:20:11Z"
+    },
+    "committer": {
+      "name": "Louis Roch\u00e9",
+      "email": "louis.roche@ahrefs.com",
+      "date": "2020-05-26T09:20:11Z"
+    },
+    "message": "filter list of PR actions that can become a notification"
+  },
+  "html_url": "https://github.com/ahrefs/monorobot/commit/5c37c90eb4513e5a349c5c9feeeb683c9eea6c13",
+  "author": {
+    "login": "Khady",
+    "id": 974142,
+    "url": "https://api.github.com/users/Khady",
+    "html_url": "https://github.com/Khady",
+    "avatar_url": "https://avatars.githubusercontent.com/u/974142?v=4"
+  },
+  "files": [
+    {
+      "sha": "018ce679d4abc1ca88c7a34aa8c91e99fe5f4abf",
+      "filename": "src/action.ml",
+      "status": "modified",
+      "additions": 14,
+      "deletions": 13,
+      "changes": 27,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/5c37c90eb4513e5a349c5c9feeeb683c9eea6c13/src%2Faction.ml"
+    },
+    {
+      "sha": "930791cc1e64e829a8a04180afd99348e0b645f2",
+      "filename": "src/github.atd",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 3,
+      "changes": 6,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/5c37c90eb4513e5a349c5c9feeeb683c9eea6c13/src%2Fgithub.atd"
+    },
+    {
+      "sha": "357e9c53c9a14031023cb9936fbc18dc51f8ab0b",
+      "filename": "src/slack.ml",
+      "status": "modified",
+      "additions": 9,
+      "deletions": 7,
+      "changes": 16,
+      "blob_url": "https://github.com/ahrefs/monorobot/blob/5c37c90eb4513e5a349c5c9feeeb683c9eea6c13/src%2Fslack.ml"
+    }
+  ],
+  "stats": {
+    "total": 49,
+    "additions": 26,
+    "deletions": 23
+  }
+}

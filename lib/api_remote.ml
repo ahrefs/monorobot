@@ -55,6 +55,14 @@ module Github : Api.Github = struct
     let _, url = ExtLib.String.replace ~sub:"{/number}" ~by:(sprintf "/%d" number) ~str:repo.issues_url in
     url
 
+  (** API url of the repository (e.g. https://api.github.com/repos/owner/name). The repository record has no
+      field for it, so it is derived from [pulls_url]. *)
+  let repo_api_url (repo : Github_t.repository) =
+    let suffix = "/pulls{/number}" in
+    match String.ends_with ~suffix repo.pulls_url with
+    | true -> Ok (String.sub repo.pulls_url 0 (String.length repo.pulls_url - String.length suffix))
+    | false -> fmt_error "cannot derive repository API url from pulls_url %s" repo.pulls_url
+
   let compare_url ~(repo : Github_t.repository) ~basehead:(base, merge) =
     let _, url = ExtLib.String.replace ~sub:"{/basehead}" ~by:(sprintf "/%s...%s" base merge) ~str:repo.compare_url in
     url
@@ -122,6 +130,11 @@ module Github : Api.Github = struct
     let%lwt res = commits_url ~repo ~sha |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
     Lwt.return @@ Result.map Github_j.api_commit_of_string res
 
+  let get_api_commit_summary ~(ctx : Context.t) ~(repo : Github_t.repository) ~sha =
+    let url = Uri.add_query_param' (Uri.of_string (commits_url ~repo ~sha)) ("per_page", "1") |> Uri.to_string in
+    let%lwt res = get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url url in
+    Lwt.return @@ Result.map Github_j.api_commit_of_string res
+
   let get_api_commit_webhook ~(ctx : Context.t) ~commits_url ~repo_url ~sha =
     let _, commits_url = ExtLib.String.replace ~sub:"{/sha}" ~by:("/" ^ sha) ~str:commits_url in
     let%lwt res = get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url commits_url in
@@ -134,6 +147,24 @@ module Github : Api.Github = struct
   let get_issue ~(ctx : Context.t) ~(repo : Github_t.repository) ~number =
     let%lwt res = issues_url ~repo ~number |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url in
     Lwt.return @@ Result.map Github_j.issue_of_string res
+
+  let get_comment ~(ctx : Context.t) ~(repo : Github_t.repository) path =
+    match repo_api_url repo with
+    | Error e -> Lwt.return_error e
+    | Ok api_url ->
+      let%lwt res = get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url (api_url ^ path) in
+      Lwt.return @@ Result.map Github_j.api_comment_of_string res
+
+  let get_issue_comment ~ctx ~repo ~id = get_comment ~ctx ~repo (sprintf "/issues/comments/%d" id)
+  let get_pull_request_review_comment ~ctx ~repo ~id = get_comment ~ctx ~repo (sprintf "/pulls/comments/%d" id)
+  let get_commit_comment ~ctx ~repo ~id = get_comment ~ctx ~repo (sprintf "/comments/%d" id)
+
+  let get_pull_request_review ~(ctx : Context.t) ~(repo : Github_t.repository) ~number ~id =
+    let%lwt res =
+      sprintf "%s/reviews/%d" (pulls_url ~repo ~number) id
+      |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
+    in
+    Lwt.return @@ Result.map Github_j.api_review_of_string res
 
   let get_compare ~(ctx : Context.t) ~(repo : Github_t.repository) ~basehead =
     let%lwt res =

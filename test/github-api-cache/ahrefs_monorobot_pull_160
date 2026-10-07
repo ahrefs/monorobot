@@ -1,0 +1,18 @@
+{
+  "user": {
+    "login": "thatportugueseguy",
+    "id": 8755205,
+    "url": "https://api.github.com/users/thatportugueseguy",
+    "html_url": "https://github.com/thatportugueseguy",
+    "avatar_url": "https://avatars.githubusercontent.com/u/8755205?v=4"
+  },
+  "number": 160,
+  "body": "With this change monorobot will only send one notification per failing/failed step, when a step is newly broken. If dev B's build has some failing steps from previous commit with dev A's code, dev B will not be notified. Only dev A will be notified, and only on the first time the build failed with that/those failing step(s). If there are new steps broken by dev C, while maintaining the original failed builds, dev C will only be notified about the steps they are responsible for breaking.\r\n\r\n(Buildkite specific)\r\nIf the policy for failure is `allow_once`, there will be only one DM, sent after the whole build failed, and showing all the failed steps. Until these steps are fixed and broken again, there is no other notification for them.\r\n\r\nIf the policy for failure is `allow`, there will be two DMS with the above rules. The first will be on the notification for `build is failing`, the second will be on the notification for `build is failed`",
+  "html_url": "https://github.com/ahrefs/monorobot/pull/160",
+  "labels": [],
+  "requested_reviewers": [],
+  "state": "closed",
+  "title": "DM only when user breaks a step",
+  "merged": true,
+  "draft": false
+}

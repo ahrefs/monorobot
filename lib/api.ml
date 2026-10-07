@@ -5,10 +5,24 @@ open Slack_t
 module type Github = sig
   val get_config : ctx:Context.t -> repo:repository -> (Config_t.config, string) Result.t Lwt.t
   val get_api_commit : ctx:Context.t -> repo:repository -> sha:string -> (api_commit, string) Result.t Lwt.t
+
+  (** same as [get_api_commit] but [files] only contains the first changed file, cheaper for large commits *)
+  val get_api_commit_summary : ctx:Context.t -> repo:repository -> sha:string -> (api_commit, string) Result.t Lwt.t
+
   val get_api_commit_webhook :
     ctx:Context.t -> commits_url:string -> repo_url:string -> sha:string -> (api_commit, string) Result.t Lwt.t
   val get_pull_request : ctx:Context.t -> repo:repository -> number:int -> (pull_request, string) Result.t Lwt.t
   val get_issue : ctx:Context.t -> repo:repository -> number:int -> (issue, string) Result.t Lwt.t
+  val get_issue_comment : ctx:Context.t -> repo:repository -> id:int -> (api_comment, string) Result.t Lwt.t
+
+  val get_pull_request_review_comment :
+    ctx:Context.t -> repo:repository -> id:int -> (api_comment, string) Result.t Lwt.t
+
+  val get_commit_comment : ctx:Context.t -> repo:repository -> id:int -> (api_comment, string) Result.t Lwt.t
+
+  val get_pull_request_review :
+    ctx:Context.t -> repo:repository -> number:int -> id:int -> (api_review, string) Result.t Lwt.t
+
   val get_compare : ctx:Context.t -> repo:repository -> basehead:Github.basehead -> (compare, string) Result.t Lwt.t
 
   val request_reviewers :

@@ -37,6 +37,8 @@ NB: please save the cache file in the same format *)
   let get_api_commit ~ctx:_ ~repo ~sha =
     get_repo_member_cache ~repo ~kind:"commit" ~ref_:sha ~of_string:Github_j.api_commit_of_string
 
+  let get_api_commit_summary = get_api_commit
+
   let get_api_commit_webhook ~ctx:_ ~commits_url ~repo_url ~sha =
     (* creating a fake repository record to avoid making deep changes to get_repo_member_cache *)
     let repo : Github_t.repository =
@@ -58,6 +60,19 @@ NB: please save the cache file in the same format *)
 
   let get_issue ~ctx:_ ~(repo : Github_t.repository) ~number =
     get_repo_member_cache ~repo ~kind:"issue" ~ref_:(Int.to_string number) ~of_string:Github_j.issue_of_string
+
+  let get_issue_comment ~ctx:_ ~(repo : Github_t.repository) ~id =
+    get_repo_member_cache ~repo ~kind:"issue_comment" ~ref_:(Int.to_string id) ~of_string:Github_j.api_comment_of_string
+
+  let get_pull_request_review_comment ~ctx:_ ~(repo : Github_t.repository) ~id =
+    get_repo_member_cache ~repo ~kind:"pull_comment" ~ref_:(Int.to_string id) ~of_string:Github_j.api_comment_of_string
+
+  let get_commit_comment ~ctx:_ ~(repo : Github_t.repository) ~id =
+    get_repo_member_cache ~repo ~kind:"commit_comment" ~ref_:(Int.to_string id)
+      ~of_string:Github_j.api_comment_of_string
+
+  let get_pull_request_review ~ctx:_ ~(repo : Github_t.repository) ~number:_ ~id =
+    get_repo_member_cache ~repo ~kind:"pull_review" ~ref_:(Int.to_string id) ~of_string:Github_j.api_review_of_string
 
   let get_compare ~ctx:_ ~(repo : Github_t.repository) ~basehead:(base, merge) =
     get_repo_member_cache ~repo ~kind:"compare" ~ref_:(sprintf "%s...%s" base merge)
