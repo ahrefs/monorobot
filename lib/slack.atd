@@ -82,16 +82,48 @@ type lookup_user_res = {
 }
 
 type profile = {
-  ?email: string nullable
+  ?display_name: string nullable;
+  ?email: string nullable;
+  ?real_name: string nullable;
 }
 
 type user = {
   id: user_id;
-  profile: profile
+  ?name: string nullable;
+  profile: profile;
+  ?real_name: string nullable;
 }
 
 type list_users_res = {
   members: user list;
+}
+
+type user_info_req = {
+  user: user_id;
+  ?include_locale: bool nullable;
+}
+
+type user_info_res = {
+  user: user;
+}
+
+type conversations_info_req = {
+  channel: channel_id;
+  ?include_locale: bool nullable;
+  ?include_num_members: bool nullable;
+}
+
+type conversation = {
+  id: channel_id;
+  ?name: string nullable;
+  ~is_channel <ocaml default="false">: bool;
+  ~is_group <ocaml default="false">: bool;
+  ~is_im <ocaml default="false">: bool;
+  ?user: user_id nullable;
+}
+
+type conversations_info_res = {
+  channel: conversation;
 }
 
 type link_shared_link = {
