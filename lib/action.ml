@@ -153,6 +153,25 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
     | [] -> default_channel_target cfg.label_rules.default_channel
     | targets -> targets
 
+  module Labeled_cache = Util.Cache (struct
+    type t = unit
+  end)
+
+  (* When several labels are added at once, github sends one `labeled` event per label, each carrying the full
+     label list, which would produce identical notifications. Duplicates arrive within seconds, hence the short
+     ttl. Re-adding the exact same label set within the ttl is suppressed too. *)
+  let labeled_cache = Labeled_cache.create ~ttl:(Ptime.Span.of_int_s (5 * 60)) ()
+
+  let partition_labeled cfg ~html_url (labels : label list) =
+    let key =
+      html_url :: List.sort String.compare (List.map (fun (l : label) -> l.name) labels) |> String.concat "\n"
+    in
+    match Labeled_cache.get labeled_cache key with
+    | Some () -> []
+    | None ->
+      Labeled_cache.set labeled_cache key ();
+      partition_label cfg labels
+
   let partition_pr cfg (ctx : Context.t) (n : pr_notification) =
     match n.action with
     | (Opened | Closed | Reopened | Ready_for_review) when not n.pull_request.draft ->
@@ -170,12 +189,13 @@ module Action (Github_api : Api.Github) (Slack_api : Api.Slack) (Buildkite_api :
            If we have a new label that triggers a notification on a new channel, we'll notify the channel.
            If the label triggers a notification on a channel with an existing thread, the notification will go
            in the thread *)
-        partition_label cfg n.pull_request.labels)
+        partition_labeled cfg ~html_url:n.pull_request.html_url n.pull_request.labels)
     | _ -> []
 
   let partition_issue cfg (n : issue_notification) =
     match n.action with
-    | Opened | Closed | Reopened | Labeled -> partition_label cfg n.issue.labels
+    | Opened | Closed | Reopened -> partition_label cfg n.issue.labels
+    | Labeled -> partition_labeled cfg ~html_url:n.issue.html_url n.issue.labels
     | _ -> []
 
   let partition_pr_review_comment cfg (n : pr_review_comment_notification) =

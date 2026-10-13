@@ -1,0 +1,18 @@
+{
+  "pipeline_statuses": {},
+  "pipeline_commits": {},
+  "slack_threads": {
+    "https://github.com/xinyuluo/monorepo/pull/4": [
+      {
+        "channel": "a1-bot",
+        "ts": "1728399554.482879",
+        "cid": "Ca1bot"
+      },
+      {
+        "channel": "backend",
+        "ts": "1728399554.444444",
+        "cid": "Cbackend"
+      }
+    ]
+  }
+}

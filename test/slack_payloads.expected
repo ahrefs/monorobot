@@ -398,6 +398,7 @@ will notify #id[slack_mail@example.com]
   ],
   "unfurl_links": false
 }
+===== file ../mock_payloads/pull_request.labeled_two_labels_with_thread_duplicate.json =====
 ===== file ../mock_payloads/pull_request.opened_one_label.json =====
 will notify #frontend-bot
 {
