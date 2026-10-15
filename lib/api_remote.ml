@@ -67,6 +67,10 @@ module Github : Api.Github = struct
     let _, url = ExtLib.String.replace ~sub:"{/basehead}" ~by:(sprintf "/%s...%s" base merge) ~str:repo.compare_url in
     url
 
+  let git_url ~(repo : Github_t.repository) ~path =
+    let _, base = ExtLib.String.replace ~sub:"/commits{/sha}" ~by:"" ~str:repo.commits_url in
+    sprintf "%s/git/%s" base path
+
   let build_headers ?token () =
     let headers = [ "Accept: application/vnd.github.v3+json" ] in
     Option.map_default (fun v -> sprintf "Authorization: token %s" v :: headers) headers token
@@ -171,6 +175,20 @@ module Github : Api.Github = struct
       compare_url ~repo ~basehead |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
     in
     Lwt.return @@ Result.map Github_j.compare_of_string res
+
+  let get_git_ref ~(ctx : Context.t) ~(repo : Github_t.repository) ~ref_ =
+    let%lwt res =
+      git_url ~repo ~path:(sprintf "ref/%s" ref_)
+      |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
+    in
+    Lwt.return @@ Result.map Github_j.git_ref_of_string res
+
+  let get_git_tag ~(ctx : Context.t) ~(repo : Github_t.repository) ~sha =
+    let%lwt res =
+      git_url ~repo ~path:(sprintf "tags/%s" sha)
+      |> get_resource ~secrets:(Context.get_secrets_exn ctx) ~repo_url:repo.url
+    in
+    Lwt.return @@ Result.map Github_j.git_tag_of_string res
 
   let request_reviewers ~(ctx : Context.t) ~(repo : Github_t.repository) ~number ~reviewers =
     let body = Github_j.string_of_request_reviewers_req reviewers in

@@ -1,5 +1,6 @@
 type status_rule <ocaml from="Rule"> = abstract
 type prefix_rule <ocaml from="Rule"> = abstract
+type tag_rule <ocaml from="Rule"> = abstract
 type label_rule <ocaml from="Rule"> = abstract
 type project_owners_rule <ocaml from="Rule"> = abstract
 type any_channel = string wrap <ocaml t="Common.Slack_channel.Any.t" wrap="Common.Slack_channel.Any.inject" unwrap="Common.Slack_channel.Any.project">
@@ -33,6 +34,11 @@ type prefix_rules = {
   rules: prefix_rule list;
 }
 
+(* This type of rule is used for announcements about pushed tags. *)
+type tag_rules = {
+  rules: tag_rule list;
+}
+
 (* This type of rule is used for PR and issue notifications. *)
 type label_rules = {
   ?default_channel: channel_name nullable; (* if none of the rules is matching *)
@@ -55,6 +61,7 @@ type config = {
   prefix_rules : prefix_rules;
   label_rules : label_rules;
   ~status_rules <ocaml default="{allowed_pipelines = Some []; rules = []}"> : status_rules;
+  ~tag_rules <ocaml default="({rules = []} : tag_rules)"> : tag_rules;
   ~project_owners <ocaml default="{rules = []}"> : project_owners;
   ~ignored_users <ocaml default="[]">: string list; (* list of ignored users *)
   ~known_bot_pushers <ocaml default="[]">: string list; (* sender logins (e.g. "github-merge-queue[bot]") whose single-author pushes are treated as analogous to a self-push, suppressing the redundant "pushed by <bot>" line; batched pushes folding multiple authors' commits still get the line *)

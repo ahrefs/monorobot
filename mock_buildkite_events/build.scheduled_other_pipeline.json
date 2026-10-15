@@ -1,0 +1,22 @@
+{
+  "event": "build.scheduled",
+  "build": {
+    "id": "0192f3a1-0000-4000-8000-000000000001",
+    "web_url": "https://buildkite.com/ahrefs/qa-e2e/builds/999",
+    "number": 999,
+    "state": "scheduled",
+    "created_at": "2026-10-09T16:32:00.000Z",
+    "message": "release-20261009-1632",
+    "commit": "0123456789abcdef0123456789abcdef01234567",
+    "branch": "release-20261009-1632"
+  },
+  "pipeline": {
+    "id": "0192f3a1-0000-4000-8000-000000000002",
+    "web_url": "https://buildkite.com/ahrefs/qa-e2e",
+    "name": "qa-e2e",
+    "description": "",
+    "repository": "git@github.com:ahrefs/monorepo.git",
+    "slug": "qa-e2e",
+    "provider": { "settings": { "repository": "ahrefs/monorepo" } }
+  }
+}

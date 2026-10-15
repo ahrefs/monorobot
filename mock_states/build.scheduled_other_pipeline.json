@@ -1,0 +1,16 @@
+{
+  "pipeline_statuses": {},
+  "pipeline_commits": {},
+  "slack_threads": {},
+  "release_threads": {
+    "release-20261009-1632": {
+      "thread": {
+        "ts": "1760000000.000100",
+        "channel": "software-status",
+        "cid": "Csoftware"
+      },
+      "created_at": "2026-10-09T16:32:00+00:00",
+      "build_url_posted": false
+    }
+  }
+}

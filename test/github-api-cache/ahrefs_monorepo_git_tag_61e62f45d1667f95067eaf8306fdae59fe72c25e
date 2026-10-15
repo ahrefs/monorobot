@@ -1,0 +1,7 @@
+{
+  "tag": "release-20260930-1400",
+  "sha": "61e62f45d1667f95067eaf8306fdae59fe72c25e",
+  "message": "4d5e6f708192 parser: handle <nil> and <empty> inputs without crashing (#103)\n5e6f708192a3 api: validate request & response payloads (#104)\n\nparser & api_docs\n\nPrevious-Release: release-20260930-1248\n",
+  "tagger": { "name": "Phong Le", "email": "phong.le@testdomain.com", "date": "2026-09-30T14:00:00Z" },
+  "object": { "sha": "b2c3d4e5f6a70000000000000000000000000000", "type": "commit" }
+}

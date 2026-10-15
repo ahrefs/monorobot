@@ -658,6 +658,56 @@ will notify #default
   "text": "<https://github.com/org/repo/compare/7fbe59ab63e6...2f239e604610|2 commits> pushed by github-merge-queue[bot]\n`<https://github.com/org/repo/commit/a1b2c3d4e5f60718293a4b5c6d7e8f9001122334|a1b2c3d4>` Update readme (<https://github.com/org/repo/pull/16|#16>) - User Name\n`<https://github.com/org/repo/commit/c3d4e5f6071829394b5c6d7e8f90011223344556|c3d4e5f6>` Add TESTING.md (<https://github.com/org/repo/pull/17|#17>) - Second User",
   "unfurl_links": false
 }
+===== file ../mock_payloads/push.tag_deleted.json =====
+===== file ../mock_payloads/push.tag_lightweight.json =====
+will notify #releases
+{
+  "channel": "releases",
+  "text": ":rocket: `core` release by xinyuluo - `release-20260930-1035`",
+  "unfurl_links": false
+}
+===== file ../mock_payloads/push.tag_release.json =====
+will notify #releases
+{
+  "channel": "releases",
+  "text": ":rocket: `core` release by <@some_slack_id> - `release-20260930-0951` — 3 commits · <https://github.com/ahrefs/monorepo/compare/release-20260929-1848...release-20260930-0951|compare>",
+  "unfurl_links": false
+}
+will upload file
+{
+  channel_id: "releases",
+  initial_comment: null,
+  thread_ts: "mock_ts",
+  files: [
+    {
+      name: "release-20260930-0951.txt",
+      alt_txt: null,
+      title: "release-20260930-0951 changelog",
+      content: "1a2b3c4d5e6f core: retry failed uploads instead of dropping them (#101)\n2b3c4d5e6f70 docs: describe the <config> file layout\n3c4d5e6f7081 ci: cache the build directory between runs (#102)"
+    }
+  ]
+}
+===== file ../mock_payloads/push.tag_small.json =====
+will notify #releases
+{
+  "channel": "releases",
+  "text": ":rocket: `core` release by <@some_slack_id> - `release-20260930-1400` — 2 commits · <https://github.com/ahrefs/monorepo/compare/release-20260930-1248...release-20260930-1400|compare>\nparser &amp; api_docs",
+  "unfurl_links": false
+}
+will notify #releases
+{
+  "channel": "releases",
+  "thread_ts": "mock_ts",
+  "text": "`4d5e6f708192` parser: handle &lt;nil&gt; and &lt;empty&gt; inputs without crashing (<https://github.com/ahrefs/monorepo/pull/103|#103>)\n`5e6f708192a3` api: validate request &amp; response payloads (<https://github.com/ahrefs/monorepo/pull/104|#104>)",
+  "unfurl_links": false
+}
+===== file ../mock_payloads/push.tag_unreadable.json =====
+will notify #releases
+{
+  "channel": "releases",
+  "text": ":rocket: `core` release by xinyuluo - `release-20260930-1213`",
+  "unfurl_links": false
+}
 ===== file ../mock_payloads/push.two_commits_longest_match.json =====
 will notify #all-push-events
 {
@@ -1252,3 +1302,33 @@ will unfurl in #C047QTRD1CH
     }
   }
 }
+===== file ../mock_buildkite_events/build.finished_blocked.json =====
+===== file ../mock_buildkite_events/build.finished_canceled.json =====
+===== file ../mock_buildkite_events/build.finished_passed.json =====
+===== file ../mock_buildkite_events/build.scheduled_already_posted.json =====
+===== file ../mock_buildkite_events/build.scheduled_ignored.json =====
+===== file ../mock_buildkite_events/build.scheduled_matching.json =====
+will notify #software-status
+{
+  "channel": "software-status",
+  "thread_ts": "1760000000.000100",
+  "text": "<https://buildkite.com/ahrefs/trixie/builds/123456|Build #123456>",
+  "unfurl_links": false
+}
+===== file ../mock_buildkite_events/build.scheduled_other_pipeline.json =====
+===== file ../mock_buildkite_events/job.activated_deploy.json =====
+will notify #software-status
+{
+  "channel": "software-status",
+  "thread_ts": "1760000000.000100",
+  "text": "<https://buildkite.com/ahrefs/trixie/builds/123456|Build #123456>",
+  "unfurl_links": false
+}
+will notify #software-status
+{
+  "channel": "software-status",
+  "thread_ts": "1760000000.000100",
+  "text": ":unlock: *Deploy Ahrefs to prod* unblocked by Dev One",
+  "unfurl_links": false
+}
+===== file ../mock_buildkite_events/job.finished_failed_on_main.json =====

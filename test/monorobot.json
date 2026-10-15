@@ -40,6 +40,17 @@
   },
   "ignored_users": ["ignored_user"],
   "known_bot_pushers": ["github-merge-queue[bot]"],
+  "tag_rules": {
+    "rules": [
+      {
+        "prefix": "release-",
+        "channel": "releases",
+        "label": "core",
+        "inline_commit_limit": 2,
+        "pipeline": "buildkite/trixie"
+      }
+    ]
+  },
   "prefix_rules": {
     "default_channel": "default",
     "filter_main_branch": true,

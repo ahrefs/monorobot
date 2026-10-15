@@ -1,6 +1,17 @@
 (executables
- (names test github_link_test longest_prefix_test pipeline_owners_test rule_destinations_test)
- (libraries monorobotlib devkit devkit.core extlib lwt.unix yojson)
+ (names
+  test
+  github_link_test
+  longest_prefix_test
+  pipeline_owners_test
+  tag_rule_test
+  tag_ref_test
+  release_test
+  repo_url_key_test
+  release_thread_test
+  release_eviction_test
+  rule_destinations_test)
+ (libraries monorobotlib devkit devkit.core extlib lwt.unix yojson ptime ptime.clock)
  (preprocess
   (pps lwt_ppx)))
 
@@ -10,6 +21,7 @@
   (source_tree ../mock_states)
   (source_tree ../mock_payloads)
   (source_tree ../mock_slack_events)
+  (source_tree ../mock_buildkite_events)
   (source_tree github-api-cache)
   (source_tree buildkite-api-cache)
   (source_tree slack-api-cache)
@@ -39,6 +51,52 @@
  (alias runtest)
  (action
   (run ./pipeline_owners_test.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./tag_rule_test.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./tag_ref_test.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./release_test.exe)))
+
+(rule
+ (alias runtest)
+ (deps ../mock_payloads/push.tag_release.json)
+ (action
+  (run ./repo_url_key_test.exe)))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./release_thread_test.exe)))
+
+(rule
+ (alias runtest)
+ (deps
+  monorobot.json
+  secrets.json
+  ../mock_buildkite_events/build.finished_blocked.json
+  ../mock_buildkite_events/build.finished_passed.json
+  ../mock_buildkite_events/build.finished_canceled.json
+  ../mock_buildkite_events/build.scheduled_matching.json
+  ../mock_buildkite_events/job.activated_deploy.json
+  ../mock_states/job.activated_deploy.json
+  ../mock_states/build.finished_blocked.json
+  ../mock_states/build.finished_passed.json
+  ../mock_states/build.finished_canceled.json
+  ../mock_payloads/push.tag_release.json
+  (source_tree github-api-cache)
+  (source_tree slack-api-cache))
+ (action
+  (run ./release_eviction_test.exe)))
 
 (rule
  (alias runtest)

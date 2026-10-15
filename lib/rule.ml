@@ -113,6 +113,13 @@ module Prefix = struct
       Printf.printf " -> %s\n%!" (Target.print_all (Target.of_rule ~channels:rule.channels ~dms:rule.dms)))
 end
 
+module Tag = struct
+  (** [match_rules tag ~rules] returns the first rule in [rules] whose prefix
+      the tag name starts with. *)
+  let match_rules tag ~rules =
+    List.find_opt (fun (rule : Rule_t.tag_rule) -> String.starts_with tag ~prefix:rule.prefix) rules
+end
+
 module Label = struct
   (** [match_rules l rs] returns the targets of the rules in [rs] that
       allow label [l], if one exists. A rule [r] matches label [l], if [l] is

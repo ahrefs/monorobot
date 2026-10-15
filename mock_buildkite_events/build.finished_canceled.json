@@ -1,0 +1,26 @@
+{
+  "event": "build.finished",
+  "build": {
+    "id": "0192f3a1-0000-4000-8000-000000000001",
+    "web_url": "https://buildkite.com/ahrefs/trixie/builds/123456",
+    "number": 123456,
+    "state": "canceled",
+    "created_at": "2026-10-09T16:32:00.000Z",
+    "message": "release-20261009-1632",
+    "commit": "0123456789abcdef0123456789abcdef01234567",
+    "branch": "release-20261009-1632"
+  },
+  "pipeline": {
+    "id": "0192f3a1-0000-4000-8000-000000000002",
+    "web_url": "https://buildkite.com/ahrefs/trixie",
+    "name": "trixie",
+    "description": "",
+    "repository": "git@github.com:ahrefs/monorepo.git",
+    "slug": "trixie",
+    "provider": {
+      "settings": {
+        "repository": "ahrefs/monorepo"
+      }
+    }
+  }
+}

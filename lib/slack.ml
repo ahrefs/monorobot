@@ -258,7 +258,7 @@ let generate_issue_comment_notification ~(ctx : Context.t) ~slack_match_func not
     ?attachments:(format_attachments ~slack_match_func ~footer:None ~body:(Some comment.body))
     ~channel ()
 
-let git_short_sha_hash hash = String.sub hash 0 8
+let git_short_sha_hash hash = String.sub hash 0 (min 8 @@ String.length hash)
 
 (** pretty print github commit *)
 let pp_commit_common url id message author =
@@ -341,6 +341,93 @@ let generate_push_notification ~known_bot_pushers notification channel =
       end
     in
     make_message ~username ~channel ~text:(String.concat "\n" lines) ()
+
+type tag_reply =
+  | Inline of string
+  | Upload of file
+
+let default_inline_commit_limit = 50
+
+let mention id = sprintf "<@%s>" (Slack_user_id.project id)
+
+let pp_commit_line ~repo_url line =
+  match String.index_opt line ' ' with
+  | None -> sprintf "`%s`" (escape_mrkdwn line)
+  | Some i ->
+    let sha = String.sub line 0 i in
+    let subject = String.sub line (i + 1) (String.length line - i - 1) in
+    sprintf "`%s` %s" (escape_mrkdwn sha) (Release.link_pull_requests ~repo_url (escape_mrkdwn subject))
+
+let tag_releaser_mention ~slack_match_func ~tagger_email ~tagger_name ~sender_login =
+  let by_email = Option.map_default slack_match_func None tagger_email in
+  match by_email with
+  | Some id -> mention id
+  | None ->
+  match slack_match_func sender_login with
+  | Some id -> mention id
+  | None -> Option.default sender_login tagger_name
+
+let unblock_message ~slack_match_func ~(job : Buildkite_t.activated_job) =
+  let step = Option.default "a blocked step" job.label in
+  let by =
+    match job.unblocked_by with
+    | None -> None
+    | Some { name; email } ->
+    match Option.map_default slack_match_func None email with
+    | Some id -> Some (mention id)
+    | None -> Option.map escape_mrkdwn name
+  in
+  let by =
+    match by with
+    | None -> ""
+    | Some by -> sprintf " by %s" by
+  in
+  sprintf ":unlock: *%s* unblocked%s" (escape_mrkdwn step) by
+
+let generate_tag_notification ~slack_match_func ~(repo : Github_t.repository) ~(rule : Rule_t.tag_rule) ~tag ~release
+  ~tagger_email ~tagger_name ~sender_login () =
+  let releaser = tag_releaser_mention ~slack_match_func ~tagger_email ~tagger_name ~sender_login in
+  let count_part =
+    match release with
+    | None -> ""
+    | Some (r : Release.t) ->
+      let n = Release.commit_count r in
+      sprintf " — %d %s" n (pluralize ~suf:"s" ~len:n "commit")
+  in
+  let links =
+    match release with
+    | Some { Release.previous_release = Some previous; _ } ->
+      sprintf " · %s" (pp_link ~url:(sprintf "%s/compare/%s...%s" repo.url previous tag) "compare")
+    | _ -> ""
+  in
+  let headline = sprintf ":rocket: `%s` release by %s - `%s`%s%s" rule.label releaser tag count_part links in
+  (* The releaser's own note goes on its own line. It is free text from the
+     command line, so it is escaped and it can run long. *)
+  let summary =
+    match release with
+    | Some { Release.note = Some note; _ } -> sprintf "%s\n%s" headline (escape_mrkdwn note)
+    | _ -> headline
+  in
+  let reply =
+    match release with
+    | None -> None
+    | Some { Release.commits = []; _ } -> None
+    | Some ({ Release.commits; _ } : Release.t) ->
+      let limit = Option.default default_inline_commit_limit rule.inline_commit_limit in
+      (match List.length commits > limit with
+      | true ->
+        Some
+          (Upload
+             {
+               name = sprintf "%s.txt" tag;
+               title = Some (sprintf "%s changelog" tag);
+               alt_txt = None;
+               content = String.concat "\n" commits;
+             })
+      | false -> Some (Inline (commits |> List.map (pp_commit_line ~repo_url:repo.url) |> String.concat "\n")))
+  in
+  let req, _ = make_message ~text:summary ~channel:(Slack_channel.to_any rule.channel_name) () in
+  req, reply
 
 let buildkite_description_re = Re2.create_exn {|^Build #(\d+)(.*)|}
 

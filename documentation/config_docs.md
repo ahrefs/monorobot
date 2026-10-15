@@ -43,6 +43,9 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
     "status_rules": {
         ...
     },
+    "tag_rules": {
+        ...
+    },
     "project_owners": {
         ...
     }
@@ -55,6 +58,7 @@ Refer [here](https://docs.github.com/en/free-pro-team@latest/developers/webhooks
 | `label_rules` | label rules config object | required field |
 | `prefix_rules` | prefix rules config object | required field |
 | `status_rules` | status rules config object | all status notifications are ignored |
+| `tag_rules` | tag rules config object | pushed tags are ignored |
 | `project_owners` | project owners config object | no project owners are defined |
 | `ignored_users` | list of users to be ignored on all notifications | no user is ignored |
 | `known_bot_pushers` | bot pusher logins (e.g. `github-merge-queue[bot]`) whose single-author pushes skip the redundant "pushed by" line; multi-author pushes still get it | none |
@@ -301,6 +305,60 @@ You can optionally provide a **status condition** to specify additional requirem
     }
 }
 ```
+
+## Tag Options
+
+When a tag is pushed, monorobot can announce it in a channel and thread the
+release's commit list underneath. Without a `tag_rules` block it ignores
+pushed tags entirely and makes no extra API call.
+
+```json
+"tag_rules": {
+    "rules": [
+        {
+            "prefix": "release-",
+            "channel": "releases",
+            "label": "core",
+            "inline_commit_limit": 50,
+            "pipeline": "buildkite/trixie"
+        }
+    ]
+}
+```
+
+| value | description | default |
+|-|-|-|
+| `prefix` | announce tags whose name starts with this | required field |
+| `channel` | channel to announce in | required field |
+| `label` | the word naming what was released, shown in the announcement | required field |
+| `inline_commit_limit` | post the commit list as a threaded message up to this many commits, and upload it as a file beyond | 50 |
+| `pipeline` | the Buildkite pipeline whose build is linked from the announcement thread, spelled the way `status_rules.allowed_pipelines` spells it (with the `buildkite/` prefix, e.g. `buildkite/trixie`) | no build link |
+
+The build link does not appear in the announcement message itself. It arrives
+as a reply in the announcement's thread, once Buildkite reports the build for
+that tag. This requires monorobot's Buildkite webhook to be subscribed to the
+`build.scheduled` event, a setting in Buildkite rather than in this repo.
+Without that subscription the announcement still posts and no build link
+ever follows.
+
+When a block step in that build is unblocked, the thread gets another reply
+naming the step and whoever released it. Each block step announces once, so a
+deploy gate and a revert gate both appear. This needs the same webhook
+subscribed to `job.activated`.
+
+The first rule whose prefix matches wins, so list more specific prefixes first.
+Only newly created tags announce: deletions and force-retags are ignored.
+
+The commit list comes from the tag's own annotation, so the tag has to be
+annotated rather than lightweight. A lightweight tag still announces, without a
+commit count and without a threaded changelog; it still gets the build-link
+reply described above if the matching rule has a `pipeline`. Two optional
+trailers in the annotation are understood:
+
+- `Previous-Release: <tag>` adds a link comparing that tag with this one.
+- Any other free text between the commit list and the trailers is shown as a
+  note under the announcement, which is a convenient place to say what the
+  release is for when the commit subjects do not.
 
 ## Project Owners
 

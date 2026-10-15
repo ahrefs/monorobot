@@ -45,6 +45,17 @@ type slack_thread = {
 
 type slack_threads = slack_thread list map_as_object
 
+(* Buildkite job ids are unique per block step per build. *)
+type release_thread = {
+  thread: slack_thread;
+  created_at: timestamp;
+  ~build_url_posted <ocaml default="false">: bool;
+  ~unblocked_jobs <ocaml default="[]">: string list;
+}
+
+(* A map from release tag names to the announcement thread for that tag *)
+type release_threads = release_thread map_as_object
+
 type failed_steps = {
   steps: failed_step_set;
   last_build: int;
@@ -55,6 +66,7 @@ type repo_state = {
   ~pipeline_statuses <ocaml mutable default="Common.StringMap.empty">: pipeline_statuses;
   ~pipeline_commits <ocaml mutable default="Common.StringMap.empty">: pipeline_commits;
   ~slack_threads <ocaml mutable default="Common.StringMap.empty">: slack_threads;
+  ~release_threads <ocaml mutable default="Common.StringMap.empty">: release_threads;
   ~failed_steps <ocaml mutable default="Common.Stringtbl.empty ()">: failed_steps table_as_object;
 }
 
