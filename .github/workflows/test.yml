@@ -29,6 +29,9 @@ jobs:
       # the runner image's apt index can reference package versions the mirror no longer serves
       - run: sudo apt-get update
 
+      # Database.Conn needs execute_unprepared, which no sqlgg release on opam has yet (latest is 20260721)
+      - run: opam pin add --no-action sqlgg https://github.com/ygrek/sqlgg.git#4133b17aa201977864d4747fbb24fb2cb8e0757d
+
       - run: opam install . ocamlformat.0.29.0
 
       - name: compile
