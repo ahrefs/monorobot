@@ -1,0 +1,7 @@
+{
+  "tag": "release-20260930-0951",
+  "sha": "3f9a1c2b4d5e6f708192a3b4c5d6e7f809a1b2c3",
+  "message": "1a2b3c4d5e6f core: retry failed uploads instead of dropping them (#101)\n2b3c4d5e6f70 docs: describe the <config> file layout\n3c4d5e6f7081 ci: cache the build directory between runs (#102)\n\nPrevious-Release: release-20260929-1848\n",
+  "tagger": { "name": "Phong Le", "email": "phong.le@testdomain.com", "date": "2026-09-30T09:51:00Z" },
+  "object": { "sha": "a1b2c3d4e5f60000000000000000000000000000", "type": "commit" }
+}

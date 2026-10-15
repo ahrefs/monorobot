@@ -78,6 +78,21 @@ type prefix_rule = {
   ~dms <json name="dm"> : string list;
 } <json adapter.ocaml="Atd_adapters.Prefix_rule_adapter">
 
+(* A tag matches a tag rule when the tag name starts with [prefix]. The
+   announcement goes to [channel] and carries [label] as the name of what was
+   released. When more than [inline_commit_limit] commits are listed, the
+   changelog is uploaded as a file instead of posted inline. [pipeline] is the
+   Buildkite pipeline whose build link is posted into the announcement thread,
+   spelled the way [status_rules.allowed_pipelines] spells it; without it no
+   build link is posted. *)
+type tag_rule = {
+  prefix : string;
+  channel_name <json name="channel"> : channel_name;
+  label : string;
+  ?inline_commit_limit : int nullable;
+  ?pipeline : string nullable;
+}
+
 (* A payload matches a label rule with a channel name if absent from the ignore list
    and present in the allow list. Both [allow] and [ignore] are optional. If [allow]
    is undefined, then the rule matches all payloads. *)

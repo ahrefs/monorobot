@@ -107,7 +107,7 @@ Refer [here](https://api.slack.com/messaging/webhooks) for obtaining a webhook f
 ## `buildkite_access_token`
 This token is used to get informations regarding builds details and components. It's required to use the failed builds notifications feature.
 
-You also need to have one webhook configured on your pipelines with the `build.finished` scope. Configure the `buildkite_signing_secret` setting to validate the payloads if you require it.
+You also need one webhook, configured on your organization's [Notification Services page](https://buildkite.com/organizations/-/services), subscribed to the `build.finished` scope. That is what failed-builds notifications need. If you also use the release thread (see `pipeline` in the tag rules config), subscribe the same webhook to `build.scheduled` for the build link and to `job.activated` for unblock announcements. If you only use failed-builds notifications, you need neither. Configure the `buildkite_signing_secret` setting to validate the payloads if you require it.
 
 To manage your API access tokens, visit your [personal settings page](https://buildkite.com/user/api-access-tokens) where you can create or edit them.
 

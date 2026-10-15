@@ -24,6 +24,8 @@ module type Github = sig
     ctx:Context.t -> repo:repository -> number:int -> id:int -> (api_review, string) Result.t Lwt.t
 
   val get_compare : ctx:Context.t -> repo:repository -> basehead:Github.basehead -> (compare, string) Result.t Lwt.t
+  val get_git_ref : ctx:Context.t -> repo:repository -> ref_:string -> (git_ref, string) Result.t Lwt.t
+  val get_git_tag : ctx:Context.t -> repo:repository -> sha:string -> (git_tag, string) Result.t Lwt.t
 
   val request_reviewers :
     ctx:Context.t -> repo:repository -> number:int -> reviewers:request_reviewers_req -> (unit, string) Result.t Lwt.t

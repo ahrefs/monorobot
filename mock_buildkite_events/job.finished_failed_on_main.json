@@ -1,0 +1,22 @@
+{
+  "event": "job.finished",
+  "build": {
+    "id": "0192f3a1-0000-4000-8000-000000000003",
+    "web_url": "https://buildkite.com/ahrefs/qa/builds/999001",
+    "number": 999001,
+    "state": "failed",
+    "created_at": "2026-10-09T16:32:00.000Z",
+    "message": "qa pipeline failing build",
+    "commit": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+    "branch": "develop"
+  },
+  "pipeline": {
+    "id": "0192f3a1-0000-4000-8000-000000000004",
+    "web_url": "https://buildkite.com/ahrefs/qa",
+    "name": "qa",
+    "description": "",
+    "repository": "git@github.com:ahrefs/monorepo.git",
+    "slug": "qa",
+    "provider": { "settings": { "repository": "ahrefs/monorepo" } }
+  }
+}

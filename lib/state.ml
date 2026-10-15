@@ -10,6 +10,7 @@ let empty_repo_state () : State_t.repo_state =
     pipeline_statuses = StringMap.empty;
     pipeline_commits = StringMap.empty;
     slack_threads = StringMap.empty;
+    release_threads = StringMap.empty;
     failed_steps = Stringtbl.empty ();
   }
 
@@ -178,6 +179,61 @@ let add_thread_if_new { state } ~repo_url ~pr_url (msg : State_t.slack_thread) =
 let delete_thread { state } ~repo_url ~pr_url =
   let repo_state = find_or_add_repo' state repo_url in
   repo_state.slack_threads <- StringMap.remove pr_url repo_state.slack_threads
+
+let release_thread_ttl = Ptime.Span.of_int_s (7 * 24 * 60 * 60)
+
+let get_release_thread { state } ~repo_url ~tag =
+  let repo_state = find_or_add_repo' state repo_url in
+  StringMap.find_opt tag repo_state.release_threads
+
+let add_release_thread { state } ~repo_url ~tag (thread : State_t.release_thread) =
+  let repo_state = find_or_add_repo' state repo_url in
+  repo_state.release_threads <- StringMap.add tag thread repo_state.release_threads
+
+let set_release_thread_build_url_posted { state } ~repo_url ~tag ~posted =
+  let repo_state = find_or_add_repo' state repo_url in
+  repo_state.release_threads <-
+    StringMap.update tag
+      (Stdlib.Option.map (fun (t : State_t.release_thread) -> { t with build_url_posted = posted }))
+      repo_state.release_threads
+
+let record_release_job_unblocked { state } ~repo_url ~tag ~job_id =
+  let repo_state = find_or_add_repo' state repo_url in
+  match StringMap.find_opt tag repo_state.release_threads with
+  | None -> false
+  | Some (t : State_t.release_thread) ->
+  match List.mem job_id t.unblocked_jobs with
+  | true -> false
+  | false ->
+    repo_state.release_threads <-
+      StringMap.add tag { t with unblocked_jobs = job_id :: t.unblocked_jobs } repo_state.release_threads;
+    true
+
+let forget_release_job_unblocked { state } ~repo_url ~tag ~job_id =
+  let repo_state = find_or_add_repo' state repo_url in
+  repo_state.release_threads <-
+    StringMap.update tag
+      (Stdlib.Option.map (fun (t : State_t.release_thread) ->
+         { t with unblocked_jobs = List.filter (fun id -> not (String.equal id job_id)) t.unblocked_jobs }))
+      repo_state.release_threads
+
+let delete_release_thread { state } ~repo_url ~tag =
+  let repo_state = find_or_add_repo' state repo_url in
+  repo_state.release_threads <- StringMap.remove tag repo_state.release_threads
+
+let purge_stale_release_threads { state } ~repo_url =
+  let repo_state = find_or_add_repo' state repo_url in
+  repo_state.release_threads <-
+    StringMap.filter
+      (fun _tag (t : State_t.release_thread) -> not (Util.Webhook.is_past_span t.created_at release_thread_ttl))
+      repo_state.release_threads
+
+(* A block step's blocked_state decides what a build waiting at it reports, and it is one of passed, failed or
+   running, defaulting to passed. None of those three can be read as the build being over. *)
+let release_build_is_terminal (build_state : Buildkite_t.build_state) =
+  match build_state with
+  | Canceled | Skipped | Not_run -> true
+  | Blocked | Canceling | Failed | Failing | Finished | Passed | Running | Scheduled | Other _ -> false
 
 let set_bot_user_id { state; _ } user_id = state.State_t.bot_user_id <- Some user_id
 let get_bot_user_id { state; _ } = state.State_t.bot_user_id

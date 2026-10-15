@@ -29,6 +29,11 @@ let commits_branch_of_ref ref =
   | "refs" :: "heads" :: l -> String.concat "/" l
   | _ -> ref
 
+let tag_of_ref ref =
+  match String.split_on_char '/' ref with
+  | "refs" :: "tags" :: (_ :: _ as l) -> Some (String.concat "/" l)
+  | _ -> None
+
 let event_of_filename filename =
   match String.split_on_char '.' filename with
   | [ kind; _; "json" ] -> Some kind

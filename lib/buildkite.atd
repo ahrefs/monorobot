@@ -96,11 +96,23 @@ type failed_step = {
   escalated_at: timestamp nullable;
 }
 
-(* for now we only subscribe to build.finished *)
 type webhook_event = [
   | Build_finished <json name="build.finished">
+  | Build_scheduled <json name="build.scheduled">
+  | Job_activated <json name="job.activated">
   | Other of string
 ] <json open_enum> <ocaml repr="classic">
+
+type unblocked_by = {
+  ?name : string nullable;
+  ?email : string nullable;
+}
+
+type activated_job = {
+  id : string;
+  ?label : string nullable;
+  ?unblocked_by : unblocked_by nullable;
+}
 
 type build_metadata = {
   ?commit <json name="buildkite:git:commit"> : string nullable;
@@ -140,4 +152,5 @@ type webhook_build_payload =  {
   event: webhook_event;
   build: build_base;
   pipeline: pipeline;
+  ?job : activated_job nullable;
 }

@@ -78,6 +78,12 @@ NB: please save the cache file in the same format *)
     get_repo_member_cache ~repo ~kind:"compare" ~ref_:(sprintf "%s...%s" base merge)
       ~of_string:Github_j.compare_of_string
 
+  let get_git_ref ~ctx:_ ~(repo : Github_t.repository) ~ref_ =
+    get_repo_member_cache ~repo ~kind:"git_ref" ~ref_ ~of_string:Github_j.git_ref_of_string
+
+  let get_git_tag ~ctx:_ ~(repo : Github_t.repository) ~sha =
+    get_repo_member_cache ~repo ~kind:"git_tag" ~ref_:sha ~of_string:Github_j.git_tag_of_string
+
   let request_reviewers ~ctx:_ ~repo:_ ~number:_ ~reviewers:_ = Lwt.return @@ Error "undefined for local setup"
 end
 

@@ -79,6 +79,24 @@ type commit_pushed_notification = {
  sender: github_user;
 }
 
+type git_object = {
+  sha: string;
+  object_type <json name="type">: string;
+}
+
+type git_ref = {
+  ref_ <json name="ref">: string;
+  object_ <json name="object">: git_object;
+}
+
+type git_tag = {
+  tag: string;
+  sha: string;
+  message: string;
+  tagger: git_user_with_date;
+  object_ <json name="object">: git_object;
+}
+
 type label = {
   name: string;
 }

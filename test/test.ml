@@ -5,6 +5,7 @@ let log = Log.from "test"
 let mock_payload_dir = Filename.concat Filename.parent_dir_name "mock_payloads"
 let mock_state_dir = Filename.concat Filename.parent_dir_name "mock_states"
 let mock_slack_event_dir = Filename.concat Filename.parent_dir_name "mock_slack_events"
+let mock_buildkite_event_dir = Filename.concat Filename.parent_dir_name "mock_buildkite_events"
 
 let () =
   (* silence most app level logging *)
@@ -89,6 +90,45 @@ let process_slack_event ~(secrets : Config_t.secrets) path =
     let%lwt _ctx = Action_local.process_link_shared_event ctx event in
     Lwt.return_unit
 
+let get_mock_buildkite_events () =
+  get_sorted_files_from mock_buildkite_event_dir
+  |> List.map (fun fn ->
+    let payload_path = Filename.concat mock_buildkite_event_dir fn in
+    let state_path = Filename.concat mock_state_dir fn in
+    if Sys.file_exists state_path then payload_path, Some state_path else payload_path, None)
+
+let process_bk_payload ~(secrets : Config_t.secrets) ~config (path, state_path) =
+  Printf.printf "===== file %s =====\n" path;
+  match Std.input_file path with
+  | exception exn ->
+    log#error ~exn "failed to read file %s" path;
+    Lwt.return_unit
+  | body ->
+    let n = Buildkite_j.webhook_build_payload_of_string body in
+    let repo_url = Util.Webhook.git_ssh_to_https n.pipeline.repository in
+    let ctx = Context.make () in
+    let secrets = { secrets with repos = [ { url = repo_url; auth = None; gh_hook_secret = None } ] } in
+    ctx.secrets <- Some secrets;
+    let (_ : State_t.repo_state) = State.find_or_add_repo ctx.state repo_url in
+    let () =
+      match state_path with
+      | None -> Context.set_repo_config ctx repo_url config
+      | Some state_path ->
+      match State_j.repo_state_of_string (Std.input_file state_path) with
+      | repo_state ->
+        State.set_repo_state ctx.state repo_url repo_state;
+        Context.set_repo_config ctx repo_url config
+      | exception exn -> log#error ~exn "failed to load state from file %s" state_path
+    in
+    let%lwt () = Action_local.process_buildkite_webhook ctx [] body in
+    (match Sys.getenv_opt "PRINT_TEST_STATE" with
+    | Some s when s = "true" || Stre.exists path s ->
+      let repo_state = State.find_or_add_repo ctx.state repo_url in
+      Printf.printf "-------------- State ------------\n %s\n-------------- State ------------\n"
+        (Yojson.Basic.pretty_to_string (State_j.string_of_repo_state repo_state |> Yojson.Basic.from_string))
+    | _ -> ());
+    Lwt.return_unit
+
 let () =
   let payloads = get_mock_payloads () in
   let repo : Github_t.repository =
@@ -116,6 +156,9 @@ let () =
       let%lwt () = Action_local.refresh_username_to_slack_id_tbl ~ctx in
       let%lwt () = Lwt_list.iter_s (process_gh_payload ~secrets:(Option.get ctx.secrets) ~config) payloads in
       let%lwt () = Lwt_list.iter_s (process_slack_event ~secrets:(Option.get ctx.secrets)) slack_events in
+      let%lwt () =
+        Lwt_list.iter_s (process_bk_payload ~secrets:(Option.get ctx.secrets) ~config) (get_mock_buildkite_events ())
+      in
       Lwt.return_unit
     | Error e ->
       log#error "failed to read secrets:";
